@@ -200,6 +200,7 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
     } else {
       payload.status = 'open'
       payload.submitted_by = profile.id
+      payload.organization_id = profile.organization_id
       const { data: newWo, error: insErr } = await supabase.from('work_orders').insert(payload).select().single()
       err = insErr
       if (newWo) {
