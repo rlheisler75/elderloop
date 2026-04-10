@@ -4,38 +4,52 @@ import { useAuth } from '../../context/AuthContext'
 import {
   Plus, Pin, Cake, Star, Calendar, CloudSun,
   Church, UtensilsCrossed, Bell, Megaphone,
-  X, Edit2, Trash2, Search, Monitor
+  X, Edit2, Trash2, Search, Monitor, Clock
 } from 'lucide-react'
 
 const CATEGORIES = [
-  { key: 'general',            label: 'General',            icon: Megaphone,      color: 'bg-slate-100 text-slate-600 border-slate-200' },
-  { key: 'birthday',           label: 'Birthday',           icon: Cake,           color: 'bg-pink-50 text-pink-600 border-pink-200' },
-  { key: 'resident_spotlight', label: 'Resident Spotlight', icon: Star,           color: 'bg-yellow-50 text-yellow-600 border-yellow-200' },
-  { key: 'event',              label: 'Event',              icon: Calendar,       color: 'bg-blue-50 text-blue-600 border-blue-200' },
-  { key: 'weather',            label: 'Weather',            icon: CloudSun,       color: 'bg-sky-50 text-sky-600 border-sky-200' },
-  { key: 'chapel',             label: 'Chapel',             icon: Church,         color: 'bg-purple-50 text-purple-600 border-purple-200' },
-  { key: 'menu',               label: 'Menu',               icon: UtensilsCrossed,color: 'bg-green-50 text-green-600 border-green-200' },
-  { key: 'alert',              label: 'Alert',              icon: Bell,           color: 'bg-red-50 text-red-600 border-red-200' },
+  { key: 'general',            label: 'General',            icon: Megaphone,       color: 'bg-slate-100 text-slate-600 border-slate-200' },
+  { key: 'birthday',           label: 'Birthday',           icon: Cake,            color: 'bg-pink-50 text-pink-600 border-pink-200' },
+  { key: 'resident_spotlight', label: 'Resident Spotlight', icon: Star,            color: 'bg-yellow-50 text-yellow-600 border-yellow-200' },
+  { key: 'event',              label: 'Event',              icon: Calendar,        color: 'bg-blue-50 text-blue-600 border-blue-200' },
+  { key: 'weather',            label: 'Weather',            icon: CloudSun,        color: 'bg-sky-50 text-sky-600 border-sky-200' },
+  { key: 'chapel',             label: 'Chapel',             icon: Church,          color: 'bg-purple-50 text-purple-600 border-purple-200' },
+  { key: 'menu',               label: 'Menu',               icon: UtensilsCrossed, color: 'bg-green-50 text-green-600 border-green-200' },
+  { key: 'alert',              label: 'Alert',              icon: Bell,            color: 'bg-red-50 text-red-600 border-red-200' },
 ]
 
 const getCat = (key) => CATEGORIES.find(c => c.key === key) || CATEGORIES[0]
 
+const toDateInput = (iso) => iso ? iso.split('T')[0] : ''
+const today = () => new Date().toISOString().split('T')[0]
+const isScheduled = (item) => item.starts_at && new Date(item.starts_at) > new Date()
+const isExpired = (item) => item.expires_at && new Date(item.expires_at) < new Date()
+
 function AnnouncementCard({ item, canEdit, canDelete, onEdit, onDelete }) {
   const cat = getCat(item.category)
   const Icon = cat.icon
-  const isExpired = item.expires_at && new Date(item.expires_at) < new Date()
+  const scheduled = isScheduled(item)
+  const expired = isExpired(item)
 
   return (
-    <div className={`bg-white rounded-2xl border shadow-sm p-5 flex gap-4 transition-all hover:shadow-md ${isExpired ? 'opacity-50' : ''} ${item.pinned ? 'border-brand-300 ring-1 ring-brand-200' : 'border-slate-100'}`}>
+    <div className={`bg-white rounded-2xl border shadow-sm p-5 flex gap-4 transition-all hover:shadow-md
+      ${expired ? 'opacity-50' : ''}
+      ${scheduled ? 'border-dashed border-amber-300 bg-amber-50/30' : item.pinned ? 'border-brand-300 ring-1 ring-brand-200' : 'border-slate-100'}`}>
       <div className={`flex-shrink-0 w-10 h-10 rounded-xl border flex items-center justify-center ${cat.color}`}>
         <Icon size={18} />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 flex-wrap">
-            {item.pinned && <Pin size={13} className="text-brand-500 flex-shrink-0" />}
+            {item.pinned && !scheduled && <Pin size={13} className="text-brand-500 flex-shrink-0" />}
+            {scheduled && <Clock size={13} className="text-amber-500 flex-shrink-0" />}
             <h3 className="font-display font-semibold text-slate-800 text-base leading-tight">{item.title}</h3>
             <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${cat.color}`}>{cat.label}</span>
+            {scheduled && (
+              <span className="text-xs px-2 py-0.5 rounded-full border font-medium bg-amber-50 text-amber-600 border-amber-200">
+                Posts {new Date(item.starts_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
             {canEdit && (
@@ -51,9 +65,10 @@ function AnnouncementCard({ item, canEdit, canDelete, onEdit, onDelete }) {
           </div>
         </div>
         {item.body && <p className="text-slate-600 text-sm mt-1.5 leading-relaxed">{item.body}</p>}
-        <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
-          <span>{new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-          {item.expires_at && <span>Expires {new Date(item.expires_at).toLocaleDateString()}</span>}
+        <div className="flex items-center gap-3 mt-2 text-xs text-slate-400 flex-wrap">
+          <span>Created {new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+          {item.starts_at && !scheduled && <span>Posted {new Date(item.starts_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>}
+          {item.expires_at && <span>Expires {new Date(item.expires_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>}
           {item.profiles && <span>by {item.profiles.first_name} {item.profiles.last_name}</span>}
         </div>
       </div>
@@ -64,60 +79,75 @@ function AnnouncementCard({ item, canEdit, canDelete, onEdit, onDelete }) {
 function AnnouncementModal({ item, onClose, onSave }) {
   const { organization } = useAuth()
   const [form, setForm] = useState({
-    title: item?.title || '',
-    body: item?.body || '',
-    category: item?.category || 'general',
-    pinned: item?.pinned || false,
-    expires_at: item?.expires_at ? item.expires_at.split('T')[0] : '',
+    title:      item?.title || '',
+    body:       item?.body || '',
+    category:   item?.category || 'general',
+    pinned:     item?.pinned || false,
+    starts_at:  item?.starts_at ? toDateInput(item.starts_at) : today(),
+    expires_at: item?.expires_at ? toDateInput(item.expires_at) : '',
   })
   const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
+  const [error, setError]   = useState('')
+
+  const set = (key, val) => setForm(f => ({ ...f, [key]: val }))
 
   const handleSave = async () => {
     if (!form.title.trim()) { setError('Title is required'); return }
+    if (form.expires_at && form.starts_at && form.expires_at < form.starts_at) {
+      setError('Expiration date must be after the post date'); return
+    }
     setSaving(true)
     const payload = {
-      title: form.title.trim(),
-      body: form.body.trim() || null,
-      category: form.category,
-      pinned: form.pinned,
-      expires_at: form.expires_at || null,
+      title:           form.title.trim(),
+      body:            form.body.trim() || null,
+      category:        form.category,
+      pinned:          form.pinned,
+      starts_at:       form.starts_at || new Date().toISOString(),
+      expires_at:      form.expires_at || null,
       organization_id: organization.id,
-      updated_at: new Date().toISOString(),
+      updated_at:      new Date().toISOString(),
     }
-    let error
+    let err
     if (item?.id) {
-      ({ error } = await supabase.from('announcements').update(payload).eq('id', item.id))
+      ({ error: err } = await supabase.from('announcements').update(payload).eq('id', item.id))
     } else {
-      ({ error } = await supabase.from('announcements').insert({ ...payload, is_active: true }))
+      ({ error: err } = await supabase.from('announcements').insert({ ...payload, is_active: true }))
     }
-    if (error) { setError(error.message); setSaving(false); return }
+    if (err) { setError(err.message); setSaving(false); return }
     onSave()
   }
 
+  const isScheduledPost = form.starts_at && form.starts_at > today()
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 sticky top-0 bg-white rounded-t-2xl">
           <h2 className="font-display font-semibold text-slate-800">{item ? 'Edit Announcement' : 'New Announcement'}</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
         </div>
-        <div className="px-6 py-5 space-y-4">
+
+        <div className="px-6 py-5 space-y-5">
           {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+
+          {/* Title */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">Title *</label>
-            <input value={form.title} onChange={e => setForm({...form, title: e.target.value})}
+            <input value={form.title} onChange={e => set('title', e.target.value)}
               className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="Announcement title" />
           </div>
+
+          {/* Category */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Category</label>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Category</label>
             <div className="grid grid-cols-4 gap-2">
               {CATEGORIES.map(cat => {
                 const Icon = cat.icon
                 return (
-                  <button key={cat.key} onClick={() => setForm({...form, category: cat.key})}
-                    className={`flex flex-col items-center gap-1 p-2 rounded-xl border text-xs font-medium transition-all ${form.category === cat.key ? cat.color + ' ring-2 ring-offset-1 ring-brand-400' : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}>
+                  <button key={cat.key} onClick={() => set('category', cat.key)}
+                    className={`flex flex-col items-center gap-1 p-2 rounded-xl border text-xs font-medium transition-all
+                      ${form.category === cat.key ? cat.color + ' ring-2 ring-offset-1 ring-brand-400' : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}>
                     <Icon size={16} />
                     <span className="leading-tight text-center">{cat.label}</span>
                   </button>
@@ -125,32 +155,58 @@ function AnnouncementModal({ item, onClose, onSave }) {
               })}
             </div>
           </div>
+
+          {/* Body */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">Message</label>
-            <textarea value={form.body} onChange={e => setForm({...form, body: e.target.value})} rows={3}
+            <textarea value={form.body} onChange={e => set('body', e.target.value)} rows={3}
               className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
               placeholder="Optional message body..." />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Expires On</label>
-              <input type="date" value={form.expires_at} onChange={e => setForm({...form, expires_at: e.target.value})}
-                className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+
+          {/* Dates */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Scheduling</label>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-slate-500 mb-1">Post Date</label>
+                <input type="date" value={form.starts_at} onChange={e => set('starts_at', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                <p className="text-xs text-slate-400 mt-1">When it becomes visible</p>
+              </div>
+              <div>
+                <label className="block text-xs text-slate-500 mb-1">Expiration Date</label>
+                <input type="date" value={form.expires_at} onChange={e => set('expires_at', e.target.value)}
+                  min={form.starts_at || today()}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                <p className="text-xs text-slate-400 mt-1">Leave blank to never expire</p>
+              </div>
             </div>
-            <div className="flex items-end pb-1">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={form.pinned} onChange={e => setForm({...form, pinned: e.target.checked})}
-                  className="w-4 h-4 rounded text-brand-600" />
-                <span className="text-sm font-medium text-slate-700">Pin to top</span>
-              </label>
-            </div>
+
+            {/* Scheduled notice */}
+            {isScheduledPost && (
+              <div className="mt-3 flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
+                <Clock size={14} className="text-amber-500 flex-shrink-0" />
+                <p className="text-xs text-amber-700">
+                  This announcement will be hidden until <strong>{new Date(form.starts_at).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</strong>
+                </p>
+              </div>
+            )}
           </div>
+
+          {/* Pin */}
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" checked={form.pinned} onChange={e => set('pinned', e.target.checked)}
+              className="w-4 h-4 rounded text-brand-600" />
+            <span className="text-sm font-medium text-slate-700">Pin to top of board</span>
+          </label>
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
+
+        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 sticky bottom-0 bg-white rounded-b-2xl">
           <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 hover:text-slate-800 font-medium">Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
-            {saving ? 'Saving...' : item ? 'Save Changes' : 'Post Announcement'}
+            {saving ? 'Saving...' : isScheduledPost ? 'Schedule Announcement' : item ? 'Save Changes' : 'Post Announcement'}
           </button>
         </div>
       </div>
@@ -161,13 +217,14 @@ function AnnouncementModal({ item, onClose, onSave }) {
 export default function Communication() {
   const { profile, organization } = useAuth()
   const [announcements, setAnnouncements] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
-  const [filterCat, setFilterCat] = useState('all')
-  const [showModal, setShowModal] = useState(false)
-  const [editItem, setEditItem] = useState(null)
+  const [loading, setLoading]             = useState(true)
+  const [search, setSearch]               = useState('')
+  const [filterCat, setFilterCat]         = useState('all')
+  const [showScheduled, setShowScheduled] = useState(false)
+  const [showModal, setShowModal]         = useState(false)
+  const [editItem, setEditItem]           = useState(null)
 
-  const canPost = profile && ['super_admin','org_admin','supervisor','manager','staff','maintenance','dietary','housekeeping'].includes(profile.role)
+  const canPost   = profile && ['super_admin','org_admin','supervisor','manager','staff','maintenance','dietary','housekeeping'].includes(profile.role)
   const canDelete = profile && ['super_admin','org_admin','supervisor','manager'].includes(profile.role)
   const canEditAll = profile && ['super_admin','org_admin','supervisor','manager'].includes(profile.role)
 
@@ -182,7 +239,7 @@ export default function Communication() {
       .eq('organization_id', organization.id)
       .eq('is_active', true)
       .order('pinned', { ascending: false })
-      .order('created_at', { ascending: false })
+      .order('starts_at', { ascending: false })
     setAnnouncements(data || [])
     setLoading(false)
   }
@@ -193,18 +250,24 @@ export default function Communication() {
     fetchAnnouncements()
   }
 
-  const handleEdit = (item) => { setEditItem(item); setShowModal(true) }
-  const handleNew = () => { setEditItem(null); setShowModal(true) }
-  const handleSave = () => { setShowModal(false); fetchAnnouncements() }
+  const handleEdit  = (item) => { setEditItem(item); setShowModal(true) }
+  const handleNew   = () => { setEditItem(null); setShowModal(true) }
+  const handleSave  = () => { setShowModal(false); fetchAnnouncements() }
 
-  const filtered = announcements.filter(a => {
+  const now = new Date()
+  const live      = announcements.filter(a => !isScheduled(a))
+  const scheduled = announcements.filter(a => isScheduled(a))
+
+  const applyFilters = (list) => list.filter(a => {
     const matchSearch = !search || a.title.toLowerCase().includes(search.toLowerCase()) || a.body?.toLowerCase().includes(search.toLowerCase())
-    const matchCat = filterCat === 'all' || a.category === filterCat
+    const matchCat    = filterCat === 'all' || a.category === filterCat
     return matchSearch && matchCat
   })
 
-  const pinned = filtered.filter(a => a.pinned)
-  const regular = filtered.filter(a => !a.pinned)
+  const filteredLive      = applyFilters(live)
+  const filteredScheduled = applyFilters(scheduled)
+  const pinnedLive        = filteredLive.filter(a => a.pinned)
+  const regularLive       = filteredLive.filter(a => !a.pinned)
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -252,10 +315,37 @@ export default function Communication() {
         </div>
       </div>
 
-      {/* Content */}
+      {/* Scheduled banner */}
+      {canPost && filteredScheduled.length > 0 && (
+        <button onClick={() => setShowScheduled(s => !s)}
+          className="w-full flex items-center justify-between px-4 py-3 mb-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700 font-medium hover:bg-amber-100 transition-colors">
+          <div className="flex items-center gap-2">
+            <Clock size={15} />
+            <span>{filteredScheduled.length} scheduled announcement{filteredScheduled.length > 1 ? 's' : ''} waiting to post</span>
+          </div>
+          <span className="text-xs">{showScheduled ? 'Hide' : 'Show'}</span>
+        </button>
+      )}
+
+      {/* Scheduled list */}
+      {showScheduled && filteredScheduled.length > 0 && (
+        <div className="mb-6 space-y-3">
+          <div className="text-xs font-semibold text-amber-600 uppercase tracking-wide flex items-center gap-2">
+            <Clock size={13} /> Scheduled
+          </div>
+          {filteredScheduled.map(a => (
+            <AnnouncementCard key={a.id} item={a}
+              canEdit={canEditAll || a.created_by === profile?.id}
+              canDelete={canDelete}
+              onEdit={handleEdit} onDelete={handleDelete} />
+          ))}
+        </div>
+      )}
+
+      {/* Live announcements */}
       {loading ? (
         <div className="text-center py-16 text-slate-400">Loading announcements...</div>
-      ) : filtered.length === 0 ? (
+      ) : filteredLive.length === 0 ? (
         <div className="text-center py-16 text-slate-400">
           <Megaphone size={40} className="mx-auto mb-3 opacity-30" />
           <p className="font-display text-lg">No announcements yet</p>
@@ -263,14 +353,14 @@ export default function Communication() {
         </div>
       ) : (
         <div className="space-y-6">
-          {pinned.length > 0 && (
+          {pinnedLive.length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <Pin size={14} className="text-brand-500" />
                 <span className="text-xs font-semibold text-brand-600 uppercase tracking-wide">Pinned</span>
               </div>
               <div className="space-y-3">
-                {pinned.map(a => (
+                {pinnedLive.map(a => (
                   <AnnouncementCard key={a.id} item={a}
                     canEdit={canEditAll || a.created_by === profile?.id}
                     canDelete={canDelete}
@@ -279,15 +369,15 @@ export default function Communication() {
               </div>
             </div>
           )}
-          {regular.length > 0 && (
+          {regularLive.length > 0 && (
             <div>
-              {pinned.length > 0 && (
+              {pinnedLive.length > 0 && (
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Recent</span>
                 </div>
               )}
               <div className="space-y-3">
-                {regular.map(a => (
+                {regularLive.map(a => (
                   <AnnouncementCard key={a.id} item={a}
                     canEdit={canEditAll || a.created_by === profile?.id}
                     canDelete={canDelete}
