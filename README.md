@@ -1,6 +1,6 @@
 # ElderLoop
 
-Senior Living Management Platform — built with React, Vite, Supabase, and Tailwind CSS.
+Senior Living Management Platform — built with React, Vite, Supabase, and Tailwind CSS. 
 
 ## Tech Stack
 - **Frontend**: React 18 + Vite
