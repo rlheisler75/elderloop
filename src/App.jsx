@@ -10,6 +10,7 @@ import WorkOrders from './pages/workorders/WorkOrders'
 import Communication from './pages/communication/Communication'
 import Dietary from './pages/dietary/Dietary'
 import Housekeeping from './pages/housekeeping/Housekeeping'
+import Signage from './pages/signage/Signage'
 
 function ProtectedRoute({ children, requireModule }) {
   const { user, loading, hasModule } = useAuth()
@@ -37,7 +38,13 @@ export default function App() {
 
   return (
     <Routes>
+      {/* Public routes — no login needed */}
+      <Route path="/signage" element={<Signage />} />
+
+      {/* Auth */}
       <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
+
+      {/* Protected app */}
       <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route index element={<Navigate to="/dashboard" />} />
         <Route path="dashboard" element={<Dashboard />} />
