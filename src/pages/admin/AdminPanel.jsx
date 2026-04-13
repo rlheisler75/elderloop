@@ -5,8 +5,9 @@ import {
   Users, Building2, Settings, Plus, X, Edit2, Trash2,
   Search, Shield, Check, Mail, Key, ToggleLeft, ToggleRight,
   ChevronRight, AlertCircle, CheckCircle2, Clock, Ban,
-  Save, Eye, EyeOff, Globe, Phone, MapPin, User
+  Save, Eye, EyeOff, Globe, Phone, MapPin, User, List
 } from 'lucide-react'
+import AdminLists from './AdminLists'
 
 const ALL_ROLES = [
   { key: 'org_admin',   label: 'Org Admin',   desc: 'Full access to organization' },
@@ -508,8 +509,9 @@ export default function AdminPanel() {
   )
 
   const tabs = [
-    { key: 'users', label: 'Users', icon: Users },
-    { key: 'settings', label: 'Org Settings', icon: Settings },
+    { key: 'users',         label: 'Users',            icon: Users },
+    { key: 'settings',      label: 'Org Settings',     icon: Settings },
+    { key: 'lists',         label: 'Lists & Pick Lists', icon: List },
     ...(superAdmin ? [{ key: 'organizations', label: 'All Organizations', icon: Building2 }] : []),
   ]
 
@@ -720,6 +722,11 @@ export default function AdminPanel() {
             ))}
           </div>
         </div>
+      )}
+
+      {/* ── LISTS TAB ── */}
+      {tab === 'lists' && (
+        <AdminLists orgId={currentOrgId} />
       )}
 
       {/* ── ALL ORGS TAB (super admin only) ── */}
