@@ -3,19 +3,20 @@ import { useAuth } from '../../context/AuthContext'
 import {
   LayoutDashboard, Wrench, MessageSquare, UtensilsCrossed,
   SprayCan, Settings, LogOut, Menu, X, ChevronRight,
-  Church, Car, CalendarDays
+  Church, Car, CalendarDays, AlertTriangle
 } from 'lucide-react'
 import { useState } from 'react'
 
 const navItems = [
-  { to: '/dashboard',      label: 'Dashboard',      icon: LayoutDashboard, module: null },
-  { to: '/communication',  label: 'Communication',  icon: MessageSquare,   module: 'communication' },
-  { to: '/chapel',         label: 'Chapel',         icon: Church,          module: 'chapel' },
-  { to: '/activities',     label: 'Activities',     icon: CalendarDays,    module: 'activities' },
-  { to: '/work-orders',    label: 'Work Orders',    icon: Wrench,          module: 'work_orders' },
-  { to: '/dietary',        label: 'Dietary',        icon: UtensilsCrossed, module: 'dietary' },
-  { to: '/housekeeping',   label: 'Housekeeping',   icon: SprayCan,        module: 'housekeeping' },
-  { to: '/transportation', label: 'Transportation', icon: Car,             module: 'transportation' },
+  { to: '/dashboard',      label: 'Dashboard',        icon: LayoutDashboard, module: null },
+  { to: '/communication',  label: 'Communication',    icon: MessageSquare,   module: 'communication' },
+  { to: '/chapel',         label: 'Chapel',           icon: Church,          module: 'chapel' },
+  { to: '/activities',     label: 'Activities',       icon: CalendarDays,    module: 'activities' },
+  { to: '/work-orders',    label: 'Work Orders',      icon: Wrench,          module: 'work_orders' },
+  { to: '/dietary',        label: 'Dietary',          icon: UtensilsCrossed, module: 'dietary' },
+  { to: '/housekeeping',   label: 'Housekeeping',     icon: SprayCan,        module: 'housekeeping' },
+  { to: '/transportation', label: 'Transportation',   icon: Car,             module: 'transportation' },
+  { to: '/incidents',      label: 'Incident Reports', icon: AlertTriangle,   module: 'incidents' },
 ]
 
 export default function Layout() {

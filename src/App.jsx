@@ -11,6 +11,7 @@ import Housekeeping from './pages/housekeeping/Housekeeping'
 import Chapel from './pages/chapel/Chapel'
 import Transportation from './pages/transportation/Transportation'
 import Activities from './pages/activities/Activities'
+import IncidentReports from './pages/incidents/IncidentReports'
 import Signage from './pages/signage/Signage'
 import ResidentPortal from './pages/resident/ResidentPortal'
 
@@ -59,6 +60,7 @@ export default function App() {
         <Route path="dietary"        element={<ProtectedRoute requireModule="dietary"><Dietary /></ProtectedRoute>} />
         <Route path="housekeeping"   element={<ProtectedRoute requireModule="housekeeping"><Housekeeping /></ProtectedRoute>} />
         <Route path="transportation" element={<ProtectedRoute requireModule="transportation"><Transportation /></ProtectedRoute>} />
+        <Route path="incidents"      element={<ProtectedRoute requireModule="incidents"><IncidentReports /></ProtectedRoute>} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" />} />
     </Routes>
