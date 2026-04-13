@@ -8,7 +8,7 @@ import {
   Save, Eye, EyeOff, Globe, Phone, MapPin, User, List
 } from 'lucide-react'
 import AdminLists from './AdminLists'
-//Fix publise
+
 const ALL_ROLES = [
   { key: 'org_admin',   label: 'Org Admin',   desc: 'Full access to organization' },
   { key: 'supervisor',  label: 'Supervisor',  desc: 'Manage staff and approve work' },
@@ -58,33 +58,34 @@ function CreateUserModal({ orgId, orgName, onClose, onSave }) {
     if (form.password.length < 8) { setError('Password must be at least 8 characters'); return }
     setSaving(true)
 
-    // Get current session token to authenticate the edge function call
-  await supabase.auth.refreshSession()
-const { data: { session } } = await supabase.auth.getSession()
-if (!session) { setError('Session expired — please log out and log back in'); setSaving(false); return }
-
-    const response = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-user`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          email:           form.email.trim(),
-          password:        form.password,
-          first_name:      form.first_name.trim(),
-          last_name:       form.last_name.trim(),
-          role:            form.role,
-          phone:           form.phone || null,
-          organization_id: orgId,
-        })
+    // Step 1 — create the auth account
+    const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
+      email: form.email.trim(),
+      password: form.password,
+      options: {
+        data: {
+          first_name: form.first_name.trim(),
+          last_name:  form.last_name.trim(),
+        }
       }
-    )
+    })
 
-    const result = await response.json()
-    if (!result.success) { setError(result.error || 'Failed to create user'); setSaving(false); return }
+    if (signUpErr) { setError(signUpErr.message); setSaving(false); return }
+    if (!signUpData.user) { setError('User creation failed — try again'); setSaving(false); return }
+
+    // Step 2 — update their profile with org + role
+    const { error: profileErr } = await supabase.from('profiles').upsert({
+      id:              signUpData.user.id,
+      organization_id: orgId,
+      role:            form.role,
+      first_name:      form.first_name.trim(),
+      last_name:       form.last_name.trim(),
+      phone:           form.phone || null,
+      is_active:       true,
+      updated_at:      new Date().toISOString(),
+    })
+
+    if (profileErr) { setError('Account created but profile setup failed: ' + profileErr.message); setSaving(false); return }
 
     setSaving(false)
     onSave()
