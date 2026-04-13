@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext'
 import {
   LayoutDashboard, Wrench, MessageSquare, UtensilsCrossed,
   SprayCan, Settings, LogOut, Menu, X, ChevronRight,
-  Church, Car
+  Church, Car, CalendarDays
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -11,6 +11,7 @@ const navItems = [
   { to: '/dashboard',      label: 'Dashboard',      icon: LayoutDashboard, module: null },
   { to: '/communication',  label: 'Communication',  icon: MessageSquare,   module: 'communication' },
   { to: '/chapel',         label: 'Chapel',         icon: Church,          module: 'chapel' },
+  { to: '/activities',     label: 'Activities',     icon: CalendarDays,    module: 'activities' },
   { to: '/work-orders',    label: 'Work Orders',    icon: Wrench,          module: 'work_orders' },
   { to: '/dietary',        label: 'Dietary',        icon: UtensilsCrossed, module: 'dietary' },
   { to: '/housekeeping',   label: 'Housekeeping',   icon: SprayCan,        module: 'housekeeping' },
@@ -21,24 +22,19 @@ export default function Layout() {
   const { profile, organization, hasModule, isOrgAdmin, signOut } = useAuth()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const navigate = useNavigate()
-
   const handleSignOut = async () => { await signOut(); navigate('/login') }
   const visibleNav = navItems.filter(item => !item.module || hasModule(item.module))
 
   return (
     <div className="flex h-screen bg-slate-50">
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-20 bg-black/50 lg:hidden" onClick={() => setSidebarOpen(false)} />
-      )}
+      {sidebarOpen && <div className="fixed inset-0 z-20 bg-black/50 lg:hidden" onClick={() => setSidebarOpen(false)} />}
       <aside className={`fixed inset-y-0 left-0 z-30 w-64 bg-brand-950 flex flex-col transform transition-transform duration-200 lg:translate-x-0 lg:static lg:z-auto ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex items-center justify-between px-6 py-5 border-b border-brand-800">
           <div>
             <div className="font-display text-xl font-semibold text-white tracking-wide">ElderLoop</div>
             <div className="text-brand-400 text-xs mt-0.5 truncate">{organization?.name ?? 'Platform'}</div>
           </div>
-          <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-brand-400 hover:text-white">
-            <X size={18} />
-          </button>
+          <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-brand-400 hover:text-white"><X size={18} /></button>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {visibleNav.map(({ to, label, icon: Icon }) => (

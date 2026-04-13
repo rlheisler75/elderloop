@@ -1,7 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import Layout from './components/layout/Layout'
-
 import Login from './pages/auth/Login'
 import Dashboard from './pages/dashboard/Dashboard'
 import AdminPanel from './pages/admin/AdminPanel'
@@ -11,6 +10,7 @@ import Dietary from './pages/dietary/Dietary'
 import Housekeeping from './pages/housekeeping/Housekeeping'
 import Chapel from './pages/chapel/Chapel'
 import Transportation from './pages/transportation/Transportation'
+import Activities from './pages/activities/Activities'
 import Signage from './pages/signage/Signage'
 import ResidentPortal from './pages/resident/ResidentPortal'
 
@@ -31,13 +31,11 @@ function AdminRoute({ children }) {
 
 export default function App() {
   const { user, profile, loading } = useAuth()
-
   if (loading) return (
     <div className="flex h-screen items-center justify-center bg-brand-950">
       <div className="text-white font-display text-3xl tracking-wide">ElderLoop</div>
     </div>
   )
-
   if (user && (profile?.role === 'resident' || profile?.role === 'family')) {
     return (
       <Routes>
@@ -46,7 +44,6 @@ export default function App() {
       </Routes>
     )
   }
-
   return (
     <Routes>
       <Route path="/signage" element={<Signage />} />
@@ -57,6 +54,7 @@ export default function App() {
         <Route path="admin"          element={<AdminRoute><AdminPanel /></AdminRoute>} />
         <Route path="communication"  element={<ProtectedRoute requireModule="communication"><Communication /></ProtectedRoute>} />
         <Route path="chapel"         element={<ProtectedRoute requireModule="chapel"><Chapel /></ProtectedRoute>} />
+        <Route path="activities"     element={<ProtectedRoute requireModule="activities"><Activities /></ProtectedRoute>} />
         <Route path="work-orders"    element={<ProtectedRoute requireModule="work_orders"><WorkOrders /></ProtectedRoute>} />
         <Route path="dietary"        element={<ProtectedRoute requireModule="dietary"><Dietary /></ProtectedRoute>} />
         <Route path="housekeeping"   element={<ProtectedRoute requireModule="housekeeping"><Housekeeping /></ProtectedRoute>} />
