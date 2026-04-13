@@ -59,8 +59,9 @@ function CreateUserModal({ orgId, orgName, onClose, onSave }) {
     setSaving(true)
 
     // Get current session token to authenticate the edge function call
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) { setError('Not authenticated'); setSaving(false); return }
+  await supabase.auth.refreshSession()
+const { data: { session } } = await supabase.auth.getSession()
+if (!session) { setError('Session expired — please log out and log back in'); setSaving(false); return }
 
     const response = await fetch(
       `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-user`,
