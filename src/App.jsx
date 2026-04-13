@@ -10,6 +10,7 @@ import Communication from './pages/communication/Communication'
 import Dietary from './pages/dietary/Dietary'
 import Housekeeping from './pages/housekeeping/Housekeeping'
 import Chapel from './pages/chapel/Chapel'
+import Transportation from './pages/transportation/Transportation'
 import Signage from './pages/signage/Signage'
 import ResidentPortal from './pages/resident/ResidentPortal'
 
@@ -28,14 +29,6 @@ function AdminRoute({ children }) {
   return children
 }
 
-function ResidentRoute({ children }) {
-  const { user, loading, profile } = useAuth()
-  if (loading) return null
-  if (!user) return <Navigate to="/login" replace />
-  if (profile?.role === 'resident' || profile?.role === 'family') return children
-  return <Navigate to="/dashboard" replace />
-}
-
 export default function App() {
   const { user, profile, loading } = useAuth()
 
@@ -45,7 +38,6 @@ export default function App() {
     </div>
   )
 
-  // Residents get their own portal
   if (user && (profile?.role === 'resident' || profile?.role === 'family')) {
     return (
       <Routes>
@@ -61,13 +53,14 @@ export default function App() {
       <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
       <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route index element={<Navigate to="/dashboard" />} />
-        <Route path="dashboard"    element={<Dashboard />} />
-        <Route path="admin"        element={<AdminRoute><AdminPanel /></AdminRoute>} />
-        <Route path="communication"element={<ProtectedRoute requireModule="communication"><Communication /></ProtectedRoute>} />
-        <Route path="work-orders"  element={<ProtectedRoute requireModule="work_orders"><WorkOrders /></ProtectedRoute>} />
-        <Route path="dietary"      element={<ProtectedRoute requireModule="dietary"><Dietary /></ProtectedRoute>} />
-        <Route path="housekeeping" element={<ProtectedRoute requireModule="housekeeping"><Housekeeping /></ProtectedRoute>} />
-        <Route path="chapel"       element={<ProtectedRoute requireModule="chapel"><Chapel /></ProtectedRoute>} />
+        <Route path="dashboard"      element={<Dashboard />} />
+        <Route path="admin"          element={<AdminRoute><AdminPanel /></AdminRoute>} />
+        <Route path="communication"  element={<ProtectedRoute requireModule="communication"><Communication /></ProtectedRoute>} />
+        <Route path="chapel"         element={<ProtectedRoute requireModule="chapel"><Chapel /></ProtectedRoute>} />
+        <Route path="work-orders"    element={<ProtectedRoute requireModule="work_orders"><WorkOrders /></ProtectedRoute>} />
+        <Route path="dietary"        element={<ProtectedRoute requireModule="dietary"><Dietary /></ProtectedRoute>} />
+        <Route path="housekeeping"   element={<ProtectedRoute requireModule="housekeeping"><Housekeeping /></ProtectedRoute>} />
+        <Route path="transportation" element={<ProtectedRoute requireModule="transportation"><Transportation /></ProtectedRoute>} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" />} />
     </Routes>

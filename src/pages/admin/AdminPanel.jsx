@@ -57,36 +57,33 @@ function CreateUserModal({ orgId, orgName, onClose, onSave }) {
     if (form.password.length < 8) { setError('Password must be at least 8 characters'); return }
     setSaving(true)
 
-    // Create auth user via Supabase admin
-    const { data, error: authErr } = await supabase.auth.admin.createUser({
-      email: form.email.trim(),
-      password: form.password,
-      email_confirm: true,
-      user_metadata: { first_name: form.first_name.trim(), last_name: form.last_name.trim() }
-    })
+    // Get current session token to authenticate the edge function call
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) { setError('Not authenticated'); setSaving(false); return }
 
-    if (authErr) {
-      // Fallback: use signUp if admin API not available
-      const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
-        email: form.email.trim(),
-        password: form.password,
-        options: { data: { first_name: form.first_name.trim(), last_name: form.last_name.trim() } }
-      })
-      if (signUpErr) { setError(signUpErr.message); setSaving(false); return }
-    }
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-user`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          email:           form.email.trim(),
+          password:        form.password,
+          first_name:      form.first_name.trim(),
+          last_name:       form.last_name.trim(),
+          role:            form.role,
+          phone:           form.phone || null,
+          organization_id: orgId,
+        })
+      }
+    )
 
-    // Update profile with org, role, name
-    const userId = data?.user?.id
-    if (userId) {
-      await supabase.from('profiles').upsert({
-        id: userId,
-        organization_id: orgId,
-        role: form.role,
-        first_name: form.first_name.trim(),
-        last_name: form.last_name.trim(),
-        phone: form.phone || null,
-      })
-    }
+    const result = await response.json()
+    if (!result.success) { setError(result.error || 'Failed to create user'); setSaving(false); return }
+
     setSaving(false)
     onSave()
   }

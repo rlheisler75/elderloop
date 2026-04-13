@@ -2,17 +2,19 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import {
   LayoutDashboard, Wrench, MessageSquare, UtensilsCrossed,
-  SprayCan, Settings, LogOut, Menu, X, ChevronRight, Church
+  SprayCan, Settings, LogOut, Menu, X, ChevronRight,
+  Church, Car
 } from 'lucide-react'
 import { useState } from 'react'
 
 const navItems = [
-  { to: '/dashboard',    label: 'Dashboard',     icon: LayoutDashboard, module: null },
-  { to: '/communication',label: 'Communication', icon: MessageSquare,   module: 'communication' },
-  { to: '/chapel',       label: 'Chapel',        icon: Church,          module: 'chapel' },
-  { to: '/work-orders',  label: 'Work Orders',   icon: Wrench,          module: 'work_orders' },
-  { to: '/dietary',      label: 'Dietary',       icon: UtensilsCrossed, module: 'dietary' },
-  { to: '/housekeeping', label: 'Housekeeping',  icon: SprayCan,        module: 'housekeeping' },
+  { to: '/dashboard',      label: 'Dashboard',      icon: LayoutDashboard, module: null },
+  { to: '/communication',  label: 'Communication',  icon: MessageSquare,   module: 'communication' },
+  { to: '/chapel',         label: 'Chapel',         icon: Church,          module: 'chapel' },
+  { to: '/work-orders',    label: 'Work Orders',    icon: Wrench,          module: 'work_orders' },
+  { to: '/dietary',        label: 'Dietary',        icon: UtensilsCrossed, module: 'dietary' },
+  { to: '/housekeeping',   label: 'Housekeeping',   icon: SprayCan,        module: 'housekeeping' },
+  { to: '/transportation', label: 'Transportation', icon: Car,             module: 'transportation' },
 ]
 
 export default function Layout() {
@@ -65,17 +67,13 @@ export default function Layout() {
               <div className="text-white text-xs font-medium truncate">{profile?.first_name} {profile?.last_name}</div>
               <div className="text-brand-400 text-xs capitalize">{profile?.role?.replace('_', ' ')}</div>
             </div>
-            <button onClick={handleSignOut} className="text-brand-400 hover:text-red-400 transition-colors" title="Sign out">
-              <LogOut size={16} />
-            </button>
+            <button onClick={handleSignOut} className="text-brand-400 hover:text-red-400 transition-colors"><LogOut size={16} /></button>
           </div>
         </div>
       </aside>
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <div className="lg:hidden flex items-center gap-3 px-4 py-3 bg-white border-b border-slate-200">
-          <button onClick={() => setSidebarOpen(true)} className="text-slate-500 hover:text-slate-700">
-            <Menu size={22} />
-          </button>
+          <button onClick={() => setSidebarOpen(true)} className="text-slate-500 hover:text-slate-700"><Menu size={22} /></button>
           <span className="font-display font-semibold text-brand-800">ElderLoop</span>
         </div>
         <main className="flex-1 overflow-y-auto p-6"><Outlet /></main>
