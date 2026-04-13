@@ -149,91 +149,126 @@ function TVSlide({ slide, announcements, current, setCurrent, visible, online })
   )
 }
 
-// ── Mobile / Tablet Card Feed ──────────────────────────────────
+// ── Mobile Card Feed ──────────────────────────────────────────
 function MobileFeed({ announcements, orgName, online }) {
   return (
     <div className="min-h-screen bg-slate-900" style={{ fontFamily: '"Source Sans 3", system-ui, sans-serif' }}>
       {/* Header */}
       <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-white/10 px-4 py-3 flex items-center justify-between">
         <div>
-          <div className="text-white font-semibold text-base" style={{ fontFamily: '"Playfair Display", serif' }}>ElderLoop</div>
+          <div className="text-white font-semibold text-sm" style={{ fontFamily: '"Playfair Display", serif' }}>ElderLoop</div>
           <div className="text-white/40 text-xs">{orgName}</div>
         </div>
         <div className="flex items-center gap-2">
-          {online ? <Wifi size={14} className="text-white/30" /> : <WifiOff size={14} className="text-red-400" />}
-          <Clock small />
+          {online ? <Wifi size={13} className="text-white/30" /> : <WifiOff size={13} className="text-red-400" />}
+          <div className="text-right">
+            <MobileClock />
+          </div>
         </div>
       </div>
 
       {/* Feed */}
-      <div className="px-4 py-4 space-y-3 max-w-lg mx-auto">
+      <div className="px-3 py-3 space-y-3 max-w-md mx-auto">
         {announcements.length === 0 ? (
           <div className="text-center py-16 text-white/30">
-            <Megaphone size={32} className="mx-auto mb-3 opacity-50" />
-            <p>No announcements at this time</p>
+            <Megaphone size={28} className="mx-auto mb-3 opacity-50" />
+            <p className="text-sm">No announcements at this time</p>
           </div>
         ) : (
           announcements.map((item) => {
-            const cat   = getCat(item.category)
-            const Icon  = cat.icon
+            const cat    = getCat(item.category)
+            const Icon   = cat.icon
             const accent = cat.accent
             const bgStyle = item.bg_custom ? { background: item.bg_custom } : null
 
             return (
               <div key={item.id}
-                className={`rounded-2xl overflow-hidden ${!item.bg_custom ? `bg-gradient-to-br ${cat.bg}` : ''}`}
+                className={`rounded-2xl overflow-hidden shadow-lg ${!item.bg_custom ? `bg-gradient-to-br ${cat.bg}` : ''}`}
                 style={bgStyle || {}}>
 
-                {/* Photo */}
-                {item.image_url && (
-                  <img src={item.image_url} alt={item.title} className="w-full h-48 object-cover" />
+                {/* Side-by-side layout if photo */}
+                {item.image_url ? (
+                  <div className="flex">
+                    <img src={item.image_url} alt={item.title}
+                      className="w-28 flex-shrink-0 object-cover" style={{ minHeight: 120 }} />
+                    <div className="flex-1 p-3">
+                      <div className="flex items-center gap-1.5 mb-1.5">
+                        <Icon size={12} style={{ color: accent }} />
+                        <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: accent, fontFamily: 'system-ui' }}>
+                          {cat.label}
+                        </span>
+                      </div>
+                      <h2 className="text-white font-bold leading-snug text-base mb-1"
+                        style={{ fontFamily: '"Playfair Display", serif' }}>
+                        {item.title}
+                      </h2>
+                      {item.body && (
+                        <p className="text-white/65 text-xs leading-relaxed line-clamp-3" style={{ fontFamily: 'system-ui' }}>
+                          {item.body}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
+                        style={{ background: accent + '33' }}>
+                        <Icon size={13} style={{ color: accent }} />
+                      </div>
+                      <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: accent, fontFamily: 'system-ui' }}>
+                        {cat.label}
+                      </span>
+                      {item.pinned && <span className="ml-auto text-xs text-white/30">📌</span>}
+                    </div>
+                    <h2 className="text-white font-bold leading-snug text-lg mb-1.5"
+                      style={{ fontFamily: '"Playfair Display", serif' }}>
+                      {item.title}
+                    </h2>
+                    {item.body && (
+                      <p className="text-white/65 text-sm leading-relaxed" style={{ fontFamily: 'system-ui' }}>{item.body}</p>
+                    )}
+                  </div>
                 )}
 
-                <div className="p-4">
-                  {/* Category */}
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-                      style={{ background: accent + '33' }}>
-                      <Icon size={15} style={{ color: accent }} />
-                    </div>
-                    <span className="text-xs font-semibold uppercase tracking-wide font-sans" style={{ color: accent }}>
-                      {cat.label}
+                {/* Footer strip */}
+                <div className="px-4 py-2 flex items-center justify-between border-t border-white/10">
+                  <span className="text-white/30 text-xs" style={{ fontFamily: 'system-ui' }}>
+                    {new Date(item.starts_at || item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </span>
+                  {item.expires_at && (
+                    <span className="text-white/30 text-xs" style={{ fontFamily: 'system-ui' }}>
+                      Until {new Date(item.expires_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </span>
-                    {item.pinned && (
-                      <span className="ml-auto text-xs text-white/40 font-sans">📌 Pinned</span>
-                    )}
-                  </div>
-
-                  {/* Title */}
-                  <h2 className="text-white font-bold leading-tight text-lg mb-1"
-                    style={{ fontFamily: '"Playfair Display", serif' }}>
-                    {item.title}
-                  </h2>
-
-                  {/* Body */}
-                  {item.body && (
-                    <p className="text-white/70 text-sm leading-relaxed font-sans">{item.body}</p>
                   )}
-
-                  {/* Footer */}
-                  <div className="flex items-center justify-between mt-3">
-                    <span className="text-white/30 text-xs font-sans">
-                      {new Date(item.starts_at || item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                    </span>
-                    {item.expires_at && (
-                      <span className="text-white/30 text-xs font-sans">
-                        Until {new Date(item.expires_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </span>
-                    )}
-                  </div>
                 </div>
               </div>
             )
           })
         )}
       </div>
+      <div className="text-center py-5 text-white/15 text-xs" style={{ fontFamily: 'system-ui' }}>
+        ElderLoop · Updates automatically
+      </div>
+    </div>
+  )
+}
 
-      <div className="text-center py-6 text-white/20 text-xs font-sans">ElderLoop · Updates automatically</div>
+// Compact clock for mobile header
+function MobileClock() {
+  const [time, setTime] = useState(new Date())
+  useEffect(() => {
+    const t = setInterval(() => setTime(new Date()), 1000)
+    return () => clearInterval(t)
+  }, [])
+  return (
+    <div className="text-right">
+      <div className="text-white text-sm font-medium">
+        {time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+      </div>
+      <div className="text-white/40 text-xs">
+        {time.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+      </div>
     </div>
   )
 }
@@ -314,12 +349,12 @@ export default function Signage() {
   const [screenSize, setScreenSize]       = useState('tv') // 'mobile' | 'tablet' | 'tv'
   const timerRef = useRef(null)
 
-  // Detect screen size
+  // Detect screen size — use 768px as mobile/tablet split, 1200px as tablet/tv
   useEffect(() => {
     const check = () => {
       const w = window.innerWidth
-      if (w < 640)  setScreenSize('mobile')
-      else if (w < 1024) setScreenSize('tablet')
+      if (w < 768)   setScreenSize('mobile')
+      else if (w < 1200) setScreenSize('tablet')
       else setScreenSize('tv')
     }
     check()
