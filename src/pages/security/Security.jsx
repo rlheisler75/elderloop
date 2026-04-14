@@ -5,7 +5,7 @@ import {
   Shield, Plus, X, Edit2, Trash2, Search, MapPin,
   Navigation, CheckCircle2, XCircle, Clock, Play,
   Square, AlertTriangle, ChevronRight, Users,
-  RefreshCw, Map, List, Crosshair, Bell, Check
+  RefreshCw, Map, List, Crosshair, Bell, Check, FileText
 } from 'lucide-react'
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -360,10 +360,21 @@ function GuardRoundView({ checkpoints, onClose, guardId, orgId }) {
 
       {/* Footer */}
       <div className="px-4 py-4 bg-slate-800 flex-shrink-0 space-y-2">
-        <button onClick={endRound}
-          className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2">
-          <Square size={15} /> End Round
-        </button>
+        <div className="grid grid-cols-2 gap-2">
+          <button onClick={() => {
+            // Store round ID in sessionStorage so report modal can link to it
+            sessionStorage.setItem('securityRoundId', round?.id || '')
+            // Open report via custom event
+            window.dispatchEvent(new CustomEvent('openSecurityReport', { detail: { roundId: round?.id } }))
+          }}
+            className="py-3 bg-slate-700 hover:bg-slate-600 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2 text-sm">
+            <FileText size={14} /> File Report
+          </button>
+          <button onClick={endRound}
+            className="py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 text-sm">
+            <Square size={14} /> End Round
+          </button>
+        </div>
         <button onClick={onClose} className="w-full py-2 text-white/40 text-sm hover:text-white/60 transition-colors">
           Cancel (round will be saved as incomplete)
         </button>
@@ -466,12 +477,257 @@ function RoundHistory({ round, checkpoints, onClose }) {
   )
 }
 
+// ── Security Report Modal ─────────────────────────────────────
+const REPORT_TYPES = [
+  { key: 'general',             label: 'General Log' },
+  { key: 'suspicious_activity', label: 'Suspicious Activity' },
+  { key: 'trespassing',         label: 'Trespassing' },
+  { key: 'theft',               label: 'Theft' },
+  { key: 'vandalism',           label: 'Vandalism' },
+  { key: 'disturbance',         label: 'Disturbance' },
+  { key: 'medical',             label: 'Medical' },
+  { key: 'fire_hazard',         label: 'Fire Hazard' },
+  { key: 'safety_hazard',       label: 'Safety Hazard' },
+  { key: 'resident_concern',    label: 'Resident Concern' },
+  { key: 'visitor_issue',       label: 'Visitor Issue' },
+  { key: 'vehicle',             label: 'Vehicle' },
+  { key: 'other',               label: 'Other' },
+]
+
+const REPORT_PRIORITIES = [
+  { key: 'low',    label: 'Low',    color: 'bg-slate-100 text-slate-600' },
+  { key: 'medium', label: 'Medium', color: 'bg-yellow-100 text-yellow-700' },
+  { key: 'high',   label: 'High',   color: 'bg-orange-100 text-orange-700' },
+  { key: 'urgent', label: 'Urgent', color: 'bg-red-100 text-red-700' },
+]
+
+const REPORT_STATUSES = [
+  { key: 'open',         label: 'Open',         color: 'bg-blue-100 text-blue-700',   dot: 'bg-blue-500' },
+  { key: 'under_review', label: 'Under Review', color: 'bg-amber-100 text-amber-700', dot: 'bg-amber-500' },
+  { key: 'resolved',     label: 'Resolved',     color: 'bg-green-100 text-green-700', dot: 'bg-green-500' },
+  { key: 'escalated',    label: 'Escalated',    color: 'bg-red-100 text-red-700',     dot: 'bg-red-500' },
+]
+
+const getReportStatus = (key) => REPORT_STATUSES.find(s => s.key === key) || REPORT_STATUSES[0]
+const getReportPriority = (key) => REPORT_PRIORITIES.find(p => p.key === key) || REPORT_PRIORITIES[0]
+
+function SecurityReportModal({ report, roundId, checkpoints, onClose, onSave }) {
+  const { profile } = useAuth()
+  const isNew = !report
+  const isSupervisor = ['super_admin','org_admin','supervisor','manager'].includes(profile?.role)
+
+  const [form, setForm] = useState({
+    report_type:         report?.report_type         || 'general',
+    priority:            report?.priority             || 'low',
+    status:              report?.status               || 'open',
+    title:               report?.title               || '',
+    description:         report?.description          || '',
+    location:            report?.location             || '',
+    checkpoint_id:       report?.checkpoint_id        || '',
+    action_taken:        report?.action_taken         || '',
+    police_called:       report?.police_called        || false,
+    management_notified: report?.management_notified  || false,
+    persons_involved:    report?.persons_involved     || '',
+    review_notes:        report?.review_notes         || '',
+  })
+  const [saving, setSaving] = useState(false)
+  const [error, setError]   = useState('')
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+  const handleSave = async () => {
+    if (!form.title.trim() || !form.description.trim()) {
+      setError('Title and description are required'); return
+    }
+    setSaving(true)
+    const payload = {
+      report_type:         form.report_type,
+      priority:            form.priority,
+      status:              form.status,
+      title:               form.title.trim(),
+      description:         form.description.trim(),
+      location:            form.location || null,
+      checkpoint_id:       form.checkpoint_id || null,
+      action_taken:        form.action_taken || null,
+      police_called:       form.police_called,
+      management_notified: form.management_notified,
+      persons_involved:    form.persons_involved || null,
+      review_notes:        form.review_notes || null,
+      reviewed_by:         (form.status !== 'open' && !report?.reviewed_by) ? profile.id : (report?.reviewed_by || null),
+      reviewed_at:         (form.status !== 'open' && !report?.reviewed_at) ? new Date().toISOString() : (report?.reviewed_at || null),
+      updated_at:          new Date().toISOString(),
+    }
+    let err
+    if (report?.id) {
+      ({ error: err } = await supabase.from('security_reports').update(payload).eq('id', report.id))
+    } else {
+      ({ error: err } = await supabase.from('security_reports').insert({
+        ...payload,
+        organization_id: profile.organization_id,
+        round_id:        roundId || null,
+        filed_by:        profile.id,
+        is_active:       true,
+      }))
+    }
+    if (err) { setError(err.message); setSaving(false); return }
+    onSave()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <Shield size={18} className="text-brand-600" />
+            <h2 className="font-display font-semibold text-slate-800">
+              {isNew ? 'Security Report' : `Report #${report.report_number}`}
+            </h2>
+            {!isNew && (
+              <span className={`text-xs px-2.5 py-1 rounded-full font-medium flex items-center gap-1.5 ${getReportStatus(form.status).color}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${getReportStatus(form.status).dot}`} />
+                {getReportStatus(form.status).label}
+              </span>
+            )}
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+          {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+
+          {/* Type + Priority */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Report Type</label>
+              <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto pr-1">
+                {REPORT_TYPES.map(t => (
+                  <button key={t.key} onClick={() => set('report_type', t.key)}
+                    className={`text-left px-2.5 py-2 rounded-lg border text-xs font-medium transition-all ${form.report_type === t.key ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 text-slate-600 hover:border-brand-300'}`}>
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Priority</label>
+                <div className="space-y-1.5">
+                  {REPORT_PRIORITIES.map(p => (
+                    <button key={p.key} onClick={() => set('priority', p.key)}
+                      className={`w-full text-left px-3 py-2 rounded-lg border text-xs font-medium transition-all ${form.priority === p.key ? p.color + ' ring-2 ring-offset-1 ring-brand-400 border-transparent' : 'border-slate-200 text-slate-600 hover:border-slate-300'}`}>
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Title */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Title *</label>
+            <input value={form.title} onChange={e => set('title', e.target.value)}
+              className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              placeholder="Brief summary of the incident or observation" />
+          </div>
+
+          {/* Location */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Location</label>
+              <input value={form.location} onChange={e => set('location', e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                placeholder="Where did this occur?" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Nearby Checkpoint</label>
+              <select value={form.checkpoint_id} onChange={e => set('checkpoint_id', e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <option value="">None</option>
+                {checkpoints.map(cp => <option key={cp.id} value={cp.id}>{cp.name}</option>)}
+              </select>
+            </div>
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Description *</label>
+            <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={4}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+              placeholder="Describe what you observed in detail — time, people, vehicles, actions taken..." />
+          </div>
+
+          {/* Persons involved */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Persons Involved</label>
+            <input value={form.persons_involved} onChange={e => set('persons_involved', e.target.value)}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              placeholder="Names, descriptions, or 'Unknown'" />
+          </div>
+
+          {/* Action taken */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Action Taken</label>
+            <textarea value={form.action_taken} onChange={e => set('action_taken', e.target.value)} rows={2}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+              placeholder="What did you do in response?" />
+          </div>
+
+          {/* Notifications */}
+          <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Notifications</label>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { key: 'police_called',       label: 'Police Called' },
+                { key: 'management_notified', label: 'Management Notified' },
+              ].map(n => (
+                <label key={n.key} className={`flex items-center gap-2 cursor-pointer p-3 rounded-xl border transition-all ${form[n.key] ? 'bg-brand-50 border-brand-200' : 'border-slate-200 bg-white'}`}>
+                  <input type="checkbox" checked={form[n.key]} onChange={e => set(n.key, e.target.checked)} className="w-4 h-4 rounded text-brand-600" />
+                  <span className="text-sm font-medium text-slate-700">{n.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Supervisor review */}
+          {isSupervisor && !isNew && (
+            <div className="p-4 bg-purple-50 border border-purple-100 rounded-xl space-y-3">
+              <label className="block text-xs font-semibold text-purple-700 uppercase tracking-wide flex items-center gap-1.5">
+                <Shield size={13} /> Supervisor Review
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {REPORT_STATUSES.map(s => (
+                  <button key={s.key} onClick={() => set('status', s.key)}
+                    className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${form.status === s.key ? s.color + ' ring-2 ring-offset-1 ring-purple-400 border-transparent' : 'border-slate-200 text-slate-500'}`}>
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+              <textarea value={form.review_notes} onChange={e => set('review_notes', e.target.value)} rows={2}
+                className="w-full px-3 py-2 border border-purple-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white resize-none"
+                placeholder="Supervisor notes, follow-up actions..." />
+            </div>
+          )}
+        </div>
+
+        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+          <button onClick={handleSave} disabled={saving}
+            className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
+            {saving ? 'Saving...' : isNew ? 'File Report' : 'Save Changes'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Main Security Page ─────────────────────────────────────────
 export default function Security() {
   const { profile, organization } = useAuth()
   const [tab, setTab]               = useState('overview')
   const [checkpoints, setCheckpoints] = useState([])
   const [rounds, setRounds]           = useState([])
+  const [reports, setReports]         = useState([])
   const [staffList, setStaffList]     = useState([])
   const [lastCheckins, setLastCheckins] = useState({}) // checkpoint_id -> latest checkin
   const [loading, setLoading]           = useState(true)
@@ -481,14 +737,25 @@ export default function Security() {
   const [editCp, setEditCp]             = useState(null)
   const [showRound, setShowRound]       = useState(false)
   const [viewRound, setViewRound]       = useState(null)
+  const [showReport, setShowReport]     = useState(false)
+  const [editReport, setEditReport]     = useState(null)
 
   const isSupervisor = ['super_admin','org_admin','supervisor','manager'].includes(profile?.role)
+
+  useEffect(() => {
+    const handler = (e) => {
+      setEditReport(null)
+      setShowReport(true)
+    }
+    window.addEventListener('openSecurityReport', handler)
+    return () => window.removeEventListener('openSecurityReport', handler)
+  }, [])
 
   useEffect(() => { if (organization) fetchAll() }, [organization])
 
   async function fetchAll() {
     setLoading(true)
-    const [cpRes, roundRes, staffRes] = await Promise.all([
+    const [cpRes, roundRes, staffRes, reportRes] = await Promise.all([
       supabase.from('security_checkpoints').select('*').eq('organization_id', organization.id).eq('is_active', true).order('sort_order'),
       supabase.from('security_rounds')
         .select('*, guard:profiles!security_rounds_guard_id_fkey(first_name,last_name)')
@@ -497,11 +764,17 @@ export default function Security() {
       supabase.from('profiles').select('id,first_name,last_name,role')
         .eq('organization_id', organization.id)
         .in('role', ['staff','maintenance','supervisor','manager','org_admin','super_admin']),
+      supabase.from('security_reports')
+        .select('*, filer:profiles!security_reports_filed_by_fkey(first_name,last_name), reviewer:profiles!security_reports_reviewed_by_fkey(first_name,last_name), security_checkpoints(name)')
+        .eq('organization_id', organization.id)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false }),
     ])
     const cps = cpRes.data || []
     setCheckpoints(cps)
     setRounds(roundRes.data || [])
     setStaffList(staffRes.data || [])
+    setReports(reportRes.data || [])
 
     // Get last checkin per checkpoint
     if (cps.length) {
@@ -537,6 +810,7 @@ export default function Security() {
   const tabs = [
     { key: 'overview',     label: 'Overview' },
     { key: 'checkpoints',  label: 'Checkpoints' },
+    { key: 'reports',      label: `Reports${reports.filter(r => r.status === 'open').length > 0 ? ` (${reports.filter(r => r.status === 'open').length})` : ''}` },
     { key: 'history',      label: 'Round History' },
   ]
 
@@ -555,6 +829,10 @@ export default function Security() {
               <MapPin size={15} /> Add Checkpoint
             </button>
           )}
+          <button onClick={() => { setEditReport(null); setShowReport(true) }}
+            className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
+            <FileText size={15} /> File Report
+          </button>
           <button onClick={() => setShowRound(true)}
             disabled={!!activeRound}
             className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-slate-300 text-white rounded-xl text-sm font-medium transition-colors">
@@ -778,7 +1056,83 @@ export default function Security() {
         </div>
       )}
 
+      {/* REPORTS TAB */}
+      {tab === 'reports' && (
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm text-slate-500">{reports.length} report{reports.length !== 1 ? 's' : ''}</p>
+            <button onClick={() => { setEditReport(null); setShowReport(true) }}
+              className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
+              <Plus size={15} /> File Report
+            </button>
+          </div>
+          {reports.length === 0 ? (
+            <div className="text-center py-16 text-slate-400">
+              <FileText size={40} className="mx-auto mb-3 opacity-30" />
+              <p className="font-display text-lg">No reports filed yet</p>
+              <p className="text-sm mt-1">Guards can file reports during or after rounds.</p>
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">#</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Type</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Title</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Priority</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Status</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Filed By</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reports.map(r => {
+                    const status   = getReportStatus(r.status)
+                    const priority = getReportPriority(r.priority)
+                    return (
+                      <tr key={r.id} onClick={() => { setEditReport(r); setShowReport(true) }}
+                        className="border-b border-slate-50 hover:bg-slate-50 cursor-pointer transition-colors">
+                        <td className="px-4 py-3 text-xs font-mono text-slate-400">#{r.report_number}</td>
+                        <td className="px-4 py-3 text-xs text-slate-600 capitalize">{r.report_type?.replace('_',' ')}</td>
+                        <td className="px-4 py-3">
+                          <div className="text-sm font-medium text-slate-800">{r.title}</div>
+                          {r.location && <div className="text-xs text-slate-400 flex items-center gap-1 mt-0.5"><MapPin size={10} />{r.location}</div>}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${priority.color}`}>{priority.label}</span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-medium ${status.color}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
+                            {status.label}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-xs text-slate-500">
+                          {r.filer ? `${r.filer.first_name} ${r.filer.last_name}` : '—'}
+                        </td>
+                        <td className="px-4 py-3 text-xs text-slate-400">
+                          {new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Modals */}
+      {showReport && (
+        <SecurityReportModal
+          report={editReport}
+          roundId={null}
+          checkpoints={checkpoints}
+          onClose={() => { setShowReport(false); setEditReport(null) }}
+          onSave={() => { setShowReport(false); setEditReport(null); fetchAll() }} />
+      )}
       {showCpModal && (
         <CheckpointModal
           checkpoint={editCp}
@@ -812,3 +1166,27 @@ export default function Security() {
     </div>
   )
 }
+
+// ── NOTE: The following exports replace the default export above ──
+// ── Security Report Modal ──────────────────────────────────────
+export function SecurityReportModal({ roundId, checkpoints, onClose, onSave }) {
+  const { profile } = useAuth()
+  const [form, setForm] = useState({
+    report_type:        'general',
+    priority:           'low',
+    title:              '',
+    description:        '',
+    location:           '',
+    checkpoint_id:      '',
+    action_taken:       '',
+    police_called:      false,
+    management_notified:false,
+    persons_involved:   '',
+  })
+  const [saving, setSaving] = useState(false)
+  const [error, setError]   = useState('')
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+  const handleSave = async () => {
+    if (!form.title.trim() || !form.description.trim()) {
+      setError('Title and description are required'); return
