@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import {
   Wrench, Megaphone, Church, Calendar, Clock,
   Play, Radio, Plus, X, ChevronRight, Bell,
   Home, LogOut, AlertTriangle, CheckCircle2,
-  Cake, Star, CloudSun, UtensilsCrossed
+  Cake, Star, CloudSun, UtensilsCrossed, Maximize
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
@@ -131,6 +131,7 @@ export default function ResidentPortal() {
   const [announcements, setAnnouncements] = useState([])
   const [chapelServices, setChapelServices] = useState([])
   const [liveService, setLiveService]   = useState(null)
+  const chapelRef = useRef(null)
   const [loading, setLoading]           = useState(true)
   const [showWOModal, setShowWOModal]   = useState(false)
 
@@ -298,18 +299,31 @@ export default function ResidentPortal() {
 
               {liveService ? (
                 <>
-                  <div className="relative mb-3">
-                    <div className="w-full aspect-video rounded-xl overflow-hidden bg-black">
+                  <div className="relative mb-3 group">
+                    <div className="w-full aspect-video rounded-xl overflow-hidden bg-black" ref={chapelRef}>
                       <iframe
                         className="w-full h-full"
                         src={`https://www.youtube.com/embed/${liveService.stream_youtube_id}?autoplay=1`}
                         title="Chapel Live"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                         allowFullScreen />
                     </div>
-                    <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                    {/* LIVE badge */}
+                    <div className="absolute top-2 left-2 flex items-center gap-1.5 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                       <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" /> LIVE
                     </div>
+                    {/* Fullscreen button */}
+                    <button
+                      onClick={() => {
+                        const el = chapelRef.current
+                        if (!el) return
+                        if (el.requestFullscreen) el.requestFullscreen()
+                        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen()
+                        else if (el.mozRequestFullScreen) el.mozRequestFullScreen()
+                      }}
+                      className="absolute bottom-2 right-2 flex items-center gap-1.5 bg-black/60 hover:bg-black/80 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors backdrop-blur-sm">
+                      <Maximize size={13} /> Full Screen
+                    </button>
                   </div>
                   <div className="text-sm font-medium text-purple-700">Now Streaming: {liveService.title}</div>
                   {liveService.stream_started_at && (
