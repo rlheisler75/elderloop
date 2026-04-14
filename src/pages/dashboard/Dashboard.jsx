@@ -202,14 +202,15 @@ export default function Dashboard() {
       totalResidents: residents.length,
       recentAnnouncements: announcements.slice(0, 3),
       // Security
-      todayRounds:   secRounds.length,
-      openSecReports: secReports.filter(r => r.status === 'open').length,
-      urgentSecReports: secReports.filter(r => r.priority === 'urgent').length,
+      todayRounds:     secRounds.length,
+      openSecReports:  secReports.filter(r => r.status === 'open').length,
+      urgentSecReports:secReports.filter(r => r.priority === 'urgent').length,
       // Meters
       meterCount: meters.length,
+      // Arrays for rendering
       workOrders,
       incidents,
-      todayTrips,
+      tripsList: todayTrips,
       todayActs,
     })
 
@@ -328,7 +329,7 @@ export default function Dashboard() {
         <div className="lg:col-span-2 space-y-4">
 
           {/* Today's trips */}
-          {hasModule('transportation') && data.todayTrips?.length > 0 && (
+          {hasModule('transportation') && data.tripsList?.length > 0 && (
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-display font-semibold text-slate-800 flex items-center gap-2">
@@ -339,7 +340,7 @@ export default function Dashboard() {
                 </button>
               </div>
               <div className="space-y-2">
-                {data.todayTrips.map(t => (
+                {data.tripsList.map(t => (
                   <div key={t.id} className="flex items-center gap-3 p-2.5 rounded-xl border border-slate-100">
                     <div className="w-12 text-center flex-shrink-0">
                       <div className="text-xs font-bold text-slate-700">{t.pickup_time ? t.pickup_time.slice(0,5) : '—'}</div>

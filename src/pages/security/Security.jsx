@@ -1166,27 +1166,3 @@ export default function Security() {
     </div>
   )
 }
-
-// ── NOTE: The following exports replace the default export above ──
-// ── Security Report Modal ──────────────────────────────────────
-export function SecurityReportModal({ roundId, checkpoints, onClose, onSave }) {
-  const { profile } = useAuth()
-  const [form, setForm] = useState({
-    report_type:        'general',
-    priority:           'low',
-    title:              '',
-    description:        '',
-    location:           '',
-    checkpoint_id:      '',
-    action_taken:       '',
-    police_called:      false,
-    management_notified:false,
-    persons_involved:   '',
-  })
-  const [saving, setSaving] = useState(false)
-  const [error, setError]   = useState('')
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
-
-  const handleSave = async () => {
-    if (!form.title.trim() || !form.description.trim()) {
-      setError('Title and description are required'); return
