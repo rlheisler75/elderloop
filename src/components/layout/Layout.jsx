@@ -24,7 +24,7 @@ const navItems = [
 ]
 
 export default function Layout() {
-  const { profile, organization, hasModule, isOrgAdmin, signOut } = useAuth()
+  const { profile, organization, hasModule, isOrgAdmin, isSuperAdmin, signOut } = useAuth()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const navigate = useNavigate()
   const handleSignOut = async () => { await signOut(); navigate('/login') }
@@ -58,6 +58,13 @@ export default function Layout() {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${isActive ? 'bg-brand-700 text-white' : 'text-brand-300 hover:bg-brand-800 hover:text-white'}`}>
               <Settings size={18} /><span>Admin</span>
+            </NavLink>
+          )}
+          {isSuperAdmin && isSuperAdmin() && (
+            <NavLink to="/superadmin"
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${isActive ? 'bg-purple-700 text-white' : 'text-purple-400 hover:bg-purple-900/50 hover:text-white'}`}>
+              <Shield size={18} /><span>Super Admin</span>
             </NavLink>
           )}
           <div className="flex items-center gap-3 px-3 py-2.5">

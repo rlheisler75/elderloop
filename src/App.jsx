@@ -1,8 +1,10 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import Layout from './components/layout/Layout'
+import LandingPage from './pages/landing/LandingPage'
 import Login from './pages/auth/Login'
 import Dashboard from './pages/dashboard/Dashboard'
+import SuperAdminDashboard from './pages/superadmin/SuperAdminDashboard'
 import AdminPanel from './pages/admin/AdminPanel'
 import WorkOrders from './pages/workorders/WorkOrders'
 import Communication from './pages/communication/Communication'
@@ -20,7 +22,7 @@ import ResidentPortal from './pages/resident/ResidentPortal'
 
 function ProtectedRoute({ children, requireModule }) {
   const { user, loading, hasModule } = useAuth()
-  if (loading) return <div className="flex h-screen items-center justify-center"><div className="text-brand-600 font-display text-2xl">ElderLoop</div></div>
+  if (loading) return <div className="flex h-screen items-center justify-center bg-brand-950"><div className="text-white font-display text-2xl">ElderLoop</div></div>
   if (!user) return <Navigate to="/login" replace />
   if (requireModule && !hasModule(requireModule)) return <Navigate to="/dashboard" replace />
   return children
@@ -33,13 +35,23 @@ function AdminRoute({ children }) {
   return children
 }
 
+function SuperAdminRoute({ children }) {
+  const { user, loading, isSuperAdmin } = useAuth()
+  if (loading) return null
+  if (!user || !isSuperAdmin()) return <Navigate to="/dashboard" replace />
+  return children
+}
+
 export default function App() {
   const { user, profile, loading } = useAuth()
+
   if (loading) return (
     <div className="flex h-screen items-center justify-center bg-brand-950">
       <div className="text-white font-display text-3xl tracking-wide">ElderLoop</div>
     </div>
   )
+
+  // Resident / family → portal
   if (user && (profile?.role === 'resident' || profile?.role === 'family')) {
     return (
       <Routes>
@@ -48,12 +60,19 @@ export default function App() {
       </Routes>
     )
   }
+
   return (
     <Routes>
+      {/* Public */}
+      <Route path="/" element={user ? <Navigate to="/dashboard" /> : <LandingPage />} />
       <Route path="/signage" element={<Signage />} />
       <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
+
+      {/* Super Admin */}
+      <Route path="/superadmin" element={<SuperAdminRoute><SuperAdminDashboard /></SuperAdminRoute>} />
+
+      {/* App shell */}
       <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-        <Route index element={<Navigate to="/dashboard" />} />
         <Route path="dashboard"      element={<Dashboard />} />
         <Route path="admin"          element={<AdminRoute><AdminPanel /></AdminRoute>} />
         <Route path="communication"  element={<ProtectedRoute requireModule="communication"><Communication /></ProtectedRoute>} />
@@ -65,10 +84,11 @@ export default function App() {
         <Route path="housekeeping"   element={<ProtectedRoute requireModule="housekeeping"><Housekeeping /></ProtectedRoute>} />
         <Route path="transportation" element={<ProtectedRoute requireModule="transportation"><Transportation /></ProtectedRoute>} />
         <Route path="meters"         element={<ProtectedRoute requireModule="meters"><MeterReadings /></ProtectedRoute>} />
-        <Route path="incidents"      element={<ProtectedRoute requireModule="incidents"><IncidentReports /></ProtectedRoute>} />
         <Route path="security"       element={<ProtectedRoute requireModule="security"><Security /></ProtectedRoute>} />
+        <Route path="incidents"      element={<ProtectedRoute requireModule="incidents"><IncidentReports /></ProtectedRoute>} />
       </Route>
-      <Route path="*" element={<Navigate to="/dashboard" />} />
+
+      <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   )
 }
