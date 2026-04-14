@@ -13,6 +13,7 @@ import Transportation from './pages/transportation/Transportation'
 import Activities from './pages/activities/Activities'
 import IncidentReports from './pages/incidents/IncidentReports'
 import ResidentDirectory from './pages/directory/ResidentDirectory'
+import MeterReadings from './pages/meters/MeterReadings'
 import Signage from './pages/signage/Signage'
 import ResidentPortal from './pages/resident/ResidentPortal'
 
@@ -57,12 +58,13 @@ export default function App() {
         <Route path="communication"  element={<ProtectedRoute requireModule="communication"><Communication /></ProtectedRoute>} />
         <Route path="chapel"         element={<ProtectedRoute requireModule="chapel"><Chapel /></ProtectedRoute>} />
         <Route path="activities"     element={<ProtectedRoute requireModule="activities"><Activities /></ProtectedRoute>} />
-        <Route path="work-orders"    element={<ProtectedRoute requireModule="work_orders"><WorkOrders /></ProtectedRoute>} />
+        <Route path="directory"      element={<ProtectedRoute requireModule="directory"><ResidentDirectory /></ProtectedRoute>} />
+        <Route path="maintenance"    element={<ProtectedRoute requireModule="work_orders"><WorkOrders /></ProtectedRoute>} />
         <Route path="dietary"        element={<ProtectedRoute requireModule="dietary"><Dietary /></ProtectedRoute>} />
         <Route path="housekeeping"   element={<ProtectedRoute requireModule="housekeeping"><Housekeeping /></ProtectedRoute>} />
         <Route path="transportation" element={<ProtectedRoute requireModule="transportation"><Transportation /></ProtectedRoute>} />
         <Route path="incidents"      element={<ProtectedRoute requireModule="incidents"><IncidentReports /></ProtectedRoute>} />
-        <Route path="directory"      element={<ProtectedRoute requireModule="directory"><ResidentDirectory /></ProtectedRoute>} />
+        <Route path="meters"         element={<ProtectedRoute requireModule="meters"><MeterReadings /></ProtectedRoute>} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" />} />
     </Routes>

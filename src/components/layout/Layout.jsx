@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext'
 import {
   LayoutDashboard, Wrench, MessageSquare, UtensilsCrossed,
   SprayCan, Settings, LogOut, Menu, X, ChevronRight,
-  Church, Car, CalendarDays, AlertTriangle, BookUser
+  Church, Car, CalendarDays, AlertTriangle, BookUser, Gauge
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -13,10 +13,11 @@ const navItems = [
   { to: '/chapel',         label: 'Chapel',           icon: Church,          module: 'chapel' },
   { to: '/activities',     label: 'Activities',       icon: CalendarDays,    module: 'activities' },
   { to: '/directory',      label: 'Residents',        icon: BookUser,        module: 'directory' },
-  { to: '/work-orders',    label: 'Work Orders',      icon: Wrench,          module: 'work_orders' },
+  { to: '/maintenance',    label: 'Maintenance',      icon: Wrench,          module: 'work_orders' },
   { to: '/dietary',        label: 'Dietary',          icon: UtensilsCrossed, module: 'dietary' },
   { to: '/housekeeping',   label: 'Housekeeping',     icon: SprayCan,        module: 'housekeeping' },
   { to: '/transportation', label: 'Transportation',   icon: Car,             module: 'transportation' },
+  { to: '/meters',         label: 'Meter Readings',   icon: Gauge,           module: 'meters' },
   { to: '/incidents',      label: 'Incident Reports', icon: AlertTriangle,   module: 'incidents' },
 ]
 
