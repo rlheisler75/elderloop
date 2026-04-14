@@ -733,9 +733,7 @@ export default function AdminPanel() {
       {tab === 'permissions' && (
         <UserPermissions
           orgId={currentOrgId}
-          orgModules={organization?.id === currentOrgId
-            ? (modules || [])
-            : null} />
+          orgModules={orgModules.map(m => m.module_key || m).filter(Boolean)} />
       )}
 
       {/* ── LISTS TAB ── */}
