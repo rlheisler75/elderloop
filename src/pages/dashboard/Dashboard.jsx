@@ -6,7 +6,7 @@ import {
   MessageSquare, Wrench, UtensilsCrossed, SprayCan,
   Car, CalendarDays, AlertTriangle, BookUser, Gauge,
   Church, ArrowRight, Clock, CheckCircle2, TrendingUp,
-  Bell, Users, Activity, Zap
+  Bell, Users, Activity, Zap, Shield
 } from 'lucide-react'
 
 // ── Stat Card ──────────────────────────────────────────────────
@@ -139,22 +139,35 @@ export default function Dashboard() {
       )
     } else queries.push(Promise.resolve({ data: [] }))
 
+    if (hasModule('security')) {
+      queries.push(
+        supabase.from('security_rounds').select('id,status,started_at')
+          .eq('organization_id', orgId)
+          .gte('started_at', new Date(Date.now() - 24*60*60*1000).toISOString()),
+        supabase.from('security_reports').select('id,status,priority')
+          .eq('organization_id', orgId).eq('is_active', true)
+          .in('status', ['open','under_review'])
+      )
+    } else { queries.push(Promise.resolve({ data: [] })); queries.push(Promise.resolve({ data: [] })) }
+
     if (hasModule('meters')) {
       queries.push(
         supabase.from('meters').select('id').eq('organization_id', orgId).eq('is_active', true)
       )
     } else queries.push(Promise.resolve({ data: [] }))
 
-    const [woRes, annRes, incRes, tripRes, actRes, ilRes, resRes, meterRes] = await Promise.all(queries)
+    const [woRes, annRes, incRes, tripRes, actRes, ilRes, resRes, secRoundsRes, secReportsRes, meterRes] = await Promise.all(queries)
 
-    const workOrders   = woRes.data    || []
-    const announcements = annRes.data  || []
-    const incidents    = incRes.data   || []
-    const todayTrips   = tripRes.data  || []
-    const activities   = actRes.data   || []
-    const ilRequests   = ilRes.data    || []
-    const residents    = resRes.data   || []
-    const meters       = meterRes.data || []
+    const workOrders    = woRes.data    || []
+    const announcements = annRes.data   || []
+    const incidents     = incRes.data   || []
+    const todayTrips    = tripRes.data  || []
+    const activities    = actRes.data   || []
+    const ilRequests    = ilRes.data    || []
+    const residents     = resRes.data   || []
+    const secRounds     = secRoundsRes.data  || []
+    const secReports    = secReportsRes.data || []
+    const meters        = meterRes.data || []
 
     // Expand recurring activities for today
     const todayActs = activities.filter(a => {
@@ -188,6 +201,12 @@ export default function Dashboard() {
       ilPending:     ilRequests.filter(r => r.status === 'pending').length,
       totalResidents: residents.length,
       recentAnnouncements: announcements.slice(0, 3),
+      // Security
+      todayRounds:   secRounds.length,
+      openSecReports: secReports.filter(r => r.status === 'open').length,
+      urgentSecReports: secReports.filter(r => r.priority === 'urgent').length,
+      // Meters
+      meterCount: meters.length,
       workOrders,
       incidents,
       todayTrips,
@@ -214,6 +233,7 @@ export default function Dashboard() {
   if (data.criticalInc > 0)  alerts.push({ icon: AlertTriangle, color: 'text-red-700',    bg: 'bg-red-100',    label: `${data.criticalInc} critical incident${data.criticalInc > 1 ? 's' : ''} open`, to: '/incidents' })
   if (data.openIncidents > 0) alerts.push({ icon: AlertTriangle, color: 'text-amber-700',  bg: 'bg-amber-100',  label: `${data.openIncidents} incident report${data.openIncidents > 1 ? 's' : ''} awaiting review`, to: '/incidents' })
   if (data.ilPending > 0)    alerts.push({ icon: SprayCan,      color: 'text-orange-600', bg: 'bg-orange-100', label: `${data.ilPending} housekeeping request${data.ilPending > 1 ? 's' : ''} pending`, to: '/housekeeping' })
+  if (data.urgentSecReports > 0) alerts.push({ icon: Shield,   color: 'text-red-700',    bg: 'bg-red-100',    label: `${data.urgentSecReports} urgent security report${data.urgentSecReports > 1 ? 's' : ''}`, to: '/security' })
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -280,6 +300,17 @@ export default function Dashboard() {
             sub="Active residents on file"
             color="text-slate-600" bg="bg-slate-100" to="/directory" />
         )}
+        {hasModule('security') && (
+          <StatCard icon={Shield} label="Security Rounds" value={data.todayRounds}
+            sub={data.openSecReports > 0 ? `${data.openSecReports} open report${data.openSecReports > 1 ? 's' : ''}` : 'No open reports'}
+            color="text-indigo-600" bg="bg-indigo-50" to="/security"
+            alert={data.urgentSecReports > 0} />
+        )}
+        {hasModule('meters') && data.meterCount > 0 && (
+          <StatCard icon={Gauge} label="Meters" value={data.meterCount}
+            sub="Active utility meters"
+            color="text-amber-600" bg="bg-amber-50" to="/meters" />
+        )}
         {hasModule('housekeeping') && data.ilPending > 0 && (
           <StatCard icon={SprayCan} label="Housekeeping Pending" value={data.ilPending}
             sub="IL requests awaiting booking"
@@ -289,11 +320,6 @@ export default function Dashboard() {
           <StatCard icon={Church} label="Chapel" value="Live?"
             sub="Click to manage services"
             color="text-indigo-600" bg="bg-indigo-50" to="/chapel" />
-        )}
-        {hasModule('meters') && (
-          <StatCard icon={Gauge} label="Meter Readings" value="Track"
-            sub="Utility usage tracking"
-            color="text-amber-600" bg="bg-amber-50" to="/meters" />
         )}
       </div>
 

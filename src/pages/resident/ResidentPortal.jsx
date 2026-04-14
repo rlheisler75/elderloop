@@ -127,20 +127,24 @@ function SubmitRequestModal({ onClose, onSave }) {
 export default function ResidentPortal() {
   const { profile, organization, signOut } = useAuth()
   const navigate = useNavigate()
-  const [workOrders, setWorkOrders]     = useState([])
+  const [workOrders, setWorkOrders]       = useState([])
   const [announcements, setAnnouncements] = useState([])
   const [chapelServices, setChapelServices] = useState([])
-  const [liveService, setLiveService]   = useState(null)
+  const [liveService, setLiveService]     = useState(null)
+  const [activities, setActivities]       = useState([])
   const chapelRef = useRef(null)
-  const [loading, setLoading]           = useState(true)
-  const [showWOModal, setShowWOModal]   = useState(false)
+  const [loading, setLoading]             = useState(true)
+  const [showWOModal, setShowWOModal]     = useState(false)
 
   useEffect(() => { if (organization) fetchAll() }, [organization])
 
   async function fetchAll() {
     setLoading(true)
     const now = new Date().toISOString()
-    const [woRes, annRes, chapRes] = await Promise.all([
+    const todayStr = new Date().toISOString().split('T')[0]
+    const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+
+    const [woRes, annRes, chapRes, actRes] = await Promise.all([
       supabase.from('work_orders').select('*')
         .eq('organization_id', organization.id)
         .eq('submitted_by', profile.id)
@@ -156,12 +160,22 @@ export default function ResidentPortal() {
         .eq('organization_id', organization.id)
         .eq('is_active', true)
         .order('service_date', { ascending: false }).limit(20),
+      supabase.from('activities').select('*')
+        .eq('organization_id', organization.id)
+        .eq('is_active', true)
+        .eq('show_on_portal', true)
+        .gte('start_date', todayStr)
+        .lte('start_date', nextWeek)
+        .order('start_date').order('start_time').limit(20),
     ])
     setWorkOrders(woRes.data || [])
     setAnnouncements(annRes.data || [])
     const services = chapRes.data || []
     setChapelServices(services)
     setLiveService(services.find(s => s.is_live) || null)
+    // Also include recurring activities that fall this week
+    const acts = actRes.data || []
+    setActivities(acts)
     setLoading(false)
   }
 
@@ -290,6 +304,46 @@ export default function ResidentPortal() {
 
           {/* Right column — 2/5 */}
           <div className="lg:col-span-2 space-y-6">
+
+            {/* This Week's Activities */}
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+              <h2 className="font-display font-semibold text-slate-800 flex items-center gap-2 mb-4">
+                <Calendar size={18} className="text-purple-600" /> This Week's Activities
+              </h2>
+              {activities.length === 0 ? (
+                <p className="text-slate-400 text-sm text-center py-4">No activities scheduled this week.</p>
+              ) : (
+                <div className="space-y-2">
+                  {activities.map(act => {
+                    const fmt12 = (t) => {
+                      if (!t) return ''
+                      const [h, m] = t.split(':')
+                      const hour = parseInt(h)
+                      return `${hour > 12 ? hour - 12 : hour || 12}:${m} ${hour >= 12 ? 'PM' : 'AM'}`
+                    }
+                    const isToday = act.start_date === new Date().toISOString().split('T')[0]
+                    return (
+                      <div key={act.id}
+                        className={`flex items-start gap-3 p-3 rounded-xl border transition-all ${isToday ? 'bg-purple-50 border-purple-200' : 'border-slate-100'}`}>
+                        <div className="w-2 h-2 rounded-full mt-2 flex-shrink-0"
+                          style={{ background: act.color || '#8b5cf6' }} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-slate-800 text-sm">{act.title}</span>
+                            {isToday && <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-medium">Today</span>}
+                          </div>
+                          <div className="text-xs text-slate-400 mt-0.5 flex items-center gap-2">
+                            <span>{new Date(act.start_date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+                            {act.start_time && <span>· {fmt12(act.start_time)}</span>}
+                            {act.location && <span>· {act.location}</span>}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
 
             {/* Chapel Live */}
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
