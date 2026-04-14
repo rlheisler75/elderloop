@@ -5,6 +5,7 @@ import LandingPage from './pages/landing/LandingPage'
 import Login from './pages/auth/Login'
 import Dashboard from './pages/dashboard/Dashboard'
 import SuperAdminDashboard from './pages/superadmin/SuperAdminDashboard'
+import CEODashboard from './pages/ceo/CEODashboard'
 import AdminPanel from './pages/admin/AdminPanel'
 import WorkOrders from './pages/workorders/WorkOrders'
 import Communication from './pages/communication/Communication'
@@ -57,6 +58,34 @@ export default function App() {
       <Routes>
         <Route path="/resident" element={<ResidentPortal />} />
         <Route path="*" element={<Navigate to="/resident" />} />
+      </Routes>
+    )
+  }
+
+  // CEO → CEO dashboard (can also access full app)
+  if (user && profile?.role === 'ceo') {
+    return (
+      <Routes>
+        <Route path="/signage" element={<Signage />} />
+        <Route path="/ceo" element={<CEODashboard />} />
+        <Route path="/superadmin" element={<SuperAdminRoute><SuperAdminDashboard /></SuperAdminRoute>} />
+        <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+          <Route index element={<Navigate to="/ceo" />} />
+          <Route path="dashboard"      element={<Dashboard />} />
+          <Route path="admin"          element={<AdminRoute><AdminPanel /></AdminRoute>} />
+          <Route path="communication"  element={<ProtectedRoute requireModule="communication"><Communication /></ProtectedRoute>} />
+          <Route path="chapel"         element={<ProtectedRoute requireModule="chapel"><Chapel /></ProtectedRoute>} />
+          <Route path="activities"     element={<ProtectedRoute requireModule="activities"><Activities /></ProtectedRoute>} />
+          <Route path="directory"      element={<ProtectedRoute requireModule="directory"><ResidentDirectory /></ProtectedRoute>} />
+          <Route path="maintenance"    element={<ProtectedRoute requireModule="work_orders"><WorkOrders /></ProtectedRoute>} />
+          <Route path="dietary"        element={<ProtectedRoute requireModule="dietary"><Dietary /></ProtectedRoute>} />
+          <Route path="housekeeping"   element={<ProtectedRoute requireModule="housekeeping"><Housekeeping /></ProtectedRoute>} />
+          <Route path="transportation" element={<ProtectedRoute requireModule="transportation"><Transportation /></ProtectedRoute>} />
+          <Route path="meters"         element={<ProtectedRoute requireModule="meters"><MeterReadings /></ProtectedRoute>} />
+          <Route path="security"       element={<ProtectedRoute requireModule="security"><Security /></ProtectedRoute>} />
+          <Route path="incidents"      element={<ProtectedRoute requireModule="incidents"><IncidentReports /></ProtectedRoute>} />
+        </Route>
+        <Route path="*" element={<Navigate to="/ceo" />} />
       </Routes>
     )
   }

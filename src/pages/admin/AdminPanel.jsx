@@ -8,16 +8,18 @@ import {
   Save, Eye, EyeOff, Globe, Phone, MapPin, User, List
 } from 'lucide-react'
 import AdminLists from './AdminLists'
+import UserPermissions from './UserPermissions'
 
 const ALL_ROLES = [
+  { key: 'ceo',         label: 'CEO',         desc: 'Executive dashboard + full access' },
   { key: 'org_admin',   label: 'Org Admin',   desc: 'Full access to organization' },
-  { key: 'supervisor',  label: 'Supervisor',  desc: 'Manage staff and approve work' },
   { key: 'manager',     label: 'Manager',     desc: 'Department management' },
+  { key: 'supervisor',  label: 'Supervisor',  desc: 'Manage staff and approve work' },
   { key: 'maintenance', label: 'Maintenance', desc: 'Work orders access' },
   { key: 'dietary',     label: 'Dietary',     desc: 'Dietary module access' },
   { key: 'housekeeping',label: 'Housekeeping',desc: 'Housekeeping module access' },
   { key: 'nursing',     label: 'Nursing',     desc: 'Clinical access' },
-  { key: 'staff',       label: 'Staff',       desc: 'General staff access' },
+  { key: 'staff',       label: 'Staff',       desc: 'General staff — module access assigned separately' },
   { key: 'resident',    label: 'Resident',    desc: 'Resident portal access' },
   { key: 'family',      label: 'Family',      desc: 'Family portal access' },
 ]
@@ -511,9 +513,10 @@ export default function AdminPanel() {
   )
 
   const tabs = [
-    { key: 'users',         label: 'Users',            icon: Users },
-    { key: 'settings',      label: 'Org Settings',     icon: Settings },
-    { key: 'lists',         label: 'Lists & Pick Lists', icon: List },
+    { key: 'users',        label: 'Users',              icon: Users },
+    { key: 'permissions',  label: 'Module Access',      icon: Shield },
+    { key: 'settings',     label: 'Org Settings',       icon: Settings },
+    { key: 'lists',        label: 'Lists & Pick Lists', icon: List },
     ...(superAdmin ? [{ key: 'organizations', label: 'All Organizations', icon: Building2 }] : []),
   ]
 
@@ -724,6 +727,15 @@ export default function AdminPanel() {
             ))}
           </div>
         </div>
+      )}
+
+      {/* ── PERMISSIONS TAB ── */}
+      {tab === 'permissions' && (
+        <UserPermissions
+          orgId={currentOrgId}
+          orgModules={organization?.id === currentOrgId
+            ? (modules || [])
+            : null} />
       )}
 
       {/* ── LISTS TAB ── */}
