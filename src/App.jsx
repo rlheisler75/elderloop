@@ -18,6 +18,8 @@ import IncidentReports from './pages/incidents/IncidentReports'
 import ResidentDirectory from './pages/directory/ResidentDirectory'
 import MeterReadings from './pages/meters/MeterReadings'
 import Security from './pages/security/Security'
+import Surveys from './pages/surveys/Surveys'
+import SurveyPublic from './pages/surveys/SurveyPublic'
 import Signage from './pages/signage/Signage'
 import ResidentPortal from './pages/resident/ResidentPortal'
 
@@ -66,7 +68,8 @@ export default function App() {
   if (user && profile?.role === 'ceo') {
     return (
       <Routes>
-        <Route path="/signage" element={<Signage />} />
+        <Route path="/survey/:token" element={<SurveyPublic />} />
+      <Route path="/signage" element={<Signage />} />
         <Route path="/ceo" element={<CEODashboard />} />
         <Route path="/superadmin" element={<SuperAdminRoute><SuperAdminDashboard /></SuperAdminRoute>} />
         <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
@@ -83,7 +86,8 @@ export default function App() {
           <Route path="transportation" element={<ProtectedRoute requireModule="transportation"><Transportation /></ProtectedRoute>} />
           <Route path="meters"         element={<ProtectedRoute requireModule="meters"><MeterReadings /></ProtectedRoute>} />
           <Route path="security"       element={<ProtectedRoute requireModule="security"><Security /></ProtectedRoute>} />
-          <Route path="incidents"      element={<ProtectedRoute requireModule="incidents"><IncidentReports /></ProtectedRoute>} />
+          <Route path="surveys"       element={<ProtectedRoute requireModule="surveys"><Surveys /></ProtectedRoute>} />
+        <Route path="incidents"      element={<ProtectedRoute requireModule="incidents"><IncidentReports /></ProtectedRoute>} />
         </Route>
         <Route path="*" element={<Navigate to="/ceo" />} />
       </Routes>
@@ -94,6 +98,7 @@ export default function App() {
     <Routes>
       {/* Public */}
       <Route path="/" element={user ? <Navigate to="/dashboard" /> : <LandingPage />} />
+      <Route path="/survey/:token" element={<SurveyPublic />} />
       <Route path="/signage" element={<Signage />} />
       <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
 
@@ -114,6 +119,7 @@ export default function App() {
         <Route path="transportation" element={<ProtectedRoute requireModule="transportation"><Transportation /></ProtectedRoute>} />
         <Route path="meters"         element={<ProtectedRoute requireModule="meters"><MeterReadings /></ProtectedRoute>} />
         <Route path="security"       element={<ProtectedRoute requireModule="security"><Security /></ProtectedRoute>} />
+        <Route path="surveys"       element={<ProtectedRoute requireModule="surveys"><Surveys /></ProtectedRoute>} />
         <Route path="incidents"      element={<ProtectedRoute requireModule="incidents"><IncidentReports /></ProtectedRoute>} />
       </Route>
 
