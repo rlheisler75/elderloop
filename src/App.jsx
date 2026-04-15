@@ -19,6 +19,7 @@ import ResidentDirectory from './pages/directory/ResidentDirectory'
 import MeterReadings from './pages/meters/MeterReadings'
 import Security from './pages/security/Security'
 import StaffManagement from './pages/staff/StaffManagement'
+import Scheduling from './pages/staff/Scheduling'
 import Surveys from './pages/surveys/Surveys'
 import SurveyPublic from './pages/surveys/SurveyPublic'
 import Signage from './pages/signage/Signage'
@@ -86,7 +87,8 @@ export default function App() {
           <Route path="housekeeping"   element={<ProtectedRoute requireModule="housekeeping"><Housekeeping /></ProtectedRoute>} />
           <Route path="transportation" element={<ProtectedRoute requireModule="transportation"><Transportation /></ProtectedRoute>} />
           <Route path="meters"         element={<ProtectedRoute requireModule="meters"><MeterReadings /></ProtectedRoute>} />
-          <Route path="staff"         element={<ProtectedRoute requireModule="staff"><StaffManagement /></ProtectedRoute>} />
+          <Route path="scheduling"   element={<ProtectedRoute requireModule="staff"><Scheduling /></ProtectedRoute>} />
+        <Route path="staff"         element={<ProtectedRoute requireModule="staff"><StaffManagement /></ProtectedRoute>} />
         <Route path="security"       element={<ProtectedRoute requireModule="security"><Security /></ProtectedRoute>} />
           <Route path="surveys"       element={<ProtectedRoute requireModule="surveys"><Surveys /></ProtectedRoute>} />
         <Route path="incidents"      element={<ProtectedRoute requireModule="incidents"><IncidentReports /></ProtectedRoute>} />
@@ -120,6 +122,7 @@ export default function App() {
         <Route path="housekeeping"   element={<ProtectedRoute requireModule="housekeeping"><Housekeeping /></ProtectedRoute>} />
         <Route path="transportation" element={<ProtectedRoute requireModule="transportation"><Transportation /></ProtectedRoute>} />
         <Route path="meters"         element={<ProtectedRoute requireModule="meters"><MeterReadings /></ProtectedRoute>} />
+        <Route path="scheduling"   element={<ProtectedRoute requireModule="staff"><Scheduling /></ProtectedRoute>} />
         <Route path="staff"         element={<ProtectedRoute requireModule="staff"><StaffManagement /></ProtectedRoute>} />
         <Route path="security"       element={<ProtectedRoute requireModule="security"><Security /></ProtectedRoute>} />
         <Route path="surveys"       element={<ProtectedRoute requireModule="surveys"><Surveys /></ProtectedRoute>} />
