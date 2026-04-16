@@ -128,15 +128,22 @@ export default function ResidentImport({ orgId, onImported, onClose }) {
 
   const handleExcelFile = async (e) => {
     const f = e.target.files?.[0]; if (!f) return
-    // Use SheetJS if available, otherwise tell user to save as CSV
+    // Try to use SheetJS from CDN if available
     try {
-      const XLSX = await import('xlsx')
+      // Load SheetJS dynamically from CDN
+      await new Promise((resolve, reject) => {
+        if (window.XLSX) { resolve(); return }
+        const script = document.createElement('script')
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
+        script.onload = resolve
+        script.onerror = reject
+        document.head.appendChild(script)
+      })
+      const XLSX = window.XLSX
       const ab   = await f.arrayBuffer()
       const wb   = XLSX.read(ab)
       const ws   = wb.Sheets[wb.SheetNames[0]]
       const csv  = XLSX.utils.sheet_to_csv(ws)
-      const fake = new Event('load')
-      const reader = { result: csv }
       setFile(f)
       const { headers, rows } = parseCSV(csv)
       setHeaders(headers)
@@ -149,7 +156,7 @@ export default function ResidentImport({ orgId, onImported, onClose }) {
       setMapping(autoMap)
       setStep('map')
     } catch {
-      alert('Could not parse Excel file. Please save as CSV and try again.')
+      alert('Could not load Excel parser. Please save your spreadsheet as CSV (File → Save As → CSV) and import that instead.')
     }
   }
 
