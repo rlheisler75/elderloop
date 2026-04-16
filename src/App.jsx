@@ -24,6 +24,8 @@ import Surveys from './pages/surveys/Surveys'
 import SurveyPublic from './pages/surveys/SurveyPublic'
 import Signage from './pages/signage/Signage'
 import ResidentPortal from './pages/resident/ResidentPortal'
+import FamilyPortal from './pages/family/FamilyPortal'
+import FamilyMessaging from './pages/family/FamilyMessaging'
 
 function ProtectedRoute({ children, requireModule }) {
   const { user, loading, hasModule } = useAuth()
@@ -56,12 +58,22 @@ export default function App() {
     </div>
   )
 
-  // Resident / family → portal
-  if (user && (profile?.role === 'resident' || profile?.role === 'family')) {
+  // Resident → resident portal
+  if (user && profile?.role === 'resident') {
     return (
       <Routes>
         <Route path="/resident" element={<ResidentPortal />} />
         <Route path="*" element={<Navigate to="/resident" />} />
+      </Routes>
+    )
+  }
+
+  // Family → family portal
+  if (user && profile?.role === 'family') {
+    return (
+      <Routes>
+        <Route path="/family" element={<FamilyPortal />} />
+        <Route path="*" element={<Navigate to="/family" />} />
       </Routes>
     )
   }
@@ -90,7 +102,8 @@ export default function App() {
           <Route path="scheduling"   element={<ProtectedRoute requireModule="staff"><Scheduling /></ProtectedRoute>} />
         <Route path="staff"         element={<ProtectedRoute requireModule="staff"><StaffManagement /></ProtectedRoute>} />
         <Route path="security"       element={<ProtectedRoute requireModule="security"><Security /></ProtectedRoute>} />
-          <Route path="surveys"       element={<ProtectedRoute requireModule="surveys"><Surveys /></ProtectedRoute>} />
+          <Route path="family"          element={<ProtectedRoute requireModule="family"><FamilyMessaging /></ProtectedRoute>} />
+        <Route path="surveys"       element={<ProtectedRoute requireModule="surveys"><Surveys /></ProtectedRoute>} />
         <Route path="incidents"      element={<ProtectedRoute requireModule="incidents"><IncidentReports /></ProtectedRoute>} />
         </Route>
         <Route path="*" element={<Navigate to="/ceo" />} />
@@ -125,6 +138,7 @@ export default function App() {
         <Route path="scheduling"   element={<ProtectedRoute requireModule="staff"><Scheduling /></ProtectedRoute>} />
         <Route path="staff"         element={<ProtectedRoute requireModule="staff"><StaffManagement /></ProtectedRoute>} />
         <Route path="security"       element={<ProtectedRoute requireModule="security"><Security /></ProtectedRoute>} />
+        <Route path="family"          element={<ProtectedRoute requireModule="family"><FamilyMessaging /></ProtectedRoute>} />
         <Route path="surveys"       element={<ProtectedRoute requireModule="surveys"><Surveys /></ProtectedRoute>} />
         <Route path="incidents"      element={<ProtectedRoute requireModule="incidents"><IncidentReports /></ProtectedRoute>} />
       </Route>

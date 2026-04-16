@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Wrench, MessageSquare, UtensilsCrossed,
   SprayCan, Settings, LogOut, Menu, X, ChevronRight,
   Church, Car, CalendarDays, AlertTriangle, BookUser,
-  Gauge, Shield, ClipboardList, TrendingUp, UserCheck, CalendarCheck
+  Gauge, Shield, ClipboardList, TrendingUp, UserCheck, CalendarCheck, HeartHandshake
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -22,6 +22,7 @@ const ALL_NAV = [
   { to: '/security',       label: 'Security',         icon: Shield,          module: 'security' },
   { to: '/staff',          label: 'Staff',            icon: UserCheck,       module: 'staff' },
   { to: '/scheduling',     label: 'Scheduling',       icon: CalendarCheck,   module: 'staff' },
+  { to: '/family',         label: 'Family Messaging', icon: HeartHandshake,  module: 'family' },
   { to: '/surveys',        label: 'Surveys',          icon: ClipboardList,   module: 'surveys' },
   { to: '/incidents',      label: 'Incident Reports', icon: AlertTriangle,   module: 'incidents' },
 ]
