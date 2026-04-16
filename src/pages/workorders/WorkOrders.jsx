@@ -1,13 +1,17 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import {
   Plus, Search, Filter, Wrench, X, Edit2, ChevronDown,
   Clock, AlertTriangle, CheckCircle2, User, MapPin,
   Truck, PauseCircle, XCircle, RefreshCw, Calendar,
-  ChevronRight, MessageSquare, ArrowUpDown, ShieldCheck
+  ChevronRight, MessageSquare, ArrowUpDown, ShieldCheck,
+  Upload, Image, Package, Settings, BarChart3
 } from 'lucide-react'
 import CompliancePanel from './Compliance'
+import WorkOrderAssets from './WorkOrderAssets'
+import PMSchedules from './PMSchedules'
+import MaintenanceSettings from './MaintenanceSettings'
 
 const STATUSES = [
   { key: 'open',             label: 'Open',             color: 'bg-blue-50 text-blue-700 border-blue-200',     dot: 'bg-blue-500' },
@@ -122,6 +126,7 @@ function WORow({ wo, onClick }) {
 // ── Work Order Detail Modal ───────────────────────────────────
 function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClose, canAssign }) {
   const { profile } = useAuth()
+  const fileRef = useRef()
   const [editing, setEditing]   = useState(!wo)
   const [form, setForm]         = useState(wo ? {
     title: wo.title, description: wo.description || '', category: wo.category,
@@ -132,19 +137,30 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
     assigned_to: wo.assigned_to || '',
     due_date: wo.due_date || '',
     notes: wo.notes || '',
+    asset_id: wo.asset_id || '',
+    estimated_hours: wo.estimated_hours || '',
     vendor_name: wo.vendor_name || '', vendor_phone: wo.vendor_phone || '', vendor_eta: wo.vendor_eta || '',
     is_recurring: wo.is_recurring || false, recur_type: wo.recur_type || 'interval',
     recur_interval_days: wo.recur_interval_days || 90,
     recur_day: wo.recur_day || 1, recur_month: wo.recur_month || '',
   } : { ...EMPTY_FORM })
   const [note, setNote]         = useState('')
+  const [notePhoto, setNotePhoto] = useState(null)
   const [activity, setActivity] = useState([])
+  const [photos, setPhotos]     = useState([])
+  const [assets, setAssets]     = useState([])
+  const [slaInfo, setSlaInfo]   = useState(null)
   const [saving, setSaving]     = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [error, setError]       = useState('')
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
-  useEffect(() => { if (wo?.id) fetchActivity() }, [wo?.id])
+  useEffect(() => {
+    if (wo?.id) { fetchActivity(); fetchPhotos() }
+    fetchAssets()
+    if (wo?.priority) fetchSLA(wo.priority)
+  }, [wo?.id])
 
   async function fetchActivity() {
     const { data } = await supabase.from('wo_activity')
@@ -154,28 +170,99 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
     setActivity(data || [])
   }
 
+  async function fetchPhotos() {
+    const { data } = await supabase.from('wo_photos').select('*, profiles(first_name,last_name)')
+      .eq('work_order_id', wo.id).order('created_at')
+    setPhotos(data || [])
+  }
+
+  async function fetchAssets() {
+    const { data } = await supabase.from('maintenance_assets')
+      .select('id,name,asset_number').eq('organization_id', profile.organization_id).eq('is_active', true)
+    setAssets(data || [])
+  }
+
+  async function fetchSLA(priority) {
+    const { data } = await supabase.from('wo_sla_rules')
+      .select('*').eq('organization_id', profile.organization_id).eq('priority', priority).single()
+    setSlaInfo(data || null)
+  }
+
+  // When priority changes, reload SLA
+  useEffect(() => { if (form.priority) fetchSLA(form.priority) }, [form.priority])
+
   async function addNote() {
     if (!note.trim() || !wo?.id) return
+    let photoUrl = null
+    if (notePhoto) {
+      const path = `wo-notes/${wo.id}/${Date.now()}.${notePhoto.name.split('.').pop()}`
+      const { error: upErr } = await supabase.storage.from('announcement-images').upload(path, notePhoto)
+      if (!upErr) {
+        const { data } = supabase.storage.from('announcement-images').getPublicUrl(path)
+        photoUrl = data.publicUrl
+      }
+    }
     await supabase.from('wo_activity').insert({
       work_order_id: wo.id, user_id: profile.id,
-      action: 'Note added', note: note.trim()
+      action: 'Note added', note: note.trim(),
+      action_type: 'comment', photo_url: photoUrl,
     })
-    setNote('')
+    setNote(''); setNotePhoto(null)
     fetchActivity()
+  }
+
+  async function uploadWOPhoto(file) {
+    if (!wo?.id || !file) return
+    setUploading(true)
+    const path = `wo-photos/${wo.id}/${Date.now()}.${file.name.split('.').pop()}`
+    const { error: upErr } = await supabase.storage.from('announcement-images').upload(path, file)
+    if (!upErr) {
+      const { data } = supabase.storage.from('announcement-images').getPublicUrl(path)
+      await supabase.from('wo_photos').insert({
+        work_order_id: wo.id, photo_url: data.publicUrl,
+        photo_name: file.name, uploaded_by: profile.id,
+      })
+      await supabase.from('wo_activity').insert({
+        work_order_id: wo.id, user_id: profile.id,
+        action: 'Photo uploaded', action_type: 'photo', photo_url: data.publicUrl,
+      })
+      fetchPhotos(); fetchActivity()
+    }
+    setUploading(false)
   }
 
   async function handleSave() {
     if (!form.title.trim()) { setError('Title is required'); return }
     setSaving(true)
+
+    // Auto-assign if no assignee set
+    let assignedTo = form.assigned_to || null
+    if (!assignedTo && !wo?.id) {
+      const { data: rule } = await supabase.from('wo_auto_assign_rules')
+        .select('assign_to').eq('organization_id', profile.organization_id)
+        .eq('category', form.category).eq('is_active', true).single()
+      if (rule?.assign_to) assignedTo = rule.assign_to
+    }
+
+    // Calculate SLA due dates for new WOs
+    let slaResponseDue = null, slaCompletionDue = null
+    if (!wo?.id && slaInfo) {
+      const now = new Date()
+      slaResponseDue   = new Date(now.getTime() + slaInfo.response_hours   * 3600000).toISOString()
+      slaCompletionDue = new Date(now.getTime() + slaInfo.completion_hours * 3600000).toISOString()
+    }
+
     const payload = {
       title: form.title.trim(), description: form.description || null,
       category: form.category, priority: form.priority,
       unit: form.unit || null, building: form.building || null,
       location_detail: form.location_detail || null,
       resident_id: form.resident_id || null,
-      assigned_to: form.assigned_to || null,
+      assigned_to: assignedTo,
       due_date: form.due_date || null,
       notes: form.notes || null,
+      asset_id: form.asset_id || null,
+      estimated_hours: form.estimated_hours ? parseFloat(form.estimated_hours) : null,
       vendor_name: form.vendor_name || null,
       vendor_phone: form.vendor_phone || null,
       vendor_eta: form.vendor_eta || null,
@@ -188,12 +275,24 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
     }
     let err
     if (wo?.id) {
-      // Log status change
       if (form.status !== wo.status) {
         await supabase.from('wo_activity').insert({
           work_order_id: wo.id, user_id: profile.id,
-          action: `Status changed from ${getStatus(wo.status).label} to ${getStatus(form.status).label}`
+          action: `Status changed from ${getStatus(wo.status).label} to ${getStatus(form.status).label}`,
+          action_type: 'status_change',
         })
+        // Mark SLA responded if first assignment
+        if (!wo.sla_responded_at && assignedTo) {
+          payload.sla_responded_at = new Date().toISOString()
+        }
+      }
+      if (form.assigned_to !== wo.assigned_to && form.assigned_to) {
+        await supabase.from('wo_activity').insert({
+          work_order_id: wo.id, user_id: profile.id,
+          action: `Assigned to ${staffList.find(s => s.id === form.assigned_to)?.first_name || 'staff'}`,
+          action_type: 'assigned',
+        })
+        if (!wo.sla_responded_at) payload.sla_responded_at = new Date().toISOString()
       }
       payload.status = form.status
       if (form.status === 'closed' && wo.status !== 'closed') payload.completed_at = new Date().toISOString();
@@ -201,11 +300,18 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
     } else {
       payload.status = 'open'
       payload.submitted_by = profile.id
+      if (slaResponseDue)   payload.sla_response_due   = slaResponseDue
+      if (slaCompletionDue) payload.sla_completion_due = slaCompletionDue
+      if (assignedTo)       payload.sla_responded_at   = new Date().toISOString()
       const { data: newWo, error: insErr } = await supabase.from('work_orders').insert(payload).select().single()
       err = insErr
       if (newWo) {
         await supabase.from('wo_activity').insert({
-          work_order_id: newWo.id, user_id: profile.id, action: 'Work order created'
+          work_order_id: newWo.id, user_id: profile.id,
+          action: assignedTo
+            ? `Work order created and auto-assigned to ${staffList.find(s => s.id === assignedTo)?.first_name || 'staff'}`
+            : 'Work order created',
+          action_type: 'created',
         })
       }
     }
@@ -242,6 +348,24 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
           {/* Form / View */}
           <div className="px-6 py-5 space-y-4">
             {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+
+            {/* SLA Banner for new work orders */}
+            {isNew && slaInfo && (
+              <div className="flex items-center gap-3 px-4 py-3 bg-brand-50 border border-brand-200 rounded-xl text-xs">
+                <Clock size={13} className="text-brand-600 flex-shrink-0" />
+                <span className="text-brand-700">
+                  <strong>{form.priority}</strong> priority SLA:
+                  respond within <strong>{slaInfo.response_hours}h</strong>,
+                  complete within <strong>{slaInfo.completion_hours}h</strong>
+                </span>
+              </div>
+            )}
+            {/* SLA breach warning for existing WOs */}
+            {!isNew && wo.sla_completion_due && new Date(wo.sla_completion_due) < new Date() && wo.status !== 'closed' && (
+              <div className="flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700">
+                <AlertTriangle size={13} /> SLA breached — completion was due {new Date(wo.sla_completion_due).toLocaleString()}
+              </div>
+            )}
 
             {/* Title */}
             <div>
@@ -307,6 +431,30 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
                   {[wo.building, wo.unit, wo.location_detail].filter(Boolean).join(' · ') || '—'}
                 </p>
               )}
+            </div>
+
+            {/* Asset Link */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Linked Asset</label>
+                {editing
+                  ? <select value={form.asset_id || ''} onChange={e => set('asset_id', e.target.value)}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                      <option value="">No specific asset</option>
+                      {assets.map(a => <option key={a.id} value={a.id}>{a.name}{a.asset_number ? ` (${a.asset_number})` : ''}</option>)}
+                    </select>
+                  : <p className="text-sm text-slate-700">
+                      {wo?.asset_id ? (assets.find(a => a.id === wo.asset_id)?.name || '—') : '—'}
+                    </p>}
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Est. Hours</label>
+                {editing
+                  ? <input type="number" step="0.5" value={form.estimated_hours} onChange={e => set('estimated_hours', e.target.value)}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                      placeholder="e.g. 2.0" />
+                  : <p className="text-sm text-slate-700">{wo?.estimated_hours ? `${wo.estimated_hours}h` : '—'}</p>}
+              </div>
             </div>
 
             {/* Resident */}
@@ -441,35 +589,82 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
                 : wo.notes && <p className="text-sm text-slate-600 italic">{wo.notes}</p>}
             </div>
 
+            {/* Photos */}
+            {!isNew && (
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                  <Image size={13} /> Photos {photos.length > 0 && `(${photos.length})`}
+                </label>
+                {photos.length > 0 && (
+                  <div className="flex gap-2 flex-wrap mb-2">
+                    {photos.map(p => (
+                      <a key={p.id} href={p.photo_url} target="_blank" rel="noopener noreferrer"
+                        className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 hover:border-brand-300 transition-all group">
+                        <img src={p.photo_url} alt={p.caption || ''} className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all" />
+                      </a>
+                    ))}
+                  </div>
+                )}
+                <label className={`flex items-center gap-2 px-3 py-2 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${uploading ? 'border-brand-300 bg-brand-50' : 'border-slate-200 hover:border-brand-400'}`}>
+                  <Upload size={13} className="text-slate-400" />
+                  <span className="text-xs text-slate-400">{uploading ? 'Uploading...' : 'Upload photo'}</span>
+                  <input type="file" accept="image/*" className="hidden" disabled={uploading}
+                    onChange={e => { if (e.target.files?.[0]) uploadWOPhoto(e.target.files[0]) }} />
+                </label>
+              </div>
+            )}
+
             {/* Activity Log */}
             {!isNew && (
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3 flex items-center gap-1.5">
-                  <MessageSquare size={13} /> Activity Log
+                  <MessageSquare size={13} /> Activity Timeline
                 </label>
-                <div className="space-y-2 mb-3 max-h-36 overflow-y-auto">
+                <div className="space-y-2 mb-3 max-h-48 overflow-y-auto">
                   {activity.length === 0
                     ? <p className="text-xs text-slate-400 italic">No activity yet</p>
-                    : activity.map(a => (
-                      <div key={a.id} className="flex gap-2 text-xs">
-                        <div className="w-1.5 h-1.5 rounded-full bg-slate-300 mt-1.5 flex-shrink-0" />
-                        <div className="flex-1">
-                          <span className="text-slate-600 font-medium">{a.action}</span>
-                          {a.note && <span className="text-slate-500"> — {a.note}</span>}
-                          <div className="text-slate-400 mt-0.5">
-                            {a.profiles ? `${a.profiles.first_name} ${a.profiles.last_name} · ` : ''}
-                            {new Date(a.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} {new Date(a.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                    : activity.map(a => {
+                      const dotColor = {
+                        created: 'bg-green-500', status_change: 'bg-brand-500',
+                        assigned: 'bg-indigo-500', comment: 'bg-slate-400',
+                        photo: 'bg-purple-500', completed: 'bg-green-600',
+                      }[a.action_type] || 'bg-slate-300'
+                      return (
+                        <div key={a.id} className="flex gap-2.5 text-xs">
+                          <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${dotColor}`} />
+                          <div className="flex-1">
+                            <span className="text-slate-700 font-medium">{a.action}</span>
+                            {a.note && <p className="text-slate-500 mt-0.5 bg-slate-50 px-2 py-1 rounded-lg">{a.note}</p>}
+                            {a.photo_url && (
+                              <a href={a.photo_url} target="_blank" rel="noopener noreferrer">
+                                <img src={a.photo_url} alt="" className="mt-1 w-24 h-16 object-cover rounded-lg border border-slate-200 hover:border-brand-300 transition-all" />
+                              </a>
+                            )}
+                            <div className="text-slate-400 mt-0.5">
+                              {a.profiles ? `${a.profiles.first_name} ${a.profiles.last_name} · ` : ''}
+                              {new Date(a.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} {new Date(a.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                 </div>
-                <div className="flex gap-2">
-                  <input value={note} onChange={e => setNote(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && addNote()}
-                    className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-                    placeholder="Add a note..." />
-                  <button onClick={addNote} className="px-3 py-2 bg-brand-600 text-white rounded-lg text-sm hover:bg-brand-700 transition-colors">Add</button>
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <input value={note} onChange={e => setNote(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && !e.shiftKey && addNote()}
+                      className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                      placeholder="Add a comment..." />
+                    <button onClick={addNote} className="px-3 py-2 bg-brand-600 text-white rounded-lg text-sm hover:bg-brand-700 transition-colors">Add</button>
+                  </div>
+                  {/* Attach photo to comment */}
+                  <label className="flex items-center gap-1.5 cursor-pointer text-xs text-slate-400 hover:text-brand-600 transition-colors">
+                    <Upload size={11} />
+                    {notePhoto ? <span className="text-green-600">{notePhoto.name} attached</span> : 'Attach photo to comment'}
+                    <input type="file" accept="image/*" className="hidden"
+                      onChange={e => setNotePhoto(e.target.files?.[0] || null)} />
+                  </label>
                 </div>
               </div>
             )}
@@ -572,24 +767,55 @@ export default function WorkOrders() {
       </div>
 
       {/* Main view tabs */}
-      <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mb-6 w-fit">
-        <button onClick={() => setMainView('work_orders')}
-          className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all ${mainView === 'work_orders' ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
-          <Wrench size={15} /> Work Orders
-        </button>
-        <button onClick={() => setMainView('compliance')}
-          className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all ${mainView === 'compliance' ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
-          <ShieldCheck size={15} /> Life Safety Compliance
-        </button>
+      <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mb-6 w-fit flex-wrap">
+        {[
+          { key: 'work_orders', label: 'Work Orders', icon: Wrench },
+          { key: 'assets',      label: 'Assets',      icon: Package },
+          { key: 'pm',          label: 'Preventive Maintenance', icon: RefreshCw },
+          { key: 'compliance',  label: 'Life Safety',  icon: ShieldCheck },
+          { key: 'settings',    label: 'Settings',     icon: Settings },
+        ].map(v => {
+          const Icon = v.icon
+          return (
+            <button key={v.key} onClick={() => setMainView(v.key)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${mainView === v.key ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+              <Icon size={14} /> {v.label}
+            </button>
+          )
+        })}
       </div>
 
-      {/* Compliance view */}
-      {mainView === 'compliance' && (
-        <CompliancePanel orgId={organization?.id} profile={profile} />
-      )}
+      {mainView === 'assets'     && <WorkOrderAssets   orgId={organization?.id} profile={profile} />}
+      {mainView === 'pm'         && <PMSchedules        orgId={organization?.id} profile={profile} />}
+      {mainView === 'compliance' && <CompliancePanel    orgId={organization?.id} profile={profile} />}
+      {mainView === 'settings'   && <MaintenanceSettings orgId={organization?.id} profile={profile} />}
 
       {/* Work Orders view */}
       {mainView === 'work_orders' && (<>
+
+      {/* Overdue alert banner */}
+      {(() => {
+        const overdue = workOrders.filter(w =>
+          w.due_date && w.due_date < new Date().toISOString().split('T')[0] &&
+          !['closed','cancelled'].includes(w.status)
+        )
+        const slaBreached = workOrders.filter(w =>
+          w.sla_completion_due && new Date(w.sla_completion_due) < new Date() &&
+          !['closed','cancelled'].includes(w.status)
+        )
+        if (overdue.length === 0 && slaBreached.length === 0) return null
+        return (
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-3">
+            <AlertTriangle size={16} className="text-red-500 flex-shrink-0" />
+            <div className="flex-1 text-sm text-red-700">
+              {overdue.length > 0 && <span className="font-medium">{overdue.length} overdue work order{overdue.length > 1 ? 's' : ''}</span>}
+              {overdue.length > 0 && slaBreached.length > 0 && <span className="mx-2">·</span>}
+              {slaBreached.length > 0 && <span className="font-medium">{slaBreached.length} SLA breach{slaBreached.length > 1 ? 'es' : ''}</span>}
+            </div>
+            <button onClick={() => setFilterStatus('open')} className="text-xs text-red-600 hover:text-red-800 font-medium">View all →</button>
+          </div>
+        )
+      })()}
 
       {/* Stats */}
       <div className="grid grid-cols-4 gap-3 mb-6">
