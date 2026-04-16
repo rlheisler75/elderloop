@@ -5,7 +5,8 @@ import { useAuth } from '../../context/AuthContext'
 import {
   Building2, Users, Shield, Plus, Settings, CheckCircle2,
   Activity, Globe, BarChart3, Eye, LogOut, Zap, X,
-  Edit2, Check, ChevronRight, TrendingUp, AlertCircle
+  Edit2, Check, ChevronRight, TrendingUp, AlertCircle,
+  ClipboardList, Link, Copy, Star
 } from 'lucide-react'
 
 const BILLING_LABELS = {
@@ -140,9 +141,12 @@ function AddOrgModal({ onClose, onSave }) {
 export default function SuperAdminDashboard() {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
-  const [orgs, setOrgs]         = useState([])
-  const [stats, setStats]       = useState({})
-  const [loading, setLoading]   = useState(true)
+  const [orgs, setOrgs]           = useState([])
+  const [platformSurveys, setPlatformSurveys] = useState([])
+  const [surveyResponses, setSurveyResponses] = useState({})
+  const [copiedToken, setCopiedToken] = useState(null)
+  const [stats, setStats]         = useState({})
+  const [loading, setLoading]     = useState(true)
   const [showAddOrg, setShowAddOrg] = useState(false)
   const [activeTab, setActiveTab]   = useState('overview')
 
@@ -185,7 +189,28 @@ export default function SuperAdminDashboard() {
         return a + (prices[o.plan] || 0)
       }, 0),
     })
+
+    // Fetch platform surveys
+    const { data: pSurveys } = await supabase.from('surveys')
+      .select('*').eq('is_platform', true).eq('is_active', true).order('created_at')
+    setPlatformSurveys(pSurveys || [])
+
+    // Fetch response counts per platform survey
+    if (pSurveys?.length) {
+      const { data: responses } = await supabase.from('survey_responses')
+        .select('survey_id').in('survey_id', pSurveys.map(s => s.id))
+      const counts = {}
+      responses?.forEach(r => { counts[r.survey_id] = (counts[r.survey_id] || 0) + 1 })
+      setSurveyResponses(counts)
+    }
+
     setLoading(false)
+  }
+
+  const copyLink = (token) => {
+    navigator.clipboard.writeText(`${window.location.origin}/survey/${token}`)
+    setCopiedToken(token)
+    setTimeout(() => setCopiedToken(null), 2000)
   }
 
   return (
@@ -209,9 +234,10 @@ export default function SuperAdminDashboard() {
 
         <nav className="flex-1 px-3 py-4 space-y-0.5">
           {[
-            { key: 'overview',       icon: BarChart3,   label: 'Overview' },
-            { key: 'organizations',  icon: Building2,   label: 'Organizations' },
-            { key: 'activity',       icon: Activity,    label: 'Platform Activity' },
+            { key: 'overview',       icon: BarChart3,     label: 'Overview' },
+            { key: 'organizations',  icon: Building2,     label: 'Organizations' },
+            { key: 'surveys',        icon: ClipboardList, label: 'Platform Surveys' },
+            { key: 'activity',       icon: Activity,      label: 'Platform Activity' },
           ].map(item => {
             const Icon = item.icon
             return (
@@ -392,6 +418,166 @@ export default function SuperAdminDashboard() {
                     </button>
                   )
                 })}
+              </div>
+
+              {/* ── PLATFORM SURVEYS TAB ── */}
+          {activeTab === 'surveys' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 style={{ fontFamily: '"Playfair Display", serif' }} className="text-white font-semibold text-lg">Platform Feedback Surveys</h2>
+                  <p className="text-slate-500 text-xs mt-1">Surveys you send to customers, prospects, and internally to gather product feedback.</p>
+                </div>
+                <button onClick={() => window.open('/surveys', '_blank')}
+                  className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl transition-colors">
+                  <Plus size={15} /> Create in Survey Builder
+                </button>
+              </div>
+
+              {/* Stat strip */}
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { label: 'Platform Surveys', value: platformSurveys.length, color: 'text-brand-400' },
+                  { label: 'Total Responses', value: Object.values(surveyResponses).reduce((a, b) => a + b, 0), color: 'text-green-400' },
+                  { label: 'Published', value: platformSurveys.filter(s => s.is_published).length, color: 'text-purple-400' },
+                ].map(s => (
+                  <div key={s.label} className="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center">
+                    <div className={`text-2xl font-bold ${s.color}`} style={{ fontFamily: '"Playfair Display", serif' }}>{s.value}</div>
+                    <div className="text-slate-500 text-xs mt-1">{s.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Survey cards */}
+              <div className="space-y-4">
+                {platformSurveys.map(s => (
+                  <div key={s.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+                    <div className="flex items-start justify-between gap-4 mb-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <span className="text-white font-semibold">{s.title}</span>
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.is_published ? 'bg-green-900/50 text-green-400' : 'bg-slate-800 text-slate-500'}`}>
+                            {s.is_published ? 'Published' : 'Draft'}
+                          </span>
+                          <span className="text-xs text-slate-500 capitalize">{s.survey_type?.replace('_', ' ')}</span>
+                          {s.platform_target && (
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-brand-900/50 text-brand-400 capitalize">{s.platform_target}</span>
+                          )}
+                        </div>
+                        {s.description && <p className="text-slate-400 text-sm">{s.description}</p>}
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <div className="text-2xl font-bold text-white" style={{ fontFamily: '"Playfair Display", serif' }}>
+                          {surveyResponses[s.id] || 0}
+                        </div>
+                        <div className="text-slate-500 text-xs">responses</div>
+                      </div>
+                    </div>
+
+                    {/* Public link section */}
+                    {s.is_published && (
+                      <div className="flex items-center gap-3 p-3 bg-slate-800 rounded-xl border border-slate-700 mb-3">
+                        <Link size={14} className="text-brand-400 flex-shrink-0" />
+                        <code className="text-xs text-slate-300 flex-1 truncate">
+                          {window.location.origin}/survey/{s.public_token}
+                        </code>
+                        <button onClick={() => copyLink(s.public_token)}
+                          className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all flex-shrink-0 ${copiedToken === s.public_token ? 'border-green-700 text-green-400' : 'border-slate-600 text-slate-400 hover:border-brand-500 hover:text-brand-400'}`}>
+                          {copiedToken === s.public_token ? <><Check size={11} /> Copied!</> : <><Copy size={11} /> Copy</>}
+                        </button>
+                      </div>
+                    )}
+
+                    <div className="flex gap-2">
+                      <button onClick={() => window.open(`/survey/${s.public_token}`, '_blank')}
+                        className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg border border-slate-700 text-slate-400 hover:border-brand-500 hover:text-brand-400 transition-colors">
+                        <Eye size={12} /> Preview
+                      </button>
+                      <button onClick={() => navigate('/surveys')}
+                        className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg border border-slate-700 text-slate-400 hover:border-brand-500 hover:text-brand-400 transition-colors">
+                        <BarChart3 size={12} /> View Results
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                {platformSurveys.length === 0 && (
+                  <div className="text-center py-16 text-slate-600">
+                    <ClipboardList size={40} className="mx-auto mb-4 opacity-30" />
+                    <p className="text-slate-400 font-medium mb-2">No platform surveys yet</p>
+                    <p className="text-sm mb-6">Create surveys to gather feedback from your customers about ElderLoop.</p>
+                    <button onClick={() => navigate('/surveys')}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl transition-colors">
+                      <Plus size={15} /> Open Survey Builder
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* How to use section */}
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+                <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+                  <Star size={15} className="text-amber-400" /> How to Use Platform Surveys
+                </h3>
+                <div className="space-y-3 text-sm text-slate-400">
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-brand-800 text-brand-400 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">1</div>
+                    <p>Go to <strong className="text-slate-300">Survey Builder</strong> (Surveys in the sidebar) and create a new survey. Mark it as published when ready.</p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-brand-800 text-brand-400 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">2</div>
+                    <p>Copy the public link and paste it into an email to your customers — no login required to respond.</p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-brand-800 text-brand-400 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">3</div>
+                    <p>Watch responses come in here. View detailed results, comments, and satisfaction scores to guide your roadmap.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 style={{ fontFamily: '"Playfair Display", serif' }} className="text-white font-semibold flex items-center gap-2">
+                    <ClipboardList size={16} className="text-brand-400" /> Platform Feedback Surveys
+                  </h2>
+                  <button onClick={() => setActiveTab('surveys')}
+                    className="text-xs text-brand-400 hover:text-brand-300 transition-colors flex items-center gap-1">
+                    Manage all <ChevronRight size={12} />
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {platformSurveys.map(s => (
+                    <div key={s.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                      <div className="flex items-start justify-between gap-3 mb-3">
+                        <div>
+                          <div className="text-white font-medium text-sm">{s.title}</div>
+                          <div className="text-slate-500 text-xs mt-0.5 line-clamp-2">{s.description}</div>
+                        </div>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${s.is_published ? 'bg-green-900/50 text-green-400' : 'bg-slate-800 text-slate-500'}`}>
+                          {s.is_published ? 'Live' : 'Draft'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-slate-400 mb-4">
+                        <span className="flex items-center gap-1">
+                          <Users size={11} /> {surveyResponses[s.id] || 0} response{(surveyResponses[s.id] || 0) !== 1 ? 's' : ''}
+                        </span>
+                        <span className="capitalize">{s.survey_type?.replace('_', ' ')}</span>
+                      </div>
+                      {s.is_published && (
+                        <button onClick={() => copyLink(s.public_token)}
+                          className={`w-full flex items-center justify-center gap-2 py-2 rounded-xl border text-xs font-medium transition-all ${copiedToken === s.public_token ? 'border-green-700 text-green-400 bg-green-900/20' : 'border-slate-700 text-slate-400 hover:border-brand-600 hover:text-brand-400'}`}>
+                          {copiedToken === s.public_token ? <><Check size={12} /> Copied!</> : <><Link size={12} /> Copy Survey Link</>}
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  {platformSurveys.length === 0 && (
+                    <div className="col-span-2 text-center py-8 text-slate-600 text-sm">
+                      No platform surveys yet. Go to Platform Surveys tab to create one.
+                    </div>
+                  )}
+                </div>
               </div>
             </>
           )}
