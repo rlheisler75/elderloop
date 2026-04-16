@@ -84,11 +84,15 @@ function ServiceModal({ service, onClose, onSave }) {
       ...form,
       organization_id: profile.organization_id,
       created_by: profile.id,
-      stream_youtube_id: extractYouTubeId(form.stream_youtube_id) || null,
+      start_time:           form.start_time            || null,
+      end_time:             form.end_time              || null,
+      stream_youtube_id:    extractYouTubeId(form.stream_youtube_id) || null,
       recording_youtube_id: extractYouTubeId(form.recording_youtube_id) || null,
-      attendance_count: form.attendance_count || null,
-      recur_day_of_week: form.is_recurring ? form.recur_day_of_week : null,
-      updated_at: new Date().toISOString(),
+      attendance_count:     form.attendance_count      || null,
+      recur_day_of_week:    form.is_recurring ? form.recur_day_of_week : null,
+      speaker:              form.speaker               || null,
+      description:          form.description           || null,
+      updated_at:           new Date().toISOString(),
     }
     let err
     if (service?.id) {
