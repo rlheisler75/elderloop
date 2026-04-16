@@ -19,6 +19,7 @@ import ResidentDirectory from './pages/directory/ResidentDirectory'
 import MeterReadings from './pages/meters/MeterReadings'
 import Security from './pages/security/Security'
 import StaffManagement from './pages/staff/StaffManagement'
+import NursingNotes from './pages/nursing/NursingNotes'
 import StaffDirectory from './pages/staff/StaffDirectory'
 import Scheduling from './pages/staff/Scheduling'
 import Surveys from './pages/surveys/Surveys'
@@ -104,7 +105,8 @@ export default function App() {
         <Route path="scheduling"   element={<ProtectedRoute requireModule="staff"><Scheduling /></ProtectedRoute>} />
         <Route path="staff"         element={<ProtectedRoute requireModule="staff"><StaffManagement /></ProtectedRoute>} />
         <Route path="security"       element={<ProtectedRoute requireModule="security"><Security /></ProtectedRoute>} />
-          <Route path="family"          element={<ProtectedRoute requireModule="family"><FamilyMessaging /></ProtectedRoute>} />
+          <Route path="nursing"         element={<ProtectedRoute requireModule="nursing"><NursingNotes /></ProtectedRoute>} />
+        <Route path="family"          element={<ProtectedRoute requireModule="family"><FamilyMessaging /></ProtectedRoute>} />
         <Route path="surveys"       element={<ProtectedRoute requireModule="surveys"><Surveys /></ProtectedRoute>} />
         <Route path="incidents"      element={<ProtectedRoute requireModule="incidents"><IncidentReports /></ProtectedRoute>} />
         </Route>
@@ -141,6 +143,7 @@ export default function App() {
         <Route path="scheduling"   element={<ProtectedRoute requireModule="staff"><Scheduling /></ProtectedRoute>} />
         <Route path="staff"         element={<ProtectedRoute requireModule="staff"><StaffManagement /></ProtectedRoute>} />
         <Route path="security"       element={<ProtectedRoute requireModule="security"><Security /></ProtectedRoute>} />
+        <Route path="nursing"         element={<ProtectedRoute requireModule="nursing"><NursingNotes /></ProtectedRoute>} />
         <Route path="family"          element={<ProtectedRoute requireModule="family"><FamilyMessaging /></ProtectedRoute>} />
         <Route path="surveys"       element={<ProtectedRoute requireModule="surveys"><Surveys /></ProtectedRoute>} />
         <Route path="incidents"      element={<ProtectedRoute requireModule="incidents"><IncidentReports /></ProtectedRoute>} />
