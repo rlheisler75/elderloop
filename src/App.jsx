@@ -18,8 +18,14 @@ import IncidentReports from './pages/incidents/IncidentReports'
 import ResidentDirectory from './pages/directory/ResidentDirectory'
 import MeterReadings from './pages/meters/MeterReadings'
 import Security from './pages/security/Security'
+import StaffManagement from './pages/staff/StaffManagement'
+import Scheduling from './pages/staff/Scheduling'
+import Surveys from './pages/surveys/Surveys'
+import SurveyPublic from './pages/surveys/SurveyPublic'
 import Signage from './pages/signage/Signage'
 import ResidentPortal from './pages/resident/ResidentPortal'
+import FamilyPortal from './pages/family/FamilyPortal'
+import FamilyMessaging from './pages/family/FamilyMessaging'
 
 function ProtectedRoute({ children, requireModule }) {
   const { user, loading, hasModule } = useAuth()
@@ -52,8 +58,8 @@ export default function App() {
     </div>
   )
 
-  // Resident / family → portal
-  if (user && (profile?.role === 'resident' || profile?.role === 'family')) {
+  // Resident → resident portal
+  if (user && profile?.role === 'resident') {
     return (
       <Routes>
         <Route path="/resident" element={<ResidentPortal />} />
@@ -62,11 +68,22 @@ export default function App() {
     )
   }
 
+  // Family → family portal
+  if (user && profile?.role === 'family') {
+    return (
+      <Routes>
+        <Route path="/family" element={<FamilyPortal />} />
+        <Route path="*" element={<Navigate to="/family" />} />
+      </Routes>
+    )
+  }
+
   // CEO → CEO dashboard (can also access full app)
   if (user && profile?.role === 'ceo') {
     return (
       <Routes>
-        <Route path="/signage" element={<Signage />} />
+        <Route path="/survey/:token" element={<SurveyPublic />} />
+      <Route path="/signage" element={<Signage />} />
         <Route path="/ceo" element={<CEODashboard />} />
         <Route path="/superadmin" element={<SuperAdminRoute><SuperAdminDashboard /></SuperAdminRoute>} />
         <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
@@ -82,8 +99,12 @@ export default function App() {
           <Route path="housekeeping"   element={<ProtectedRoute requireModule="housekeeping"><Housekeeping /></ProtectedRoute>} />
           <Route path="transportation" element={<ProtectedRoute requireModule="transportation"><Transportation /></ProtectedRoute>} />
           <Route path="meters"         element={<ProtectedRoute requireModule="meters"><MeterReadings /></ProtectedRoute>} />
-          <Route path="security"       element={<ProtectedRoute requireModule="security"><Security /></ProtectedRoute>} />
-          <Route path="incidents"      element={<ProtectedRoute requireModule="incidents"><IncidentReports /></ProtectedRoute>} />
+          <Route path="scheduling"   element={<ProtectedRoute requireModule="staff"><Scheduling /></ProtectedRoute>} />
+        <Route path="staff"         element={<ProtectedRoute requireModule="staff"><StaffManagement /></ProtectedRoute>} />
+        <Route path="security"       element={<ProtectedRoute requireModule="security"><Security /></ProtectedRoute>} />
+          <Route path="family"          element={<ProtectedRoute requireModule="family"><FamilyMessaging /></ProtectedRoute>} />
+        <Route path="surveys"       element={<ProtectedRoute requireModule="surveys"><Surveys /></ProtectedRoute>} />
+        <Route path="incidents"      element={<ProtectedRoute requireModule="incidents"><IncidentReports /></ProtectedRoute>} />
         </Route>
         <Route path="*" element={<Navigate to="/ceo" />} />
       </Routes>
@@ -94,6 +115,7 @@ export default function App() {
     <Routes>
       {/* Public */}
       <Route path="/" element={user ? <Navigate to="/dashboard" /> : <LandingPage />} />
+      <Route path="/survey/:token" element={<SurveyPublic />} />
       <Route path="/signage" element={<Signage />} />
       <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
 
@@ -113,7 +135,11 @@ export default function App() {
         <Route path="housekeeping"   element={<ProtectedRoute requireModule="housekeeping"><Housekeeping /></ProtectedRoute>} />
         <Route path="transportation" element={<ProtectedRoute requireModule="transportation"><Transportation /></ProtectedRoute>} />
         <Route path="meters"         element={<ProtectedRoute requireModule="meters"><MeterReadings /></ProtectedRoute>} />
+        <Route path="scheduling"   element={<ProtectedRoute requireModule="staff"><Scheduling /></ProtectedRoute>} />
+        <Route path="staff"         element={<ProtectedRoute requireModule="staff"><StaffManagement /></ProtectedRoute>} />
         <Route path="security"       element={<ProtectedRoute requireModule="security"><Security /></ProtectedRoute>} />
+        <Route path="family"          element={<ProtectedRoute requireModule="family"><FamilyMessaging /></ProtectedRoute>} />
+        <Route path="surveys"       element={<ProtectedRoute requireModule="surveys"><Surveys /></ProtectedRoute>} />
         <Route path="incidents"      element={<ProtectedRoute requireModule="incidents"><IncidentReports /></ProtectedRoute>} />
       </Route>
 
