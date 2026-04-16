@@ -81,17 +81,20 @@ function ServiceModal({ service, onClose, onSave }) {
     }
     setSaving(true)
     const payload = {
-      ...form,
-      organization_id: profile.organization_id,
-      created_by: profile.id,
-      start_time:           form.start_time            || null,
-      end_time:             form.end_time              || null,
+      organization_id:      profile.organization_id,
+      created_by:           profile.id,
+      title:                form.title.trim(),
+      service_type:         form.service_type         || 'sunday_service',
+      description:          form.description          || null,
+      officiant:            form.officiant            || null,
+      service_date:         form.service_date,
+      start_time:           form.start_time           || null,
+      end_time:             form.end_time             || null,
       stream_youtube_id:    extractYouTubeId(form.stream_youtube_id) || null,
       recording_youtube_id: extractYouTubeId(form.recording_youtube_id) || null,
-      attendance_count:     form.attendance_count      || null,
-      recur_day_of_week:    form.is_recurring ? form.recur_day_of_week : null,
-      speaker:              form.speaker               || null,
-      description:          form.description           || null,
+      attendance_count:     form.attendance_count ? parseInt(form.attendance_count) : null,
+      is_recurring:         form.is_recurring         || false,
+      recur_day_of_week:    form.is_recurring ? (form.recur_day_of_week || null) : null,
       updated_at:           new Date().toISOString(),
     }
     let err
