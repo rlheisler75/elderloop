@@ -5,8 +5,9 @@ import {
   Plus, Search, Filter, Wrench, X, Edit2, ChevronDown,
   Clock, AlertTriangle, CheckCircle2, User, MapPin,
   Truck, PauseCircle, XCircle, RefreshCw, Calendar,
-  ChevronRight, MessageSquare, ArrowUpDown
+  ChevronRight, MessageSquare, ArrowUpDown, ShieldCheck
 } from 'lucide-react'
+import CompliancePanel from './Compliance'
 
 const STATUSES = [
   { key: 'open',             label: 'Open',             color: 'bg-blue-50 text-blue-700 border-blue-200',     dot: 'bg-blue-500' },
@@ -200,7 +201,6 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
     } else {
       payload.status = 'open'
       payload.submitted_by = profile.id
-      payload.organization_id = profile.organization_id
       const { data: newWo, error: insErr } = await supabase.from('work_orders').insert(payload).select().single()
       err = insErr
       if (newWo) {
@@ -505,6 +505,7 @@ export default function WorkOrders() {
   const [showModal, setShowModal]     = useState(false)
   const [selected, setSelected]       = useState(null)
   const [sortBy, setSortBy]           = useState('created_at')
+  const [mainView, setMainView]       = useState('work_orders') // 'work_orders' | 'compliance'
 
   const canCreate  = profile && ['super_admin','org_admin','supervisor','manager','maintenance','staff','dietary','housekeeping'].includes(profile.role)
   const canEdit    = profile && ['super_admin','org_admin','supervisor','manager','maintenance'].includes(profile.role)
@@ -559,16 +560,36 @@ export default function WorkOrders() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-slate-800">Work Orders</h1>
-          <p className="text-slate-500 text-sm mt-0.5">Maintenance requests, inspections, and recurring tasks</p>
+          <h1 className="font-display text-2xl font-semibold text-slate-800">Maintenance</h1>
+          <p className="text-slate-500 text-sm mt-0.5">Work orders, inspections, and Life Safety compliance</p>
         </div>
-        {canCreate && (
+        {mainView === 'work_orders' && canCreate && (
           <button onClick={handleNew}
             className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
             <Plus size={16} /> New Work Order
           </button>
         )}
       </div>
+
+      {/* Main view tabs */}
+      <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mb-6 w-fit">
+        <button onClick={() => setMainView('work_orders')}
+          className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all ${mainView === 'work_orders' ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+          <Wrench size={15} /> Work Orders
+        </button>
+        <button onClick={() => setMainView('compliance')}
+          className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all ${mainView === 'compliance' ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+          <ShieldCheck size={15} /> Life Safety Compliance
+        </button>
+      </div>
+
+      {/* Compliance view */}
+      {mainView === 'compliance' && (
+        <CompliancePanel orgId={organization?.id} profile={profile} />
+      )}
+
+      {/* Work Orders view */}
+      {mainView === 'work_orders' && (<>
 
       {/* Stats */}
       <div className="grid grid-cols-4 gap-3 mb-6">
@@ -651,6 +672,7 @@ export default function WorkOrders() {
           canAssign={canAssign}
         />
       )}
+      </>)}
     </div>
   )
 }
