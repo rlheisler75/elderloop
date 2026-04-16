@@ -3,8 +3,9 @@ import { supabase } from '../../lib/supabase'
 import {
   Plus, X, Edit2, Trash2, Check, Car, Home, ClipboardList,
   Users, Gauge, Shield, Heart, Award, Link, MapPin, Mail,
-  Phone, AlertTriangle
+  Phone, AlertTriangle, Upload
 } from 'lucide-react'
+import ResidentImport from './ResidentImport'
 
 // ── Generic editable list ──────────────────────────────────────
 function EditableList({ items, onAdd, onUpdate, onDelete, addPlaceholder, columns, renderRow }) {
@@ -269,6 +270,7 @@ export default function AdminLists({ orgId }) {
   const [certTypes, setCertTypes]   = useState([])
   const [checkpoints, setCheckpoints] = useState([])
   const [loading, setLoading]       = useState(true)
+  const [showImport, setShowImport] = useState(false)
 
   useEffect(() => { if (orgId) fetchAll() }, [orgId])
 
@@ -388,9 +390,15 @@ export default function AdminLists({ orgId }) {
           {/* RESIDENTS */}
           {section === 'residents' && (
             <div>
-              <div className="mb-4">
-                <h3 className="font-display font-semibold text-slate-800">Residents</h3>
-                <p className="text-slate-400 text-xs mt-0.5">Master resident list. Used across work orders, transportation, dietary, and family portal. Only this org's residents.</p>
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h3 className="font-display font-semibold text-slate-800">Residents</h3>
+                  <p className="text-slate-400 text-xs mt-0.5">Master resident list. Used across work orders, transportation, dietary, and family portal. Only this org's residents.</p>
+                </div>
+                <button onClick={() => setShowImport(true)}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-medium rounded-lg transition-colors flex-shrink-0 ml-3">
+                  <Upload size={13} /> Import from CSV/Excel
+                </button>
               </div>
               <EditableList items={residents} onAdd={res.add} onUpdate={res.update} onDelete={(id) => res.del(id, 'Remove this resident? This will not delete their work orders or dietary profile.')}
                 addPlaceholder="Add resident"
@@ -568,6 +576,13 @@ export default function AdminLists({ orgId }) {
             </div>
           )}
         </>
+      )}
+
+      {showImport && (
+        <ResidentImport
+          orgId={orgId}
+          onImported={() => fetchAll()}
+          onClose={() => setShowImport(false)} />
       )}
     </div>
   )
