@@ -261,16 +261,17 @@ export default function Chapel() {
     fetchServices()
   }
 
-  const now = new Date()
-  const upcoming = services.filter(s => new Date(s.service_date) >= now).reverse()
-  const past     = services.filter(s => new Date(s.service_date) < now)
+  const todayStr  = new Date().toISOString().split('T')[0]
+  const upcoming  = services.filter(s => s.service_date >= todayStr).reverse()
+  const past      = services.filter(s => s.service_date < todayStr)
 
   const avgAttendance = past.filter(s => s.attendance_count).length > 0
     ? Math.round(past.filter(s => s.attendance_count).reduce((a, s) => a + s.attendance_count, 0) / past.filter(s => s.attendance_count).length)
     : 0
 
+  const now = new Date()
   const thisMonthCount = services.filter(s => {
-    const d = new Date(s.service_date)
+    const d = new Date(s.service_date + 'T12:00:00')
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
   }).length
 
@@ -356,7 +357,7 @@ export default function Chapel() {
                 <div>
                   <div className="text-sm font-medium text-slate-800">{s.title}</div>
                   <div className="text-xs text-slate-400">
-                    {new Date(s.service_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} · {formatTime(s.start_time)}
+                    {new Date(s.service_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} · {formatTime(s.start_time)}
                   </div>
                 </div>
                 <button onClick={() => toggleLive(s)}
@@ -397,7 +398,7 @@ export default function Chapel() {
                     {s.is_recurring && <span className="text-xs text-slate-400 border border-slate-200 px-1.5 py-0.5 rounded">Recurring</span>}
                   </div>
                   <div className="text-xs text-slate-400 mt-0.5">
-                    {new Date(s.service_date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })} · {formatTime(s.start_time)}
+                    {new Date(s.service_date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })} · {formatTime(s.start_time)}
                     {s.officiant && ` · ${s.officiant}`}
                   </div>
                 </div>
@@ -436,7 +437,7 @@ export default function Chapel() {
                   <tr key={s.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
                     <td className="px-4 py-3 text-sm font-medium text-slate-800">{s.title}</td>
                     <td className="px-4 py-3 text-xs text-slate-500">
-                      {new Date(s.service_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      {new Date(s.service_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </td>
                     <td className="px-4 py-3 text-xs text-slate-500">{s.officiant || '—'}</td>
                     <td className="px-4 py-3 text-xs text-slate-500">
