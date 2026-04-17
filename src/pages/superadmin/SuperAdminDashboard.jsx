@@ -555,6 +555,7 @@ export default function SuperAdminDashboard() {
             {orgs.length === 0 && (
               <div className="px-3 text-xs text-slate-700">No orgs yet</div>
             )}
+          </div>
         </nav>
 
         <div className="px-3 py-4 border-t border-slate-800">
