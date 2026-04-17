@@ -45,11 +45,23 @@ export default function Layout() {
       <aside className={`fixed inset-y-0 left-0 z-30 w-64 bg-brand-950 flex flex-col transform transition-transform duration-200 lg:translate-x-0 lg:static lg:z-auto ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         {/* Logo */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-brand-800">
-          <div>
-            <div className="font-display text-xl font-semibold text-white tracking-wide">ElderLoop</div>
-            <div className="text-brand-400 text-xs mt-0.5 truncate">{organization?.name ?? 'Platform'}</div>
+          <div className="flex items-center gap-3 min-w-0">
+            {organization?.logo_url ? (
+              <img
+                src={organization.logo_url}
+                alt={organization.name}
+                className="w-9 h-9 rounded-lg object-contain bg-white p-1 flex-shrink-0" />
+            ) : (
+              <div className="w-9 h-9 rounded-lg bg-brand-700 flex items-center justify-center flex-shrink-0 font-display text-white font-bold text-sm">
+                {organization?.name?.[0] ?? 'E'}
+              </div>
+            )}
+            <div className="min-w-0">
+              <div className="font-display text-sm font-semibold text-white truncate">{organization?.name ?? 'ElderLoop'}</div>
+              <div className="text-brand-400 text-xs mt-0.5 truncate">Powered by ElderLoop</div>
+            </div>
           </div>
-          <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-brand-400 hover:text-white"><X size={18} /></button>
+          <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-brand-400 hover:text-white ml-2"><X size={18} /></button>
         </div>
 
         {/* Nav */}

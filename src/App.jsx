@@ -118,10 +118,22 @@ export default function App() {
   return (
     <Routes>
       {/* Public */}
-      <Route path="/" element={user ? <Navigate to="/dashboard" /> : <LandingPage />} />
+      <Route path="/" element={
+        user
+          ? isSuperAdmin() ? <Navigate to="/superadmin" replace />
+          : profile?.role === 'ceo' ? <Navigate to="/ceo" replace />
+          : <Navigate to="/dashboard" replace />
+          : <LandingPage />
+      } />
       <Route path="/survey/:token" element={<SurveyPublic />} />
       <Route path="/signage" element={<Signage />} />
-      <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
+      <Route path="/login" element={
+        user
+          ? isSuperAdmin() ? <Navigate to="/superadmin" replace />
+          : profile?.role === 'ceo' ? <Navigate to="/ceo" replace />
+          : <Navigate to="/dashboard" replace />
+          : <Login />
+      } />
 
       {/* Super Admin */}
       <Route path="/superadmin" element={<SuperAdminRoute><SuperAdminDashboard /></SuperAdminRoute>} />

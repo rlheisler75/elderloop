@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Shield, Wrench, UtensilsCrossed, MessageSquare, Car,
-  CalendarDays, Gauge, ChevronRight, Check, Star,
+  CalendarDays, Gauge, ChevronRight, Check,
   ArrowRight, Church, BookUser, AlertTriangle, SprayCan,
   Menu, X, MapPin, Phone, Mail
 } from 'lucide-react'
@@ -64,19 +64,12 @@ export default function LandingPage() {
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const [copied, setCopied] = useState(null)
 
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 40)
     window.addEventListener('scroll', h)
     return () => window.removeEventListener('scroll', h)
   }, [])
-
-  const copy = (text, key) => {
-    navigator.clipboard.writeText(text)
-    setCopied(key)
-    setTimeout(() => setCopied(null), 1500)
-  }
 
   return (
     <div className="min-h-screen bg-white" style={{ fontFamily: '"Source Sans 3", system-ui, sans-serif' }}>
@@ -187,18 +180,22 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Testimonial ── */}
+      {/* ── Social Proof ── */}
       <section className="py-16 bg-brand-50 border-y border-brand-100">
         <div className="max-w-3xl mx-auto px-6 text-center">
-          <div className="flex justify-center gap-1 mb-5">
-            {[...Array(5)].map((_,i) => <Star key={i} size={20} className="text-amber-400 fill-amber-400" />)}
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-brand-100 text-brand-700 rounded-full text-sm font-medium mb-5">
+            <span className="w-2 h-2 rounded-full bg-brand-500 animate-pulse" />
+            Now in pilot with senior living communities in Missouri
           </div>
-          <blockquote className="text-slate-800 text-xl leading-relaxed mb-5"
-            style={{ fontFamily: '"Playfair Display", serif', fontStyle: 'italic' }}>
-            "ElderLoop replaced four separate software subscriptions and costs less than all of them combined. Our staff learned it in a day."
-          </blockquote>
-          <div className="font-semibold text-slate-700 text-sm">Brian Miller</div>
-          <div className="text-slate-400 text-xs mt-0.5">CEO, Maranatha Village · Springfield, MO · Founding Customer</div>
+          <h3 style={{ fontFamily: '"Playfair Display", serif' }}
+            className="text-slate-800 text-2xl font-semibold mb-3">
+            Built with operators, for operators
+          </h3>
+          <p className="text-slate-500 text-base max-w-xl mx-auto leading-relaxed">
+            ElderLoop was designed alongside 12 years of hands-on experience across dietary,
+            maintenance, housekeeping, and administration in a Missouri senior living community.
+            Every feature solves a real daily problem.
+          </p>
         </div>
       </section>
 
@@ -270,8 +267,7 @@ export default function LandingPage() {
               Try it right now
             </h2>
             <p className="text-slate-500 text-lg">
-              Live demo accounts — see exactly what each role sees. Password for all:{' '}
-              <code className="bg-slate-200 text-slate-700 px-2 py-0.5 rounded font-mono text-sm">Demo2024!</code>
+              Live demo accounts — click any role to sign in instantly. No setup required.
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -282,18 +278,16 @@ export default function LandingPage() {
                   <span className="text-xs font-bold text-brand-600 uppercase tracking-wide bg-brand-50 px-2.5 py-1 rounded-full">
                     {account.role}
                   </span>
-                  <button onClick={() => copy(account.email, account.role + 'email')}
-                    className="text-xs text-slate-400 hover:text-brand-600 transition-colors">
-                    {copied === account.role + 'email' ? '✓ Copied' : 'Copy email'}
-                  </button>
                 </div>
-                <div className="font-mono text-xs text-slate-600 bg-slate-50 px-3 py-2 rounded-lg mb-3 break-all">
+                <div className="font-mono text-xs text-slate-500 bg-slate-50 px-3 py-2 rounded-lg mb-3 break-all">
                   {account.email}
                 </div>
                 <p className="text-xs text-slate-400 leading-relaxed">{account.desc}</p>
-                <button onClick={() => navigate('/login')}
-                  className="mt-4 w-full py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-lg transition-colors">
-                  Log In as {account.role}
+                <button
+                  onClick={() => navigate(`/login?email=${encodeURIComponent(account.email)}&demo=1`)}
+                  className="mt-4 w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl transition-all flex items-center justify-center gap-2">
+                  <span>Log In as {account.role}</span>
+                  <span className="text-brand-200">→</span>
                 </button>
               </div>
             ))}
