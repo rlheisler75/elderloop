@@ -433,7 +433,7 @@ export default function SuperAdminDashboard() {
   const [loading, setLoading]     = useState(true)
   const [showAddOrg, setShowAddOrg] = useState(false)
   const [activeTab, setActiveTab]   = useState('overview')
-  const [logoModal, setLogoModal]   = useState(null)   // org object
+  const [logoModal, setLogoModal]   = useState(null)   // kept for compatibility
   const [wipeModal, setWipeModal]   = useState(null)   // org object
 
   useEffect(() => { fetchAll() }, [])
@@ -534,16 +534,27 @@ export default function SuperAdminDashboard() {
             )
           })}
           <div className="pt-3 pb-1">
-            <div className="text-xs text-slate-600 uppercase tracking-widest px-3 mb-1">Jump To</div>
-          </div>
-          <button onClick={() => navigate('/dashboard')}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-500 hover:bg-slate-800 hover:text-white transition-all text-left">
-            <Globe size={16} />Demo Org Dashboard
-          </button>
-          <button onClick={() => navigate('/admin')}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-500 hover:bg-slate-800 hover:text-white transition-all text-left">
-            <Settings size={16} />Org Admin Panel
-          </button>
+            <div className="text-xs text-slate-600 uppercase tracking-widest px-3 mb-2">Jump To Org</div>
+            {orgs.slice(0, 8).map(org => (
+              <div key={org.id} className="flex items-center gap-1 mb-0.5">
+                <button
+                  onClick={() => navigate(`/admin?org=${org.id}`)}
+                  title="Open Admin Panel"
+                  className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-slate-500 hover:bg-slate-800 hover:text-white transition-all text-left truncate">
+                  <Settings size={12} className="flex-shrink-0" />
+                  <span className="truncate">{org.name}</span>
+                </button>
+                <button
+                  onClick={() => navigate(`/dashboard?org=${org.id}`)}
+                  title="View Dashboard"
+                  className="p-1.5 text-slate-700 hover:text-green-400 hover:bg-slate-800 rounded-lg transition-colors flex-shrink-0">
+                  <BarChart3 size={12} />
+                </button>
+              </div>
+            ))}
+            {orgs.length === 0 && (
+              <div className="px-3 text-xs text-slate-700">No orgs yet</div>
+            )}
         </nav>
 
         <div className="px-3 py-4 border-t border-slate-800">
@@ -632,10 +643,11 @@ export default function SuperAdminDashboard() {
                           <tr key={org.id} className="border-b border-slate-800/60 hover:bg-slate-800/30 transition-colors">
                             <td className="px-5 py-4">
                               <div className="flex items-center gap-3">
-                                <div className="w-9 h-9 bg-brand-800/60 border border-brand-700/50 rounded-xl flex items-center justify-center text-brand-400 text-sm font-bold flex-shrink-0"
-                                  style={{ fontFamily: '"Playfair Display", serif' }}>
-                                  {org.name[0]}
-                                </div>
+                                {org.logo_url
+                                  ? <img src={org.logo_url} alt="" className="w-9 h-9 rounded-xl object-contain bg-white p-1 flex-shrink-0" />
+                                  : <div className="w-9 h-9 bg-brand-800/60 border border-brand-700/50 rounded-xl flex items-center justify-center text-brand-400 text-sm font-bold flex-shrink-0"
+                                      style={{ fontFamily: '"Playfair Display", serif' }}>{org.name[0]}</div>
+                                }
                                 <div>
                                   <div className="text-white font-medium text-sm">{org.name}</div>
                                   <div className="text-slate-600 text-xs font-mono">{org.slug}</div>
@@ -645,15 +657,40 @@ export default function SuperAdminDashboard() {
                             <td className="px-5 py-4 text-sm text-slate-400 whitespace-nowrap">
                               {[org.city, org.state].filter(Boolean).join(', ') || <span className="text-slate-700">—</span>}
                             </td>
+
+                            {/* Plan — click to cycle */}
                             <td className="px-5 py-4">
-                              <div className="text-slate-300 text-sm">{PLAN_LABELS[org.plan] || org.plan || '—'}</div>
-                              {org.billing_note && <div className="text-slate-600 text-xs mt-0.5 max-w-32 truncate">{org.billing_note}</div>}
+                              <button
+                                onClick={async () => {
+                                  const plans = ['starter','community','enterprise','pilot']
+                                  const next  = plans[(plans.indexOf(org.plan || 'pilot') + 1) % plans.length]
+                                  await supabase.from('organizations').update({ plan: next }).eq('id', org.id)
+                                  fetchAll()
+                                }}
+                                title="Click to change plan"
+                                className="text-left hover:opacity-70 transition-opacity">
+                                <div className="text-slate-300 text-sm font-medium">{PLAN_LABELS[org.plan] || org.plan || 'Pilot'}</div>
+                                <div className="text-slate-700 text-xs mt-0.5">click to change</div>
+                              </button>
                             </td>
+
+                            {/* Billing status — click to cycle */}
                             <td className="px-5 py-4">
-                              <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${billing?.color || 'text-slate-500 bg-slate-800 border-slate-700'}`}>
-                                {billing?.label || org.billing_status || 'pilot'}
-                              </span>
+                              <button
+                                onClick={async () => {
+                                  const statuses = ['pilot','trial','active','past_due','cancelled']
+                                  const next = statuses[(statuses.indexOf(org.billing_status || 'pilot') + 1) % statuses.length]
+                                  await supabase.from('organizations').update({ billing_status: next }).eq('id', org.id)
+                                  fetchAll()
+                                }}
+                                title="Click to change billing status"
+                                className="hover:opacity-70 transition-opacity">
+                                <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${billing?.color || 'text-slate-500 bg-slate-800 border-slate-700'}`}>
+                                  {billing?.label || org.billing_status || 'pilot'}
+                                </span>
+                              </button>
                             </td>
+
                             <td className="px-5 py-4">
                               <div className="text-white text-sm font-medium">{org.user_count}</div>
                               <div className="text-slate-600 text-xs">{org.staff_count} staff / {org.resident_count} res</div>
@@ -675,17 +712,26 @@ export default function SuperAdminDashboard() {
                                 </div>
                               ) : <span className="text-slate-700 text-xs">No contact</span>}
                             </td>
+
+                            {/* Actions */}
                             <td className="px-5 py-4">
-                              <div className="flex items-center gap-1.5">
-                                <button onClick={() => setLogoModal(org)}
-                                  title="Upload Logo"
-                                  className="p-1.5 text-slate-500 hover:text-brand-400 hover:bg-brand-900/40 rounded-lg transition-colors">
-                                  <ImageIcon size={14} />
+                              <div className="flex items-center gap-1">
+                                <button
+                                  onClick={() => navigate(`/admin?org=${org.id}`)}
+                                  title="Open Admin Panel for this org"
+                                  className="flex items-center gap-1 px-2 py-1 text-xs text-slate-400 hover:text-brand-400 hover:bg-brand-900/30 rounded-lg transition-colors font-medium">
+                                  <Settings size={12} /> Admin
+                                </button>
+                                <button
+                                  onClick={() => navigate(`/dashboard?org=${org.id}`)}
+                                  title="View Dashboard for this org"
+                                  className="flex items-center gap-1 px-2 py-1 text-xs text-slate-400 hover:text-green-400 hover:bg-green-900/30 rounded-lg transition-colors font-medium">
+                                  <BarChart3 size={12} /> View
                                 </button>
                                 <button onClick={() => setWipeModal(org)}
                                   title="Wipe All Data"
-                                  className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-900/30 rounded-lg transition-colors">
-                                  <Trash2 size={14} />
+                                  className="p-1.5 text-slate-600 hover:text-red-400 hover:bg-red-900/30 rounded-lg transition-colors">
+                                  <Trash2 size={13} />
                                 </button>
                               </div>
                             </td>
@@ -702,18 +748,15 @@ export default function SuperAdminDashboard() {
 
               {/* Quick actions */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {[
-                  { icon: Globe,       label: 'View Live Signage',    desc: 'Open demo org TV display',         action: () => window.open('/signage?org=sunrise-gardens', '_blank'), color: 'text-green-400' },
-                  { icon: Settings,    label: 'Org Admin Panel',      desc: 'Manage users, modules, and settings', action: () => navigate('/admin'), color: 'text-brand-400' },
-                  { icon: BarChart3,   label: 'Community Dashboard',  desc: 'View operational dashboard', action: () => navigate('/dashboard'), color: 'text-purple-400' },
-                ].map(item => {
-                  const Icon = item.icon
+                {orgs.slice(0, 3).map(org => {
+                  const Icon = Globe
                   return (
-                    <button key={item.label} onClick={item.action}
+                    <button key={org.id}
+                      onClick={() => window.open(`/signage?org=${org.slug}`, '_blank')}
                       className="bg-slate-900 border border-slate-800 rounded-2xl p-5 text-left hover:border-slate-700 hover:bg-slate-800/50 transition-all group">
-                      <Icon size={20} className={`${item.color} mb-3 group-hover:scale-110 transition-transform`} />
-                      <div className="text-white font-medium text-sm mb-1">{item.label}</div>
-                      <div className="text-slate-500 text-xs">{item.desc}</div>
+                      <Icon size={20} className="text-green-400 mb-3 group-hover:scale-110 transition-transform" />
+                      <div className="text-white font-medium text-sm mb-1">{org.name}</div>
+                      <div className="text-slate-500 text-xs">Open TV Signage display</div>
                       <ChevronRight size={14} className="text-slate-700 group-hover:text-slate-400 mt-3 transition-colors" />
                     </button>
                   )

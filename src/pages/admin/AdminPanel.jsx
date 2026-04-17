@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import {
@@ -252,6 +253,7 @@ function EditUserModal({ user, onClose, onSave }) {
 
 // ── Org Settings Modal ─────────────────────────────────────────
 function OrgSettingsModal({ org, modules, onClose, onSave }) {
+  const fileRef = useRef()
   const [form, setForm] = useState({
     name:    org.name    || '',
     address: org.address || '',
@@ -264,8 +266,23 @@ function OrgSettingsModal({ org, modules, onClose, onSave }) {
   const [enabledModules, setEnabledModules] = useState(
     modules.filter(m => m.is_enabled !== false).map(m => m.module_key)
   )
-  const [saving, setSaving] = useState(false)
+  const [logoUrl, setLogoUrl]   = useState(org.logo_url || '')
+  const [uploading, setUploading] = useState(false)
+  const [saving, setSaving]     = useState(false)
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files?.[0]; if (!file) return
+    setUploading(true)
+    const ext  = file.name.split('.').pop()
+    const path = `logos/${org.id}/logo.${ext}`
+    const { error } = await supabase.storage.from('announcement-images').upload(path, file, { upsert: true })
+    if (!error) {
+      const { data } = supabase.storage.from('announcement-images').getPublicUrl(path)
+      setLogoUrl(data.publicUrl)
+    }
+    setUploading(false)
+  }
 
   const toggleModule = (key) => setEnabledModules(m =>
     m.includes(key) ? m.filter(k => k !== key) : [...m, key])
@@ -275,7 +292,8 @@ function OrgSettingsModal({ org, modules, onClose, onSave }) {
     await supabase.from('organizations').update({
       name: form.name, address: form.address, city: form.city,
       state: form.state, zip: form.zip, phone: form.phone,
-      website: form.website, updated_at: new Date().toISOString()
+      website: form.website, logo_url: logoUrl || null,
+      updated_at: new Date().toISOString()
     }).eq('id', org.id)
 
     // Sync modules — update existing, insert new
@@ -306,6 +324,34 @@ function OrgSettingsModal({ org, modules, onClose, onSave }) {
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Organization Name</label>
             <input value={form.name} onChange={e => set('name', e.target.value)}
               className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          </div>
+
+          {/* Logo */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Community Logo</label>
+            <div className="flex items-center gap-4">
+              {logoUrl ? (
+                <div className="relative">
+                  <img src={logoUrl} alt="Logo" className="w-16 h-16 rounded-xl object-contain bg-slate-100 p-1 border border-slate-200" />
+                  <button onClick={() => setLogoUrl('')}
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full text-white flex items-center justify-center">
+                    <X size={10} />
+                  </button>
+                </div>
+              ) : (
+                <div className="w-16 h-16 rounded-xl bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 text-xl font-bold">
+                  {form.name?.[0] || '?'}
+                </div>
+              )}
+              <div>
+                <button onClick={() => fileRef.current.click()} disabled={uploading}
+                  className="flex items-center gap-2 px-3 py-2 border border-slate-200 rounded-lg text-xs font-medium text-slate-600 hover:border-brand-300 hover:text-brand-600 transition-colors disabled:opacity-50">
+                  {uploading ? 'Uploading...' : logoUrl ? 'Replace Logo' : 'Upload Logo'}
+                </button>
+                <p className="text-xs text-slate-400 mt-1">PNG, JPG, SVG — square recommended</p>
+              </div>
+            </div>
+            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -426,6 +472,8 @@ function NewOrgModal({ onClose, onSave }) {
 // ── Main Admin Panel ───────────────────────────────────────────
 export default function AdminPanel() {
   const { profile, organization, isSuperAdmin, refreshModules } = useAuth()
+  const [searchParams] = useSearchParams()
+  const orgParam = searchParams.get('org')
   const [tab, setTab]             = useState('users')
   const [orgs, setOrgs]           = useState([])
   const [users, setUsers]         = useState([])
@@ -453,7 +501,13 @@ export default function AdminPanel() {
     if (superAdmin) {
       const { data } = await supabase.from('organizations').select('*').eq('is_active', true).order('name')
       setOrgs(data || [])
-      if (!selectedOrg && data?.length) setSelectedOrg(data.find(o => o.id === organization?.id) || data[0])
+      if (!selectedOrg && data?.length) {
+        // Prefer URL param org, then current user's org, then first
+        const target = orgParam
+          ? data.find(o => o.id === orgParam)
+          : data.find(o => o.id === organization?.id) || data[0]
+        setSelectedOrg(target || data[0])
+      }
     } else {
       setOrgs([organization])
       setSelectedOrg(organization)
