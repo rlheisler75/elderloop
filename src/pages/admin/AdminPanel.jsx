@@ -253,18 +253,17 @@ function EditUserModal({ user, onClose, onSave }) {
 // ── Org Settings Modal ─────────────────────────────────────────
 function OrgSettingsModal({ org, modules, onClose, onSave }) {
   const [form, setForm] = useState({
-    name:           org.name           || '',
-    address:        org.address        || '',
-    city:           org.city           || '',
-    state:          org.state          || '',
-    zip:            org.zip            || '',
-    phone:          org.phone          || '',
-    contact_name:   org.contact_name   || '',
-    contact_email:  org.contact_email  || '',
-    billing_status: org.billing_status || 'pilot',
-    billing_note:   org.billing_note   || '',
+    name:    org.name    || '',
+    address: org.address || '',
+    city:    org.city    || '',
+    state:   org.state   || '',
+    zip:     org.zip     || '',
+    phone:   org.phone   || '',
+    website: org.website || '',
   })
-  const [enabledModules, setEnabledModules] = useState(modules.map(m => m.module_key))
+  const [enabledModules, setEnabledModules] = useState(
+    modules.filter(m => m.is_enabled !== false).map(m => m.module_key)
+  )
   const [saving, setSaving] = useState(false)
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
@@ -273,9 +272,13 @@ function OrgSettingsModal({ org, modules, onClose, onSave }) {
 
   const handleSave = async () => {
     setSaving(true)
-    await supabase.from('organizations').update({ ...form, updated_at: new Date().toISOString() }).eq('id', org.id)
+    await supabase.from('organizations').update({
+      name: form.name, address: form.address, city: form.city,
+      state: form.state, zip: form.zip, phone: form.phone,
+      website: form.website, updated_at: new Date().toISOString()
+    }).eq('id', org.id)
 
-    // Sync modules
+    // Sync modules — update existing, insert new
     for (const mod of ALL_MODULES) {
       const enabled = enabledModules.includes(mod.key)
       const exists  = modules.find(m => m.module_key === mod.key)
@@ -307,65 +310,30 @@ function OrgSettingsModal({ org, modules, onClose, onSave }) {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Contact Name</label>
-              <input value={form.contact_name} onChange={e => set('contact_name', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="CEO / Administrator" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Contact Email</label>
-              <input value={form.contact_email} onChange={e => set('contact_email', e.target.value)}
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Phone</label>
+              <input value={form.phone} onChange={e => set('phone', e.target.value)}
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Address</label>
-            <input value={form.address} onChange={e => set('address', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 mb-2" placeholder="Street address" />
-            <div className="grid grid-cols-3 gap-2">
-              <div className="col-span-1">
-                <input value={form.city} onChange={e => set('city', e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="City" />
-              </div>
-              <input value={form.state} onChange={e => set('state', e.target.value)}
-                className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="State" />
-              <input value={form.zip} onChange={e => set('zip', e.target.value)}
-                className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="ZIP" />
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Website</label>
+              <input value={form.website || ''} onChange={e => set('website', e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                placeholder="https://..." />
             </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Phone</label>
-            <input value={form.phone} onChange={e => set('phone', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Enabled Modules</label>
+            <p className="text-xs text-slate-400 mb-3">Toggle which modules are visible in the sidebar for this community.</p>
             <div className="grid grid-cols-2 gap-2">
               {ALL_MODULES.map(m => (
                 <button key={m.key} onClick={() => toggleModule(m.key)}
                   className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition-all ${enabledModules.includes(m.key) ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 text-slate-500 hover:border-brand-300'}`}>
-                  {enabledModules.includes(m.key) ? <Check size={14} /> : <div className="w-3.5 h-3.5" />}
+                  {enabledModules.includes(m.key) ? <Check size={14} /> : <div className="w-3.5 h-3.5 rounded-sm border border-slate-300" />}
                   {m.label}
                 </button>
               ))}
             </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Billing Status</label>
-            <div className="flex gap-2 flex-wrap">
-              {BILLING_STATUSES.map(b => (
-                <button key={b.key} onClick={() => set('billing_status', b.key)}
-                  className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${form.billing_status === b.key ? b.color + ' ring-2 ring-offset-1 ring-brand-400' : 'border-slate-200 text-slate-500'}`}>
-                  {b.label}
-                </button>
-              ))}
-            </div>
-            <input value={form.billing_note} onChange={e => set('billing_note', e.target.value)}
-              className="w-full mt-2 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-              placeholder="Billing notes (e.g. founding customer discount)" />
           </div>
         </div>
         <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
@@ -457,7 +425,7 @@ function NewOrgModal({ onClose, onSave }) {
 
 // ── Main Admin Panel ───────────────────────────────────────────
 export default function AdminPanel() {
-  const { profile, organization, isSuperAdmin } = useAuth()
+  const { profile, organization, isSuperAdmin, refreshModules } = useAuth()
   const [tab, setTab]             = useState('users')
   const [orgs, setOrgs]           = useState([])
   const [users, setUsers]         = useState([])
@@ -800,7 +768,7 @@ export default function AdminPanel() {
           org={editingOrg}
           modules={orgModules}
           onClose={() => { setShowOrgSettings(false); setEditingOrg(null) }}
-          onSave={() => { setShowOrgSettings(false); setEditingOrg(null); fetchAll(); fetchUsers() }} />
+          onSave={async () => { setShowOrgSettings(false); setEditingOrg(null); await fetchAll(); await refreshModules() }} />
       )}
       {showNewOrg && (
         <NewOrgModal

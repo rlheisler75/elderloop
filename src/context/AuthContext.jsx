@@ -82,11 +82,20 @@ export function AuthProvider({ children }) {
 
   const signOut = () => supabase.auth.signOut()
 
+  // Call this after saving module changes so sidebar updates immediately
+  const refreshModules = async () => {
+    if (!profile?.organization_id) return
+    const { data } = await supabase.from('organization_modules')
+      .select('module_key, is_enabled')
+      .eq('organization_id', profile.organization_id)
+    setOrgModules(data?.filter(m => m.is_enabled !== false).map(m => m.module_key) || [])
+  }
+
   return (
     <AuthContext.Provider value={{
       user, profile, organization, orgModules, userPerms,
       loading, hasModule, canEdit, accessibleModules,
-      isOrgAdmin, isSuperAdmin, isCEO, signOut
+      isOrgAdmin, isSuperAdmin, isCEO, signOut, refreshModules
     }}>
       {children}
     </AuthContext.Provider>
