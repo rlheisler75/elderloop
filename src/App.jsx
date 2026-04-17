@@ -60,7 +60,12 @@ export default function App() {
     </div>
   )
 
-  // Resident → resident portal
+  // User logged in but profile not yet fetched — keep spinner up
+  if (user && !profile) return (
+    <div className="flex h-screen items-center justify-center bg-brand-950">
+      <div className="text-white font-display text-3xl tracking-wide">ElderLoop</div>
+    </div>
+  )
   if (user && profile?.role === 'resident') {
     return (
       <Routes>
