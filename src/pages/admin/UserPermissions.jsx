@@ -41,35 +41,58 @@ function RoleBadge({ role }) {
 }
 
 // Single user permission row
-function UserPermRow({ user, orgModules, permissions, onChange }) {
+function UserPermRow({ user, orgModules, permissions, onPermChange }) {
   const [expanded, setExpanded] = useState(false)
+  const [localPerms, setLocalPerms] = useState(permissions)
+  const [saving, setSaving] = useState(null) // moduleKey being saved
   const isAdmin = ['org_admin','ceo','super_admin'].includes(user.role)
 
-  const getPerm = (key) => permissions.find(p => p.module_key === key)
+  // Sync if parent permissions change (initial load)
+  useEffect(() => { setLocalPerms(permissions) }, [permissions])
+
+  const getPerm = (key) => localPerms.find(p => p.module_key === key)
 
   const handleToggle = async (moduleKey, currentPerm) => {
-    if (isAdmin) return // admins always have full access
-    if (!currentPerm) {
-      // Grant edit access
-      await supabase.from('user_module_permissions').upsert({
-        organization_id: user.organization_id,
-        user_id:         user.id,
-        module_key:      moduleKey,
-        access_level:    'edit',
-      }, { onConflict: 'user_id,module_key' })
-    } else if (currentPerm.access_level === 'edit') {
-      // Downgrade to view
-      await supabase.from('user_module_permissions').update({ access_level: 'view' })
-        .eq('user_id', user.id).eq('module_key', moduleKey)
+    if (isAdmin || saving === moduleKey) return
+
+    // Optimistic update — change UI immediately
+    const nextLevel = !currentPerm ? 'edit' : currentPerm.access_level === 'edit' ? 'view' : null
+
+    if (nextLevel) {
+      setLocalPerms(prev => {
+        const without = prev.filter(p => p.module_key !== moduleKey)
+        return [...without, { module_key: moduleKey, access_level: nextLevel }]
+      })
     } else {
-      // Remove entirely
-      await supabase.from('user_module_permissions')
-        .delete().eq('user_id', user.id).eq('module_key', moduleKey)
+      setLocalPerms(prev => prev.filter(p => p.module_key !== moduleKey))
     }
-    onChange()
+
+    setSaving(moduleKey)
+    try {
+      if (!currentPerm) {
+        await supabase.from('user_module_permissions').upsert({
+          organization_id: user.organization_id,
+          user_id:         user.id,
+          module_key:      moduleKey,
+          access_level:    'edit',
+        }, { onConflict: 'user_id,module_key' })
+      } else if (currentPerm.access_level === 'edit') {
+        await supabase.from('user_module_permissions').update({ access_level: 'view' })
+          .eq('user_id', user.id).eq('module_key', moduleKey)
+      } else {
+        await supabase.from('user_module_permissions')
+          .delete().eq('user_id', user.id).eq('module_key', moduleKey)
+      }
+      // Notify parent to silently refresh counts (no setLoading)
+      onPermChange()
+    } catch (e) {
+      // Revert optimistic update on error
+      setLocalPerms(permissions)
+    }
+    setSaving(null)
   }
 
-  const permCount = isAdmin ? orgModules.length : permissions.length
+  const permCount = isAdmin ? orgModules.length : localPerms.length
 
   return (
     <div className="border border-slate-100 rounded-xl overflow-hidden">
@@ -110,20 +133,25 @@ function UserPermRow({ user, orgModules, permissions, onChange }) {
                 {orgModules.map(moduleKey => {
                   const perm = getPerm(moduleKey)
                   const level = perm?.access_level || null
+                  const isSavingThis = saving === moduleKey
                   return (
                     <button key={moduleKey} onClick={() => handleToggle(moduleKey, perm)}
+                      disabled={!!saving}
                       className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium transition-all text-left ${
                         level === 'edit' ? 'bg-brand-50 border-brand-300 text-brand-700' :
                         level === 'view' ? 'bg-amber-50 border-amber-300 text-amber-700' :
                         'bg-white border-slate-200 text-slate-400 hover:border-slate-300'
-                      }`}>
+                      } ${isSavingThis ? 'opacity-60' : ''}`}>
                       <div className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 ${
                         level === 'edit' ? 'bg-brand-500' :
                         level === 'view' ? 'bg-amber-400' :
                         'bg-slate-200'}`}>
-                        {level === 'edit' && <Edit2 size={9} className="text-white" />}
-                        {level === 'view' && <Eye size={9} className="text-white" />}
-                        {!level && <X size={9} className="text-slate-400" />}
+                        {isSavingThis
+                          ? <div className="w-2 h-2 border border-current rounded-full animate-spin opacity-70" />
+                          : level === 'edit' ? <Edit2 size={9} className="text-white" />
+                          : level === 'view' ? <Eye size={9} className="text-white" />
+                          : <X size={9} className="text-slate-400" />
+                        }
                       </div>
                       <span className="truncate">{MODULE_LABELS[moduleKey] || moduleKey}</span>
                     </button>
@@ -157,11 +185,9 @@ export default function UserPermissions({ orgId, orgModules }) {
         .eq('organization_id', orgId),
     ])
 
-    // Need emails — join with auth users via a separate query
     const profileList = usersRes.data || []
     const permList = permsRes.data || []
 
-    // Build perms map
     const permsMap = {}
     permList.forEach(p => {
       if (!permsMap[p.user_id]) permsMap[p.user_id] = []
@@ -171,6 +197,18 @@ export default function UserPermissions({ orgId, orgModules }) {
     setUsers(profileList)
     setPerms(permsMap)
     setLoading(false)
+  }
+
+  // Silent refresh — doesn't reset loading, so panels stay open
+  async function silentRefresh() {
+    const { data } = await supabase.from('user_module_permissions')
+      .select('user_id,module_key,access_level').eq('organization_id', orgId)
+    const permsMap = {}
+    data?.forEach(p => {
+      if (!permsMap[p.user_id]) permsMap[p.user_id] = []
+      permsMap[p.user_id].push({ module_key: p.module_key, access_level: p.access_level })
+    })
+    setPerms(permsMap)
   }
 
   const filtered = users.filter(u =>
@@ -223,7 +261,7 @@ export default function UserPermissions({ orgId, orgModules }) {
               user={user}
               orgModules={enabledModules}
               permissions={perms[user.id] || []}
-              onChange={fetchAll} />
+              onPermChange={silentRefresh} />
           ))}
           {filtered.length === 0 && (
             <div className="text-center py-8 text-slate-400 text-sm">No staff members found.</div>
