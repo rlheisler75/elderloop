@@ -52,12 +52,12 @@ const PLANS = [
 ]
 
 const DEMO_ACCOUNTS = [
+  { role: 'CEO',          email: 'demo.ceo@elderloop.xyz',         desc: 'Executive view — KPI dashboard, all modules, high-level reporting' },
   { role: 'Org Admin',    email: 'demo.admin@elderloop.xyz',       desc: 'Full access to all modules and settings' },
   { role: 'Staff',        email: 'demo.staff@elderloop.xyz',       desc: 'General staff view across modules' },
   { role: 'Maintenance',  email: 'demo.maintenance@elderloop.xyz', desc: 'Maintenance-focused work order view' },
   { role: 'Dietary',      email: 'demo.dietary@elderloop.xyz',     desc: 'Dietary module and resident profiles' },
   { role: 'Resident',     email: 'demo.resident@elderloop.xyz',    desc: 'Resident portal — what residents see' },
-  { role: 'Guard',        email: 'demo.guard@elderloop.xyz',       desc: 'Security rounds and GPS check-ins' },
 ]
 
 export default function LandingPage() {
