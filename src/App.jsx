@@ -52,7 +52,7 @@ function SuperAdminRoute({ children }) {
 }
 
 export default function App() {
-  const { user, profile, loading } = useAuth()
+  const { user, profile, loading, isSuperAdmin } = useAuth()
 
   if (loading) return (
     <div className="flex h-screen items-center justify-center bg-brand-950">
