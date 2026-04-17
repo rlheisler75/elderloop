@@ -400,7 +400,7 @@ export default function Communication() {
           <p className="text-slate-500 text-sm mt-0.5">Announcements, events, and community updates</p>
         </div>
         <div className="flex items-center gap-2">
-          <a href="/signage?org=maranatha-village" target="_blank"
+          <a href="/signage?org=sunrise-gardens" target="_blank"
             className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 hover:text-brand-600 hover:border-brand-300 rounded-xl text-sm font-medium transition-colors">
             <Monitor size={16} /> Digital Signage
           </a>

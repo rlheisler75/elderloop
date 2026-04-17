@@ -364,7 +364,7 @@ export default function Signage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    setSlug(params.get('org') || 'maranatha-village')
+    setSlug(params.get('org') || 'sunrise-gardens')
     window.addEventListener('online',  () => setOnline(true))
     window.addEventListener('offline', () => setOnline(false))
   }, [])

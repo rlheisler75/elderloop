@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
@@ -6,7 +6,8 @@ import {
   Building2, Users, Shield, Plus, Settings, CheckCircle2,
   Activity, Globe, BarChart3, Eye, LogOut, Zap, X,
   Edit2, Check, ChevronRight, TrendingUp, AlertCircle,
-  ClipboardList, Link, Copy, Star
+  ClipboardList, Link, Copy, Star, Image as ImageIcon,
+  Trash2, Upload, AlertTriangle, RefreshCw
 } from 'lucide-react'
 
 const BILLING_LABELS = {
@@ -138,6 +139,289 @@ function AddOrgModal({ onClose, onSave }) {
   )
 }
 
+// ── Logo Upload Modal ──────────────────────────────────────────
+function LogoModal({ org, onClose, onSaved }) {
+  const fileRef = useRef()
+  const [uploading, setUploading] = useState(false)
+  const [preview, setPreview]     = useState(org.logo_url || null)
+  const [color, setColor]         = useState(org.primary_color || '#0c90e1')
+  const [saving, setSaving]       = useState(false)
+  const [error, setError]         = useState('')
+
+  const handleFile = async (e) => {
+    const file = e.target.files?.[0]; if (!file) return
+    if (!file.type.startsWith('image/')) { setError('Please upload an image file'); return }
+    setUploading(true)
+    const ext  = file.name.split('.').pop()
+    const path = `logos/${org.id}/logo.${ext}`
+    const { error: upErr } = await supabase.storage
+      .from('announcement-images')
+      .upload(path, file, { upsert: true })
+    if (upErr) { setError(upErr.message); setUploading(false); return }
+    const { data } = supabase.storage.from('announcement-images').getPublicUrl(path)
+    setPreview(data.publicUrl)
+    setUploading(false)
+  }
+
+  const handleSave = async () => {
+    setSaving(true)
+    const { error: err } = await supabase.from('organizations')
+      .update({ logo_url: preview || null, primary_color: color })
+      .eq('id', org.id)
+    if (err) { setError(err.message); setSaving(false); return }
+    onSaved()
+  }
+
+  const handleRemove = async () => {
+    setSaving(true)
+    await supabase.from('organizations').update({ logo_url: null }).eq('id', org.id)
+    setPreview(null)
+    setSaving(false)
+    onSaved()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+      <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
+          <div>
+            <h2 className="font-semibold text-white">Community Branding</h2>
+            <p className="text-xs text-slate-400 mt-0.5">{org.name}</p>
+          </div>
+          <button onClick={onClose} className="text-slate-500 hover:text-white"><X size={18} /></button>
+        </div>
+        <div className="px-6 py-5 space-y-5">
+          {error && <div className="px-4 py-2 bg-red-900/40 border border-red-700 rounded-lg text-red-400 text-sm">{error}</div>}
+
+          {/* Logo */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Community Logo</label>
+            {preview ? (
+              <div className="flex items-center gap-4">
+                <div className="w-24 h-24 rounded-xl bg-white flex items-center justify-center overflow-hidden border border-slate-700">
+                  <img src={preview} alt="Logo" className="w-full h-full object-contain p-2" />
+                </div>
+                <div className="space-y-2">
+                  <button onClick={() => fileRef.current.click()}
+                    className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-lg transition-colors">
+                    <Upload size={12} /> Replace Logo
+                  </button>
+                  <button onClick={handleRemove}
+                    className="flex items-center gap-2 px-3 py-2 text-red-400 hover:bg-red-900/30 text-xs font-medium rounded-lg transition-colors">
+                    <X size={12} /> Remove Logo
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button onClick={() => fileRef.current.click()} disabled={uploading}
+                className="w-full flex flex-col items-center justify-center gap-2 py-8 border-2 border-dashed border-slate-700 rounded-xl text-slate-500 hover:border-brand-600 hover:text-brand-400 transition-colors">
+                <ImageIcon size={28} />
+                <span className="text-sm font-medium">{uploading ? 'Uploading...' : 'Click to upload logo'}</span>
+                <span className="text-xs">PNG, JPG, SVG — recommended 200×200px or wider</span>
+              </button>
+            )}
+            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+          </div>
+
+          {/* Brand color */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Brand Color</label>
+            <div className="flex items-center gap-3">
+              <input type="color" value={color} onChange={e => setColor(e.target.value)}
+                className="w-12 h-10 rounded-lg border border-slate-700 bg-slate-800 cursor-pointer p-1" />
+              <input value={color} onChange={e => setColor(e.target.value)}
+                className="flex-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-brand-500"
+                placeholder="#0c90e1" />
+              <div className="w-10 h-10 rounded-lg flex-shrink-0" style={{ backgroundColor: color }} />
+            </div>
+            <p className="text-xs text-slate-500 mt-1.5">Used for sidebar accent color in the community's interface.</p>
+          </div>
+
+          {/* Preview */}
+          {(preview || color !== '#0c90e1') && (
+            <div className="p-4 bg-slate-800 rounded-xl border border-slate-700">
+              <p className="text-xs text-slate-500 mb-2 uppercase tracking-wide font-semibold">Sidebar Preview</p>
+              <div className="flex items-center gap-2 p-3 rounded-xl" style={{ backgroundColor: color + '22' }}>
+                {preview
+                  ? <img src={preview} alt="" className="w-8 h-8 object-contain rounded bg-white p-1" />
+                  : <div className="w-8 h-8 rounded-xl flex items-center justify-center text-white text-sm font-bold" style={{ backgroundColor: color }}>{org.name[0]}</div>
+                }
+                <div>
+                  <div className="text-white text-sm font-semibold">{org.name}</div>
+                  <div className="text-xs" style={{ color }}>{org.plan || 'Community'} Plan</div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="px-6 py-4 border-t border-slate-800 flex justify-end gap-3">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-400 hover:text-white">Cancel</button>
+          <button onClick={handleSave} disabled={saving}
+            className="flex items-center gap-2 px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-800 text-white text-sm font-medium rounded-lg transition-colors">
+            <Check size={14} /> {saving ? 'Saving...' : 'Save Branding'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Wipe Org Data Modal ────────────────────────────────────────
+function WipeModal({ org, onClose, onDone }) {
+  const [step, setStep]       = useState('confirm')  // 'confirm' | 'wiping' | 'done'
+  const [typeConfirm, setTypeConfirm] = useState('')
+  const [deleteAccounts, setDeleteAccounts] = useState(false)
+  const [log, setLog]         = useState([])
+  const addLog = (msg) => setLog(l => [...l, msg])
+
+  const WIPE_TABLES = [
+    'compliance_inspection_results','compliance_inspections',
+    'care_notes','resident_vitals','resident_medications',
+    'resident_updates','family_resident_links',
+    'wo_photos','wo_activity','work_orders',
+    'pm_schedules','maintenance_assets',
+    'scheduled_shifts','shift_swaps','shift_templates',
+    'staff_certifications','survey_responses',
+    'messages','announcements','activities','chapel_services',
+    'trips','meter_readings','meters',
+    'security_rounds','security_checkpoints','incident_reports',
+    'resident_dietary_profiles','residents',
+    'user_module_permissions','organization_modules',
+  ]
+
+  const handleWipe = async () => {
+    if (typeConfirm !== org.name) return
+    setStep('wiping')
+    addLog(`Starting data wipe for ${org.name}...`)
+
+    for (const table of WIPE_TABLES) {
+      try {
+        const { error } = await supabase.from(table)
+          .delete().eq('organization_id', org.id)
+        if (error && !error.message.includes('does not exist')) {
+          addLog(`⚠️  ${table}: ${error.message}`)
+        } else {
+          addLog(`✓ Cleared ${table}`)
+        }
+      } catch (e) {
+        addLog(`⚠️  ${table}: ${e.message}`)
+      }
+    }
+
+    // Delete staff/user profiles if requested
+    if (deleteAccounts) {
+      addLog('Removing staff profiles...')
+      const { data: profiles } = await supabase.from('profiles')
+        .select('id').eq('organization_id', org.id)
+        .not('role', 'in', '(super_admin)')
+      if (profiles?.length) {
+        await supabase.from('profiles').delete().eq('organization_id', org.id)
+          .not('role', 'in', '(super_admin)')
+        addLog(`✓ Removed ${profiles.length} staff profiles`)
+        addLog('⚠️  Auth accounts must be deleted manually in Supabase dashboard → Authentication')
+      }
+    }
+
+    addLog('✅ Wipe complete.')
+    setStep('done')
+    onDone()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+      <div className="bg-slate-900 border border-red-900/60 rounded-2xl shadow-2xl w-full max-w-lg">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-red-900/40 rounded-xl flex items-center justify-center">
+              <AlertTriangle size={18} className="text-red-400" />
+            </div>
+            <div>
+              <h2 className="font-semibold text-white">Wipe Organization Data</h2>
+              <p className="text-xs text-red-400 mt-0.5">This cannot be undone</p>
+            </div>
+          </div>
+          {step !== 'wiping' && <button onClick={onClose} className="text-slate-500 hover:text-white"><X size={18} /></button>}
+        </div>
+
+        <div className="px-6 py-5">
+          {step === 'confirm' && (
+            <div className="space-y-4">
+              <div className="p-4 bg-red-950/40 border border-red-900/50 rounded-xl text-sm text-red-300 space-y-1">
+                <p className="font-semibold">This will permanently delete:</p>
+                <p>All residents, work orders, care notes, vitals, medications, activities, chapel services, dietary menus, announcements, surveys, messages, assets, PM schedules, and compliance records for <strong>{org.name}</strong>.</p>
+              </div>
+
+              <div>
+                <label className="flex items-center gap-3 cursor-pointer p-3 bg-slate-800 rounded-xl border border-slate-700 hover:border-red-700 transition-colors">
+                  <input type="checkbox" checked={deleteAccounts} onChange={e => setDeleteAccounts(e.target.checked)}
+                    className="w-4 h-4 rounded text-red-600" />
+                  <div>
+                    <div className="text-white text-sm font-medium">Also delete staff user accounts</div>
+                    <div className="text-slate-400 text-xs">Removes all profiles. Auth accounts must still be deleted in Supabase dashboard.</div>
+                  </div>
+                </label>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+                  Type <span className="text-red-400 font-mono">{org.name}</span> to confirm
+                </label>
+                <input value={typeConfirm} onChange={e => setTypeConfirm(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                  placeholder={org.name} />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button onClick={onClose} className="px-4 py-2 text-sm text-slate-400 hover:text-white">Cancel</button>
+                <button onClick={handleWipe} disabled={typeConfirm !== org.name}
+                  className="flex items-center gap-2 px-5 py-2 bg-red-700 hover:bg-red-600 disabled:bg-red-900 disabled:text-red-700 text-white text-sm font-medium rounded-lg transition-colors">
+                  <Trash2 size={14} /> Wipe All Data
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step === 'wiping' && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 text-amber-400">
+                <RefreshCw size={16} className="animate-spin" />
+                <span className="text-sm font-medium">Wiping data...</span>
+              </div>
+              <div className="bg-slate-950 rounded-xl p-4 max-h-64 overflow-y-auto font-mono text-xs space-y-1">
+                {log.map((l, i) => (
+                  <div key={i} className={l.startsWith('✅') ? 'text-green-400' : l.startsWith('⚠️') ? 'text-amber-400' : l.startsWith('✓') ? 'text-slate-400' : 'text-slate-300'}>{l}</div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {step === 'done' && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-green-900/40 rounded-full flex items-center justify-center">
+                  <Check size={18} className="text-green-400" />
+                </div>
+                <div>
+                  <div className="text-white font-medium">Wipe complete</div>
+                  <div className="text-slate-400 text-xs">{org.name} data has been cleared</div>
+                </div>
+              </div>
+              <div className="bg-slate-950 rounded-xl p-4 max-h-48 overflow-y-auto font-mono text-xs space-y-1">
+                {log.map((l, i) => (
+                  <div key={i} className={l.startsWith('✅') ? 'text-green-400' : l.startsWith('⚠️') ? 'text-amber-400' : l.startsWith('✓') ? 'text-slate-400' : 'text-slate-300'}>{l}</div>
+                ))}
+              </div>
+              <div className="flex justify-end">
+                <button onClick={onClose} className="px-5 py-2 bg-slate-700 hover:bg-slate-600 text-white text-sm font-medium rounded-lg transition-colors">Close</button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function SuperAdminDashboard() {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
@@ -149,6 +433,8 @@ export default function SuperAdminDashboard() {
   const [loading, setLoading]     = useState(true)
   const [showAddOrg, setShowAddOrg] = useState(false)
   const [activeTab, setActiveTab]   = useState('overview')
+  const [logoModal, setLogoModal]   = useState(null)   // org object
+  const [wipeModal, setWipeModal]   = useState(null)   // org object
 
   useEffect(() => { fetchAll() }, [])
 
@@ -252,7 +538,7 @@ export default function SuperAdminDashboard() {
           </div>
           <button onClick={() => navigate('/dashboard')}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-500 hover:bg-slate-800 hover:text-white transition-all text-left">
-            <Globe size={16} />Maranatha Dashboard
+            <Globe size={16} />Demo Org Dashboard
           </button>
           <button onClick={() => navigate('/admin')}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-500 hover:bg-slate-800 hover:text-white transition-all text-left">
@@ -334,7 +620,7 @@ export default function SuperAdminDashboard() {
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-slate-800">
-                        {['Organization','Location','Plan','Billing','Users','Modules','Contact'].map(h => (
+                        {['Organization','Location','Plan','Billing','Users','Modules','Contact','Actions'].map(h => (
                           <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
                         ))}
                       </tr>
@@ -389,6 +675,20 @@ export default function SuperAdminDashboard() {
                                 </div>
                               ) : <span className="text-slate-700 text-xs">No contact</span>}
                             </td>
+                            <td className="px-5 py-4">
+                              <div className="flex items-center gap-1.5">
+                                <button onClick={() => setLogoModal(org)}
+                                  title="Upload Logo"
+                                  className="p-1.5 text-slate-500 hover:text-brand-400 hover:bg-brand-900/40 rounded-lg transition-colors">
+                                  <ImageIcon size={14} />
+                                </button>
+                                <button onClick={() => setWipeModal(org)}
+                                  title="Wipe All Data"
+                                  className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-900/30 rounded-lg transition-colors">
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            </td>
                           </tr>
                         )
                       })}
@@ -403,7 +703,7 @@ export default function SuperAdminDashboard() {
               {/* Quick actions */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[
-                  { icon: Globe,       label: 'View Live Signage',    desc: 'Open Maranatha Village TV display', action: () => window.open('/signage?org=maranatha-village', '_blank'), color: 'text-green-400' },
+                  { icon: Globe,       label: 'View Live Signage',    desc: 'Open demo org TV display',         action: () => window.open('/signage?org=sunrise-gardens', '_blank'), color: 'text-green-400' },
                   { icon: Settings,    label: 'Org Admin Panel',      desc: 'Manage users, modules, and settings', action: () => navigate('/admin'), color: 'text-brand-400' },
                   { icon: BarChart3,   label: 'Community Dashboard',  desc: 'View operational dashboard', action: () => navigate('/dashboard'), color: 'text-purple-400' },
                 ].map(item => {
@@ -588,6 +888,20 @@ export default function SuperAdminDashboard() {
         <AddOrgModal
           onClose={() => setShowAddOrg(false)}
           onSave={() => { setShowAddOrg(false); fetchAll() }} />
+      )}
+
+      {logoModal && (
+        <LogoModal
+          org={logoModal}
+          onClose={() => setLogoModal(null)}
+          onSaved={() => { setLogoModal(null); fetchAll() }} />
+      )}
+
+      {wipeModal && (
+        <WipeModal
+          org={wipeModal}
+          onClose={() => setWipeModal(null)}
+          onDone={() => fetchAll()} />
       )}
     </div>
   )
