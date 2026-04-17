@@ -539,7 +539,6 @@ export default function AdminPanel() {
     { key: 'permissions',  label: 'Module Access',      icon: Shield },
     { key: 'settings',     label: 'Org Settings',       icon: Settings },
     { key: 'lists',        label: 'Lists & Pick Lists', icon: List },
-    ...(superAdmin ? [{ key: 'organizations', label: 'All Organizations', icon: Building2 }] : []),
   ]
 
   return (
@@ -685,18 +684,6 @@ export default function AdminPanel() {
             </div>
 
             <div className="grid grid-cols-2 gap-4 text-sm">
-              {selectedOrg.contact_name && (
-                <div className="flex items-center gap-2 text-slate-600">
-                  <User size={14} className="text-slate-400 flex-shrink-0" />
-                  {selectedOrg.contact_name}
-                </div>
-              )}
-              {selectedOrg.contact_email && (
-                <div className="flex items-center gap-2 text-slate-600">
-                  <Mail size={14} className="text-slate-400 flex-shrink-0" />
-                  {selectedOrg.contact_email}
-                </div>
-              )}
               {selectedOrg.phone && (
                 <div className="flex items-center gap-2 text-slate-600">
                   <Phone size={14} className="text-slate-400 flex-shrink-0" />
@@ -761,46 +748,6 @@ export default function AdminPanel() {
       {/* ── LISTS TAB ── */}
       {tab === 'lists' && (
         <AdminLists orgId={currentOrgId} />
-      )}
-
-      {/* ── ALL ORGS TAB (super admin only) ── */}
-      {tab === 'organizations' && superAdmin && (
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-sm text-slate-500">{orgs.length} organization{orgs.length !== 1 ? 's' : ''} on platform</p>
-            <button onClick={() => setShowNewOrg(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
-              <Plus size={15} /> Add Organization
-            </button>
-          </div>
-          <div className="space-y-3">
-            {orgs.map(o => {
-              const billing = getBilling(o.billing_status)
-              return (
-                <div key={o.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-brand-100 flex items-center justify-center flex-shrink-0">
-                    <Building2 size={18} className="text-brand-600" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-display font-semibold text-slate-800">{o.name}</span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${billing.color}`}>{billing.label}</span>
-                    </div>
-                    <div className="text-xs text-slate-400 mt-0.5">
-                      {[o.city, o.state].filter(Boolean).join(', ')}
-                      {o.contact_name && ` · ${o.contact_name}`}
-                    </div>
-                    {o.billing_note && <div className="text-xs text-blue-600 mt-0.5 italic">{o.billing_note}</div>}
-                  </div>
-                  <button onClick={() => { setEditingOrg(o); setShowOrgSettings(true) }}
-                    className="p-2 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 transition-colors flex-shrink-0">
-                    <Settings size={16} />
-                  </button>
-                </div>
-              )
-            })}
-          </div>
-        </div>
       )}
 
       {/* Modals */}
