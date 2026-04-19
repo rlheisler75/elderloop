@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabase'
 import {
   Plus, X, Edit2, Trash2, Check, Car, Home, ClipboardList,
   Users, Gauge, Shield, Heart, Award, Link, MapPin, Mail,
-  Phone, AlertTriangle, Upload
+  Phone, AlertTriangle, Upload, Monitor, Tag
 } from 'lucide-react'
 import ResidentImport from './ResidentImport'
 
@@ -269,6 +269,10 @@ export default function AdminLists({ orgId }) {
   const [utilityTypes, setUtilityTypes] = useState([])
   const [certTypes, setCertTypes]   = useState([])
   const [checkpoints, setCheckpoints] = useState([])
+  // IT org dropdowns
+  const [itCategories, setItCategories]     = useState([])
+  const [itAssetTypes, setItAssetTypes]     = useState([])
+  const [itAssetLocations, setItAssetLocations] = useState([])
   const [loading, setLoading]       = useState(true)
   const [showImport, setShowImport] = useState(false)
 
@@ -276,7 +280,7 @@ export default function AdminLists({ orgId }) {
 
   async function fetchAll() {
     setLoading(true)
-    const [v, r, a, c, u, ct, cp] = await Promise.all([
+    const [v, r, a, c, u, ct, cp, dd] = await Promise.all([
       supabase.from('vehicles').select('*').eq('organization_id', orgId).order('name'),
       supabase.from('residents').select('*').eq('organization_id', orgId).eq('is_active', true).order('last_name'),
       supabase.from('inspection_areas').select('*').eq('organization_id', orgId).eq('is_active', true).order('sort_order'),
@@ -284,6 +288,8 @@ export default function AdminLists({ orgId }) {
       supabase.from('utility_types').select('*').eq('organization_id', orgId).eq('is_active', true).order('name'),
       supabase.from('certification_types').select('*').eq('organization_id', orgId).eq('is_active', true).order('sort_order'),
       supabase.from('security_checkpoints').select('*').eq('organization_id', orgId).eq('is_active', true).order('name'),
+      supabase.from('org_dropdown_items').select('*').eq('organization_id', orgId).eq('is_active', true)
+        .in('list_type', ['it_category','asset_type','asset_location']).order('sort_order'),
     ])
     setVehicles(v.data || [])
     setResidents(r.data || [])
@@ -292,6 +298,10 @@ export default function AdminLists({ orgId }) {
     setUtilityTypes(u.data || [])
     setCertTypes(ct.data || [])
     setCheckpoints(cp.data || [])
+    const drops = dd.data || []
+    setItCategories(drops.filter(d => d.list_type === 'it_category'))
+    setItAssetTypes(drops.filter(d => d.list_type === 'asset_type'))
+    setItAssetLocations(drops.filter(d => d.list_type === 'asset_location'))
     setLoading(false)
   }
 
@@ -312,6 +322,29 @@ export default function AdminLists({ orgId }) {
     },
   })
 
+  // Crud for org_dropdown_items by list_type
+  const dropdownCrud = (listType, setter) => ({
+    add: async (vals) => {
+      const sortOrder = (listType === 'it_category' ? itCategories
+        : listType === 'asset_type' ? itAssetTypes : itAssetLocations).length + 1
+      await supabase.from('org_dropdown_items').insert({
+        organization_id: orgId, list_type: listType,
+        label: vals.label, value: vals.label.toLowerCase().replace(/[^a-z0-9]/g, '_'),
+        sort_order: sortOrder, is_active: true
+      })
+      fetchAll()
+    },
+    update: async (id, vals) => {
+      await supabase.from('org_dropdown_items').update({ label: vals.label }).eq('id', id)
+      fetchAll()
+    },
+    del: async (id) => {
+      if (!confirm('Remove this option?')) return
+      await supabase.from('org_dropdown_items').update({ is_active: false }).eq('id', id)
+      fetchAll()
+    },
+  })
+
   const veh  = crud('vehicles', setVehicles)
   const res  = crud('residents', setResidents)
   const area = crud('inspection_areas', setAreas)
@@ -319,16 +352,22 @@ export default function AdminLists({ orgId }) {
   const util = crud('utility_types', setUtilityTypes)
   const cert = crud('certification_types', setCertTypes)
   const cp   = crud('security_checkpoints', setCheckpoints)
+  const itCat  = dropdownCrud('it_category', setItCategories)
+  const itType = dropdownCrud('asset_type', setItAssetTypes)
+  const itLoc  = dropdownCrud('asset_location', setItAssetLocations)
 
   const sections = [
-    { key: 'vehicles',    label: 'Vehicles',          icon: Car,           count: vehicles.length },
-    { key: 'residents',   label: 'Residents',          icon: Users,         count: residents.length },
-    { key: 'family',      label: 'Family Links',       icon: Heart,         count: null },
-    { key: 'utilities',   label: 'Utility Types',      icon: Gauge,         count: utilityTypes.length },
-    { key: 'checkpoints', label: 'Security Checkpoints',icon: MapPin,       count: checkpoints.length },
-    { key: 'certs',       label: 'Certification Types', icon: Award,        count: certTypes.length },
-    { key: 'areas',       label: 'Inspection Areas',   icon: Home,          count: areas.length },
-    { key: 'checklist',   label: 'Inspect. Checklist', icon: ClipboardList, count: checklist.length },
+    { key: 'vehicles',       label: 'Vehicles',            icon: Car,           count: vehicles.length },
+    { key: 'residents',      label: 'Residents',            icon: Users,         count: residents.length },
+    { key: 'family',         label: 'Family Links',         icon: Heart,         count: null },
+    { key: 'utilities',      label: 'Utility Types',        icon: Gauge,         count: utilityTypes.length },
+    { key: 'checkpoints',    label: 'Security Checkpoints', icon: MapPin,        count: checkpoints.length },
+    { key: 'certs',          label: 'Certification Types',  icon: Award,         count: certTypes.length },
+    { key: 'areas',          label: 'Inspection Areas',     icon: Home,          count: areas.length },
+    { key: 'checklist',      label: 'Inspect. Checklist',   icon: ClipboardList, count: checklist.length },
+    { key: 'it_categories',  label: 'IT Categories',        icon: Monitor,       count: itCategories.length },
+    { key: 'asset_types',    label: 'Asset Types',          icon: Tag,           count: itAssetTypes.length },
+    { key: 'asset_locations',label: 'Asset Locations',      icon: MapPin,        count: itAssetLocations.length },
   ]
 
   return (
@@ -573,6 +612,60 @@ export default function AdminLists({ orgId }) {
                   </div>
                 )}
               />
+            </div>
+          )}
+          {section === 'it_categories' && (
+            <div>
+              <div className="mb-4">
+                <h3 className="font-display font-semibold text-slate-800">IT Ticket Categories</h3>
+                <p className="text-slate-400 text-xs mt-0.5">Categories staff can choose when submitting an IT support ticket.</p>
+              </div>
+              <EditableList items={itCategories} onAdd={itCat.add} onUpdate={itCat.update} onDelete={itCat.del}
+                addPlaceholder="New category name (e.g. Badge Reader)"
+                columns={[{ key: 'label', label: 'Category Name' }]}
+                renderRow={item => (
+                  <div className="flex items-center gap-3">
+                    <Monitor size={14} className="text-brand-500 flex-shrink-0" />
+                    <span className="text-sm text-slate-700">{item.label}</span>
+                    <span className="text-xs text-slate-400 font-mono">{item.value}</span>
+                  </div>
+                )} />
+            </div>
+          )}
+
+          {section === 'asset_types' && (
+            <div>
+              <div className="mb-4">
+                <h3 className="font-display font-semibold text-slate-800">IT Asset Types</h3>
+                <p className="text-slate-400 text-xs mt-0.5">Device types used in the asset inventory. Add anything specific to your community.</p>
+              </div>
+              <EditableList items={itAssetTypes} onAdd={itType.add} onUpdate={itType.update} onDelete={itType.del}
+                addPlaceholder="New asset type (e.g. Barcode Scanner)"
+                columns={[{ key: 'label', label: 'Asset Type' }]}
+                renderRow={item => (
+                  <div className="flex items-center gap-3">
+                    <Tag size={14} className="text-brand-500 flex-shrink-0" />
+                    <span className="text-sm text-slate-700">{item.label}</span>
+                  </div>
+                )} />
+            </div>
+          )}
+
+          {section === 'asset_locations' && (
+            <div>
+              <div className="mb-4">
+                <h3 className="font-display font-semibold text-slate-800">Asset Locations</h3>
+                <p className="text-slate-400 text-xs mt-0.5">Physical locations where devices are deployed. Used in the asset inventory dropdown.</p>
+              </div>
+              <EditableList items={itAssetLocations} onAdd={itLoc.add} onUpdate={itLoc.update} onDelete={itLoc.del}
+                addPlaceholder="New location (e.g. East Wing Nurses Station)"
+                columns={[{ key: 'label', label: 'Location Name' }]}
+                renderRow={item => (
+                  <div className="flex items-center gap-3">
+                    <MapPin size={14} className="text-brand-500 flex-shrink-0" />
+                    <span className="text-sm text-slate-700">{item.label}</span>
+                  </div>
+                )} />
             </div>
           )}
         </>

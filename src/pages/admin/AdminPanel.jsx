@@ -31,6 +31,18 @@ const ALL_MODULES = [
   { key: 'dietary',       label: 'Dietary' },
   { key: 'housekeeping',  label: 'Housekeeping' },
   { key: 'chapel',        label: 'Chapel' },
+  { key: 'activities',    label: 'Activities' },
+  { key: 'directory',     label: 'Resident Directory' },
+  { key: 'nursing',       label: 'Nursing / Clinical' },
+  { key: 'staff',         label: 'Staff Management' },
+  { key: 'scheduling',    label: 'Scheduling' },
+  { key: 'transportation',label: 'Transportation' },
+  { key: 'security',      label: 'Security' },
+  { key: 'incidents',     label: 'Incident Reports' },
+  { key: 'surveys',       label: 'Surveys' },
+  { key: 'meters',        label: 'Utility Meters' },
+  { key: 'timeclock',     label: 'Time Clock' },
+  { key: 'it',            label: 'IT & Technology' },
 ]
 
 const BILLING_STATUSES = [

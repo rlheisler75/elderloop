@@ -28,6 +28,8 @@ import Signage from './pages/signage/Signage'
 import ResidentPortal from './pages/resident/ResidentPortal'
 import FamilyPortal from './pages/family/FamilyPortal'
 import FamilyMessaging from './pages/family/FamilyMessaging'
+import TimeClock from './pages/timeclock/TimeClock'
+import ITTickets from './pages/it/ITTickets'
 
 function ProtectedRoute({ children, requireModule }) {
   const { user, loading, hasModule } = useAuth()
@@ -114,6 +116,8 @@ export default function App() {
         <Route path="family"          element={<ProtectedRoute requireModule="family"><FamilyMessaging /></ProtectedRoute>} />
         <Route path="surveys"       element={<ProtectedRoute requireModule="surveys"><Surveys /></ProtectedRoute>} />
         <Route path="incidents"      element={<ProtectedRoute requireModule="incidents"><IncidentReports /></ProtectedRoute>} />
+        <Route path="timeclock"      element={<ProtectedRoute requireModule="timeclock"><TimeClock /></ProtectedRoute>} />
+        <Route path="it"             element={<ProtectedRoute requireModule="it"><ITTickets /></ProtectedRoute>} />
         </Route>
         <Route path="*" element={<Navigate to="/ceo" />} />
       </Routes>
@@ -164,6 +168,8 @@ export default function App() {
         <Route path="family"          element={<ProtectedRoute requireModule="family"><FamilyMessaging /></ProtectedRoute>} />
         <Route path="surveys"       element={<ProtectedRoute requireModule="surveys"><Surveys /></ProtectedRoute>} />
         <Route path="incidents"      element={<ProtectedRoute requireModule="incidents"><IncidentReports /></ProtectedRoute>} />
+        <Route path="timeclock"      element={<ProtectedRoute requireModule="timeclock"><TimeClock /></ProtectedRoute>} />
+        <Route path="it"             element={<ProtectedRoute requireModule="it"><ITTickets /></ProtectedRoute>} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" />} />
