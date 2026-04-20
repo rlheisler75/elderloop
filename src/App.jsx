@@ -1,41 +1,37 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import Layout from './components/layout/Layout'
-import LandingPage from './pages/landing/LandingPage'
+
+// Auth
 import Login from './pages/auth/Login'
-import Dashboard from './pages/dashboard/Dashboard'
-import SuperAdminDashboard from './pages/superadmin/SuperAdminDashboard'
-import CEODashboard from './pages/ceo/CEODashboard'
+
+// Dashboard & Admin
+import Dashboard  from './pages/dashboard/Dashboard'
 import AdminPanel from './pages/admin/AdminPanel'
-import WorkOrders from './pages/workorders/WorkOrders'
-import Communication from './pages/communication/Communication'
-import Dietary from './pages/dietary/Dietary'
-import Housekeeping from './pages/housekeeping/Housekeeping'
-import Chapel from './pages/chapel/Chapel'
-import Transportation from './pages/transportation/Transportation'
-import Activities from './pages/activities/Activities'
-import IncidentReports from './pages/incidents/IncidentReports'
-import ResidentDirectory from './pages/directory/ResidentDirectory'
-import MeterReadings from './pages/meters/MeterReadings'
-import Security from './pages/security/Security'
-import StaffManagement from './pages/staff/StaffManagement'
-import NursingNotes from './pages/nursing/NursingNotes'
-import StaffDirectory from './pages/staff/StaffDirectory'
-import Scheduling from './pages/staff/Scheduling'
-import Surveys from './pages/surveys/Surveys'
-import SurveyPublic from './pages/surveys/SurveyPublic'
-import Signage from './pages/signage/Signage'
-import ResidentPortal from './pages/resident/ResidentPortal'
-import FamilyPortal from './pages/family/FamilyPortal'
-import FamilyMessaging from './pages/family/FamilyMessaging'
-import TimeClock from './pages/timeclock/TimeClock'
-import ITTickets from './pages/it/ITTickets'
-import Marketing          from './pages/marketing/Marketing'
+
+// Modules
+import Communication     from './pages/communication/Communication'
+import WorkOrders        from './pages/workorders/WorkOrders'
+import Dietary           from './pages/dietary/Dietary'
+import Housekeeping      from './pages/housekeeping/Housekeeping'
+import Marketing         from './pages/marketing/Marketing'
 import PropertyManagement from './pages/property/PropertyManagement'
+
+// Public / TV
+import TV      from './pages/TV'
+import Signage from './pages/signage/Signage'
+
+// ── Route Guards ──────────────────────────────────────────────
 
 function ProtectedRoute({ children, requireModule }) {
   const { user, loading, hasModule } = useAuth()
-  if (loading) return <div className="flex h-screen items-center justify-center bg-brand-950"><div className="text-white font-display text-2xl">ElderLoop</div></div>
+
+  if (loading) return (
+    <div className="flex h-screen items-center justify-center bg-slate-50">
+      <div className="w-8 h-8 border-4 border-brand-200 border-t-brand-600 rounded-full animate-spin" />
+    </div>
+  )
+
   if (!user) return <Navigate to="/login" replace />
   if (requireModule && !hasModule(requireModule)) return <Navigate to="/dashboard" replace />
   return children
@@ -48,15 +44,10 @@ function AdminRoute({ children }) {
   return children
 }
 
-function SuperAdminRoute({ children }) {
-  const { user, loading, isSuperAdmin } = useAuth()
-  if (loading) return null
-  if (!user || !isSuperAdmin()) return <Navigate to="/dashboard" replace />
-  return children
-}
+// ── App ───────────────────────────────────────────────────────
 
 export default function App() {
-  const { user, profile, loading, isSuperAdmin } = useAuth()
+  const { user, loading } = useAuth()
 
   if (loading) return (
     <div className="flex h-screen items-center justify-center bg-brand-950">
@@ -64,122 +55,45 @@ export default function App() {
     </div>
   )
 
-  // User logged in but profile not yet fetched — keep spinner up
-  if (user && !profile) return (
-    <div className="flex h-screen items-center justify-center bg-brand-950">
-      <div className="text-white font-display text-3xl tracking-wide">ElderLoop</div>
-    </div>
-  )
-  if (user && profile?.role === 'resident') {
-    return (
-      <Routes>
-        <Route path="/resident" element={<ResidentPortal />} />
-        <Route path="*" element={<Navigate to="/resident" />} />
-      </Routes>
-    )
-  }
-
-  // Family → family portal
-  if (user && profile?.role === 'family') {
-    return (
-      <Routes>
-        <Route path="/family" element={<FamilyPortal />} />
-        <Route path="*" element={<Navigate to="/family" />} />
-      </Routes>
-    )
-  }
-
-  // CEO → CEO dashboard (can also access full app)
-  if (user && profile?.role === 'ceo') {
-    return (
-      <Routes>
-        <Route path="/survey/:token" element={<SurveyPublic />} />
-      <Route path="/signage" element={<Signage />} />
-        <Route path="/ceo" element={<CEODashboard />} />
-        <Route path="/superadmin" element={<SuperAdminRoute><SuperAdminDashboard /></SuperAdminRoute>} />
-        <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-          <Route index element={<Navigate to="/ceo" />} />
-          <Route path="dashboard"      element={<Dashboard />} />
-          <Route path="admin"          element={<AdminRoute><AdminPanel /></AdminRoute>} />
-          <Route path="communication"  element={<ProtectedRoute requireModule="communication"><Communication /></ProtectedRoute>} />
-          <Route path="chapel"         element={<ProtectedRoute requireModule="chapel"><Chapel /></ProtectedRoute>} />
-          <Route path="activities"     element={<ProtectedRoute requireModule="activities"><Activities /></ProtectedRoute>} />
-          <Route path="directory"      element={<ProtectedRoute requireModule="directory"><ResidentDirectory /></ProtectedRoute>} />
-          <Route path="maintenance"    element={<ProtectedRoute requireModule="work_orders"><WorkOrders /></ProtectedRoute>} />
-          <Route path="dietary"        element={<ProtectedRoute requireModule="dietary"><Dietary /></ProtectedRoute>} />
-          <Route path="housekeeping"   element={<ProtectedRoute requireModule="housekeeping"><Housekeeping /></ProtectedRoute>} />
-          <Route path="transportation" element={<ProtectedRoute requireModule="transportation"><Transportation /></ProtectedRoute>} />
-          <Route path="meters"         element={<ProtectedRoute requireModule="meters"><MeterReadings /></ProtectedRoute>} />
-          <Route path="directory-staff"  element={<ProtectedRoute requireModule="staff"><StaffDirectory /></ProtectedRoute>} />
-        <Route path="scheduling"   element={<ProtectedRoute requireModule="staff"><Scheduling /></ProtectedRoute>} />
-        <Route path="staff"         element={<ProtectedRoute requireModule="staff"><StaffManagement /></ProtectedRoute>} />
-        <Route path="security"       element={<ProtectedRoute requireModule="security"><Security /></ProtectedRoute>} />
-          <Route path="nursing"         element={<ProtectedRoute requireModule="nursing"><NursingNotes /></ProtectedRoute>} />
-        <Route path="family"          element={<ProtectedRoute requireModule="family"><FamilyMessaging /></ProtectedRoute>} />
-        <Route path="surveys"       element={<ProtectedRoute requireModule="surveys"><Surveys /></ProtectedRoute>} />
-        <Route path="incidents"      element={<ProtectedRoute requireModule="incidents"><IncidentReports /></ProtectedRoute>} />
-        <Route path="timeclock"      element={<ProtectedRoute requireModule="timeclock"><TimeClock /></ProtectedRoute>} />
-        <Route path="it"             element={<ProtectedRoute requireModule="it"><ITTickets /></ProtectedRoute>} />
-        </Route>
-        <Route path="*" element={<Navigate to="/ceo" />} />
-      </Routes>
-    )
-  }
-
   return (
     <Routes>
-    {/*TV */}
-    <Route path="/tv/:slug" element={<TV />} />
-      {/* Public */}
-      <Route path="/" element={
-        user
-          ? isSuperAdmin() ? <Navigate to="/superadmin" replace />
-          : profile?.role === 'ceo' ? <Navigate to="/ceo" replace />
-          : <Navigate to="/dashboard" replace />
-          : <LandingPage />
-      } />
-      <Route path="/survey/:token" element={<SurveyPublic />} />
-      <Route path="/signage" element={<Signage />} />
-      <Route path="/login" element={
-        user
-          ? isSuperAdmin() ? <Navigate to="/superadmin" replace />
-          : profile?.role === 'ceo' ? <Navigate to="/ceo" replace />
-          : <Navigate to="/dashboard" replace />
-          : <Login />
-      } />
 
-      {/* Super Admin */}
-      <Route path="/superadmin" element={<SuperAdminRoute><SuperAdminDashboard /></SuperAdminRoute>} />
+      {/* ── Public routes — no auth required ── */}
+      <Route path="/tv/:slug" element={<TV />} />
+      <Route path="/signage"  element={<Signage />} />
 
-      {/* App shell */}
+      {/* ── Auth ── */}
+      <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
+
+      {/* ── Protected app shell ── */}
       <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-        <Route path="dashboard"      element={<Dashboard />} />
-        <Route path="admin"          element={<AdminRoute><AdminPanel /></AdminRoute>} />
-        <Route path="communication"  element={<ProtectedRoute requireModule="communication"><Communication /></ProtectedRoute>} />
-        <Route path="chapel"         element={<ProtectedRoute requireModule="chapel"><Chapel /></ProtectedRoute>} />
-        <Route path="activities"     element={<ProtectedRoute requireModule="activities"><Activities /></ProtectedRoute>} />
-        <Route path="directory"      element={<ProtectedRoute requireModule="directory"><ResidentDirectory /></ProtectedRoute>} />
-        <Route path="maintenance"    element={<ProtectedRoute requireModule="work_orders"><WorkOrders /></ProtectedRoute>} />
-        <Route path="dietary"        element={<ProtectedRoute requireModule="dietary"><Dietary /></ProtectedRoute>} />
-        <Route path="housekeeping"   element={<ProtectedRoute requireModule="housekeeping"><Housekeeping /></ProtectedRoute>} />
-        <Route path="transportation" element={<ProtectedRoute requireModule="transportation"><Transportation /></ProtectedRoute>} />
-        <Route path="meters"         element={<ProtectedRoute requireModule="meters"><MeterReadings /></ProtectedRoute>} />
-        <Route path="directory-staff"  element={<ProtectedRoute requireModule="staff"><StaffDirectory /></ProtectedRoute>} />
-        <Route path="scheduling"   element={<ProtectedRoute requireModule="staff"><Scheduling /></ProtectedRoute>} />
-        <Route path="staff"         element={<ProtectedRoute requireModule="staff"><StaffManagement /></ProtectedRoute>} />
-        <Route path="security"       element={<ProtectedRoute requireModule="security"><Security /></ProtectedRoute>} />
-        <Route path="nursing"         element={<ProtectedRoute requireModule="nursing"><NursingNotes /></ProtectedRoute>} />
-        <Route path="family"          element={<ProtectedRoute requireModule="family"><FamilyMessaging /></ProtectedRoute>} />
-        <Route path="surveys"       element={<ProtectedRoute requireModule="surveys"><Surveys /></ProtectedRoute>} />
-        <Route path="incidents"      element={<ProtectedRoute requireModule="incidents"><IncidentReports /></ProtectedRoute>} />
-        <Route path="timeclock"      element={<ProtectedRoute requireModule="timeclock"><TimeClock /></ProtectedRoute>} />
-        <Route path="it"             element={<ProtectedRoute requireModule="it"><ITTickets /></ProtectedRoute>} />
-        <Route path="marketing"           element={<ProtectedRoute requireModule="marketing"><Marketing /></ProtectedRoute>} />
-        <Route path="property-management" element={<ProtectedRoute requireModule="property_management"><PropertyManagement /></ProtectedRoute>} />
+        <Route index element={<Navigate to="/dashboard" replace />} />
 
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="admin"     element={<AdminRoute><AdminPanel /></AdminRoute>} />
+
+        <Route path="communication"
+          element={<ProtectedRoute requireModule="communication"><Communication /></ProtectedRoute>} />
+
+        <Route path="work-orders"
+          element={<ProtectedRoute requireModule="work_orders"><WorkOrders /></ProtectedRoute>} />
+
+        <Route path="dietary"
+          element={<ProtectedRoute requireModule="dietary"><Dietary /></ProtectedRoute>} />
+
+        <Route path="housekeeping"
+          element={<ProtectedRoute requireModule="housekeeping"><Housekeeping /></ProtectedRoute>} />
+
+        <Route path="marketing"
+          element={<ProtectedRoute requireModule="marketing"><Marketing /></ProtectedRoute>} />
+
+        <Route path="property-management"
+          element={<ProtectedRoute requireModule="property_management"><PropertyManagement /></ProtectedRoute>} />
       </Route>
 
-      <Route path="*" element={<Navigate to="/" />} />
+      {/* ── Fallback ── */}
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+
     </Routes>
   )
 }
