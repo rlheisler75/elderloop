@@ -82,6 +82,118 @@ function GPSStatus({ gps, geofence }) {
   )
 }
 
+// ── Leaflet Map Picker ─────────────────────────────────────────
+function GeofenceMap({ lat, lng, radius, mapRef, circleRef, leafletMapRef, onChange }) {
+  const containerRef = useRef(null)
+  const initRef = useRef(false)
+
+  useEffect(() => {
+    if (!containerRef.current || initRef.current) return
+    initRef.current = true
+
+    // Load Leaflet CSS + JS dynamically
+    const loadLeaflet = async () => {
+      if (!document.getElementById('leaflet-css')) {
+        const link = document.createElement('link')
+        link.id = 'leaflet-css'
+        link.rel = 'stylesheet'
+        link.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css'
+        document.head.appendChild(link)
+      }
+
+      if (!window.L) {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js'
+          script.onload = resolve
+          script.onerror = reject
+          document.head.appendChild(script)
+        })
+      }
+
+      const L = window.L
+
+      // Init map
+      const map = L.map(containerRef.current, { zoomControl: true }).setView([lat, lng], 18)
+      leafletMapRef.current = map
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19,
+      }).addTo(map)
+
+      // Draggable marker
+      const marker = L.marker([lat, lng], {
+        draggable: true,
+        icon: L.divIcon({
+          className: '',
+          html: `<div style="width:28px;height:28px;background:#0c90e1;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3);cursor:grab"></div>`,
+          iconSize: [28, 28],
+          iconAnchor: [14, 14],
+        }),
+      }).addTo(map)
+      mapRef.current = marker
+
+      // Geofence circle
+      const circle = L.circle([lat, lng], {
+        radius,
+        color: '#0c90e1',
+        fillColor: '#0c90e1',
+        fillOpacity: 0.12,
+        weight: 2,
+      }).addTo(map)
+      circleRef.current = circle
+
+      // On marker drag
+      marker.on('dragend', () => {
+        const pos = marker.getLatLng()
+        circle.setLatLng(pos)
+        onChange(
+          Math.round(pos.lat * 100000) / 100000,
+          Math.round(pos.lng * 100000) / 100000
+        )
+      })
+
+      // Click map to move marker
+      map.on('click', (e) => {
+        const { lat: newLat, lng: newLng } = e.latlng
+        marker.setLatLng([newLat, newLng])
+        circle.setLatLng([newLat, newLng])
+        onChange(
+          Math.round(newLat * 100000) / 100000,
+          Math.round(newLng * 100000) / 100000
+        )
+      })
+    }
+
+    loadLeaflet().catch(console.error)
+
+    return () => {
+      if (leafletMapRef.current) {
+        leafletMapRef.current.remove()
+        leafletMapRef.current = null
+        initRef.current = false
+      }
+    }
+  }, [])
+
+  return (
+    <div>
+      <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
+        Map — drag the pin or click to set location
+      </label>
+      <div
+        ref={containerRef}
+        className="w-full rounded-xl overflow-hidden border border-slate-200"
+        style={{ height: 280 }}
+      />
+      <p className="text-xs text-slate-400 mt-1.5 flex items-center gap-1">
+        <MapPin size={11} /> Drag the blue dot or click anywhere on the map to place the geofence center
+      </p>
+    </div>
+  )
+}
+
 export default function TimeClock() {
   const { profile, organization, isOrgAdmin } = useAuth()
   const [tab, setTab] = useState('clock')
@@ -98,6 +210,10 @@ export default function TimeClock() {
   const [geofenceForm, setGeofenceForm] = useState(null)
   const admin = isOrgAdmin()
   const orgId = organization?.id
+  // Map refs for geofence settings
+  const mapRef        = useRef(null)
+  const circleRef     = useRef(null)
+  const leafletMapRef = useRef(null)
 
   useEffect(() => { if (orgId) fetchAll() }, [orgId])
 
@@ -427,7 +543,7 @@ export default function TimeClock() {
 
       {/* ── SETTINGS TAB (admin) ── */}
       {tab === 'settings' && admin && geofenceForm && (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 max-w-lg">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 max-w-2xl">
           <h3 className="font-semibold text-slate-700 mb-5 flex items-center gap-2">
             <MapPin size={16} className="text-brand-600" /> Geofence Settings
           </h3>
@@ -437,29 +553,65 @@ export default function TimeClock() {
               <input value={geofenceForm.name || ''} onChange={e => setGeofenceForm(f => ({...f, name: e.target.value}))}
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Latitude</label>
-                <input type="number" step="0.0001" value={geofenceForm.lat} onChange={e => setGeofenceForm(f => ({...f, lat: parseFloat(e.target.value)}))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                <input type="number" step="0.00001" value={geofenceForm.lat}
+                  onChange={e => {
+                    const v = parseFloat(e.target.value)
+                    if (!isNaN(v)) {
+                      setGeofenceForm(f => ({...f, lat: v}))
+                      if (mapRef.current) mapRef.current.setLatLng([v, geofenceForm.lng])
+                      if (circleRef.current) circleRef.current.setLatLng([v, geofenceForm.lng])
+                      if (leafletMapRef.current) leafletMapRef.current.panTo([v, geofenceForm.lng])
+                    }
+                  }}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono" />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Longitude</label>
-                <input type="number" step="0.0001" value={geofenceForm.lng} onChange={e => setGeofenceForm(f => ({...f, lng: parseFloat(e.target.value)}))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                <input type="number" step="0.00001" value={geofenceForm.lng}
+                  onChange={e => {
+                    const v = parseFloat(e.target.value)
+                    if (!isNaN(v)) {
+                      setGeofenceForm(f => ({...f, lng: v}))
+                      if (mapRef.current) mapRef.current.setLatLng([geofenceForm.lat, v])
+                      if (circleRef.current) circleRef.current.setLatLng([geofenceForm.lat, v])
+                      if (leafletMapRef.current) leafletMapRef.current.panTo([geofenceForm.lat, v])
+                    }
+                  }}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono" />
               </div>
             </div>
+
+            {/* Map picker */}
+            <GeofenceMap
+              lat={geofenceForm.lat}
+              lng={geofenceForm.lng}
+              radius={geofenceForm.radius_meters}
+              mapRef={mapRef}
+              circleRef={circleRef}
+              leafletMapRef={leafletMapRef}
+              onChange={(lat, lng) => setGeofenceForm(f => ({...f, lat, lng}))}
+            />
+
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
                 Geofence Radius: {mToFt(geofenceForm.radius_meters)} ft ({Math.round(geofenceForm.radius_meters)} m)
               </label>
               <input type="range" min="30" max="500" step="5" value={geofenceForm.radius_meters}
-                onChange={e => setGeofenceForm(f => ({...f, radius_meters: parseInt(e.target.value)}))}
+                onChange={e => {
+                  const v = parseInt(e.target.value)
+                  setGeofenceForm(f => ({...f, radius_meters: v}))
+                  if (circleRef.current) circleRef.current.setRadius(v)
+                }}
                 className="w-full accent-brand-600" />
               <div className="flex justify-between text-xs text-slate-400 mt-1">
                 <span>100 ft</span><span>500 ft</span><span>1,640 ft</span>
               </div>
             </div>
+
             <label className="flex items-center gap-3 cursor-pointer">
               <input type="checkbox" checked={geofenceForm.require_geofence} onChange={e => setGeofenceForm(f => ({...f, require_geofence: e.target.checked}))}
                 className="w-4 h-4 rounded text-brand-600" />
@@ -468,6 +620,7 @@ export default function TimeClock() {
                 <div className="text-xs text-slate-400">Disable to allow remote clock-in</div>
               </div>
             </label>
+
             <button onClick={saveGeofence}
               className="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg transition-colors">
               Save Geofence Settings

@@ -698,11 +698,11 @@ export default function SuperAdminDashboard() {
                             </td>
                             <td className="px-5 py-4">
                               <div className="flex items-center gap-2">
-                                <div className="text-white text-sm">{org.enabled_modules}<span className="text-slate-600 text-xs"> /11</span></div>
+                                <div className="text-white text-sm">{org.enabled_modules}<span className="text-slate-600 text-xs"> /17</span></div>
                               </div>
                               <div className="w-20 h-1.5 bg-slate-800 rounded-full mt-1.5 overflow-hidden">
                                 <div className="h-full bg-brand-500 rounded-full transition-all"
-                                  style={{ width: `${Math.round((org.enabled_modules / 11) * 100)}%` }} />
+                                  style={{ width: `${Math.round((org.enabled_modules / 17) * 100)}%` }} />
                               </div>
                             </td>
                             <td className="px-5 py-4">

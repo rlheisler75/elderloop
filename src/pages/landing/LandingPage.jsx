@@ -4,21 +4,28 @@ import {
   Shield, Wrench, UtensilsCrossed, MessageSquare, Car,
   CalendarDays, Gauge, ChevronRight, Check,
   ArrowRight, Church, BookUser, AlertTriangle, SprayCan,
-  Menu, X, MapPin, Phone, Mail
+  Menu, X, MapPin, Phone, Mail, Clock, Monitor,
+  ClipboardList, Users, HeartHandshake, Stethoscope
 } from 'lucide-react'
 
 const MODULES = [
-  { icon: MessageSquare,  label: 'Communication',     desc: 'Digital signage, announcements, TV channel replacement' },
-  { icon: CalendarDays,   label: 'Activities',        desc: 'Event calendar, resident programming, printable schedules' },
-  { icon: Church,         label: 'Chapel',            desc: 'Live streaming, service schedule, past recordings' },
-  { icon: BookUser,       label: 'Resident Directory',desc: 'Profiles, emergency contacts, medical contacts, care levels' },
-  { icon: Wrench,         label: 'Maintenance',       desc: 'Work orders, recurring tasks, vendor management' },
-  { icon: UtensilsCrossed,label: 'Dietary',           desc: 'Resident dietary profiles, cycle menus, meal tickets' },
-  { icon: SprayCan,       label: 'Housekeeping',      desc: 'LTC inspections, IL scheduling, compliance checklists' },
-  { icon: Car,            label: 'Transportation',    desc: 'Medical trip scheduling, daily trip sheets, mileage logs' },
-  { icon: Shield,         label: 'Security',          desc: 'GPS guard rounds, geofenced checkpoints, incident reports' },
-  { icon: Gauge,          label: 'Meter Readings',    desc: 'Utility tracking for communities that resell power and water' },
-  { icon: AlertTriangle,  label: 'Incident Reports',  desc: 'Documented incidents, review workflow, compliance records' },
+  { icon: MessageSquare,  label: 'Communication',       desc: 'Digital signage, TV channel replacement, announcements, and community messaging' },
+  { icon: CalendarDays,   label: 'Activities',          desc: 'Event calendar, resident programming, printable schedules, signage integration' },
+  { icon: Church,         label: 'Chapel',              desc: 'Live streaming, service schedule, past recordings, attendance tracking' },
+  { icon: BookUser,       label: 'Resident Directory',  desc: 'Profiles, emergency contacts, care levels, family portal access' },
+  { icon: Stethoscope,    label: 'Nursing & Clinical',  desc: 'Care notes, vitals trending, medication reference, shift documentation' },
+  { icon: Wrench,         label: 'Maintenance',         desc: 'Work orders, PM schedules, asset registry, SLA tracking, vendor management' },
+  { icon: UtensilsCrossed,label: 'Dietary',             desc: 'Resident dietary profiles, IDDSI textures, 4-week cycle menus, allergen alerts' },
+  { icon: SprayCan,       label: 'Housekeeping',        desc: 'Room inspections, compliance checklists, scheduling, audit-ready reports' },
+  { icon: Shield,         label: 'Security',            desc: 'GPS-verified guard rounds, geofenced checkpoints, round history and alerts' },
+  { icon: Car,            label: 'Transportation',      desc: 'Medical trip scheduling, daily trip sheets, driver assignments, mileage logs' },
+  { icon: Gauge,          label: 'Meter Readings',      desc: 'Utility tracking for communities that resell electric, gas, and water' },
+  { icon: AlertTriangle,  label: 'Incident Reports',    desc: 'Documented incidents, severity tracking, review workflow, compliance records' },
+  { icon: ClipboardList,  label: 'Surveys',             desc: 'Resident, family, and staff satisfaction surveys with response analytics' },
+  { icon: Users,          label: 'Staff Management',    desc: 'Staff profiles, shift scheduling, department assignments, certification tracking' },
+  { icon: Clock,          label: 'Time Clock',          desc: 'GPS-verified clock in/out, geofence enforcement, payroll hour summaries' },
+  { icon: Monitor,        label: 'IT & Technology',     desc: 'Support ticket system, device asset inventory, warranty tracking' },
+  { icon: HeartHandshake, label: 'Family Portal',       desc: 'Family messaging, resident updates, visit scheduling, care team communication' },
 ]
 
 const PLANS = [
@@ -36,7 +43,7 @@ const PLANS = [
     price: '$349',
     period: '/mo',
     desc: 'Everything to run a full operation',
-    features: ['Unlimited residents', 'All 11 modules', 'GPS security rounds', 'Dietary & cycle menus', 'Meter readings', 'Priority support + training'],
+    features: ['Unlimited residents', 'All 17 modules included', 'GPS security rounds + time clock', 'Dietary & cycle menus', 'IT asset tracking', 'Priority support + onboarding'],
     cta: 'Start Free Trial',
     highlight: true,
   },
@@ -208,12 +215,12 @@ export default function LandingPage() {
               Everything your community needs
             </h2>
             <p className="text-slate-500 text-lg max-w-xl mx-auto">
-              11 modules, fully integrated. Enable only what you need, add more as you grow.
+              17 modules, fully integrated. Enable only what you need, add more as you grow.
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-            {MODULES.filter(m => m.label !== 'Security').map(m => {
+            {MODULES.map(m => {
               const Icon = m.icon
               return (
                 <div key={m.label}
@@ -221,7 +228,7 @@ export default function LandingPage() {
                   <div className="w-10 h-10 bg-brand-50 group-hover:bg-brand-100 rounded-xl flex items-center justify-center mb-4 transition-colors">
                     <Icon size={18} className="text-brand-600" />
                   </div>
-                  <h3 className="font-semibold text-slate-800 mb-1.5 text-sm"
+                  <h3 className="font-semibold text-slate-800 mb-1.5"
                     style={{ fontFamily: '"Playfair Display", serif', fontSize: '1rem' }}>
                     {m.label}
                   </h3>
@@ -231,26 +238,45 @@ export default function LandingPage() {
             })}
           </div>
 
-          {/* GPS Security spotlight */}
+          {/* Differentiators spotlight */}
           <div className="rounded-3xl overflow-hidden bg-gradient-to-br from-slate-900 to-brand-950 p-8 md:p-10">
-            <div className="flex flex-col md:flex-row items-start md:items-center gap-8">
-              <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center flex-shrink-0 border border-white/10">
-                <Shield size={30} className="text-brand-400" />
-              </div>
-              <div className="flex-1">
-                <div className="text-xs font-bold text-brand-400 uppercase tracking-widest mb-2">Exclusive to ElderLoop</div>
-                <h3 style={{ fontFamily: '"Playfair Display", serif' }} className="text-white text-2xl font-bold mb-3">
-                  GPS-Verified Security Rounds
-                </h3>
-                <p className="text-white/65 text-sm leading-relaxed max-w-xl">
-                  Supervisors place checkpoints anywhere on the property from their phone.
-                  Guards do their rounds and check in — the system uses GPS to verify
-                  they're physically within 100 feet before accepting. Full timestamp logs,
-                  overdue alerts, and round history. No other senior living platform has this built in.
-                </p>
-              </div>
-              <button onClick={() => navigate('/login')}
-                className="flex-shrink-0 flex items-center gap-2 px-6 py-3 bg-brand-500 hover:bg-brand-400 text-white font-semibold rounded-xl transition-colors text-sm whitespace-nowrap">
+            <div className="text-xs font-bold text-brand-400 uppercase tracking-widest mb-4">Built different</div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[
+                {
+                  icon: Shield,
+                  title: 'GPS-Verified Security Rounds',
+                  desc: 'Guards check in at geofenced checkpoints — the system verifies they\'re physically on-site before accepting. No other senior living platform has this built in.',
+                },
+                {
+                  icon: Clock,
+                  title: 'GPS Time Clock',
+                  desc: 'Staff clock in and out with GPS verification. Geofence enforcement prevents off-site punches. Admin sees who\'s on shift in real time with payroll hour summaries.',
+                },
+                {
+                  icon: Monitor,
+                  title: 'Built-In IT Ticketing',
+                  desc: 'Staff submit IT support tickets right inside ElderLoop. Track every device in your inventory — desktops, laptops, TVs, network gear — with warranty alerts.',
+                },
+              ].map(item => {
+                const Icon = item.icon
+                return (
+                  <div key={item.title} className="flex flex-col gap-3">
+                    <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center border border-white/10 flex-shrink-0">
+                      <Icon size={22} className="text-brand-400" />
+                    </div>
+                    <div>
+                      <div className="text-white font-semibold mb-1.5" style={{ fontFamily: '"Playfair Display", serif' }}>{item.title}</div>
+                      <p className="text-white/60 text-sm leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+            <div className="mt-8 pt-6 border-t border-white/10 flex items-center justify-between">
+              <p className="text-white/40 text-sm">No contract required. Cancel any time.</p>
+              <button onClick={() => navigate('/login?email=demo.ceo@elderloop.xyz&demo=1')}
+                className="flex items-center gap-2 px-6 py-3 bg-brand-500 hover:bg-brand-400 text-white font-semibold rounded-xl transition-colors text-sm whitespace-nowrap">
                 See Live Demo <ChevronRight size={16} />
               </button>
             </div>
@@ -369,7 +395,7 @@ export default function LandingPage() {
                 purpose-built for senior living, priced so smaller communities can finally afford it.
               </p>
               <p className="text-slate-600 leading-relaxed">
-                Our founding customer, Maranatha Village in Springfield, originally asked for a replacement
+                Our founding community in Springfield originally asked for a replacement
                 for their in-house TV channel. That request became something much bigger.
               </p>
             </div>
@@ -377,15 +403,15 @@ export default function LandingPage() {
               <div className="bg-white rounded-2xl border border-slate-200 p-6">
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-12 h-12 bg-brand-600 rounded-2xl flex items-center justify-center text-white font-bold"
-                    style={{ fontFamily: '"Playfair Display", serif' }}>MV</div>
+                    style={{ fontFamily: '"Playfair Display", serif' }}>EL</div>
                   <div>
-                    <div className="font-semibold text-slate-800">Maranatha Village</div>
-                    <div className="text-xs text-slate-400">Founding Customer · Springfield, MO</div>
+                    <div className="font-semibold text-slate-800">Sunrise Gardens Senior Living</div>
+                    <div className="text-xs text-slate-400">Founding Community · Springfield, MO</div>
                   </div>
                 </div>
                 <div className="flex justify-around text-center">
                   {[
-                    { v: '11', l: 'Modules Active' },
+                    { v: '17', l: 'Modules Available' },
                     { v: '12+', l: 'Years Experience' },
                     { v: '1', l: 'Platform vs. 4' },
                   ].map(s => (
@@ -427,7 +453,7 @@ export default function LandingPage() {
             Ready to simplify your operation?
           </h2>
           <p className="text-white/65 text-lg mb-12 max-w-xl mx-auto">
-            Join Maranatha Village. We'll have your community set up and running within a day.
+            Join communities like Sunrise Gardens. We'll have your team set up and running within a day.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <button onClick={() => navigate('/login')}
