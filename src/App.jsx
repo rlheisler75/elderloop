@@ -30,6 +30,8 @@ import FamilyPortal from './pages/family/FamilyPortal'
 import FamilyMessaging from './pages/family/FamilyMessaging'
 import TimeClock from './pages/timeclock/TimeClock'
 import ITTickets from './pages/it/ITTickets'
+import Marketing          from './pages/marketing/Marketing'
+import PropertyManagement from './pages/property/PropertyManagement'
 
 function ProtectedRoute({ children, requireModule }) {
   const { user, loading, hasModule } = useAuth()
@@ -126,6 +128,8 @@ export default function App() {
 
   return (
     <Routes>
+    {/*TV */}
+    <Route path="/tv/:slug" element={<TV />} />
       {/* Public */}
       <Route path="/" element={
         user
@@ -170,6 +174,9 @@ export default function App() {
         <Route path="incidents"      element={<ProtectedRoute requireModule="incidents"><IncidentReports /></ProtectedRoute>} />
         <Route path="timeclock"      element={<ProtectedRoute requireModule="timeclock"><TimeClock /></ProtectedRoute>} />
         <Route path="it"             element={<ProtectedRoute requireModule="it"><ITTickets /></ProtectedRoute>} />
+        <Route path="marketing"           element={<ProtectedRoute requireModule="marketing"><Marketing /></ProtectedRoute>} />
+        <Route path="property-management" element={<ProtectedRoute requireModule="property_management"><PropertyManagement /></ProtectedRoute>} />
+
       </Route>
 
       <Route path="*" element={<Navigate to="/" />} />

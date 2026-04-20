@@ -30,6 +30,9 @@ const ALL_NAV = [
   { to: '/incidents',      label: 'Incident Reports', icon: AlertTriangle,   module: 'incidents' },
   { to: '/timeclock',      label: 'Time Clock',       icon: Clock,           module: 'timeclock' },
   { to: '/it',             label: 'IT & Technology',  icon: Monitor,         module: 'it' },
+  { to: '/marketing',           label: 'Marketing',            icon: Megaphone, module: 'marketing' },
+  { to: '/property-management', label: 'Property Mgmt',        icon: Home,      module: 'property_management' },
+
 ]
 
 export default function Layout() {
