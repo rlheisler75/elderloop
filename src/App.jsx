@@ -10,15 +10,15 @@ import Dashboard  from './pages/dashboard/Dashboard'
 import AdminPanel from './pages/admin/AdminPanel'
 
 // Modules
-import Communication     from './pages/communication/Communication'
-import WorkOrders        from './pages/workorders/WorkOrders'
-import Dietary           from './pages/dietary/Dietary'
-import Housekeeping      from './pages/housekeeping/Housekeeping'
-import Marketing         from './pages/marketing/Marketing'
+import Communication      from './pages/communication/Communication'
+import WorkOrders         from './pages/workorders/WorkOrders'
+import Dietary            from './pages/dietary/Dietary'
+import Housekeeping       from './pages/housekeeping/Housekeeping'
+import Marketing          from './pages/marketing/Marketing'
 import PropertyManagement from './pages/property/PropertyManagement'
 
-// Public / TV
-import TV      from './pages/TV'
+// Public — TV signage (no auth required)
+import TV      from './pages/tv/TV'
 import Signage from './pages/signage/Signage'
 
 // ── Route Guards ──────────────────────────────────────────────
@@ -89,6 +89,7 @@ export default function App() {
 
         <Route path="property-management"
           element={<ProtectedRoute requireModule="property_management"><PropertyManagement /></ProtectedRoute>} />
+
       </Route>
 
       {/* ── Fallback ── */}
