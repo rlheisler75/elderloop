@@ -53,7 +53,7 @@ export default function Layout() {
               <img
                 src={organization.logo_url}
                 alt={organization.name}
-                className="w-9 h-9 rounded-lg object-contain bg-white p-1 flex-shrink-0" />
+                className="w-9 h-9 rounded-lg object-cover flex-shrink-0" />
             ) : (
               <div className="w-9 h-9 rounded-lg bg-brand-700 flex items-center justify-center flex-shrink-0 font-display text-white font-bold text-sm">
                 {organization?.name?.[0] ?? 'E'}

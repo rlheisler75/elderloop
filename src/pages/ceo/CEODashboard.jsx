@@ -201,13 +201,17 @@ export default function CEODashboard() {
       <div className="bg-brand-950 px-8 py-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div>
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-3 mb-1">
               {organization?.logo_url
-                ? <img src={organization.logo_url} alt="" className="h-7 object-contain" />
-                : <div className="w-7 h-7 bg-brand-600 rounded-lg flex items-center justify-center"><span className="text-white font-bold text-xs">EL</span></div>
+                ? <img src={organization.logo_url} alt="" className="w-10 h-10 rounded-xl object-cover flex-shrink-0" />
+                : <div className="w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center flex-shrink-0"><span className="text-white font-bold text-sm">EL</span></div>
               }
-              <span className="text-white font-semibold" style={{ fontFamily: '"Playfair Display", serif' }}>ElderLoop</span>
-              <span className="text-brand-400 text-xs ml-2">· {organization?.name}</span>
+              <div>
+                <div className="text-white font-semibold leading-tight" style={{ fontFamily: '"Playfair Display", serif' }}>
+                  {organization?.name ?? 'Sunrise Gardens Senior Living'}
+                </div>
+                <div className="text-brand-400 text-xs">Powered by ElderLoop</div>
+              </div>
             </div>
             <h1 className="text-white text-2xl font-bold mt-2" style={{ fontFamily: '"Playfair Display", serif' }}>
               {greeting()}, {profile?.first_name} 👋
