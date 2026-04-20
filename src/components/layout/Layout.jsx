@@ -1,32 +1,37 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { LayoutDashboard, Wrench, MessageSquare, UtensilsCrossed, SprayCan, Settings, LogOut, Menu, X, ChevronRight, Megaphone, Home, Church, CalendarDays, BookUser, Car } from 'lucide-react'
+import {
+  LayoutDashboard, Wrench, MessageSquare, UtensilsCrossed, SprayCan,
+  Settings, LogOut, Menu, X, ChevronRight, Megaphone, Home, Church,
+  CalendarDays, BookUser, Car, Gauge, Shield, UserCheck, CalendarCheck,
+  Stethoscope, HeartHandshake, ClipboardList, AlertTriangle, Clock,
+  Monitor, TrendingUp
+} from 'lucide-react'
 import { useState } from 'react'
 
 const ALL_NAV = [
-  { to: '/dashboard',      label: 'Dashboard',        icon: LayoutDashboard, module: null },
-  { to: '/communication',  label: 'Communication',    icon: MessageSquare,   module: 'communication' },
-  { to: '/chapel',         label: 'Chapel',           icon: Church,          module: 'chapel' },
-  { to: '/activities',     label: 'Activities',       icon: CalendarDays,    module: 'activities' },
-  { to: '/directory',      label: 'Residents',        icon: BookUser,        module: 'directory' },
-  { to: '/maintenance',    label: 'Maintenance',      icon: Wrench,          module: 'work_orders' },
-  { to: '/dietary',        label: 'Dietary',          icon: UtensilsCrossed, module: 'dietary' },
-  { to: '/housekeeping',   label: 'Housekeeping',     icon: SprayCan,        module: 'housekeeping' },
-  { to: '/transportation', label: 'Transportation',   icon: Car,             module: 'transportation' },
-  { to: '/meters',         label: 'Meter Readings',   icon: Gauge,           module: 'meters' },
-  { to: '/security',       label: 'Security',         icon: Shield,          module: 'security' },
-  { to: '/staff',          label: 'Staff',            icon: UserCheck,       module: 'staff' },
-  { to: '/directory-staff', label: 'Staff Directory',  icon: StaffBook,       module: 'staff' },
-  { to: '/scheduling',     label: 'Scheduling',       icon: CalendarCheck,   module: 'staff' },
-  { to: '/nursing',        label: 'Nursing Notes',    icon: Stethoscope,     module: 'nursing' },
-  { to: '/family',         label: 'Family Messaging', icon: HeartHandshake,  module: 'family' },
-  { to: '/surveys',        label: 'Surveys',          icon: ClipboardList,   module: 'surveys' },
-  { to: '/incidents',      label: 'Incident Reports', icon: AlertTriangle,   module: 'incidents' },
-  { to: '/timeclock',      label: 'Time Clock',       icon: Clock,           module: 'timeclock' },
-  { to: '/it',             label: 'IT & Technology',  icon: Monitor,         module: 'it' },
-  { to: '/marketing',           label: 'Marketing',            icon: Megaphone, module: 'marketing' },
-  { to: '/property-management', label: 'Property Mgmt',        icon: Home,      module: 'property_management' },
-
+  { to: '/dashboard',           label: 'Dashboard',        icon: LayoutDashboard, module: null },
+  { to: '/communication',       label: 'Communication',    icon: MessageSquare,   module: 'communication' },
+  { to: '/chapel',              label: 'Chapel',           icon: Church,          module: 'chapel' },
+  { to: '/activities',          label: 'Activities',       icon: CalendarDays,    module: 'activities' },
+  { to: '/directory',           label: 'Residents',        icon: BookUser,        module: 'directory' },
+  { to: '/maintenance',         label: 'Maintenance',      icon: Wrench,          module: 'work_orders' },
+  { to: '/dietary',             label: 'Dietary',          icon: UtensilsCrossed, module: 'dietary' },
+  { to: '/housekeeping',        label: 'Housekeeping',     icon: SprayCan,        module: 'housekeeping' },
+  { to: '/transportation',      label: 'Transportation',   icon: Car,             module: 'transportation' },
+  { to: '/meters',              label: 'Meter Readings',   icon: Gauge,           module: 'meters' },
+  { to: '/security',            label: 'Security',         icon: Shield,          module: 'security' },
+  { to: '/staff',               label: 'Staff',            icon: UserCheck,       module: 'staff' },
+  { to: '/directory-staff',     label: 'Staff Directory',  icon: BookUser,        module: 'staff' },
+  { to: '/scheduling',          label: 'Scheduling',       icon: CalendarCheck,   module: 'staff' },
+  { to: '/nursing',             label: 'Nursing Notes',    icon: Stethoscope,     module: 'nursing' },
+  { to: '/family',              label: 'Family Messaging', icon: HeartHandshake,  module: 'family' },
+  { to: '/surveys',             label: 'Surveys',          icon: ClipboardList,   module: 'surveys' },
+  { to: '/incidents',           label: 'Incident Reports', icon: AlertTriangle,   module: 'incidents' },
+  { to: '/timeclock',           label: 'Time Clock',       icon: Clock,           module: 'timeclock' },
+  { to: '/it',                  label: 'IT & Technology',  icon: Monitor,         module: 'it' },
+  { to: '/marketing',           label: 'Marketing',        icon: Megaphone,       module: 'marketing' },
+  { to: '/property-management', label: 'Property Mgmt',    icon: Home,            module: 'property_management' },
 ]
 
 export default function Layout() {
@@ -35,7 +40,6 @@ export default function Layout() {
   const navigate = useNavigate()
   const handleSignOut = async () => { await signOut(); navigate('/login') }
 
-  // Show module in sidebar only if user has access to it
   const visibleNav = ALL_NAV.filter(item => !item.module || hasModule(item.module))
 
   return (
@@ -47,10 +51,7 @@ export default function Layout() {
         <div className="flex items-center justify-between px-6 py-5 border-b border-brand-800">
           <div className="flex items-center gap-3 min-w-0">
             {organization?.logo_url ? (
-              <img
-                src={organization.logo_url}
-                alt={organization.name}
-                className="w-9 h-9 rounded-lg object-cover flex-shrink-0" />
+              <img src={organization.logo_url} alt={organization.name} className="w-9 h-9 rounded-lg object-cover flex-shrink-0" />
             ) : (
               <div className="w-9 h-9 rounded-lg bg-brand-700 flex items-center justify-center flex-shrink-0 font-display text-white font-bold text-sm">
                 {organization?.name?.[0] ?? 'E'}
@@ -79,7 +80,6 @@ export default function Layout() {
 
         {/* Footer */}
         <div className="px-3 py-4 border-t border-brand-800 space-y-0.5">
-          {/* CEO dashboard link */}
           {profile?.role === 'ceo' && (
             <NavLink to="/ceo"
               className={({ isActive }) =>
@@ -88,7 +88,6 @@ export default function Layout() {
             </NavLink>
           )}
 
-          {/* Admin */}
           {isOrgAdmin() && (
             <NavLink to="/admin"
               className={({ isActive }) =>
@@ -97,7 +96,6 @@ export default function Layout() {
             </NavLink>
           )}
 
-          {/* Super Admin */}
           {isSuperAdmin() && (
             <NavLink to="/superadmin"
               className={({ isActive }) =>
@@ -106,7 +104,6 @@ export default function Layout() {
             </NavLink>
           )}
 
-          {/* User info */}
           <div className="flex items-center gap-3 px-3 py-2.5 mt-1">
             <div className="w-7 h-7 rounded-full bg-brand-700 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
               {profile?.first_name?.[0]?.toUpperCase() ?? '?'}
