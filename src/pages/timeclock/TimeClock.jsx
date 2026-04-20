@@ -82,6 +82,332 @@ function GPSStatus({ gps, geofence }) {
   )
 }
 
+// ── Payroll Export ─────────────────────────────────────────────
+function PayrollExport({ orgId }) {
+  const now     = new Date()
+  const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
+  const today   = now.toISOString().split('T')[0]
+
+  const [dateFrom, setDateFrom]   = useState(firstOfMonth)
+  const [dateTo,   setDateTo]     = useState(today)
+  const [loading,  setLoading]    = useState(false)
+  const [report,   setReport]     = useState(null)
+
+  // Quick range presets
+  const setRange = (from, to) => { setDateFrom(from); setDateTo(to); setReport(null) }
+  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0]
+  const lastMonthEnd   = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0]
+  const weekStart      = new Date(now.getTime() - now.getDay() * 86400000).toISOString().split('T')[0]
+
+  const generateReport = async () => {
+    setLoading(true)
+    setReport(null)
+
+    // Fetch all punches in date range
+    const { data: punches } = await supabase
+      .from('time_punches')
+      .select('*, profiles(id,first_name,last_name,role,department,job_title)')
+      .eq('organization_id', orgId)
+      .gte('punched_at', dateFrom + 'T00:00:00')
+      .lte('punched_at', dateTo   + 'T23:59:59')
+      .order('punched_at')
+
+    if (!punches) { setLoading(false); return }
+
+    // Pair in/out punches per employee
+    const byEmployee = {}
+    punches.forEach(p => {
+      const uid = p.user_id
+      if (!byEmployee[uid]) byEmployee[uid] = { profile: p.profiles, punches: [] }
+      byEmployee[uid].punches.push(p)
+    })
+
+    const rows = []
+    Object.values(byEmployee).forEach(({ profile, punches: ps }) => {
+      // Build shift pairs
+      const pairs = []
+      let openIn = null
+      ps.forEach(p => {
+        if (p.punch_type === 'in') {
+          openIn = p
+        } else if (openIn) {
+          const ms       = new Date(p.punched_at) - new Date(openIn.punched_at)
+          const hrs      = ms / 3600000
+          const date     = openIn.punched_at.split('T')[0]
+          const regHrs   = Math.min(hrs, 8)
+          const otHrs    = Math.max(0, hrs - 8)
+          pairs.push({
+            date,
+            clock_in:      new Date(openIn.punched_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+            clock_out:     new Date(p.punched_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+            total_hours:   hrs,
+            regular_hours: regHrs,
+            ot_hours:      otHrs,
+            on_site_in:    openIn.within_geofence,
+            on_site_out:   p.within_geofence,
+          })
+          openIn = null
+        }
+      })
+      // Unclosed punch
+      if (openIn) pairs.push({
+        date:          openIn.punched_at.split('T')[0],
+        clock_in:      new Date(openIn.punched_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        clock_out:     'Still clocked in',
+        total_hours:   null,
+        regular_hours: null,
+        ot_hours:      null,
+        on_site_in:    openIn.within_geofence,
+        on_site_out:   null,
+      })
+
+      const totalHrs   = pairs.reduce((s, p) => s + (p.total_hours || 0), 0)
+      const regularHrs = pairs.reduce((s, p) => s + (p.regular_hours || 0), 0)
+      const otHrs      = pairs.reduce((s, p) => s + (p.ot_hours || 0), 0)
+
+      rows.push({
+        profile,
+        pairs,
+        totalHrs,
+        regularHrs,
+        otHrs,
+        days: [...new Set(pairs.map(p => p.date))].length,
+      })
+    })
+
+    // Sort by last name
+    rows.sort((a, b) => (a.profile?.last_name || '').localeCompare(b.profile?.last_name || ''))
+    setReport({ rows, dateFrom, dateTo })
+    setLoading(false)
+  }
+
+  const exportCSV = () => {
+    if (!report) return
+    const lines = [
+      ['Last Name','First Name','Role','Department','Date','Clock In','Clock Out','Total Hours','Regular Hours','OT Hours','On-Site In','On-Site Out'],
+    ]
+    report.rows.forEach(({ profile, pairs }) => {
+      pairs.forEach(p => {
+        lines.push([
+          profile?.last_name   || '',
+          profile?.first_name  || '',
+          profile?.role        || '',
+          profile?.department  || '',
+          p.date,
+          p.clock_in,
+          p.clock_out,
+          p.total_hours   != null ? p.total_hours.toFixed(2)   : '',
+          p.regular_hours != null ? p.regular_hours.toFixed(2) : '',
+          p.ot_hours      != null ? p.ot_hours.toFixed(2)      : '',
+          p.on_site_in    != null ? (p.on_site_in  ? 'Yes' : 'No') : '',
+          p.on_site_out   != null ? (p.on_site_out ? 'Yes' : 'No') : '',
+        ])
+      })
+    })
+    const csv  = lines.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href     = url
+    a.download = `payroll-${report.dateFrom}-to-${report.dateTo}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const exportSummaryCSV = () => {
+    if (!report) return
+    const lines = [
+      ['Last Name','First Name','Role','Department','Total Days','Total Hours','Regular Hours','OT Hours'],
+    ]
+    report.rows.forEach(({ profile, days, totalHrs, regularHrs, otHrs }) => {
+      lines.push([
+        profile?.last_name   || '',
+        profile?.first_name  || '',
+        profile?.role        || '',
+        profile?.department  || '',
+        days,
+        totalHrs.toFixed(2),
+        regularHrs.toFixed(2),
+        otHrs.toFixed(2),
+      ])
+    })
+    const csv  = lines.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href     = url
+    a.download = `payroll-summary-${report.dateFrom}-to-${report.dateTo}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const fmtHrs = (h) => h == null ? '—' : `${Math.floor(h)}h ${Math.round((h % 1) * 60)}m`
+
+  return (
+    <div className="space-y-6">
+
+      {/* Date range picker */}
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+        <h3 className="font-semibold text-slate-700 mb-4 flex items-center gap-2">
+          <Download size={16} className="text-brand-600" /> Payroll Export
+        </h3>
+
+        {/* Quick presets */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          {[
+            { label: 'This week',   fn: () => setRange(weekStart, today) },
+            { label: 'This month',  fn: () => setRange(firstOfMonth, today) },
+            { label: 'Last month',  fn: () => setRange(lastMonthStart, lastMonthEnd) },
+          ].map(p => (
+            <button key={p.label} onClick={p.fn}
+              className="px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg text-slate-600 hover:border-brand-300 hover:text-brand-600 transition-colors">
+              {p.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">From</label>
+            <input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setReport(null) }}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">To</label>
+            <input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setReport(null) }}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          </div>
+        </div>
+
+        <button onClick={generateReport} disabled={loading}
+          className="w-full py-2.5 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
+          {loading ? <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Calculating...</> : 'Generate Report'}
+        </button>
+      </div>
+
+      {/* Report */}
+      {report && (
+        <>
+          {/* Summary totals + export buttons */}
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="font-semibold text-slate-700">
+                  Summary — {new Date(report.dateFrom + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} to {new Date(report.dateTo + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">{report.rows.length} employee{report.rows.length !== 1 ? 's' : ''} with clock data in this period</p>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={exportSummaryCSV}
+                  className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600 rounded-xl text-xs font-medium transition-colors">
+                  <Download size={13} /> Summary CSV
+                </button>
+                <button onClick={exportCSV}
+                  className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-medium transition-colors">
+                  <Download size={13} /> Detail CSV
+                </button>
+              </div>
+            </div>
+
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-100 bg-slate-50">
+                  {['Employee','Role','Dept','Days','Regular Hrs','OT Hrs','Total Hrs'].map(h => (
+                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {report.rows.length === 0 && (
+                  <tr><td colSpan={7} className="px-4 py-10 text-center text-slate-400 text-sm">No clock data found for this date range</td></tr>
+                )}
+                {report.rows.map(({ profile, days, regularHrs, otHrs, totalHrs }) => (
+                  <tr key={profile?.id} className="border-b border-slate-50 hover:bg-slate-50">
+                    <td className="px-4 py-3 font-medium text-slate-800">
+                      {profile?.first_name} {profile?.last_name}
+                    </td>
+                    <td className="px-4 py-3 text-slate-500 capitalize text-xs">{profile?.role?.replace(/_/g,' ')}</td>
+                    <td className="px-4 py-3 text-slate-500 capitalize text-xs">{profile?.department || '—'}</td>
+                    <td className="px-4 py-3 text-slate-700 text-sm">{days}</td>
+                    <td className="px-4 py-3 font-medium text-slate-800">{fmtHrs(regularHrs)}</td>
+                    <td className="px-4 py-3">
+                      {otHrs > 0
+                        ? <span className="font-semibold text-amber-600">{fmtHrs(otHrs)}</span>
+                        : <span className="text-slate-400">—</span>}
+                    </td>
+                    <td className="px-4 py-3 font-bold text-brand-600">{fmtHrs(totalHrs)}</td>
+                  </tr>
+                ))}
+                {report.rows.length > 0 && (
+                  <tr className="bg-slate-50 border-t-2 border-slate-200">
+                    <td colSpan={4} className="px-4 py-3 font-semibold text-slate-700 text-sm">Totals</td>
+                    <td className="px-4 py-3 font-bold text-slate-800">
+                      {fmtHrs(report.rows.reduce((s, r) => s + r.regularHrs, 0))}
+                    </td>
+                    <td className="px-4 py-3 font-bold text-amber-600">
+                      {fmtHrs(report.rows.reduce((s, r) => s + r.otHrs, 0))}
+                    </td>
+                    <td className="px-4 py-3 font-bold text-brand-700">
+                      {fmtHrs(report.rows.reduce((s, r) => s + r.totalHrs, 0))}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Per-employee detail */}
+          {report.rows.map(({ profile, pairs }) => (
+            <div key={profile?.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+              <div className="px-5 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                <div className="font-semibold text-slate-700 text-sm">
+                  {profile?.first_name} {profile?.last_name}
+                  <span className="ml-2 text-xs text-slate-400 font-normal capitalize">{profile?.role?.replace(/_/g,' ')} · {profile?.department || 'no dept'}</span>
+                </div>
+                <div className="text-xs text-slate-400">{pairs.length} shift{pairs.length !== 1 ? 's' : ''}</div>
+              </div>
+              <table className="w-full text-sm">
+                <thead><tr className="border-b border-slate-50">
+                  {['Date','Clock In','Clock Out','Regular','OT','Total','On-Site'].map(h => (
+                    <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">{h}</th>
+                  ))}
+                </tr></thead>
+                <tbody>
+                  {pairs.map((p, i) => (
+                    <tr key={i} className="border-b border-slate-50 hover:bg-slate-50 last:border-0">
+                      <td className="px-4 py-2.5 text-slate-600">
+                        {new Date(p.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                      </td>
+                      <td className="px-4 py-2.5 font-medium text-green-700">{p.clock_in}</td>
+                      <td className="px-4 py-2.5 font-medium text-red-600">
+                        {p.clock_out === 'Still clocked in'
+                          ? <span className="text-xs text-amber-600 font-semibold flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" /> On Shift</span>
+                          : p.clock_out}
+                      </td>
+                      <td className="px-4 py-2.5 text-slate-700">{p.regular_hours != null ? `${p.regular_hours.toFixed(2)}h` : '—'}</td>
+                      <td className="px-4 py-2.5">
+                        {p.ot_hours > 0 ? <span className="text-amber-600 font-medium">{p.ot_hours.toFixed(2)}h</span> : <span className="text-slate-300">—</span>}
+                      </td>
+                      <td className="px-4 py-2.5 font-semibold text-slate-800">{p.total_hours != null ? `${p.total_hours.toFixed(2)}h` : '—'}</td>
+                      <td className="px-4 py-2.5">
+                        {p.on_site_in != null
+                          ? <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${p.on_site_in ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
+                              {p.on_site_in ? 'On-site' : 'Remote'}
+                            </span>
+                          : <span className="text-slate-300 text-xs">—</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ))}
+        </>
+      )}
+    </div>
+  )
+}
+
 // ── Leaflet Map Picker ─────────────────────────────────────────
 function GeofenceMap({ lat, lng, radius, mapRef, circleRef, leafletMapRef, onChange }) {
   const containerRef = useRef(null)
@@ -339,8 +665,9 @@ export default function TimeClock() {
           { key: 'clock', label: 'My Clock', icon: Clock },
           { key: 'history', label: 'My History', icon: Calendar },
           ...(admin ? [
-            { key: 'team', label: 'Team', icon: Users },
-            { key: 'settings', label: 'Settings', icon: Settings },
+            { key: 'team',    label: 'Team',           icon: Users },
+            { key: 'payroll', label: 'Payroll Export',  icon: Download },
+            { key: 'settings',label: 'Settings',        icon: Settings },
           ] : []),
         ].map(t => {
           const Icon = t.icon
@@ -539,6 +866,11 @@ export default function TimeClock() {
             </table>
           </div>
         </div>
+      )}
+
+      {/* ── PAYROLL EXPORT TAB (admin) ── */}
+      {tab === 'payroll' && admin && (
+        <PayrollExport orgId={orgId} />
       )}
 
       {/* ── SETTINGS TAB (admin) ── */}
