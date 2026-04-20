@@ -59,12 +59,16 @@ const PLANS = [
 ]
 
 const DEMO_ACCOUNTS = [
-  { role: 'CEO',          email: 'demo.ceo@elderloop.xyz',         desc: 'Executive view — KPI dashboard, all modules, high-level reporting' },
-  { role: 'Org Admin',    email: 'demo.admin@elderloop.xyz',       desc: 'Full access to all modules and settings' },
-  { role: 'Staff',        email: 'demo.staff@elderloop.xyz',       desc: 'General staff view across modules' },
-  { role: 'Maintenance',  email: 'demo.maintenance@elderloop.xyz', desc: 'Maintenance-focused work order view' },
-  { role: 'Dietary',      email: 'demo.dietary@elderloop.xyz',     desc: 'Dietary module and resident profiles' },
-  { role: 'Resident',     email: 'demo.resident@elderloop.xyz',    desc: 'Resident portal — what residents see' },
+  { role: 'CEO',          email: 'demo.ceo@elderloop.xyz',          desc: 'Executive view — KPI dashboard, all modules, high-level reporting' },
+  { role: 'Org Admin',    email: 'demo.admin@elderloop.xyz',        desc: 'Full platform admin — users, modules, settings, all data' },
+  { role: 'Supervisor',   email: 'demo.supervisor@elderloop.xyz',   desc: 'Shift supervisor — staff management, approvals, operational view' },
+  { role: 'Nursing',      email: 'demo.nursing@elderloop.xyz',      desc: 'LPN view — care notes, vitals, medications, nursing documentation' },
+  { role: 'Maintenance',  email: 'demo.maintenance@elderloop.xyz',  desc: 'Maintenance tech — work orders, assets, PM schedules' },
+  { role: 'Dietary',      email: 'demo.dietary@elderloop.xyz',      desc: 'Dietary aide — resident profiles, cycle menus, meal service' },
+  { role: 'Housekeeping', email: 'demo.housekeeping@elderloop.xyz', desc: 'Housekeeping aide — room inspections, schedules, checklists' },
+  { role: 'Staff',        email: 'demo.staff@elderloop.xyz',        desc: 'General CNA — floor staff view with assigned module access' },
+  { role: 'Family',       email: 'demo.family@elderloop.xyz',       desc: 'Family portal — updates and messaging for Eleanor Hartmann' },
+  { role: 'Resident',     email: 'demo.resident@elderloop.xyz',     desc: 'Resident portal — activities, announcements, dining info' },
 ]
 
 export default function LandingPage() {

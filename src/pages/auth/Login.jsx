@@ -5,10 +5,16 @@ import { supabase } from '../../lib/supabase'
 const DEMO_PASSWORD = 'Demo2024!'
 
 const DEMO_ROLES = [
-  { role: 'Org Admin',    email: 'demo.admin@elderloop.xyz',       color: 'bg-brand-600 hover:bg-brand-700' },
-  { role: 'Staff',        email: 'demo.staff@elderloop.xyz',       color: 'bg-slate-700 hover:bg-slate-600' },
-  { role: 'Maintenance',  email: 'demo.maintenance@elderloop.xyz', color: 'bg-amber-600 hover:bg-amber-700' },
-  { role: 'Dietary',      email: 'demo.dietary@elderloop.xyz',     color: 'bg-green-700 hover:bg-green-600' },
+  { role: 'CEO',          email: 'demo.ceo@elderloop.xyz',          color: 'bg-brand-700 hover:bg-brand-600' },
+  { role: 'Org Admin',    email: 'demo.admin@elderloop.xyz',        color: 'bg-brand-600 hover:bg-brand-700' },
+  { role: 'Supervisor',   email: 'demo.supervisor@elderloop.xyz',   color: 'bg-purple-600 hover:bg-purple-700' },
+  { role: 'Nursing',      email: 'demo.nursing@elderloop.xyz',      color: 'bg-rose-600 hover:bg-rose-700' },
+  { role: 'Maintenance',  email: 'demo.maintenance@elderloop.xyz',  color: 'bg-amber-600 hover:bg-amber-700' },
+  { role: 'Dietary',      email: 'demo.dietary@elderloop.xyz',      color: 'bg-green-700 hover:bg-green-600' },
+  { role: 'Housekeeping', email: 'demo.housekeeping@elderloop.xyz', color: 'bg-teal-600 hover:bg-teal-700' },
+  { role: 'Staff',        email: 'demo.staff@elderloop.xyz',        color: 'bg-slate-700 hover:bg-slate-600' },
+  { role: 'Family',       email: 'demo.family@elderloop.xyz',       color: 'bg-sky-600 hover:bg-sky-700' },
+  { role: 'Resident',     email: 'demo.resident@elderloop.xyz',     color: 'bg-indigo-600 hover:bg-indigo-700' },
 ]
 
 export default function Login() {
@@ -124,7 +130,7 @@ export default function Login() {
             {/* Quick demo buttons */}
             <div className="mt-6 pt-5 border-t border-slate-100">
               <p className="text-xs text-slate-400 text-center mb-3 font-medium">Or try a demo account</p>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1">
                 {DEMO_ROLES.map(d => (
                   <button key={d.role} onClick={() => handleDemoClick(d.email)}
                     disabled={loading}

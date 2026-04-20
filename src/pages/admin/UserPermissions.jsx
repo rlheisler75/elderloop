@@ -179,7 +179,7 @@ export default function UserPermissions({ orgId, orgModules }) {
     const [usersRes, permsRes] = await Promise.all([
       supabase.from('profiles').select('id,first_name,last_name,role,organization_id')
         .eq('organization_id', orgId)
-        .not('role', 'in', '(resident,family)')
+        .not('role', 'in', '(resident,family,super_admin)')
         .order('last_name'),
       supabase.from('user_module_permissions').select('user_id,module_key,access_level')
         .eq('organization_id', orgId),

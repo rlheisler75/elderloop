@@ -186,11 +186,17 @@ function CreateUserModal({ orgId, orgName, onClose, onSave }) {
 // ── Edit User Modal ────────────────────────────────────────────
 function EditUserModal({ user, onClose, onSave }) {
   const [form, setForm] = useState({
-    first_name: user.first_name || '',
-    last_name:  user.last_name  || '',
-    role:       user.role       || 'staff',
-    phone:      user.phone      || '',
-    is_active:  user.is_active  ?? true,
+    first_name:  user.first_name  || '',
+    last_name:   user.last_name   || '',
+    role:        user.role        || 'staff',
+    job_title:   user.job_title   || '',
+    department:  user.department  || '',
+    phone:       user.phone       || '',
+    work_phone:  user.work_phone  || '',
+    cell_phone:  user.cell_phone  || '',
+    hire_date:   user.hire_date   || '',
+    notes:       user.notes       || '',
+    is_active:   user.is_active   ?? true,
   })
   const [saving, setSaving] = useState(false)
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
@@ -198,59 +204,122 @@ function EditUserModal({ user, onClose, onSave }) {
   const handleSave = async () => {
     setSaving(true)
     await supabase.from('profiles').update({
-      first_name: form.first_name, last_name: form.last_name,
-      role: form.role, phone: form.phone || null, is_active: form.is_active,
-      updated_at: new Date().toISOString()
+      first_name:  form.first_name,
+      last_name:   form.last_name,
+      role:        form.role,
+      job_title:   form.job_title   || null,
+      department:  form.department  || null,
+      phone:       form.phone       || null,
+      work_phone:  form.work_phone  || null,
+      cell_phone:  form.cell_phone  || null,
+      hire_date:   form.hire_date   || null,
+      notes:       form.notes       || null,
+      is_active:   form.is_active,
+      updated_at:  new Date().toISOString(),
     }).eq('id', user.id)
     setSaving(false)
     onSave()
   }
 
+  const inputCls = 'w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500'
+  const labelCls = 'block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5'
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[92vh] flex flex-col">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
-          <h2 className="font-display font-semibold text-slate-800">Edit User</h2>
+          <div>
+            <h2 className="font-display font-semibold text-slate-800">Edit User</h2>
+            <p className="text-xs text-slate-400 mt-0.5">{user.email}</p>
+          </div>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
         </div>
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+
+        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+
+          {/* Name */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">First Name</label>
-              <input value={form.first_name} onChange={e => set('first_name', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <label className={labelCls}>First Name</label>
+              <input value={form.first_name} onChange={e => set('first_name', e.target.value)} className={inputCls} />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Last Name</label>
-              <input value={form.last_name} onChange={e => set('last_name', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <label className={labelCls}>Last Name</label>
+              <input value={form.last_name} onChange={e => set('last_name', e.target.value)} className={inputCls} />
             </div>
           </div>
+
+          {/* Role */}
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Role</label>
-            <div className="grid grid-cols-2 gap-2">
+            <label className={labelCls}>Role</label>
+            <div className="grid grid-cols-3 gap-2">
               {ALL_ROLES.map(r => (
                 <button key={r.key} onClick={() => set('role', r.key)}
                   className={`text-left px-3 py-2 rounded-lg border text-xs transition-all ${form.role === r.key ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 text-slate-600 hover:border-brand-300'}`}>
-                  <div className="font-medium">{r.label}</div>
+                  <div className="font-semibold">{r.label}</div>
+                  <div className={`text-xs mt-0.5 ${form.role === r.key ? 'text-brand-100' : 'text-slate-400'}`}>{r.desc}</div>
                 </button>
               ))}
             </div>
           </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Phone</label>
-            <input value={form.phone} onChange={e => set('phone', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+
+          {/* Job info */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>Job Title</label>
+              <input value={form.job_title} onChange={e => set('job_title', e.target.value)}
+                placeholder="e.g. CNA, LPN, Aide" className={inputCls} />
+            </div>
+            <div>
+              <label className={labelCls}>Department</label>
+              <select value={form.department} onChange={e => set('department', e.target.value)} className={inputCls}>
+                <option value="">— Select —</option>
+                {['nursing','dietary','housekeeping','maintenance','security','transportation','administration','activities','other'].map(d => (
+                  <option key={d} value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</option>
+                ))}
+              </select>
+            </div>
           </div>
-          <label className="flex items-center gap-3 cursor-pointer p-3 border border-slate-200 rounded-xl">
+
+          {/* Contact */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>Work Phone</label>
+              <input value={form.work_phone} onChange={e => set('work_phone', e.target.value)}
+                placeholder="Extension or direct line" className={inputCls} />
+            </div>
+            <div>
+              <label className={labelCls}>Cell Phone</label>
+              <input value={form.cell_phone} onChange={e => set('cell_phone', e.target.value)}
+                placeholder="Mobile number" className={inputCls} />
+            </div>
+          </div>
+
+          {/* Hire date */}
+          <div>
+            <label className={labelCls}>Hire Date</label>
+            <input type="date" value={form.hire_date} onChange={e => set('hire_date', e.target.value)} className={inputCls} />
+          </div>
+
+          {/* Notes */}
+          <div>
+            <label className={labelCls}>Internal Notes</label>
+            <textarea value={form.notes} onChange={e => set('notes', e.target.value)}
+              rows={2} placeholder="Admin-only notes about this staff member"
+              className={`${inputCls} resize-none`} />
+          </div>
+
+          {/* Active status */}
+          <label className="flex items-center gap-3 cursor-pointer p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
             <input type="checkbox" checked={form.is_active} onChange={e => set('is_active', e.target.checked)}
               className="w-4 h-4 rounded text-brand-600" />
             <div>
               <div className="text-sm font-medium text-slate-700">Active Account</div>
-              <div className="text-xs text-slate-400">Uncheck to disable login without deleting</div>
+              <div className="text-xs text-slate-400">Uncheck to disable login without deleting the account</div>
             </div>
           </label>
         </div>
+
         <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
           <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
           <button onClick={handleSave} disabled={saving}
@@ -529,7 +598,7 @@ export default function AdminPanel() {
 
   async function fetchUsers() {
     const [usersRes, modulesRes] = await Promise.all([
-      supabase.from('profiles').select('*').eq('organization_id', currentOrgId).order('last_name'),
+      supabase.from('profiles').select('*').eq('organization_id', currentOrgId).neq('role','super_admin').order('last_name'),
       supabase.from('organization_modules').select('*').eq('organization_id', currentOrgId),
     ])
     setUsers(usersRes.data || [])
