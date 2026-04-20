@@ -252,15 +252,16 @@ export default function FamilyPortal() {
   const [showNewMsg, setShowNewMsg]   = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
 
-  useEffect(() => { if (profile && organization) fetchLinkedResidents() }, [profile, organization])
+  useEffect(() => { if (profile?.id) fetchLinkedResidents() }, [profile?.id])
   useEffect(() => { if (selectedResident) fetchResidentData() }, [selectedResident])
 
   async function fetchLinkedResidents() {
-    const { data: links } = await supabase
+    const { data: links, error } = await supabase
       .from('family_resident_links')
       .select('*, residents(*)')
       .eq('family_user_id', profile.id)
-    const linked = links?.map(l => ({ ...l.residents, link: l })) || []
+    if (error) { console.error('family links error', error); setLoading(false); return }
+    const linked = links?.filter(l => l.residents)?.map(l => ({ ...l.residents, link: l })) || []
     setResidents(linked)
     if (linked.length > 0) setSelectedResident(linked[0])
     else setLoading(false)
@@ -278,19 +279,19 @@ export default function FamilyPortal() {
         .eq('is_family_visible', true).eq('is_active', true)
         .order('created_at', { ascending: false }).limit(30),
       supabase.from('messages').select('*')
-        .eq('organization_id', organization.id)
+        .eq('organization_id', organization?.id || profile?.organization_id)
         .eq('resident_id', selectedResident.id)
         .eq('is_active', true)
         .order('created_at'),
       supabase.from('announcements').select('*')
-        .eq('organization_id', organization.id)
+        .eq('organization_id', organization?.id || profile?.organization_id)
         .eq('is_active', true)
         .lte('starts_at', now)
         .or(`expires_at.is.null,expires_at.gte.${now}`)
         .order('pinned', { ascending: false })
         .order('starts_at', { ascending: false }).limit(5),
       supabase.from('activities').select('*')
-        .eq('organization_id', organization.id)
+        .eq('organization_id', organization?.id || profile?.organization_id)
         .eq('is_active', true)
         .eq('show_on_portal', true)
         .gte('start_date', todayStr)
@@ -327,7 +328,7 @@ export default function FamilyPortal() {
     const first = parentThread?.[0]
     await supabase.from('messages').insert({
       thread_id:       threadId,
-      organization_id: organization.id,
+      organization_id: organization?.id || profile?.organization_id,
       resident_id:     selectedResident.id,
       sender_id:       profile.id,
       sender_type:     'family',
@@ -638,7 +639,7 @@ export default function FamilyPortal() {
       {showNewMsg && selectedResident && (
         <NewMessageModal
           resident={selectedResident}
-          orgId={organization.id}
+          orgId={organization?.id || profile?.organization_id}
           profile={profile}
           onClose={() => setShowNewMsg(false)}
           onSent={handleNewMsgSent} />
