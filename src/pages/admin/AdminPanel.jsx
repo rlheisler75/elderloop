@@ -11,6 +11,7 @@ import {
 import AdminLists from './AdminLists'
 import UserPermissions from './UserPermissions'
 import BillingTab from './BillingTab'
+import { CreditCard } from 'lucide-react'
 
 const ALL_ROLES = [
   { key: 'ceo',         label: 'CEO',         desc: 'Executive dashboard + full access' },
