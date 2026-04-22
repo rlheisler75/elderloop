@@ -5,6 +5,9 @@ import Layout from './components/layout/Layout'
 // Auth
 import Login from './pages/auth/Login'
 
+// Landing
+import LandingPage from './pages/landing/LandingPage'
+
 // Dashboard & Admin
 import Dashboard  from './pages/dashboard/Dashboard'
 import AdminPanel from './pages/admin/AdminPanel'
@@ -59,6 +62,7 @@ export default function App() {
     <Routes>
 
       {/* ── Public routes — no auth required ── */}
+      <Route path="/"         element={<LandingPage />} />
       <Route path="/tv/:slug" element={<TV />} />
       <Route path="/signage"  element={<Signage />} />
 
@@ -66,8 +70,8 @@ export default function App() {
       <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
 
       {/* ── Protected app shell ── */}
-      <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-        <Route index element={<Navigate to="/dashboard" replace />} />
+      <Route path="/app" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+        <Route index element={<Navigate to="/app/dashboard" replace />} />
 
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="admin"     element={<AdminRoute><AdminPanel /></AdminRoute>} />
@@ -93,7 +97,7 @@ export default function App() {
       </Route>
 
       {/* ── Fallback ── */}
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
 
     </Routes>
   )
