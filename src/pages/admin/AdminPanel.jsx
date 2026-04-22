@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import AdminLists from './AdminLists'
 import UserPermissions from './UserPermissions'
+import BillingTab from './BillingTab'
 
 const ALL_ROLES = [
   { key: 'ceo',         label: 'CEO',         desc: 'Executive dashboard + full access' },
@@ -620,6 +621,7 @@ export default function AdminPanel() {
     { key: 'permissions',  label: 'Module Access',      icon: Shield },
     { key: 'settings',     label: 'Org Settings',       icon: Settings },
     { key: 'lists',        label: 'Lists & Pick Lists', icon: List },
+    { key: 'billing',      label: 'Billing',            icon: CreditCard },
   ]
 
   return (
@@ -825,6 +827,8 @@ export default function AdminPanel() {
           orgId={currentOrgId}
           orgModules={orgModules.map(m => m.module_key || m).filter(Boolean)} />
       )}
+      {/* ── BILLING TAB ── */}
+      {tab === 'billing' && <BillingTab />}
 
       {/* ── LISTS TAB ── */}
       {tab === 'lists' && (
