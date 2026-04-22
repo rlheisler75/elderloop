@@ -93,9 +93,14 @@ export default function LandingPage() {
             <div className="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-sm" style={{ fontFamily: '"Playfair Display", serif' }}>EL</span>
             </div>
-            <span className="font-semibold text-lg" style={{ fontFamily: '"Playfair Display", serif', color: scrolled ? '#1e293b' : 'white' }}>
-              ElderLoop
-            </span>
+            <div className="flex flex-col leading-tight">
+              <span className="font-semibold text-lg leading-none" style={{ fontFamily: '"Playfair Display", serif', color: scrolled ? '#1e293b' : 'white' }}>
+                ElderLoop
+              </span>
+              <span className="text-xs leading-none mt-0.5" style={{ color: scrolled ? '#94a3b8' : 'rgba(255,255,255,0.5)' }}>
+                by Loopware Solutions
+              </span>
+            </div>
           </div>
           <div className="hidden md:flex items-center gap-8">
             {['Features','Pricing','Demo','About'].map(item => (
@@ -278,7 +283,7 @@ export default function LandingPage() {
               })}
             </div>
             <div className="mt-8 pt-6 border-t border-white/10 flex items-center justify-between">
-              <p className="text-white/40 text-sm">No contract required. Cancel any time.</p>
+              <p className="text-white/40 text-sm">14-day free trial. No contract required. Cancel any time.</p>
               <button onClick={() => navigate('/login?email=demo.ceo@elderloop.xyz&demo=1')}
                 className="flex items-center gap-2 px-6 py-3 bg-brand-500 hover:bg-brand-400 text-white font-semibold rounded-xl transition-colors text-sm whitespace-nowrap">
                 See Live Demo <ChevronRight size={16} />
@@ -375,7 +380,7 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
-          <p className="text-center text-slate-400 text-sm mt-8">30-day free trial on all plans. No credit card required to start.</p>
+          <p className="text-center text-slate-400 text-sm mt-8">14-day free trial on all plans. Credit card required — cancel any time.</p>
         </div>
       </section>
 
@@ -479,9 +484,12 @@ export default function LandingPage() {
             <div className="w-7 h-7 bg-brand-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-xs">EL</span>
             </div>
-            <span className="text-white font-semibold" style={{ fontFamily: '"Playfair Display", serif' }}>ElderLoop</span>
+            <div className="flex flex-col leading-tight">
+              <span className="text-white font-semibold leading-none" style={{ fontFamily: '"Playfair Display", serif' }}>ElderLoop</span>
+              <span className="text-slate-500 text-xs leading-none mt-0.5">by Loopware Solutions</span>
+            </div>
           </div>
-          <p className="text-slate-600 text-xs">© {new Date().getFullYear()} ElderLoop. Built in Springfield, Missouri.</p>
+          <p className="text-slate-600 text-xs">© {new Date().getFullYear()} Loopware Solutions LLC · Springfield, Missouri</p>
           <div className="flex gap-6">
             <button onClick={() => navigate('/login')} className="text-slate-500 hover:text-white text-sm transition-colors">Sign In</button>
             <a href="mailto:hello@elderloop.xyz" className="text-slate-500 hover:text-white text-sm transition-colors">Contact</a>
