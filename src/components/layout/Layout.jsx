@@ -22,7 +22,7 @@ const ALL_NAV = [
   { to: '/app/meters',              label: 'Meter Readings',   icon: Gauge,           module: 'meters' },
   { to: '/app/security',            label: 'Security',         icon: Shield,          module: 'security' },
   { to: '/app/staff',               label: 'Staff',            icon: UserCheck,       module: 'staff' },
-  { to: '/app/directory-staff',     label: 'Staff Directory',  icon: BookUser,        module: 'staff' },
+  { to: '/app/staffdirectory',     label: 'Staff Directory',  icon: BookUser,        module: 'staff' },
   { to: '/app/scheduling',          label: 'Scheduling',       icon: CalendarCheck,   module: 'staff' },
   { to: '/app/nursing',             label: 'Nursing Notes',    icon: Stethoscope,     module: 'nursing' },
   { to: '/app/family',              label: 'Family Messaging', icon: HeartHandshake,  module: 'family' },
