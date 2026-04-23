@@ -6,8 +6,31 @@ import {
   Clock, AlertTriangle, CheckCircle2, User, MapPin,
   Truck, PauseCircle, XCircle, RefreshCw, Calendar,
   ChevronRight, MessageSquare, ArrowUpDown, ShieldCheck,
-  Upload, Image, Package, Settings, BarChart3
+  Upload, Image, Package, Settings, BarChart3,
+  Camera, FileText, ChevronUp, Play, Pause, Ban, Check
 } from 'lucide-react'
+
+// ── Work Order Templates ──────────────────────────────────────
+const TEMPLATES = [
+  { label: 'Leaky Faucet',          category: 'plumbing',     priority: 'normal', description: 'Faucet is dripping or leaking. Check washers and seals.' },
+  { label: 'Clogged Drain',         category: 'plumbing',     priority: 'normal', description: 'Drain is slow or fully clogged.' },
+  { label: 'Running Toilet',        category: 'plumbing',     priority: 'normal', description: 'Toilet runs continuously. Check flapper and fill valve.' },
+  { label: 'Light Bulb Out',        category: 'electrical',   priority: 'low',    description: 'Light bulb needs replacement.' },
+  { label: 'Outlet Not Working',    category: 'electrical',   priority: 'high',   description: 'Electrical outlet is non-functional. Check breaker and GFCI.' },
+  { label: 'HVAC Not Heating',      category: 'hvac',         priority: 'high',   description: 'Heating system not working or producing insufficient heat.' },
+  { label: 'HVAC Not Cooling',      category: 'hvac',         priority: 'high',   description: 'Air conditioning not working or insufficient cooling.' },
+  { label: 'Filter Change',         category: 'filter_change', priority: 'low',   description: 'Routine HVAC filter replacement.' },
+  { label: 'Door Won\'t Close',     category: 'carpentry',    priority: 'normal', description: 'Door is sticking, misaligned, or latch not engaging.' },
+  { label: 'Broken Window',         category: 'safety',       priority: 'urgent', description: 'Window is cracked or broken. Secure area immediately.' },
+  { label: 'Handrail Loose',        category: 'safety',       priority: 'urgent', description: 'Handrail is loose or detached. Safety hazard — address immediately.' },
+  { label: 'Floor Damage',          category: 'carpentry',    priority: 'normal', description: 'Flooring is damaged, loose, or presents a trip hazard.' },
+  { label: 'Pest Sighting',         category: 'pest_control', priority: 'high',   description: 'Pest activity reported. Note location and type if known.' },
+  { label: 'Grounds Cleanup',       category: 'grounds',      priority: 'low',    description: 'General grounds maintenance or debris cleanup needed.' },
+  { label: 'Appliance Not Working', category: 'appliance',    priority: 'normal', description: 'Appliance is malfunctioning or not operating correctly.' },
+  { label: 'Paint Touch-Up',        category: 'painting',     priority: 'low',    description: 'Wall or surface needs paint touch-up or repair.' },
+  { label: 'General Cleaning',      category: 'cleaning',     priority: 'low',    description: 'Area requires deep cleaning or sanitization.' },
+  { label: 'Safety Inspection',     category: 'inspection',   priority: 'normal', description: 'Routine safety inspection of area or equipment.' },
+]
 import CompliancePanel from './Compliance'
 import WorkOrderAssets from './WorkOrderAssets'
 import PMSchedules from './PMSchedules'
@@ -182,15 +205,17 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
     recur_interval_days: wo.recur_interval_days || 90,
     recur_day: wo.recur_day || 1, recur_month: wo.recur_month || '',
   } : { ...EMPTY_FORM })
-  const [note, setNote]         = useState('')
-  const [notePhoto, setNotePhoto] = useState(null)
-  const [activity, setActivity] = useState([])
-  const [photos, setPhotos]     = useState([])
-  const [assets, setAssets]     = useState([])
-  const [slaInfo, setSlaInfo]   = useState(null)
-  const [saving, setSaving]     = useState(false)
-  const [uploading, setUploading] = useState(false)
-  const [error, setError]       = useState('')
+  const [note, setNote]           = useState('')
+  const [notePhoto, setNotePhoto]   = useState(null)
+  const [activity, setActivity]     = useState([])
+  const [photos, setPhotos]         = useState([])
+  const [pendingPhotos, setPendingPhotos] = useState([]) // staged for new WOs
+  const [assets, setAssets]         = useState([])
+  const [slaInfo, setSlaInfo]       = useState(null)
+  const [saving, setSaving]         = useState(false)
+  const [uploading, setUploading]   = useState(false)
+  const [error, setError]           = useState('')
+  const [showTemplates, setShowTemplates] = useState(false)
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
@@ -353,6 +378,22 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
             : 'Work order created',
           action_type: 'created',
         })
+        // Upload any photos staged before save
+        for (const file of pendingPhotos) {
+          const path = `wo-photos/${newWo.id}/${Date.now()}-${file.name}`
+          const { error: upErr } = await supabase.storage.from('announcement-images').upload(path, file)
+          if (!upErr) {
+            const { data: urlData } = supabase.storage.from('announcement-images').getPublicUrl(path)
+            await supabase.from('wo_photos').insert({
+              work_order_id: newWo.id, photo_url: urlData.publicUrl,
+              photo_name: file.name, uploaded_by: profile.id,
+            })
+            await supabase.from('wo_activity').insert({
+              work_order_id: newWo.id, user_id: profile.id,
+              action: 'Photo uploaded with ticket', action_type: 'photo', photo_url: urlData.publicUrl,
+            })
+          }
+        }
       }
     }
     if (err) { setError(err.message); setSaving(false); return }
@@ -388,6 +429,48 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
           {/* Form / View */}
           <div className="px-6 py-5 space-y-4">
             {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+
+            {/* Template picker — new tickets only */}
+            {isNew && (
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setShowTemplates(t => !t)}
+                  className="flex items-center gap-2 px-3 py-2 border border-dashed border-brand-300 rounded-xl text-sm text-brand-600 hover:bg-brand-50 transition-colors w-full">
+                  <FileText size={14} />
+                  <span className="flex-1 text-left">Pick a template...</span>
+                  {showTemplates ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                </button>
+                {showTemplates && (
+                  <div className="mt-1 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden max-h-56 overflow-y-auto">
+                    {TEMPLATES.map(t => (
+                      <button
+                        key={t.label}
+                        type="button"
+                        onClick={() => {
+                          setForm(f => ({
+                            ...f,
+                            title:       t.label,
+                            category:    t.category,
+                            priority:    t.priority,
+                            description: t.description,
+                          }))
+                          setShowTemplates(false)
+                        }}
+                        className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-50 transition-colors text-left border-b border-slate-50 last:border-0">
+                        <div>
+                          <div className="text-sm font-medium text-slate-800">{t.label}</div>
+                          <div className="text-xs text-slate-400 capitalize">
+                            {CATEGORIES.find(c => c.key === t.category)?.label} · {t.priority}
+                          </div>
+                        </div>
+                        <ChevronRight size={14} className="text-slate-300 flex-shrink-0" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* SLA Banner for new work orders */}
             {isNew && slaInfo && (
@@ -626,29 +709,115 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
                 : wo.notes && <p className="text-sm text-slate-600 italic">{wo.notes}</p>}
             </div>
 
-            {/* Photos */}
-            {!isNew && (
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
-                  <Image size={13} /> Photos {photos.length > 0 && `(${photos.length})`}
-                </label>
-                {photos.length > 0 && (
-                  <div className="flex gap-2 flex-wrap mb-2">
-                    {photos.map(p => (
-                      <a key={p.id} href={p.photo_url} target="_blank" rel="noopener noreferrer"
-                        className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 hover:border-brand-300 transition-all group">
-                        <img src={p.photo_url} alt={p.caption || ''} className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all" />
-                      </a>
-                    ))}
-                  </div>
+            {/* Photos — staged on new tickets, live upload on existing */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                <Camera size={13} /> Photos
+                {isNew && pendingPhotos.length > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 bg-brand-100 text-brand-700 rounded-full text-xs font-medium">
+                    {pendingPhotos.length} staged
+                  </span>
                 )}
-                <label className={`flex items-center gap-2 px-3 py-2 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${uploading ? 'border-brand-300 bg-brand-50' : 'border-slate-200 hover:border-brand-400'}`}>
-                  <Upload size={13} className="text-slate-400" />
-                  <span className="text-xs text-slate-400">{uploading ? 'Uploading...' : 'Upload photo'}</span>
-                  <input type="file" accept="image/*" className="hidden" disabled={uploading}
-                    onChange={e => { if (e.target.files?.[0]) uploadWOPhoto(e.target.files[0]) }} />
-                </label>
+                {!isNew && photos.length > 0 && (
+                  <span className="text-slate-400 font-normal">({photos.length})</span>
+                )}
+              </label>
+
+              {/* Staged previews for new tickets */}
+              {isNew && pendingPhotos.length > 0 && (
+                <div className="flex gap-2 flex-wrap mb-2">
+                  {pendingPhotos.map((file, i) => (
+                    <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 group">
+                      <img src={URL.createObjectURL(file)} alt="" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setPendingPhotos(p => p.filter((_, idx) => idx !== i))}
+                        className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <X size={10} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Existing ticket photos */}
+              {!isNew && photos.length > 0 && (
+                <div className="flex gap-2 flex-wrap mb-2">
+                  {photos.map(p => (
+                    <a key={p.id} href={p.photo_url} target="_blank" rel="noopener noreferrer"
+                      className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 hover:border-brand-300 transition-all group">
+                      <img src={p.photo_url} alt={p.caption || ''} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all" />
+                    </a>
+                  ))}
+                </div>
+              )}
+
+              {/* Upload button — staging for new, live for existing */}
+              <label className={`flex items-center gap-2 px-3 py-2.5 border-2 border-dashed rounded-xl cursor-pointer transition-colors
+                ${uploading ? 'border-brand-300 bg-brand-50' : 'border-slate-200 hover:border-brand-400 hover:bg-slate-50'}`}>
+                <Camera size={14} className="text-slate-400" />
+                <span className="text-xs text-slate-500">
+                  {isNew
+                    ? pendingPhotos.length > 0 ? 'Add another photo' : 'Attach a photo (optional)'
+                    : uploading ? 'Uploading...' : 'Upload photo'}
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  multiple={isNew}
+                  className="hidden"
+                  disabled={uploading}
+                  onChange={e => {
+                    if (isNew) {
+                      const files = Array.from(e.target.files || [])
+                      setPendingPhotos(p => [...p, ...files])
+                      e.target.value = ''
+                    } else if (e.target.files?.[0]) {
+                      uploadWOPhoto(e.target.files[0])
+                    }
+                  }}
+                />
+              </label>
+            </div>
+
+            {/* Quick-action status strip — existing tickets, not in edit mode */}
+            {!isNew && !editing && (
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Quick Actions</label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { status: 'in_progress',     label: 'Start Working',   color: 'bg-brand-600 hover:bg-brand-700 text-white',         show: ['open','assigned'] },
+                    { status: 'on_hold',          label: 'Put On Hold',     color: 'bg-slate-200 hover:bg-slate-300 text-slate-700',      show: ['open','assigned','in_progress'] },
+                    { status: 'awaiting_vendor',  label: 'Awaiting Vendor', color: 'bg-orange-100 hover:bg-orange-200 text-orange-700',   show: ['open','assigned','in_progress'] },
+                    { status: 'closed',           label: 'Mark Complete',   color: 'bg-green-600 hover:bg-green-700 text-white',          show: ['open','assigned','in_progress','on_hold','awaiting_vendor'] },
+                    { status: 'cancelled',        label: 'Cancel Ticket',   color: 'bg-red-100 hover:bg-red-200 text-red-700',            show: ['open','pending_approval'] },
+                  ]
+                  .filter(a => a.show.includes(wo.status) && canClose)
+                  .map(action => (
+                    <button
+                      key={action.status}
+                      type="button"
+                      onClick={async () => {
+                        const updatePayload = {
+                          status: action.status,
+                          updated_at: new Date().toISOString(),
+                          ...(action.status === 'closed' ? { completed_at: new Date().toISOString() } : {}),
+                        }
+                        await supabase.from('work_orders').update(updatePayload).eq('id', wo.id)
+                        await supabase.from('wo_activity').insert({
+                          work_order_id: wo.id, user_id: profile.id,
+                          action: `Status changed to ${getStatus(action.status).label}`,
+                          action_type: 'status_change',
+                        })
+                        onSave()
+                      }}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-colors ${action.color}`}>
+                      {action.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 
