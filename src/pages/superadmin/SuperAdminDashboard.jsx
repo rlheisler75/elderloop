@@ -837,7 +837,7 @@ export default function SuperAdminDashboard() {
                         className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg border border-slate-700 text-slate-400 hover:border-brand-500 hover:text-brand-400 transition-colors">
                         <Eye size={12} /> Preview
                       </button>
-                      <button onClick={() => navigate('/surveys')}
+                      <button onClick={() => navigate('/app/surveys')}
                         className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg border border-slate-700 text-slate-400 hover:border-brand-500 hover:text-brand-400 transition-colors">
                         <BarChart3 size={12} /> View Results
                       </button>
@@ -850,7 +850,7 @@ export default function SuperAdminDashboard() {
                     <ClipboardList size={40} className="mx-auto mb-4 opacity-30" />
                     <p className="text-slate-400 font-medium mb-2">No platform surveys yet</p>
                     <p className="text-sm mb-6">Create surveys to gather feedback from your customers about ElderLoop.</p>
-                    <button onClick={() => navigate('/surveys')}
+                    <button onClick={() => navigate('/app/surveys')}
                       className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl transition-colors">
                       <Plus size={15} /> Open Survey Builder
                     </button>

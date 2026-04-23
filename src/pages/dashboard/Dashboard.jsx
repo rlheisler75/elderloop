@@ -335,7 +335,7 @@ export default function Dashboard() {
                 <h2 className="font-display font-semibold text-slate-800 flex items-center gap-2">
                   <Car size={16} className="text-green-600" /> Today's Trips
                 </h2>
-                <button onClick={() => navigate('/transportation')} className="text-xs text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1">
+                <button onClick={() => navigate('/app/transportation')} className="text-xs text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1">
                   View all <ArrowRight size={12} />
                 </button>
               </div>
@@ -367,7 +367,7 @@ export default function Dashboard() {
                 <h2 className="font-display font-semibold text-slate-800 flex items-center gap-2">
                   <CalendarDays size={16} className="text-purple-600" /> Today's Activities
                 </h2>
-                <button onClick={() => navigate('/activities')} className="text-xs text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1">
+                <button onClick={() => navigate('/app/activities')} className="text-xs text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1">
                   Calendar <ArrowRight size={12} />
                 </button>
               </div>
@@ -396,7 +396,7 @@ export default function Dashboard() {
                 <h2 className="font-display font-semibold text-slate-800 flex items-center gap-2">
                   <Wrench size={16} className="text-brand-600" /> Open Maintenance
                 </h2>
-                <button onClick={() => navigate('/maintenance')} className="text-xs text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1">
+                <button onClick={() => navigate('/app/maintenance')} className="text-xs text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1">
                   View all <ArrowRight size={12} />
                 </button>
               </div>
@@ -424,7 +424,7 @@ export default function Dashboard() {
                 <h2 className="font-display font-semibold text-slate-800 flex items-center gap-2">
                   <Bell size={15} className="text-purple-600" /> Announcements
                 </h2>
-                <button onClick={() => navigate('/communication')} className="text-xs text-brand-600 font-medium flex items-center gap-1">
+                <button onClick={() => navigate('/app/communication')} className="text-xs text-brand-600 font-medium flex items-center gap-1">
                   All <ArrowRight size={12} />
                 </button>
               </div>

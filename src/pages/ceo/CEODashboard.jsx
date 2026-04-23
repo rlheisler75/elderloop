@@ -221,11 +221,11 @@ export default function CEODashboard() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={() => navigate('/dashboard')}
+            <button onClick={() => navigate('/app/dashboard')}
               className="flex items-center gap-2 px-4 py-2 bg-brand-800 hover:bg-brand-700 text-white text-sm font-medium rounded-xl transition-colors">
               <Activity size={15} /> Operations
             </button>
-            <button onClick={() => navigate('/admin')}
+            <button onClick={() => navigate('/app/admin')}
               className="flex items-center gap-2 px-4 py-2 bg-brand-800 hover:bg-brand-700 text-white text-sm font-medium rounded-xl transition-colors">
               <Settings size={15} /> Admin
             </button>
@@ -279,7 +279,7 @@ export default function CEODashboard() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
                 {/* Security */}
-                <button onClick={() => navigate('/security')}
+                <button onClick={() => navigate('/app/security')}
                   className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 text-left hover:shadow-md transition-all group">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
@@ -299,7 +299,7 @@ export default function CEODashboard() {
                 </button>
 
                 {/* Chapel */}
-                <button onClick={() => navigate('/chapel')}
+                <button onClick={() => navigate('/app/chapel')}
                   className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 text-left hover:shadow-md transition-all group">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
@@ -320,7 +320,7 @@ export default function CEODashboard() {
                 </button>
 
                 {/* Care Activity */}
-                <button onClick={() => navigate('/nursing')}
+                <button onClick={() => navigate('/app/nursing')}
                   className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 text-left hover:shadow-md transition-all group">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
@@ -394,8 +394,8 @@ export default function CEODashboard() {
                   style={{ fontFamily: '"Playfair Display", serif' }}>Quick Navigation</h2>
                 <div className="space-y-0.5">
                   {[
-                    { label: 'Operations Dashboard', to: '/dashboard',      icon: Activity,      color: 'text-brand-600' },
-                    { label: 'Resident Directory',    to: '/directory',      icon: Users,         color: 'text-green-600' },
+                    { label: 'Operations Dashboard', to: '/app/dashboard',      icon: Activity,      color: 'text-brand-600' },
+                    { label: 'Resident Directory',    to: '/app/directory',      icon: Users,         color: 'text-green-600' },
                     { label: 'Incident Reports',      to: '/incidents',      icon: AlertTriangle, color: 'text-red-600' },
                     { label: 'Maintenance',           to: '/maintenance',    icon: Wrench,        color: 'text-amber-600' },
                     { label: 'Chapel',                to: '/chapel',         icon: Church,        color: 'text-purple-600' },
