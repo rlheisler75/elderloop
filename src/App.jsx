@@ -18,7 +18,7 @@ import WorkOrders    from './pages/workorders/WorkOrders'
 import Dietary       from './pages/dietary/Dietary'
 import Housekeeping  from './pages/housekeeping/Housekeeping'
 
-// Lazy loaded — filenames confirmed from file explorer
+// Lazy loaded
 const Chapel         = lazy(() => import('./pages/chapel/Chapel'))
 const Activities     = lazy(() => import('./pages/activities/Activities'))
 const Directory      = lazy(() => import('./pages/directory/ResidentDirectory'))
@@ -31,6 +31,8 @@ const Nursing        = lazy(() => import('./pages/nursing/NursingNotes'))
 const PropertyMgmt   = lazy(() => import('./pages/property/PropertyManagement'))
 const Security       = lazy(() => import('./pages/security/Security'))
 const Staff          = lazy(() => import('./pages/staff/StaffManagement'))
+const StaffDirectory = lazy(() => import('./pages/staff/StaffDirectory'))
+const Scheduling     = lazy(() => import('./pages/staff/Scheduling'))
 const Surveys        = lazy(() => import('./pages/surveys/Surveys'))
 const TimeClock      = lazy(() => import('./pages/timeclock/TimeClock'))
 const Transportation = lazy(() => import('./pages/transportation/Transportation'))
@@ -128,7 +130,7 @@ export default function App() {
         <Route path="ceo"        element={<Lazy><CEODashboard /></Lazy>} />
         <Route path="superadmin" element={<SuperAdminRoute><Lazy><SuperAdmin /></Lazy></SuperAdminRoute>} />
 
-        {/* All plan modules */}
+        {/* Core modules */}
         <Route path="communication"
           element={<ProtectedRoute requireModule="communication"><Communication /></ProtectedRoute>} />
         <Route path="maintenance"
@@ -155,6 +157,10 @@ export default function App() {
           element={<ProtectedRoute requireModule="incidents"><Lazy><Incidents /></Lazy></ProtectedRoute>} />
         <Route path="staff"
           element={<ProtectedRoute requireModule="staff"><Lazy><Staff /></Lazy></ProtectedRoute>} />
+        <Route path="directory-staff"
+          element={<ProtectedRoute requireModule="staff"><Lazy><StaffDirectory /></Lazy></ProtectedRoute>} />
+        <Route path="scheduling"
+          element={<ProtectedRoute requireModule="staff"><Lazy><Scheduling /></Lazy></ProtectedRoute>} />
         <Route path="timeclock"
           element={<ProtectedRoute requireModule="timeclock"><Lazy><TimeClock /></Lazy></ProtectedRoute>} />
         <Route path="transportation"
