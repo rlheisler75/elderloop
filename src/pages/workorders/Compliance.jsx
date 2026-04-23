@@ -1,48 +1,240 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
-import { useAuth } from '../../context/AuthContext'
 import {
-  ShieldCheck, AlertTriangle, CheckCircle2, XCircle, Clock,
-  ChevronDown, ChevronUp, ChevronRight, Plus, X, Upload,
-  FileText, Calendar, User, Award, Eye, Check, Minus,
-  AlertCircle, Info, ExternalLink, ClipboardCheck
+  ShieldCheck, CheckCircle2, XCircle, AlertTriangle, Clock,
+  ClipboardCheck, FileText, Eye, Upload, X, Plus, Info,
+  ChevronDown, ChevronUp, Edit2, Trash2, Check, Globe, Save
 } from 'lucide-react'
 
+// ── State compliance references ───────────────────────────────
+const STATE_REFS = {
+  MO: {
+    label: 'Missouri',
+    summary: 'Inspections follow NFPA 101 Life Safety Code (2012 edition), Missouri DHSS §19 CSR 30-85, NFPA 10/25/72/110, CMS Conditions of Participation, Missouri DOLIR elevator regulations, and §19 CSR 30-85.042(17) fire drill requirements.',
+    retention: 'Maintain all completed inspection records for a minimum of 3 years.',
+    authority: 'Missouri DHSS / CMS',
+  },
+  KS: {
+    label: 'Kansas',
+    summary: 'Inspections follow NFPA 101, Kansas KDHE K.A.R. 28-39, NFPA 10/25/72/110, and CMS Conditions of Participation.',
+    retention: 'Maintain all inspection records for a minimum of 5 years per KDHE requirements.',
+    authority: 'Kansas KDHE / CMS',
+  },
+  IL: {
+    label: 'Illinois',
+    summary: 'Inspections follow NFPA 101, Illinois IDPH 77 Ill. Adm. Code 300, NFPA 10/25/72/110, and CMS Conditions of Participation.',
+    retention: 'Maintain all inspection records for a minimum of 5 years.',
+    authority: 'Illinois IDPH / CMS',
+  },
+  AR: {
+    label: 'Arkansas',
+    summary: 'Inspections follow NFPA 101, Arkansas DPSQA Reg. 2000-F, NFPA 10/25/72/110, and CMS Conditions of Participation.',
+    retention: 'Maintain all completed inspection records for a minimum of 3 years.',
+    authority: 'Arkansas DPSQA / CMS',
+  },
+  OK: {
+    label: 'Oklahoma',
+    summary: 'Inspections follow NFPA 101, Oklahoma OSDH OAC 310:675, NFPA 10/25/72/110, and CMS Conditions of Participation.',
+    retention: 'Maintain all inspection records for a minimum of 3 years.',
+    authority: 'Oklahoma OSDH / CMS',
+  },
+  TX: {
+    label: 'Texas',
+    summary: 'Inspections follow NFPA 101, Texas HHSC 40 TAC §19, NFPA 10/25/72/110, and CMS Conditions of Participation.',
+    retention: 'Maintain all inspection records for a minimum of 5 years per HHSC.',
+    authority: 'Texas HHSC / CMS',
+  },
+  TN: {
+    label: 'Tennessee',
+    summary: 'Inspections follow NFPA 101, Tennessee TDH Rule 1200-08-06, NFPA 10/25/72/110, and CMS Conditions of Participation.',
+    retention: 'Maintain all inspection records for a minimum of 5 years.',
+    authority: 'Tennessee TDH / CMS',
+  },
+  IN: {
+    label: 'Indiana',
+    summary: 'Inspections follow NFPA 101, Indiana ISDH 410 IAC 16.2, NFPA 10/25/72/110, and CMS Conditions of Participation.',
+    retention: 'Maintain all inspection records for a minimum of 3 years.',
+    authority: 'Indiana ISDH / CMS',
+  },
+  OH: {
+    label: 'Ohio',
+    summary: 'Inspections follow NFPA 101, Ohio ODH OAC 3701-17, NFPA 10/25/72/110, and CMS Conditions of Participation.',
+    retention: 'Maintain all inspection records for a minimum of 5 years.',
+    authority: 'Ohio ODH / CMS',
+  },
+  FL: {
+    label: 'Florida',
+    summary: 'Inspections follow NFPA 101, Florida AHCA 59A-4 F.A.C., NFPA 10/25/72/110, and CMS Conditions of Participation.',
+    retention: 'Maintain all inspection records for a minimum of 5 years per AHCA.',
+    authority: 'Florida AHCA / CMS',
+  },
+  OTHER: {
+    label: 'Other / Federal Only',
+    summary: 'Inspections follow NFPA 101 Life Safety Code, NFPA 10/25/72/110, and CMS Conditions of Participation (42 CFR Part 483).',
+    retention: 'Maintain all completed inspection records for a minimum of 3 years per CMS requirements.',
+    authority: 'CMS Federal',
+  },
+}
+
+const ALL_STATES = [
+  { code: 'MO', label: 'Missouri' }, { code: 'KS', label: 'Kansas' },
+  { code: 'IL', label: 'Illinois' }, { code: 'AR', label: 'Arkansas' },
+  { code: 'OK', label: 'Oklahoma' }, { code: 'TX', label: 'Texas' },
+  { code: 'TN', label: 'Tennessee' }, { code: 'IN', label: 'Indiana' },
+  { code: 'OH', label: 'Ohio' }, { code: 'FL', label: 'Florida' },
+  { code: 'AL', label: 'Alabama' }, { code: 'GA', label: 'Georgia' },
+  { code: 'NC', label: 'North Carolina' }, { code: 'SC', label: 'South Carolina' },
+  { code: 'VA', label: 'Virginia' }, { code: 'WV', label: 'West Virginia' },
+  { code: 'KY', label: 'Kentucky' }, { code: 'MS', label: 'Mississippi' },
+  { code: 'LA', label: 'Louisiana' }, { code: 'CA', label: 'California' },
+  { code: 'AZ', label: 'Arizona' }, { code: 'CO', label: 'Colorado' },
+  { code: 'NM', label: 'New Mexico' }, { code: 'NV', label: 'Nevada' },
+  { code: 'WA', label: 'Washington' }, { code: 'OR', label: 'Oregon' },
+  { code: 'ID', label: 'Idaho' }, { code: 'MT', label: 'Montana' },
+  { code: 'WY', label: 'Wyoming' }, { code: 'UT', label: 'Utah' },
+  { code: 'ND', label: 'North Dakota' }, { code: 'SD', label: 'South Dakota' },
+  { code: 'NE', label: 'Nebraska' }, { code: 'MN', label: 'Minnesota' },
+  { code: 'IA', label: 'Iowa' }, { code: 'WI', label: 'Wisconsin' },
+  { code: 'MI', label: 'Michigan' }, { code: 'PA', label: 'Pennsylvania' },
+  { code: 'NY', label: 'New York' }, { code: 'NJ', label: 'New Jersey' },
+  { code: 'CT', label: 'Connecticut' }, { code: 'MA', label: 'Massachusetts' },
+  { code: 'OTHER', label: 'Other / Federal Only' },
+]
+
 const FREQ_LABELS = {
-  weekly:    { label: 'Weekly',    color: 'bg-red-100 text-red-700' },
-  monthly:   { label: 'Monthly',  color: 'bg-orange-100 text-orange-700' },
-  quarterly: { label: 'Quarterly',color: 'bg-amber-100 text-amber-700' },
-  annual:    { label: 'Annual',   color: 'bg-blue-100 text-blue-700' },
+  daily:     { label: 'Daily',     color: 'bg-red-100 text-red-700' },
+  weekly:    { label: 'Weekly',    color: 'bg-orange-100 text-orange-700' },
+  monthly:   { label: 'Monthly',   color: 'bg-amber-100 text-amber-700' },
+  quarterly: { label: 'Quarterly', color: 'bg-blue-100 text-blue-700' },
+  biannual:  { label: 'Bi-Annual', color: 'bg-indigo-100 text-indigo-700' },
+  annual:    { label: 'Annual',    color: 'bg-slate-100 text-slate-600' },
 }
 
 const STATUS_CONFIG = {
-  pass:                { label: 'Pass',                icon: CheckCircle2, color: 'text-green-600',  bg: 'bg-green-50',  border: 'border-green-200' },
-  pass_with_conditions:{ label: 'Pass w/ Conditions', icon: AlertCircle,  color: 'text-amber-600',  bg: 'bg-amber-50',  border: 'border-amber-200' },
-  fail:                { label: 'Fail',               icon: XCircle,      color: 'text-red-600',    bg: 'bg-red-50',    border: 'border-red-200' },
-  pending:             { label: 'Pending',            icon: Clock,        color: 'text-slate-500',  bg: 'bg-slate-50',  border: 'border-slate-200' },
+  pass:                 { label: 'Pass',              color: 'text-green-600',  bg: 'bg-green-50',  border: 'border-green-200', icon: CheckCircle2 },
+  pass_with_conditions: { label: 'Pass w/ Conditions',color: 'text-amber-600',  bg: 'bg-amber-50',  border: 'border-amber-200', icon: AlertTriangle },
+  fail:                 { label: 'Fail',              color: 'text-red-600',    bg: 'bg-red-50',    border: 'border-red-200',   icon: XCircle },
+  pending:              { label: 'Pending',           color: 'text-slate-500',  bg: 'bg-slate-50',  border: 'border-slate-200', icon: Clock },
 }
 
-const RESULT_OPTIONS = [
-  { key: 'pass',            label: 'Pass',            icon: Check,  color: 'text-green-600 bg-green-50 border-green-300' },
-  { key: 'fail',            label: 'Fail',            icon: X,      color: 'text-red-600 bg-red-50 border-red-300' },
-  { key: 'needs_attention', label: 'Needs Attention', icon: AlertTriangle, color: 'text-amber-600 bg-amber-50 border-amber-300' },
-  { key: 'na',              label: 'N/A',             icon: Minus,  color: 'text-slate-400 bg-slate-50 border-slate-200' },
-]
-
 const daysUntil = (dateStr) => {
-  if (!dateStr) return null
-  return Math.ceil((new Date(dateStr) - new Date()) / (1000 * 60 * 60 * 24))
+  const today = new Date(); today.setHours(0,0,0,0)
+  const due   = new Date(dateStr + 'T00:00:00')
+  return Math.floor((due - today) / 86400000)
 }
 
 const fmt = (dateStr) => dateStr
   ? new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   : '—'
 
+// ── Add Custom Category Modal ─────────────────────────────────
+function AddCategoryModal({ orgId, onClose, onSaved }) {
+  const [form, setForm] = useState({
+    label: '', description: '', authority: '', authority_ref: '',
+    frequency: 'annual', color: 'bg-slate-100 text-slate-700',
+  })
+  const [saving, setSaving] = useState(false)
+  const [error, setError]   = useState('')
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+  const FREQ_OPTIONS = ['daily','weekly','monthly','quarterly','biannual','annual']
+  const COLOR_OPTIONS = [
+    { label: 'Gray',   value: 'bg-slate-100 text-slate-700' },
+    { label: 'Blue',   value: 'bg-blue-100 text-blue-700' },
+    { label: 'Green',  value: 'bg-green-100 text-green-700' },
+    { label: 'Red',    value: 'bg-red-100 text-red-700' },
+    { label: 'Orange', value: 'bg-orange-100 text-orange-700' },
+    { label: 'Purple', value: 'bg-purple-100 text-purple-700' },
+    { label: 'Amber',  value: 'bg-amber-100 text-amber-700' },
+  ]
+
+  const handleSave = async () => {
+    if (!form.label.trim()) { setError('Name is required'); return }
+    setSaving(true)
+    const key = form.label.toLowerCase().replace(/[^a-z0-9]+/g, '_') + '_' + Date.now()
+    const { error: err } = await supabase.from('compliance_categories').insert({
+      organization_id: orgId,
+      key,
+      label:         form.label.trim(),
+      description:   form.description || null,
+      authority:     form.authority || null,
+      authority_ref: form.authority_ref || null,
+      frequency:     form.frequency,
+      color:         form.color,
+      is_custom:     true,
+      sort_order:    999,
+    })
+    if (err) { setError(err.message); setSaving(false); return }
+    onSaved()
+  }
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+          <h2 className="font-display font-semibold text-slate-800">Add Custom Inspection</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+        </div>
+        <div className="px-6 py-5 space-y-4">
+          {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Inspection Name *</label>
+            <input value={form.label} onChange={e => set('label', e.target.value)}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              placeholder="e.g. Grease Trap Cleaning, Pool Safety Inspection" />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Description</label>
+            <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={2}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+              placeholder="What does this inspection cover?" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Frequency</label>
+              <select value={form.frequency} onChange={e => set('frequency', e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 capitalize">
+                {FREQ_OPTIONS.map(f => <option key={f} value={f} className="capitalize">{f}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Color Tag</label>
+              <select value={form.color} onChange={e => set('color', e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                {COLOR_OPTIONS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Regulatory Authority <span className="font-normal text-slate-400">(optional)</span></label>
+            <input value={form.authority} onChange={e => set('authority', e.target.value)}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              placeholder="e.g. State Health Dept, Local Fire Marshal" />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Regulation / Code Reference <span className="font-normal text-slate-400">(optional)</span></label>
+            <input value={form.authority_ref} onChange={e => set('authority_ref', e.target.value)}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              placeholder="e.g. §19 CSR 30-85, NFPA 96" />
+          </div>
+        </div>
+        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+          <button onClick={handleSave} disabled={saving}
+            className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
+            {saving ? 'Saving...' : 'Add Inspection'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Conduct Inspection Modal ───────────────────────────────────
 function InspectionModal({ category, orgId, profile, onClose, onSaved }) {
   const fileRef = useRef()
   const [items, setItems]       = useState([])
-  const [results, setResults]   = useState({}) // itemId -> { result, notes }
+  const [results, setResults]   = useState({})
   const [form, setForm]         = useState({
     inspection_date: new Date().toISOString().split('T')[0],
     inspector_name:  `${profile.first_name} ${profile.last_name}`,
@@ -61,28 +253,27 @@ function InspectionModal({ category, orgId, profile, onClose, onSaved }) {
 
   async function fetchItems() {
     const { data } = await supabase.from('compliance_checklist_items')
-      .select('*')
-      .eq('category_id', category.id)
-      .eq('is_active', true)
-      .order('sort_order')
+      .select('*').eq('category_id', category.id).eq('is_active', true).order('sort_order')
     setItems(data || [])
-    // Default all to pass
     const defaults = {}
     data?.forEach(item => { defaults[item.id] = { result: 'pass', notes: '' } })
     setResults(defaults)
   }
 
-  const setItemResult = (itemId, field, value) => {
+  const setItemResult = (itemId, field, value) =>
     setResults(r => ({ ...r, [itemId]: { ...r[itemId], [field]: value } }))
-  }
 
-  // Auto-calculate overall status from item results
+  const passCount  = Object.values(results).filter(r => r.result === 'pass').length
+  const failCount  = Object.values(results).filter(r => r.result === 'fail').length
+  const warnCount  = Object.values(results).filter(r => r.result === 'needs_attention').length
+
   const calcStatus = () => {
     const vals = Object.values(results).map(r => r.result)
-    if (vals.includes('fail'))            return 'fail'
+    if (vals.includes('fail')) return 'fail'
     if (vals.includes('needs_attention')) return 'pass_with_conditions'
     return 'pass'
   }
+  const autoStatus = calcStatus()
 
   const handleUpload = async (e) => {
     const file = e.target.files?.[0]; if (!file) return
@@ -99,53 +290,48 @@ function InspectionModal({ category, orgId, profile, onClose, onSaved }) {
   const handleSave = async () => {
     if (!form.inspection_date) { setError('Inspection date is required'); return }
     setSaving(true)
-    const autoStatus = calcStatus()
-
-    const { data: inspection, error: err } = await supabase.from('compliance_inspections').insert({
+    const status = autoStatus
+    const { data: insp, error: err } = await supabase.from('compliance_inspections').insert({
       organization_id: orgId,
       category_id:     category.id,
       conducted_by:    profile.id,
-      inspector_name:  form.inspector_name,
       inspection_date: form.inspection_date,
       next_due_date:   form.next_due_date || null,
-      status:          autoStatus,
+      inspector_name:  form.inspector_name,
+      status,
       overall_notes:   form.overall_notes || null,
       report_url:      reportUrl || null,
       report_name:     reportName || null,
-      created_by:      profile.id,
     }).select().single()
+    if (err) { setError(err.message); setSaving(false); return }
 
-    if (err || !inspection) { setError(err?.message || 'Failed to save'); setSaving(false); return }
-
-    // Save item results
-    const resultRows = items.map(item => ({
-      inspection_id: inspection.id,
-      item_id:       item.id,
-      result:        results[item.id]?.result || 'pass',
-      notes:         results[item.id]?.notes  || null,
-    }))
-    await supabase.from('compliance_inspection_results').insert(resultRows)
-
-    setSaving(false); onSaved()
+    // Save checklist item results
+    if (insp && items.length > 0) {
+      const rows = items.map(item => ({
+        inspection_id: insp.id,
+        checklist_item_id: item.id,
+        result: results[item.id]?.result || 'pass',
+        notes:  results[item.id]?.notes || null,
+      }))
+      await supabase.from('compliance_inspection_results').insert(rows)
+    }
+    onSaved()
   }
-
-  const passCount  = Object.values(results).filter(r => r.result === 'pass').length
-  const failCount  = Object.values(results).filter(r => r.result === 'fail').length
-  const warnCount  = Object.values(results).filter(r => r.result === 'needs_attention').length
-  const autoStatus = calcStatus()
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[95vh] flex flex-col">
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: category.color + '22' }}>
-              <ShieldCheck size={20} style={{ color: category.color }} />
+            <div className="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center">
+              <ShieldCheck size={20} className="text-brand-600" />
             </div>
             <div>
               <h2 className="font-display font-semibold text-slate-800">{category.label} Inspection</h2>
-              <p className="text-xs text-slate-400">{category.authority} · {category.frequency}</p>
+              <p className="text-xs text-slate-400">
+                {category.authority_ref && <span>{category.authority_ref} · </span>}
+                {FREQ_LABELS[category.frequency]?.label || category.frequency}
+              </p>
             </div>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
@@ -154,7 +340,6 @@ function InspectionModal({ category, orgId, profile, onClose, onSaved }) {
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
           {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
 
-          {/* Inspection meta */}
           <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Inspection Date *</label>
@@ -167,82 +352,84 @@ function InspectionModal({ category, orgId, profile, onClose, onSaved }) {
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Inspector Name</label>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Inspector</label>
               <input value={form.inspector_name} onChange={e => set('inspector_name', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-                placeholder="Internal or external inspector" />
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
           </div>
 
-          {/* Live status summary */}
+          {/* Live status */}
           <div className="flex items-center gap-3 p-3 rounded-xl border-2"
-            style={{ borderColor: autoStatus === 'pass' ? '#86efac' : autoStatus === 'fail' ? '#fca5a5' : '#fcd34d', background: autoStatus === 'pass' ? '#f0fdf4' : autoStatus === 'fail' ? '#fef2f2' : '#fffbeb' }}>
+            style={{
+              borderColor: autoStatus === 'pass' ? '#86efac' : autoStatus === 'fail' ? '#fca5a5' : '#fcd34d',
+              background:  autoStatus === 'pass' ? '#f0fdf4' : autoStatus === 'fail' ? '#fef2f2' : '#fffbeb'
+            }}>
             <div className="flex gap-3 text-sm font-medium">
               <span className="text-green-700">{passCount} Pass</span>
               {warnCount > 0 && <span className="text-amber-700">{warnCount} Need Attention</span>}
               {failCount > 0 && <span className="text-red-700">{failCount} Fail</span>}
             </div>
-            <div className="ml-auto">
+            <div className="ml-auto text-sm font-semibold">
               {(() => { const s = STATUS_CONFIG[autoStatus]; const Icon = s.icon
-                return <span className={`flex items-center gap-1.5 text-sm font-semibold ${s.color}`}><Icon size={15} /> Auto: {s.label}</span>
+                return <span className={`flex items-center gap-1.5 ${s.color}`}><Icon size={15} /> {s.label}</span>
               })()}
             </div>
           </div>
 
-          {/* Checklist items */}
-          <div>
-            <h3 className="font-semibold text-slate-700 text-sm mb-3">Inspection Checklist ({items.length} items)</h3>
-            <div className="space-y-2">
-              {items.map((item, idx) => {
-                const itemResult = results[item.id] || { result: 'pass', notes: '' }
-                return (
-                  <div key={item.id}
-                    className={`p-4 rounded-xl border transition-all ${
+          {/* Checklist */}
+          {items.length > 0 && (
+            <div>
+              <h3 className="font-semibold text-slate-700 text-sm mb-3">Checklist ({items.length} items)</h3>
+              <div className="space-y-2">
+                {items.map(item => {
+                  const itemResult = results[item.id] || { result: 'pass', notes: '' }
+                  return (
+                    <div key={item.id} className={`p-4 rounded-xl border transition-all ${
                       itemResult.result === 'fail'            ? 'border-red-200 bg-red-50' :
                       itemResult.result === 'needs_attention' ? 'border-amber-200 bg-amber-50' :
-                      itemResult.result === 'na'              ? 'border-slate-200 bg-slate-50 opacity-60' :
-                      'border-slate-100 bg-white'
-                    }`}>
-                    <div className="flex items-start gap-3 mb-2">
-                      <span className="text-xs font-bold text-slate-400 w-5 flex-shrink-0 mt-0.5">{idx + 1}</span>
-                      <p className="text-sm text-slate-800 flex-1">{item.item_label}</p>
-                      {item.is_required && <span className="text-red-500 text-xs font-bold flex-shrink-0">*</span>}
+                      'border-slate-100 bg-white'}`}>
+                      <div className="flex items-start gap-3">
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-slate-800">{item.item_label}</div>
+                          {item.notes_hint && <div className="text-xs text-slate-400 mt-0.5">{item.notes_hint}</div>}
+                        </div>
+                        <div className="flex gap-1 flex-shrink-0">
+                          {[
+                            { val: 'pass',             label: 'Pass',  cls: 'bg-green-600 text-white' },
+                            { val: 'needs_attention',  label: 'Attn',  cls: 'bg-amber-500 text-white' },
+                            { val: 'fail',             label: 'Fail',  cls: 'bg-red-600 text-white' },
+                          ].map(opt => (
+                            <button key={opt.val} onClick={() => setItemResult(item.id, 'result', opt.val)}
+                              className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all
+                                ${itemResult.result === opt.val ? opt.cls : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      {(itemResult.result === 'needs_attention' || itemResult.result === 'fail') && (
+                        <input value={itemResult.notes || ''} onChange={e => setItemResult(item.id, 'notes', e.target.value)}
+                          className="mt-2 w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white"
+                          placeholder="Note what needs attention..." />
+                      )}
                     </div>
-                    {/* Result buttons */}
-                    <div className="flex gap-1.5 ml-8 mb-2">
-                      {RESULT_OPTIONS.map(opt => {
-                        const Icon = opt.icon
-                        return (
-                          <button key={opt.key} onClick={() => setItemResult(item.id, 'result', opt.key)}
-                            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border text-xs font-medium transition-all ${itemResult.result === opt.key ? opt.color + ' ring-2 ring-offset-1 ring-slate-400' : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}>
-                            <Icon size={10} /> {opt.label}
-                          </button>
-                        )
-                      })}
-                    </div>
-                    {/* Notes (show when not pass) */}
-                    {itemResult.result !== 'pass' && itemResult.result !== 'na' && (
-                      <input value={itemResult.notes || ''} onChange={e => setItemResult(item.id, 'notes', e.target.value)}
-                        className="w-full ml-8 px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white"
-                        placeholder="Describe the issue or corrective action needed..." />
-                    )}
-                  </div>
-                )
-              })}
+                  )
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Overall notes */}
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Overall Notes / Inspector Comments</label>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Overall Notes</label>
             <textarea value={form.overall_notes} onChange={e => set('overall_notes', e.target.value)} rows={3}
               className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
-              placeholder="General observations, conditions noted, corrective actions planned..." />
+              placeholder="Summary observations, corrective actions taken..." />
           </div>
 
-          {/* File upload */}
+          {/* Report upload */}
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Attach Report / Documentation</label>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Attach Report <span className="font-normal text-slate-400">(optional)</span></label>
             {reportUrl ? (
               <div className="flex items-center gap-3 px-4 py-3 bg-green-50 border border-green-200 rounded-xl">
                 <FileText size={16} className="text-green-600 flex-shrink-0" />
@@ -261,7 +448,7 @@ function InspectionModal({ category, orgId, profile, onClose, onSaved }) {
         </div>
 
         <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between flex-shrink-0">
-          <p className="text-xs text-slate-400">* Required items</p>
+          <p className="text-xs text-slate-400">* Required fields</p>
           <div className="flex gap-3">
             <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
             <button onClick={handleSave} disabled={saving}
@@ -319,7 +506,7 @@ function InspectionHistory({ category, orgId, onClose }) {
           ) : inspections.length === 0 ? (
             <div className="text-center py-10 text-slate-400 text-sm">No inspections recorded yet.</div>
           ) : inspections.map(insp => {
-            const s    = STATUS_CONFIG[insp.status] || STATUS_CONFIG.pending
+            const s = STATUS_CONFIG[insp.status] || STATUS_CONFIG.pending
             const Icon = s.icon
             const isExpanded = expandId === insp.id
             return (
@@ -335,43 +522,36 @@ function InspectionHistory({ category, orgId, onClose }) {
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.bg} ${s.color}`}>{s.label}</span>
                     </div>
                     <div className="text-xs text-slate-400 mt-0.5">
-                      Inspector: {insp.inspector_name || (insp.profiles ? `${insp.profiles.first_name} ${insp.profiles.last_name}` : 'Unknown')}
-                      {insp.next_due_date && ` · Next due: ${fmt(insp.next_due_date)}`}
+                      Inspector: {insp.inspector_name || (insp.profiles ? `${insp.profiles.first_name} ${insp.profiles.last_name}` : '—')}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    {insp.report_url && (
-                      <a href={insp.report_url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
-                        className="p-1.5 text-brand-500 hover:text-brand-700 rounded-lg hover:bg-brand-50 transition-colors">
-                        <FileText size={14} />
-                      </a>
-                    )}
-                    {isExpanded ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
-                  </div>
+                  {insp.report_url && (
+                    <a href={insp.report_url} target="_blank" rel="noopener noreferrer"
+                      onClick={e => e.stopPropagation()}
+                      className="flex items-center gap-1 text-xs text-brand-600 hover:text-brand-800 px-2 py-1 rounded-lg hover:bg-brand-50 transition-colors">
+                      <FileText size={12} /> Report
+                    </a>
+                  )}
+                  {isExpanded ? <ChevronUp size={16} className="text-slate-400 flex-shrink-0" /> : <ChevronDown size={16} className="text-slate-400 flex-shrink-0" />}
                 </button>
                 {isExpanded && (
-                  <div className="border-t border-slate-100 px-4 pb-4 pt-3">
-                    {insp.overall_notes && (
-                      <p className="text-sm text-slate-600 italic mb-3 bg-slate-50 px-3 py-2 rounded-lg">"{insp.overall_notes}"</p>
-                    )}
-                    <div className="space-y-1.5">
-                      {(itemResults[insp.id] || []).map(result => {
-                        const resultCfg = {
-                          pass:            { icon: Check,         color: 'text-green-600' },
-                          fail:            { icon: X,             color: 'text-red-600' },
-                          needs_attention: { icon: AlertTriangle, color: 'text-amber-600' },
-                          na:              { icon: Minus,         color: 'text-slate-400' },
-                        }[result.result] || { icon: Check, color: 'text-green-600' }
-                        const RIcon = resultCfg.icon
-                        return (
-                          <div key={result.id} className="flex items-start gap-2 text-xs">
-                            <RIcon size={12} className={`${resultCfg.color} flex-shrink-0 mt-0.5`} />
-                            <span className="text-slate-700 flex-1">{result.compliance_checklist_items?.item_label}</span>
+                  <div className="px-5 pb-4 border-t border-slate-100 pt-3">
+                    {insp.overall_notes && <p className="text-sm text-slate-600 mb-3 italic">{insp.overall_notes}</p>}
+                    {(itemResults[insp.id] || []).length > 0 && (
+                      <div className="space-y-1">
+                        {(itemResults[insp.id] || []).map(result => (
+                          <div key={result.id} className="flex items-center gap-2 text-xs">
+                            <span className={`w-12 text-center px-1.5 py-0.5 rounded-full font-medium flex-shrink-0
+                              ${result.result === 'pass' ? 'bg-green-100 text-green-700' :
+                                result.result === 'fail' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                              {result.result === 'needs_attention' ? 'Attn' : result.result}
+                            </span>
+                            <span className="text-slate-600">{result.compliance_checklist_items?.item_label}</span>
                             {result.notes && <span className="text-slate-400 italic">— {result.notes}</span>}
                           </div>
-                        )
-                      })}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -388,56 +568,80 @@ function InspectionHistory({ category, orgId, onClose }) {
 
 // ── Main Compliance Panel ──────────────────────────────────────
 export default function CompliancePanel({ orgId, profile }) {
-  const [categories, setCategories]     = useState([])
-  const [lastInspections, setLastInspections] = useState({}) // categoryId -> inspection
-  const [loading, setLoading]           = useState(true)
-  const [showInspect, setShowInspect]   = useState(null)   // category
-  const [showHistory, setShowHistory]   = useState(null)   // category
+  const [categories, setCategories]         = useState([])
+  const [lastInspections, setLastInspections] = useState({})
+  const [org, setOrg]                       = useState(null)
+  const [loading, setLoading]               = useState(true)
+  const [showInspect, setShowInspect]       = useState(null)
+  const [showHistory, setShowHistory]       = useState(null)
+  const [showAddCat, setShowAddCat]         = useState(false)
+  const [showStateInfo, setShowStateInfo]   = useState(false)
+  const [stateCode, setStateCode]           = useState('MO')
+  const [savingState, setSavingState]       = useState(false)
+  const [stateSaved, setStateSaved]         = useState(false)
 
   useEffect(() => { if (orgId) fetchAll() }, [orgId])
 
   async function fetchAll() {
     setLoading(true)
-    const { data: cats } = await supabase.from('compliance_categories')
-      .select('*').order('sort_order')
+    const [orgRes, catsRes, inspRes] = await Promise.all([
+      supabase.from('organizations').select('compliance_state, compliance_notes').eq('id', orgId).single(),
+      supabase.from('compliance_categories')
+        .select('*')
+        .or(`organization_id.is.null,organization_id.eq.${orgId}`)
+        .order('sort_order'),
+      supabase.from('compliance_inspections')
+        .select('*').eq('organization_id', orgId)
+        .order('inspection_date', { ascending: false }),
+    ])
 
-    // Get most recent inspection per category
-    const { data: inspections } = await supabase.from('compliance_inspections')
-      .select('*').eq('organization_id', orgId)
-      .order('inspection_date', { ascending: false })
+    const orgData = orgRes.data
+    setOrg(orgData)
+    setStateCode(orgData?.compliance_state || 'MO')
 
-    // Build last-inspection map
     const lastMap = {}
-    inspections?.forEach(i => {
-      if (!lastMap[i.category_id]) lastMap[i.category_id] = i
-    })
+    inspRes.data?.forEach(i => { if (!lastMap[i.category_id]) lastMap[i.category_id] = i })
 
-    setCategories(cats || [])
+    setCategories(catsRes.data || [])
     setLastInspections(lastMap)
     setLoading(false)
   }
 
-  // Overall compliance score
+  const handleSaveState = async () => {
+    setSavingState(true)
+    await supabase.from('organizations').update({ compliance_state: stateCode }).eq('id', orgId)
+    setSavingState(false); setStateSaved(true)
+    setTimeout(() => setStateSaved(false), 2000)
+    fetchAll()
+  }
+
+  const handleDeleteCustom = async (cat) => {
+    if (!confirm(`Remove "${cat.label}" from your compliance list?`)) return
+    await supabase.from('compliance_categories').update({ is_custom: false }).eq('id', cat.id)
+    // Soft-delete by marking inactive for this org
+    await supabase.from('compliance_categories').delete().eq('id', cat.id)
+    fetchAll()
+  }
+
+  const stateRef = STATE_REFS[stateCode] || STATE_REFS.OTHER
+
+  // Stats
   const totalCats     = categories.length
   const compliantCats = categories.filter(c => {
     const last = lastInspections[c.id]
-    if (!last) return false
-    if (['fail'].includes(last.status)) return false
+    if (!last || last.status === 'fail') return false
     if (!last.next_due_date) return true
     return daysUntil(last.next_due_date) > 0
   }).length
-
   const overdueCats = categories.filter(c => {
     const last = lastInspections[c.id]
     if (!last) return true
     if (!last.next_due_date) return false
     return daysUntil(last.next_due_date) < 0
   }).length
-
   const dueSoonCats = categories.filter(c => {
     const last = lastInspections[c.id]
-    if (!last) return false
-    if (!last.next_due_date) return false
+    if (!last || !last.next_due_date) return false
     const d = daysUntil(last.next_due_date)
     return d >= 0 && d <= 30
   }).length
@@ -446,12 +650,12 @@ export default function CompliancePanel({ orgId, profile }) {
 
   return (
     <div>
-      {/* Compliance Score */}
-      <div className="grid grid-cols-4 gap-3 mb-6">
+      {/* Stats */}
+      <div className="grid grid-cols-4 gap-3 mb-5">
         {[
-          { label: 'Compliant',   value: compliantCats, color: 'text-green-600',  bg: 'bg-green-50' },
-          { label: 'Due Soon',    value: dueSoonCats,   color: dueSoonCats > 0 ? 'text-amber-600' : 'text-slate-400', bg: dueSoonCats > 0 ? 'bg-amber-50' : 'bg-slate-100' },
-          { label: 'Overdue',     value: overdueCats,   color: overdueCats > 0 ? 'text-red-600' : 'text-slate-400',   bg: overdueCats > 0 ? 'bg-red-50' : 'bg-slate-100', alert: overdueCats > 0 },
+          { label: 'Compliant',   value: compliantCats,                               color: 'text-green-600',  bg: 'bg-green-50' },
+          { label: 'Due Soon',    value: dueSoonCats,   color: dueSoonCats > 0   ? 'text-amber-600' : 'text-slate-400', bg: dueSoonCats > 0   ? 'bg-amber-50'  : 'bg-slate-100' },
+          { label: 'Overdue',     value: overdueCats,   color: overdueCats > 0   ? 'text-red-600'   : 'text-slate-400', bg: overdueCats > 0   ? 'bg-red-50'    : 'bg-slate-100', alert: overdueCats > 0 },
           { label: 'Not Started', value: totalCats - compliantCats - dueSoonCats - overdueCats, color: 'text-slate-400', bg: 'bg-slate-100' },
         ].map(s => (
           <div key={s.label} className={`${s.bg} rounded-2xl p-4 ${s.alert ? 'ring-2 ring-red-300' : ''}`}>
@@ -461,12 +665,48 @@ export default function CompliancePanel({ orgId, profile }) {
         ))}
       </div>
 
-      {/* Authority reference */}
-      <div className="mb-5 p-4 bg-blue-50 border border-blue-200 rounded-2xl flex items-start gap-3">
-        <Info size={16} className="text-blue-600 flex-shrink-0 mt-0.5" />
-        <div className="text-xs text-blue-800">
-          <span className="font-semibold">Missouri Nursing Home Compliance Reference:</span> Inspections follow NFPA 101 Life Safety Code (2012 edition), Missouri DHSS §19 CSR 30-85, NFPA 10/25/72/110, CMS Conditions of Participation, and Missouri DOLIR elevator regulations. Maintain all completed inspection records for a minimum of 3 years.
+      {/* State selector + reference banner */}
+      <div className="mb-5 bg-blue-50 border border-blue-200 rounded-2xl overflow-hidden">
+        <div className="flex items-center gap-3 px-4 py-3">
+          <Globe size={16} className="text-blue-600 flex-shrink-0" />
+          <div className="flex-1 flex items-center gap-2 flex-wrap">
+            <span className="text-xs font-semibold text-blue-800">Compliance State:</span>
+            <select
+              value={stateCode}
+              onChange={e => setStateCode(e.target.value)}
+              className="px-2 py-1 border border-blue-300 rounded-lg text-xs font-medium text-blue-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
+              {ALL_STATES.map(s => <option key={s.code} value={s.code}>{s.label}</option>)}
+            </select>
+            <button
+              onClick={handleSaveState}
+              disabled={savingState || stateCode === org?.compliance_state}
+              className="flex items-center gap-1 px-2.5 py-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white text-xs font-medium rounded-lg transition-colors">
+              {stateSaved ? <><Check size={11} /> Saved</> : <><Save size={11} /> Save</>}
+            </button>
+          </div>
+          <button onClick={() => setShowStateInfo(s => !s)} className="text-blue-600 hover:text-blue-800 flex-shrink-0">
+            {showStateInfo ? <ChevronUp size={16} /> : <Info size={16} />}
+          </button>
         </div>
+        {showStateInfo && (
+          <div className="px-4 pb-4 border-t border-blue-200 pt-3">
+            <p className="text-xs text-blue-800 leading-relaxed"><span className="font-semibold">{stateRef.label} Reference:</span> {stateRef.summary}</p>
+            <p className="text-xs text-blue-700 mt-1.5 italic">{stateRef.retention}</p>
+          </div>
+        )}
+      </div>
+
+      {/* Add custom + section header */}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-display font-semibold text-slate-800 flex items-center gap-2">
+          <ShieldCheck size={18} className="text-brand-600" /> Inspection Categories
+          <span className="text-sm font-normal text-slate-400">({totalCats} total)</span>
+        </h2>
+        <button
+          onClick={() => setShowAddCat(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 border border-brand-300 text-brand-600 hover:bg-brand-50 rounded-xl text-xs font-medium transition-colors">
+          <Plus size={13} /> Add Custom Inspection
+        </button>
       </div>
 
       {/* Category cards */}
@@ -489,53 +729,58 @@ export default function CompliancePanel({ orgId, profile }) {
             urgencyBadge = { label: `Due in ${days}d`, color: 'bg-amber-100 text-amber-700' }
           }
 
+          const cardBorder = urgencyBadge && (days === null || days < 0)
+            ? 'border-red-200' : urgencyBadge && days <= 7
+            ? 'border-red-200' : urgencyBadge && days <= 30
+            ? 'border-amber-200' : 'border-slate-100'
+
           return (
-            <div key={cat.id} className={`bg-white rounded-2xl border shadow-sm overflow-hidden hover:shadow-md transition-all ${
-              urgencyBadge && (days === null || days < 0) ? 'border-red-200' :
-              urgencyBadge && days <= 7 ? 'border-red-200' :
-              urgencyBadge && days <= 30 ? 'border-amber-200' :
-              'border-slate-100'}`}>
-              <div className="flex items-center gap-4 p-4">
-                {/* Color indicator */}
-                <div className="w-1 self-stretch rounded-full flex-shrink-0" style={{ background: cat.color }} />
-
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <span className="font-display font-semibold text-slate-800">{cat.label}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${freq.color}`}>{freq.label}</span>
-                    {urgencyBadge && (
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${urgencyBadge.color}`}>{urgencyBadge.label}</span>
-                    )}
-                    {status && (
-                      <span className={`flex items-center gap-1 text-xs font-medium ${status.color}`}>
-                        <StatusIcon size={11} /> {status.label}
-                      </span>
-                    )}
+            <div key={cat.id} className={`bg-white rounded-2xl border shadow-sm overflow-hidden hover:shadow-md transition-all ${cardBorder}`}>
+              <div className="p-5">
+                <div className="flex items-start gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <h3 className="font-display font-semibold text-slate-800">{cat.label}</h3>
+                      {cat.is_custom && (
+                        <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full font-medium">Custom</span>
+                      )}
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${freq.color}`}>{freq.label}</span>
+                      {urgencyBadge && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${urgencyBadge.color}`}>{urgencyBadge.label}</span>
+                      )}
+                    </div>
+                    {cat.description && <p className="text-xs text-slate-500 mb-2">{cat.description}</p>}
+                    <div className="flex items-center gap-3 flex-wrap text-xs text-slate-400">
+                      {cat.authority_ref && <span className="font-mono bg-slate-50 px-1.5 py-0.5 rounded">{cat.authority_ref}</span>}
+                      {last && (
+                        <>
+                          {status && StatusIcon && (
+                            <span className={`flex items-center gap-1 ${status.color}`}>
+                              <StatusIcon size={11} /> {status.label}
+                            </span>
+                          )}
+                          <span>Last: {fmt(last.inspection_date)}</span>
+                          {last.next_due_date && <span>Next: {fmt(last.next_due_date)}</span>}
+                        </>
+                      )}
+                    </div>
                   </div>
-                  <p className="text-xs text-slate-400 truncate">{cat.description}</p>
-                  <div className="flex items-center gap-3 mt-1 text-xs text-slate-400">
-                    <span className="font-medium text-slate-500">{cat.authority}</span>
-                    {last && (
-                      <>
-                        <span>Last: {fmt(last.inspection_date)}</span>
-                        {last.next_due_date && <span>Next due: {fmt(last.next_due_date)}</span>}
-                        {last.inspector_name && <span>by {last.inspector_name}</span>}
-                      </>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {cat.is_custom && (
+                      <button onClick={() => handleDeleteCustom(cat)}
+                        className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg transition-colors" title="Remove">
+                        <Trash2 size={14} />
+                      </button>
                     )}
+                    <button onClick={() => setShowHistory(cat)}
+                      className="px-3 py-1.5 border border-slate-200 text-slate-600 hover:border-slate-300 rounded-xl text-xs font-medium transition-colors">
+                      History
+                    </button>
+                    <button onClick={() => setShowInspect(cat)}
+                      className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-medium transition-colors">
+                      Inspect
+                    </button>
                   </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-2 flex-shrink-0">
-                  <button onClick={() => setShowHistory(cat)}
-                    className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600 transition-colors">
-                    <Eye size={12} /> History
-                  </button>
-                  <button onClick={() => setShowInspect(cat)}
-                    className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-medium transition-colors">
-                    <ClipboardCheck size={12} /> Conduct
-                  </button>
                 </div>
               </div>
             </div>
@@ -543,19 +788,15 @@ export default function CompliancePanel({ orgId, profile }) {
         })}
       </div>
 
+      {/* Modals */}
+      {showAddCat && (
+        <AddCategoryModal orgId={orgId} onClose={() => setShowAddCat(false)} onSaved={() => { setShowAddCat(false); fetchAll() }} />
+      )}
       {showInspect && (
-        <InspectionModal
-          category={showInspect}
-          orgId={orgId}
-          profile={profile}
-          onClose={() => setShowInspect(null)}
-          onSaved={() => { setShowInspect(null); fetchAll() }} />
+        <InspectionModal category={showInspect} orgId={orgId} profile={profile} onClose={() => setShowInspect(null)} onSaved={() => { setShowInspect(null); fetchAll() }} />
       )}
       {showHistory && (
-        <InspectionHistory
-          category={showHistory}
-          orgId={orgId}
-          onClose={() => setShowHistory(null)} />
+        <InspectionHistory category={showHistory} orgId={orgId} onClose={() => setShowHistory(null)} />
       )}
     </div>
   )
