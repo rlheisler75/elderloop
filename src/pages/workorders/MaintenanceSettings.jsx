@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
-import { Save, Check, AlertTriangle, Users, Clock } from 'lucide-react'
+import { Save, Check, AlertTriangle, Users, Clock, MapPin } from 'lucide-react'
+import LocationManager from '../../components/ui/LocationManager'
 
 const PRIORITIES = [
   { key: 'urgent', label: 'Urgent', color: 'text-red-600', desc: 'Safety hazard, resident at risk' },
@@ -31,6 +32,7 @@ export default function MaintenanceSettings({ orgId, profile }) {
   const [saving, setSaving]           = useState(false)
   const [saved, setSaved]             = useState(false)
   const [loading, setLoading]         = useState(true)
+  const [settingsTab, setSettingsTab] = useState('sla')
 
   useEffect(() => { if (orgId) fetchAll() }, [orgId])
 
@@ -101,8 +103,35 @@ export default function MaintenanceSettings({ orgId, profile }) {
   if (loading) return <div className="text-center py-10 text-slate-400 text-sm">Loading settings...</div>
 
   return (
-    <div className="max-w-3xl space-y-8">
+    <div className="max-w-3xl">
+      {/* Settings sub-tabs */}
+      <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mb-6 w-fit">
+        {[
+          { key: 'sla',       label: 'SLA Rules',        icon: Clock },
+          { key: 'assign',    label: 'Auto-Assignment',   icon: Users },
+          { key: 'locations', label: 'Locations',         icon: MapPin },
+        ].map(t => {
+          const Icon = t.icon
+          return (
+            <button key={t.key} onClick={() => setSettingsTab(t.key)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${settingsTab === t.key ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+              <Icon size={14} /> {t.label}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Locations tab */}
+      {settingsTab === 'locations' && (
+        <LocationManager orgId={orgId} />
+      )}
+
+      {/* SLA + Auto-assign tabs */}
+      {settingsTab !== 'locations' && (
+      <div className="space-y-8">
+
       {/* SLA Rules */}
+      {settingsTab === 'sla' && (
       <div>
         <div className="mb-4">
           <h2 className="font-display font-semibold text-slate-800 flex items-center gap-2">
@@ -144,8 +173,10 @@ export default function MaintenanceSettings({ orgId, profile }) {
           })}
         </div>
       </div>
+      )}
 
       {/* Auto-assign rules */}
+      {settingsTab === 'assign' && (
       <div>
         <div className="mb-4">
           <h2 className="font-display font-semibold text-slate-800 flex items-center gap-2">
@@ -173,11 +204,15 @@ export default function MaintenanceSettings({ orgId, profile }) {
           })}
         </div>
       </div>
+      )}
 
       <button onClick={handleSave} disabled={saving}
         className="flex items-center gap-2 px-6 py-2.5 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white font-medium rounded-xl transition-colors">
         {saved ? <><Check size={16} /> Saved!</> : saving ? 'Saving...' : <><Save size={16} /> Save Settings</>}
       </button>
+
+      </div>
+      )}
     </div>
   )
 }

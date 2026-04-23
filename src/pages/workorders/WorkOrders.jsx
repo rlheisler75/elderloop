@@ -12,6 +12,7 @@ import CompliancePanel from './Compliance'
 import WorkOrderAssets from './WorkOrderAssets'
 import PMSchedules from './PMSchedules'
 import MaintenanceSettings from './MaintenanceSettings'
+import LocationPicker from '../../components/ui/LocationPicker'
 
 const STATUSES = [
   { key: 'open',             label: 'Open',             color: 'bg-blue-50 text-blue-700 border-blue-200',     dot: 'bg-blue-500' },
@@ -52,7 +53,9 @@ const getPriority = (key) => PRIORITIES.find(p => p.key === key) || PRIORITIES[1
 
 const EMPTY_FORM = {
   title: '', description: '', category: 'other', priority: 'normal',
-  unit: '', building: '', location_detail: '', resident_id: '',
+  unit: '', building: '', location_detail: '',
+  location_id: null, location_path: '',
+  resident_id: '',
   assigned_to: '', due_date: '', notes: '',
   vendor_name: '', vendor_phone: '', vendor_eta: '',
   is_recurring: false, recur_type: 'interval',
@@ -89,10 +92,12 @@ function WORow({ wo, onClick }) {
         </div>
       </td>
       <td className="px-4 py-3 text-sm text-slate-600">
-        {wo.unit ? (
+        {(wo.location_path || wo.unit || wo.building) ? (
           <div className="flex items-center gap-1 text-xs">
-            <MapPin size={12} className="text-slate-400" />
-            {wo.building ? `${wo.building} · ` : ''}{wo.unit}
+            <MapPin size={12} className="text-slate-400 flex-shrink-0" />
+            <span className="truncate max-w-[160px]">
+              {wo.location_path || [wo.building, wo.unit].filter(Boolean).join(' · ')}
+            </span>
           </div>
         ) : <span className="text-slate-300">—</span>}
         {wo.residents && (
@@ -123,6 +128,37 @@ function WORow({ wo, onClick }) {
   )
 }
 
+// ── Location Picker Button ────────────────────────────────────
+function LocationPickerButton({ value, onChange }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className={`w-full flex items-center gap-2 px-3 py-2.5 border rounded-lg text-sm transition-all text-left
+          ${value ? 'border-brand-300 bg-brand-50 text-brand-800' : 'border-slate-200 text-slate-400 hover:border-brand-400 hover:text-slate-600'}`}>
+        <MapPin size={14} className={value ? 'text-brand-500 flex-shrink-0' : 'text-slate-400 flex-shrink-0'} />
+        <span className="flex-1 truncate">{value?.path || 'Select location...'}</span>
+        {value && (
+          <button type="button"
+            onClick={e => { e.stopPropagation(); onChange(null) }}
+            className="text-slate-400 hover:text-red-500 flex-shrink-0 ml-1">
+            <X size={13} />
+          </button>
+        )}
+      </button>
+      {open && (
+        <LocationPicker
+          value={value}
+          onChange={onChange}
+          onClose={() => setOpen(false)}
+        />
+      )}
+    </>
+  )
+}
+
 // ── Work Order Detail Modal ───────────────────────────────────
 function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClose, canAssign }) {
   const { profile } = useAuth()
@@ -133,6 +169,8 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
     priority: wo.priority, status: wo.status,
     unit: wo.unit || '', building: wo.building || '',
     location_detail: wo.location_detail || '',
+    location_id: wo.location_id || null,
+    location_path: wo.location_path || '',
     resident_id: wo.resident_id || '',
     assigned_to: wo.assigned_to || '',
     due_date: wo.due_date || '',
@@ -257,6 +295,8 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
       category: form.category, priority: form.priority,
       unit: form.unit || null, building: form.building || null,
       location_detail: form.location_detail || null,
+      location_id: form.location_id || null,
+      location_path: form.location_path || null,
       resident_id: form.resident_id || null,
       assigned_to: assignedTo,
       due_date: form.due_date || null,
@@ -414,21 +454,18 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Location</label>
               {editing ? (
-                <div className="grid grid-cols-3 gap-2">
-                  <input value={form.building} onChange={e => set('building', e.target.value)}
-                    className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-                    placeholder="Building" />
-                  <input value={form.unit} onChange={e => set('unit', e.target.value)}
-                    className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-                    placeholder="Unit / Room" />
-                  <input value={form.location_detail} onChange={e => set('location_detail', e.target.value)}
-                    className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-                    placeholder="e.g. Bathroom" />
-                </div>
+                <LocationPickerButton
+                  value={form.location_id ? { id: form.location_id, path: form.location_path } : null}
+                  onChange={loc => setForm(f => ({
+                    ...f,
+                    location_id:   loc?.id   || null,
+                    location_path: loc?.path || '',
+                  }))}
+                />
               ) : (
                 <p className="text-sm text-slate-700 flex items-center gap-1.5">
                   <MapPin size={14} className="text-slate-400" />
-                  {[wo.building, wo.unit, wo.location_detail].filter(Boolean).join(' · ') || '—'}
+                  {form.location_path || [wo.building, wo.unit, wo.location_detail].filter(Boolean).join(' · ') || '—'}
                 </p>
               )}
             </div>
@@ -702,10 +739,10 @@ export default function WorkOrders() {
   const [sortBy, setSortBy]           = useState('created_at')
   const [mainView, setMainView]       = useState('work_orders') // 'work_orders' | 'compliance'
 
-  const canCreate  = profile && ['super_admin','org_admin','supervisor','manager','maintenance','staff','dietary','housekeeping'].includes(profile.role)
-  const canEdit    = profile && ['super_admin','org_admin','supervisor','manager','maintenance'].includes(profile.role)
-  const canAssign  = profile && ['super_admin','org_admin','supervisor','manager'].includes(profile.role)
-  const canClose   = profile && ['super_admin','org_admin','supervisor','manager','maintenance'].includes(profile.role)
+  const canCreate  = profile && ['super_admin','org_admin','ceo','supervisor','manager','maintenance','staff','dietary','housekeeping'].includes(profile.role)
+  const canEdit    = profile && ['super_admin','org_admin','ceo','supervisor','manager','maintenance'].includes(profile.role)
+  const canAssign  = profile && ['super_admin','org_admin','ceo','supervisor','manager'].includes(profile.role)
+  const canClose   = profile && ['super_admin','org_admin','ceo','supervisor','manager','maintenance'].includes(profile.role)
 
   useEffect(() => { if (organization) { fetchAll() } }, [organization])
 
