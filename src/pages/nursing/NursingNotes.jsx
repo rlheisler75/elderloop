@@ -834,14 +834,14 @@ function ResidentPanel({ resident, orgId, profile, canEdit }) {
 
 // ── Main Nursing Notes Page ────────────────────────────────────
 export default function NursingNotes() {
-  const { profile, organization, canEdit } = useAuth()
+  const { profile, organization } = useAuth()
   const [residents, setResidents]     = useState([])
   const [selected, setSelected]       = useState(null)
   const [search, setSearch]           = useState('')
   const [loading, setLoading]         = useState(true)
   const [todayStats, setTodayStats]   = useState({ vitalsToday: 0, notesToday: 0, flagged: 0 })
 
-  const canEditNursing = canEdit('nursing') ||
+  const canEditNursing =
     ['org_admin','ceo','super_admin','supervisor','manager','nursing'].includes(profile?.role)
 
   useEffect(() => { if (organization) fetchAll() }, [organization])
