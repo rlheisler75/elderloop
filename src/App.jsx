@@ -3,11 +3,13 @@ import { Suspense, lazy } from 'react'
 import { useAuth } from './context/AuthContext'
 import Layout from './components/layout/Layout'
 
+
 // Landing
 import LandingPage from './pages/landing/LandingPage'
 
 // Auth
 import Login from './pages/auth/Login'
+import Signup from './pages/auth/Signup'
 
 // Dashboard & Admin
 import Dashboard  from './pages/dashboard/Dashboard'
@@ -91,6 +93,7 @@ export default function App() {
       <Route path="/"         element={<LandingPage />} />
       <Route path="/tv/:slug" element={<TV />} />
       <Route path="/signage"  element={<Signage />} />
+      <Route path="/signup" element={user ? <Navigate to="/app/dashboard" replace /> : <Signup />} />
 
       {/* ── Auth ── */}
       <Route path="/login" element={user ? <Navigate to="/app/dashboard" replace /> : <Login />} />
