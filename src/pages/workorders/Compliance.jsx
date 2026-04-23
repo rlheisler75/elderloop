@@ -3,8 +3,9 @@ import { supabase } from '../../lib/supabase'
 import {
   ShieldCheck, CheckCircle2, XCircle, AlertTriangle, Clock,
   ClipboardCheck, FileText, Eye, Upload, X, Plus, Info,
-  ChevronDown, ChevronUp, Edit2, Trash2, Check, Globe, Save
+  ChevronDown, ChevronUp, Edit2, Trash2, Check, Globe, Save, Printer
 } from 'lucide-react'
+import CompliancePrintReport from './CompliancePrintReport'
 
 // ── State compliance references ───────────────────────────────
 const STATE_REFS = {
@@ -576,6 +577,7 @@ export default function CompliancePanel({ orgId, profile }) {
   const [showHistory, setShowHistory]       = useState(null)
   const [showAddCat, setShowAddCat]         = useState(false)
   const [showStateInfo, setShowStateInfo]   = useState(false)
+  const [showPrint, setShowPrint]           = useState(false)
   const [stateCode, setStateCode]           = useState('MO')
   const [savingState, setSavingState]       = useState(false)
   const [stateSaved, setStateSaved]         = useState(false)
@@ -585,7 +587,7 @@ export default function CompliancePanel({ orgId, profile }) {
   async function fetchAll() {
     setLoading(true)
     const [orgRes, inspRes] = await Promise.all([
-      supabase.from('organizations').select('compliance_state, compliance_notes').eq('id', orgId).single(),
+      supabase.from('organizations').select('name, compliance_state, compliance_notes').eq('id', orgId).single(),
       supabase.from('compliance_inspections')
         .select('*').eq('organization_id', orgId)
         .order('inspection_date', { ascending: false }),
@@ -718,11 +720,18 @@ export default function CompliancePanel({ orgId, profile }) {
           <ShieldCheck size={18} className="text-brand-600" /> Inspection Categories
           <span className="text-sm font-normal text-slate-400">({totalCats} total)</span>
         </h2>
-        <button
-          onClick={() => setShowAddCat(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 border border-brand-300 text-brand-600 hover:bg-brand-50 rounded-xl text-xs font-medium transition-colors">
-          <Plus size={13} /> Add Custom Inspection
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowPrint(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-300 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-medium transition-colors">
+            <Printer size={13} /> Print for Surveyor
+          </button>
+          <button
+            onClick={() => setShowAddCat(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 border border-brand-300 text-brand-600 hover:bg-brand-50 rounded-xl text-xs font-medium transition-colors">
+            <Plus size={13} /> Add Custom Inspection
+          </button>
+        </div>
       </div>
 
       {/* Category cards */}
@@ -805,6 +814,16 @@ export default function CompliancePanel({ orgId, profile }) {
       </div>
 
       {/* Modals */}
+      {showPrint && (
+        <CompliancePrintReport
+          orgId={orgId}
+          orgName={org?.name || 'Senior Living Community'}
+          stateCode={stateCode}
+          stateRef={STATE_REFS[stateCode] || STATE_REFS.OTHER}
+          categories={categories}
+          onClose={() => setShowPrint(false)}
+        />
+      )}
       {showAddCat && (
         <AddCategoryModal orgId={orgId} onClose={() => setShowAddCat(false)} onSaved={() => { setShowAddCat(false); fetchCategories(stateCode) }} />
       )}
