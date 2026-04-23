@@ -42,7 +42,7 @@ const relativeTime = (ts) => {
 
 // ── Message Thread ─────────────────────────────────────────────
 function MessageThread({ thread, profile, onReply, onClose }) {
-  const [reply, setReply]   = useState('')
+  const [reply, setReply]     = useState('')
   const [sending, setSending] = useState(false)
   const bottomRef = useRef()
 
@@ -237,23 +237,41 @@ function NewMessageModal({ resident, orgId, profile, onClose, onSent }) {
 
 // ── Main Family Portal ─────────────────────────────────────────
 export default function FamilyPortal() {
-  const { profile, organization, signOut } = useAuth()
+  const { profile, organization, hasModule, signOut } = useAuth()
   const navigate = useNavigate()
-  const [residents, setResidents]     = useState([])  // linked residents
+  const [residents, setResidents]               = useState([])
   const [selectedResident, setSelectedResident] = useState(null)
-  const [updates, setUpdates]         = useState([])
-  const [messages, setMessages]       = useState([])
-  const [announcements, setAnnouncements] = useState([])
-  const [activities, setActivities]   = useState([])
-  const [threads, setThreads]         = useState([])  // grouped messages
-  const [activeThread, setActiveThread] = useState(null)
-  const [loading, setLoading]         = useState(true)
-  const [tab, setTab]                 = useState('updates')
-  const [showNewMsg, setShowNewMsg]   = useState(false)
-  const [unreadCount, setUnreadCount] = useState(0)
+  const [updates, setUpdates]                   = useState([])
+  const [announcements, setAnnouncements]       = useState([])
+  const [activities, setActivities]             = useState([])
+  const [threads, setThreads]                   = useState([])
+  const [activeThread, setActiveThread]         = useState(null)
+  const [loading, setLoading]                   = useState(true)
+  const [tab, setTab]                           = useState('updates')
+  const [showNewMsg, setShowNewMsg]             = useState(false)
+  const [unreadCount, setUnreadCount]           = useState(0)
+
+  // Module flags — controls what tabs appear and what data is fetched
+  const showActivities    = hasModule('activities')
+  const showAnnouncements = true // Always shown — org-wide communication
+  // Messages (family portal) is always available if the family module is enabled
+  // Updates are always shown — core family portal feature
+
+  // Build visible tabs dynamically based on enabled modules
+  const visibleTabs = [
+    { key: 'updates',       label: 'Updates',    badge: updates.length },
+    { key: 'messages',      label: 'Messages',   badge: unreadCount },
+    ...(showActivities    ? [{ key: 'activities',    label: 'Activities',  badge: null }] : []),
+    ...(showAnnouncements ? [{ key: 'announcements', label: 'Notices',     badge: null }] : []),
+  ]
 
   useEffect(() => { if (profile?.id) fetchLinkedResidents() }, [profile?.id])
   useEffect(() => { if (selectedResident) fetchResidentData() }, [selectedResident])
+
+  // Reset tab to 'updates' if current tab becomes hidden due to module state
+  useEffect(() => {
+    if (!visibleTabs.find(t => t.key === tab)) setTab('updates')
+  }, [showActivities, showAnnouncements])
 
   async function fetchLinkedResidents() {
     const { data: links, error } = await supabase
@@ -269,42 +287,54 @@ export default function FamilyPortal() {
 
   async function fetchResidentData() {
     setLoading(true)
-    const now     = new Date().toISOString()
+    const now      = new Date().toISOString()
     const todayStr = new Date().toISOString().split('T')[0]
     const nextWeek = new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0]
+    const orgId    = organization?.id || profile?.organization_id
 
-    const [updatesRes, msgsRes, annRes, actRes] = await Promise.all([
+    const queries = [
+      // Always fetch updates and messages
       supabase.from('resident_updates').select('*, profiles(first_name,last_name,role)')
         .eq('resident_id', selectedResident.id)
         .eq('is_family_visible', true).eq('is_active', true)
         .order('created_at', { ascending: false }).limit(30),
       supabase.from('messages').select('*')
-        .eq('organization_id', organization?.id || profile?.organization_id)
+        .eq('organization_id', orgId)
         .eq('resident_id', selectedResident.id)
         .eq('is_active', true)
         .order('created_at'),
-      supabase.from('announcements').select('*')
-        .eq('organization_id', organization?.id || profile?.organization_id)
-        .eq('is_active', true)
-        .lte('starts_at', now)
-        .or(`expires_at.is.null,expires_at.gte.${now}`)
-        .order('pinned', { ascending: false })
-        .order('starts_at', { ascending: false }).limit(5),
-      supabase.from('activities').select('*')
-        .eq('organization_id', organization?.id || profile?.organization_id)
-        .eq('is_active', true)
-        .eq('show_on_portal', true)
-        .gte('start_date', todayStr)
-        .lte('start_date', nextWeek)
-        .order('start_date').order('start_time').limit(10),
-    ])
+    ]
 
-    setUpdates(updatesRes.data || [])
-    setAnnouncements(annRes.data || [])
-    setActivities(actRes.data || [])
+    if (showAnnouncements) {
+      queries.push(
+        supabase.from('announcements').select('*')
+          .eq('organization_id', orgId)
+          .eq('is_active', true)
+          .lte('starts_at', now)
+          .or(`expires_at.is.null,expires_at.gte.${now}`)
+          .order('pinned', { ascending: false })
+          .order('starts_at', { ascending: false }).limit(5)
+      )
+    }
 
-    // Group messages into threads
-    const msgList = msgsRes.data || []
+    if (showActivities) {
+      queries.push(
+        supabase.from('activities').select('*')
+          .eq('organization_id', orgId)
+          .eq('is_active', true)
+          .eq('show_on_portal', true)
+          .gte('start_date', todayStr)
+          .lte('start_date', nextWeek)
+          .order('start_date').order('start_time').limit(10)
+      )
+    }
+
+    const results = await Promise.all(queries)
+
+    // results[0] = updates, results[1] = messages (always)
+    setUpdates(results[0].data || [])
+
+    const msgList = results[1].data || []
     const threadMap = {}
     msgList.forEach(m => {
       const tid = m.thread_id || m.id
@@ -315,10 +345,12 @@ export default function FamilyPortal() {
       new Date(b[b.length-1].created_at) - new Date(a[a.length-1].created_at)
     )
     setThreads(threadList)
-
-    // Count unread (staff replied but family hasn't read)
     const unread = msgList.filter(m => m.sender_type === 'staff' && !m.is_read_by_family).length
     setUnreadCount(unread)
+
+    let idx = 2
+    if (showAnnouncements) { setAnnouncements(results[idx]?.data || []); idx++ }
+    if (showActivities)    { setActivities(results[idx]?.data || []);    idx++ }
 
     setLoading(false)
   }
@@ -454,14 +486,9 @@ export default function FamilyPortal() {
           </div>
         )}
 
-        {/* Tab bar */}
+        {/* Tab bar — only renders tabs for enabled modules */}
         <div className="flex gap-1 bg-slate-100 p-1 rounded-2xl mb-5">
-          {[
-            { key: 'updates',       label: 'Updates',      badge: updates.length },
-            { key: 'messages',      label: 'Messages',     badge: unreadCount },
-            { key: 'activities',    label: 'Activities',   badge: null },
-            { key: 'announcements', label: 'Notices',      badge: null },
-          ].map(t => (
+          {visibleTabs.map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
               className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all relative ${tab === t.key ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500'}`}>
               {t.label}
@@ -578,8 +605,8 @@ export default function FamilyPortal() {
               </div>
             )}
 
-            {/* ── ACTIVITIES TAB ── */}
-            {tab === 'activities' && (
+            {/* ── ACTIVITIES TAB — only rendered if module is enabled ── */}
+            {tab === 'activities' && showActivities && (
               <div className="space-y-3">
                 {activities.length === 0 ? (
                   <div className="text-center py-12 text-slate-400">
@@ -612,7 +639,7 @@ export default function FamilyPortal() {
             )}
 
             {/* ── ANNOUNCEMENTS TAB ── */}
-            {tab === 'announcements' && (
+            {tab === 'announcements' && showAnnouncements && (
               <div className="space-y-3">
                 {announcements.length === 0 ? (
                   <div className="text-center py-12 text-slate-400">
