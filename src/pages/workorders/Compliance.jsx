@@ -584,12 +584,8 @@ export default function CompliancePanel({ orgId, profile }) {
 
   async function fetchAll() {
     setLoading(true)
-    const [orgRes, catsRes, inspRes] = await Promise.all([
+    const [orgRes, inspRes] = await Promise.all([
       supabase.from('organizations').select('compliance_state, compliance_notes').eq('id', orgId).single(),
-      supabase.from('compliance_categories')
-        .select('*')
-        .or(`organization_id.is.null,organization_id.eq.${orgId}`)
-        .order('sort_order'),
       supabase.from('compliance_inspections')
         .select('*').eq('organization_id', orgId)
         .order('inspection_date', { ascending: false }),
@@ -597,30 +593,50 @@ export default function CompliancePanel({ orgId, profile }) {
 
     const orgData = orgRes.data
     setOrg(orgData)
-    setStateCode(orgData?.compliance_state || 'MO')
+    const currentState = orgData?.compliance_state || 'MO'
+    setStateCode(currentState)
+
+    await fetchCategories(currentState)
 
     const lastMap = {}
     inspRes.data?.forEach(i => { if (!lastMap[i.category_id]) lastMap[i.category_id] = i })
-
-    setCategories(catsRes.data || [])
     setLastInspections(lastMap)
     setLoading(false)
   }
 
+  async function fetchCategories(state) {
+    // Fetch: universal (state_code null) + matching state + org-custom
+    const { data } = await supabase.from('compliance_categories')
+      .select('*')
+      .or(
+        `state_code.is.null,state_code.eq.${state},organization_id.eq.${orgId}`
+      )
+      .order('sort_order')
+    setCategories(data || [])
+  }
+
   const handleSaveState = async () => {
     setSavingState(true)
-    await supabase.from('organizations').update({ compliance_state: stateCode }).eq('id', orgId)
-    setSavingState(false); setStateSaved(true)
-    setTimeout(() => setStateSaved(false), 2000)
-    fetchAll()
+    const { error } = await supabase.from('organizations')
+      .update({ compliance_state: stateCode })
+      .eq('id', orgId)
+    setSavingState(false)
+    if (error) { console.error('State save error:', error); return }
+    // Update local org without re-running fetchAll (which resets stateCode)
+    setOrg(o => ({ ...o, compliance_state: stateCode }))
+    setStateSaved(true)
+    setTimeout(() => setStateSaved(false), 2500)
+    // Refresh categories for the new state
+    await fetchCategories(stateCode)
   }
 
   const handleDeleteCustom = async (cat) => {
     if (!confirm(`Remove "${cat.label}" from your compliance list?`)) return
-    await supabase.from('compliance_categories').update({ is_custom: false }).eq('id', cat.id)
-    // Soft-delete by marking inactive for this org
-    await supabase.from('compliance_categories').delete().eq('id', cat.id)
-    fetchAll()
+    // Only delete org-owned custom categories, never global ones
+    if (cat.organization_id === orgId && cat.is_custom) {
+      await supabase.from('compliance_categories').delete().eq('id', cat.id)
+      fetchCategories(stateCode)
+    }
   }
 
   const stateRef = STATE_REFS[stateCode] || STATE_REFS.OTHER
@@ -790,7 +806,7 @@ export default function CompliancePanel({ orgId, profile }) {
 
       {/* Modals */}
       {showAddCat && (
-        <AddCategoryModal orgId={orgId} onClose={() => setShowAddCat(false)} onSaved={() => { setShowAddCat(false); fetchAll() }} />
+        <AddCategoryModal orgId={orgId} onClose={() => setShowAddCat(false)} onSaved={() => { setShowAddCat(false); fetchCategories(stateCode) }} />
       )}
       {showInspect && (
         <InspectionModal category={showInspect} orgId={orgId} profile={profile} onClose={() => setShowInspect(null)} onSaved={() => { setShowInspect(null); fetchAll() }} />
