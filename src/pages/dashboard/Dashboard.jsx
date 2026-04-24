@@ -230,11 +230,11 @@ export default function Dashboard() {
   )
 
   const alerts = []
-  if (data.urgentWO > 0)     alerts.push({ icon: Wrench,        color: 'text-red-600',    bg: 'bg-red-100',    label: `${data.urgentWO} urgent maintenance request${data.urgentWO > 1 ? 's' : ''}`, to: '/maintenance' })
-  if (data.criticalInc > 0)  alerts.push({ icon: AlertTriangle, color: 'text-red-700',    bg: 'bg-red-100',    label: `${data.criticalInc} critical incident${data.criticalInc > 1 ? 's' : ''} open`, to: '/incidents' })
-  if (data.openIncidents > 0) alerts.push({ icon: AlertTriangle, color: 'text-amber-700',  bg: 'bg-amber-100',  label: `${data.openIncidents} incident report${data.openIncidents > 1 ? 's' : ''} awaiting review`, to: '/incidents' })
+  if (data.urgentWO > 0)     alerts.push({ icon: Wrench,        color: 'text-red-600',    bg: 'bg-red-100',    label: `${data.urgentWO} urgent maintenance request${data.urgentWO > 1 ? 's' : ''}`, to: '/app/maintenance' })
+  if (data.criticalInc > 0)  alerts.push({ icon: AlertTriangle, color: 'text-red-700',    bg: 'bg-red-100',    label: `${data.criticalInc} critical incident${data.criticalInc > 1 ? 's' : ''} open`, to: '/app/incidents' })
+  if (data.openIncidents > 0) alerts.push({ icon: AlertTriangle, color: 'text-amber-700',  bg: 'bg-amber-100',  label: `${data.openIncidents} incident report${data.openIncidents > 1 ? 's' : ''} awaiting review`, to: '/app/incidents' })
   if (data.ilPending > 0)    alerts.push({ icon: SprayCan,      color: 'text-orange-600', bg: 'bg-orange-100', label: `${data.ilPending} housekeeping request${data.ilPending > 1 ? 's' : ''} pending`, to: '/housekeeping' })
-  if (data.urgentSecReports > 0) alerts.push({ icon: Shield,   color: 'text-red-700',    bg: 'bg-red-100',    label: `${data.urgentSecReports} urgent security report${data.urgentSecReports > 1 ? 's' : ''}`, to: '/security' })
+  if (data.urgentSecReports > 0) alerts.push({ icon: Shield,   color: 'text-red-700',    bg: 'bg-red-100',    label: `${data.urgentSecReports} urgent security report${data.urgentSecReports > 1 ? 's' : ''}`, to: '/app/security' })
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -459,11 +459,11 @@ export default function Dashboard() {
             <h2 className="font-display font-semibold text-slate-800 mb-3">Quick Links</h2>
             <div className="space-y-1">
               {[
-                hasModule('communication')  && { label: 'Post Announcement',    to: '/communication',  icon: MessageSquare, color: 'text-purple-600' },
-                hasModule('work_orders')    && { label: 'New Work Order',       to: '/maintenance',    icon: Wrench,        color: 'text-brand-600' },
-                hasModule('transportation') && { label: 'Schedule a Trip',      to: '/transportation', icon: Car,           color: 'text-green-600' },
-                hasModule('incidents')      && { label: 'File Incident Report', to: '/incidents',      icon: AlertTriangle, color: 'text-red-600' },
-                hasModule('meters')         && { label: 'Enter Meter Reading',  to: '/meters',         icon: Gauge,         color: 'text-amber-600' },
+                hasModule('communication')  && { label: 'Post Announcement',    to: '/app/communication',  icon: MessageSquare, color: 'text-purple-600' },
+                hasModule('work_orders')    && { label: 'New Work Order',       to: '/app/maintenance',    icon: Wrench,        color: 'text-brand-600' },
+                hasModule('transportation') && { label: 'Schedule a Trip',      to: '/app/transportation', icon: Car,           color: 'text-green-600' },
+                hasModule('incidents')      && { label: 'File Incident Report', to: '/app/incidents',      icon: AlertTriangle, color: 'text-red-600' },
+                hasModule('meters')         && { label: 'Enter Meter Reading',  to: '/app/meters',         icon: Gauge,         color: 'text-amber-600' },
               ].filter(Boolean).map((link, i) => {
                 const Icon = link.icon
                 return (

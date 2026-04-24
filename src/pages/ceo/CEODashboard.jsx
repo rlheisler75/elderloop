@@ -396,11 +396,11 @@ export default function CEODashboard() {
                   {[
                     { label: 'Operations Dashboard', to: '/app/dashboard',      icon: Activity,      color: 'text-brand-600' },
                     { label: 'Resident Directory',    to: '/app/directory',      icon: Users,         color: 'text-green-600' },
-                    { label: 'Incident Reports',      to: '/incidents',      icon: AlertTriangle, color: 'text-red-600' },
-                    { label: 'Maintenance',           to: '/maintenance',    icon: Wrench,        color: 'text-amber-600' },
-                    { label: 'Chapel',                to: '/chapel',         icon: Church,        color: 'text-purple-600' },
-                    { label: 'Security Rounds',       to: '/security',       icon: Shield,        color: 'text-indigo-600' },
-                    { label: 'Admin Panel',           to: '/admin',          icon: Settings,      color: 'text-slate-600' },
+                    { label: 'Incident Reports',      to: '/app/incidents',      icon: AlertTriangle, color: 'text-red-600' },
+                    { label: 'Maintenance',           to: '/app/maintenance',    icon: Wrench,        color: 'text-amber-600' },
+                    { label: 'Chapel',                to: '/app/chapel',         icon: Church,        color: 'text-purple-600' },
+                    { label: 'Security Rounds',       to: '/app/security',       icon: Shield,        color: 'text-indigo-600' },
+                    { label: 'Admin Panel',           to: '/app/admin',          icon: Settings,      color: 'text-slate-600' },
                   ].map(item => {
                     const Icon = item.icon
                     return (
