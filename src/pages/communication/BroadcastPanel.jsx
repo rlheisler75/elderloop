@@ -1,10 +1,6 @@
 // src/pages/communication/BroadcastPanel.jsx
-// ── Drop this as a NEW file, do NOT replace your existing Communication.jsx ──
-// Then add a tab in your existing Communication.jsx that renders <BroadcastPanel />
-// OR add it as a separate route: /app/broadcast
-//
-// This avoids any collision with the existing Communication.jsx file entirely.
-
+// Access control is handled by Communication.jsx (tab is only shown to allowed roles)
+// This component just fetches and displays — no extra gating needed here.
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
@@ -12,7 +8,7 @@ import ComposeModal from '../../components/communication/ComposeModal'
 import {
   Send, Bell, Mail, MessageSquare, Plus, Search,
   Users, Clock, AlertTriangle, ChevronRight,
-  Calendar, UtensilsCrossed, Activity, Megaphone, RefreshCw, Lock
+  Calendar, UtensilsCrossed, Activity, Megaphone, RefreshCw
 } from 'lucide-react'
 
 const CATEGORY_META = {
@@ -33,7 +29,7 @@ const AUDIENCE_LABELS = {
   individual:    'Individuals',
 }
 
-const CAN_ACCESS_ROLES = ['super_admin', 'org_admin', 'ceo', 'manager', 'supervisor']
+const CAN_SEND_ROLES = ['super_admin', 'org_admin', 'ceo', 'manager', 'supervisor']
 
 function ChannelBadge({ channels }) {
   return (
@@ -71,17 +67,9 @@ function StatCard({ icon: Icon, label, value, sub, color }) {
 }
 
 export default function BroadcastPanel() {
-  const { profile, organization, hasModule, userPerms } = useAuth()
+  const { profile, organization } = useAuth()
 
-  // ── Access control ──────────────────────────────────────────
-  // Check role first, then fall back to explicit user_module_permissions
-  const hasRoleAccess = CAN_ACCESS_ROLES.includes(profile?.role)
-  const hasPermAccess = userPerms?.some(p => p.module_key === 'communication' && ['edit','view'].includes(p.access_level))
-  const hasAccess     = hasModule('communication') && (hasRoleAccess || hasPermAccess)
-
-  // Can send = role-based OR explicit edit permission
-  const hasEditPerm = userPerms?.some(p => p.module_key === 'communication' && p.access_level === 'edit')
-  const canSend     = hasRoleAccess || hasEditPerm
+  const canSend = CAN_SEND_ROLES.includes(profile?.role)
 
   const [messages, setMessages]           = useState([])
   const [loading, setLoading]             = useState(true)
@@ -91,22 +79,32 @@ export default function BroadcastPanel() {
   const [expandedId, setExpandedId]       = useState(null)
   const [stats, setStats]                 = useState({ total: 0, today: 0, emailSent: 0, smsSent: 0, pushSent: 0 })
 
+  // Fetch as soon as we have an org — no other gates
   useEffect(() => {
-    if (organization && hasAccess) fetchMessages()
-  }, [organization, hasAccess])
+    fetchMessages()
+  }, [organization?.id])
 
   async function fetchMessages() {
+    if (!organization?.id) return
     setLoading(true)
-    const { data } = await supabase
+
+    const { data, error } = await supabase
       .from('broadcast_messages')
-      .select('*, sender:profiles!sender_id(full_name, role)')
+      .select('*, sender:profiles!sender_id(first_name, last_name)')
       .eq('org_id', organization.id)
       .order('sent_at', { ascending: false })
       .limit(100)
 
+    if (error) {
+      console.error('BroadcastPanel fetch error:', error)
+      setLoading(false)
+      return
+    }
+
     if (data) {
       setMessages(data)
-      const todayStart = new Date(); todayStart.setHours(0,0,0,0)
+      const todayStart = new Date()
+      todayStart.setHours(0, 0, 0, 0)
       setStats({
         total:     data.length,
         today:     data.filter(m => new Date(m.sent_at) >= todayStart).length,
@@ -118,41 +116,27 @@ export default function BroadcastPanel() {
     setLoading(false)
   }
 
-  // ── No access gate ──────────────────────────────────────────
-  if (!hasAccess) {
-    return (
-      <div className="flex flex-col items-center justify-center h-96 text-center px-4">
-        <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-4">
-          <Lock size={28} className="text-slate-300" />
-        </div>
-        <h2 className="text-xl font-semibold text-slate-700">Access Restricted</h2>
-        <p className="text-slate-400 mt-2 max-w-sm text-sm">
-          The Broadcast Messaging module is restricted. Contact your administrator to request access.
-        </p>
-      </div>
-    )
-  }
-
   const filtered = messages.filter(m => {
     const matchSearch = !search ||
       m.subject?.toLowerCase().includes(search.toLowerCase()) ||
       m.body?.toLowerCase().includes(search.toLowerCase()) ||
-      m.sender?.full_name?.toLowerCase().includes(search.toLowerCase())
+      `${m.sender?.first_name} ${m.sender?.last_name}`.toLowerCase().includes(search.toLowerCase())
     const matchCat = filterCategory === 'all' || m.category === filterCategory
     return matchSearch && matchCat
   })
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
+    <div className="space-y-6">
 
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Broadcast Messaging</h1>
-          <p className="text-slate-400 text-sm mt-0.5">Send email, push, and SMS messages to residents, family, and staff</p>
+          <h2 className="text-lg font-semibold text-slate-800">Broadcast Messaging</h2>
+          <p className="text-slate-400 text-sm mt-0.5">Send email, push, and SMS to residents, family, and staff</p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={fetchMessages} className="p-2 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition-colors">
+          <button onClick={fetchMessages}
+            className="p-2 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition-colors">
             <RefreshCw size={16} />
           </button>
           {canSend && (
@@ -168,15 +152,15 @@ export default function BroadcastPanel() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard icon={Send}  label="Total Sent"      value={stats.total}     color="bg-brand-50 text-brand-600" />
-        <StatCard icon={Clock} label="Sent Today"      value={stats.today}     color="bg-blue-50 text-blue-600" />
-        <StatCard icon={Bell}  label="Push Delivered"  value={stats.pushSent}  color="bg-purple-50 text-purple-600" />
-        <StatCard icon={Mail}  label="Emails Sent"     value={stats.emailSent}
+        <StatCard icon={Send}  label="Total Sent"     value={stats.total}     color="bg-brand-50 text-brand-600" />
+        <StatCard icon={Clock} label="Sent Today"     value={stats.today}     color="bg-blue-50 text-blue-600" />
+        <StatCard icon={Bell}  label="Push Delivered" value={stats.pushSent}  color="bg-purple-50 text-purple-600" />
+        <StatCard icon={Mail}  label="Emails Sent"    value={stats.emailSent}
           sub={stats.smsSent > 0 ? `+ ${stats.smsSent} SMS` : 'SMS pending A2P'}
           color="bg-green-50 text-green-600" />
       </div>
 
-      {/* Quick-send */}
+      {/* Quick Send */}
       {canSend && (
         <div className="bg-white rounded-2xl border border-slate-100 p-5">
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Quick Send</p>
@@ -203,6 +187,7 @@ export default function BroadcastPanel() {
 
       {/* Message Log */}
       <div className="bg-white rounded-2xl border border-slate-100">
+        {/* Filters */}
         <div className="flex flex-col md:flex-row md:items-center gap-3 p-4 border-b border-slate-100">
           <div className="relative flex-1">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -214,29 +199,31 @@ export default function BroadcastPanel() {
             />
           </div>
           <div className="flex gap-1.5 flex-wrap">
-            <button onClick={() => setFilterCategory('all')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filterCategory === 'all' ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
-              All
-            </button>
-            {Object.entries(CATEGORY_META).map(([key, meta]) => (
+            {['all', ...Object.keys(CATEGORY_META)].map(key => (
               <button key={key} onClick={() => setFilterCategory(key)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filterCategory === key ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
-                {meta.label}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors capitalize
+                  ${filterCategory === key ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                {key === 'all' ? 'All' : CATEGORY_META[key].label}
               </button>
             ))}
           </div>
         </div>
 
+        {/* List */}
         {loading ? (
           <div className="py-16 text-center">
             <div className="w-6 h-6 border-2 border-brand-600 border-t-transparent rounded-full animate-spin mx-auto" />
+            <p className="text-sm text-slate-400 mt-3">Loading messages...</p>
           </div>
         ) : filtered.length === 0 ? (
           <div className="py-16 text-center">
             <MessageSquare size={32} className="mx-auto text-slate-200 mb-3" />
-            <p className="text-slate-400 text-sm">No messages sent yet</p>
-            {canSend && (
-              <button onClick={() => setShowCompose(true)} className="mt-3 text-sm text-brand-600 hover:text-brand-700 font-medium">
+            <p className="text-slate-400 text-sm">
+              {messages.length === 0 ? 'No messages sent yet' : 'No messages match your filter'}
+            </p>
+            {canSend && messages.length === 0 && (
+              <button onClick={() => setShowCompose(true)}
+                className="mt-3 text-sm text-brand-600 hover:text-brand-700 font-medium">
                 Send your first message →
               </button>
             )}
@@ -247,6 +234,9 @@ export default function BroadcastPanel() {
               const cat     = CATEGORY_META[msg.category] || CATEGORY_META.general
               const CatIcon = cat.icon
               const isExpanded = expandedId === msg.id
+              const senderName = msg.sender
+                ? `${msg.sender.first_name} ${msg.sender.last_name}`
+                : 'Unknown'
 
               return (
                 <div key={msg.id} className="hover:bg-slate-50/50 transition-colors">
@@ -260,12 +250,14 @@ export default function BroadcastPanel() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-semibold text-slate-800 text-sm">{msg.subject}</span>
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${cat.color}`}>{cat.label}</span>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${cat.color}`}>
+                          {cat.label}
+                        </span>
                       </div>
                       <p className="text-sm text-slate-500 mt-0.5 line-clamp-1">{msg.body}</p>
                       <div className="flex items-center gap-3 mt-1.5 flex-wrap">
                         <span className="text-xs text-slate-400">
-                          {msg.sender?.full_name} · {relativeTime(msg.sent_at)}
+                          {senderName} · {relativeTime(msg.sent_at)}
                         </span>
                         <span className="text-xs text-slate-400">
                           → {AUDIENCE_LABELS[msg.audience_type] || msg.audience_type}
@@ -282,8 +274,8 @@ export default function BroadcastPanel() {
                           {msg.sms_sent   > 0 && <span>💬 {msg.sms_sent}</span>}
                         </div>
                         <div className={`text-[10px] mt-0.5 font-medium ${
-                          msg.status === 'sent'    ? 'text-green-600'  :
-                          msg.status === 'failed'  ? 'text-red-500'    : 'text-yellow-600'
+                          msg.status === 'sent'   ? 'text-green-600' :
+                          msg.status === 'failed' ? 'text-red-500'   : 'text-yellow-600'
                         }`}>
                           {msg.status === 'sent' ? '✓ Sent' : msg.status === 'failed' ? '✗ Failed' : '⏳ Sending'}
                         </div>
@@ -293,8 +285,8 @@ export default function BroadcastPanel() {
                   </button>
 
                   {isExpanded && (
-                    <div className="px-5 pb-4 ml-13">
-                      <div className="pl-4 border-l-2 border-brand-100">
+                    <div className="px-5 pb-4">
+                      <div className="ml-13 pl-4 border-l-2 border-brand-100">
                         <p className="text-sm text-slate-600 whitespace-pre-wrap leading-relaxed">{msg.body}</p>
                         <div className="flex gap-4 mt-3 text-xs text-slate-400">
                           <span>Recipients: {msg.recipient_count || '—'}</span>
