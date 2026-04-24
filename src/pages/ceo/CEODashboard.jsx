@@ -262,14 +262,14 @@ export default function CEODashboard() {
             <div>
               <h2 className="font-semibold text-slate-500 mb-4 text-xs uppercase tracking-widest">Key Metrics</h2>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                <KPICard icon={Users}         label="Total Residents"     value={data.totalResidents}  sub="Active census"                   color="text-brand-600"  bg="bg-brand-50"   to="/directory" />
-                <KPICard icon={Wrench}        label="Open Work Orders"    value={data.openWO}          sub={`${data.urgentWO} urgent · ${data.inProgressWO} in progress`} color="text-amber-600"  bg="bg-amber-50"   to="/maintenance" alert={data.urgentWO > 0} />
-                <KPICard icon={AlertTriangle} label="Open Incidents"      value={data.openIncidents}   sub="Awaiting review"                 color="text-red-600"    bg="bg-red-50"     to="/incidents"   alert={data.criticalInc > 0} />
-                <KPICard icon={CalendarDays}  label="Today's Activities"  value={data.todayActs}       sub="On schedule today"               color="text-purple-600" bg="bg-purple-50"  to="/activities" />
-                <KPICard icon={ClipboardList} label="Compliance Overdue"  value={data.overdueCompliance} sub={data.overduePM > 0 ? `+ ${data.overduePM} PM overdue` : 'Inspections past due'} color={data.overdueCompliance > 0 ? "text-red-600" : "text-green-600"} bg={data.overdueCompliance > 0 ? "bg-red-50" : "bg-green-50"} to="/maintenance" alert={data.overdueCompliance > 0} />
-                <KPICard icon={TrendingUp}    label="Incidents This Month" value={data.monthIncidents} sub="Last 30 days"                    color="text-orange-600" bg="bg-orange-50"  to="/incidents" />
-                <KPICard icon={UtensilsCrossed} label="Dietary Profiles"  value={data.dietProfiles}   sub={`${data.specialDiets} special diet${data.specialDiets !== 1 ? 's' : ''}`} color="text-green-600" bg="bg-green-50" to="/dietary" />
-                <KPICard icon={Gauge}         label="Utility Cost (MTD)"  value={data.monthCost > 0 ? `$${data.monthCost.toFixed(0)}` : '—'} sub="Month to date" color="text-slate-600" bg="bg-slate-100" to="/meters" />
+                <KPICard icon={Users}         label="Total Residents"     value={data.totalResidents}  sub="Active census"                   color="text-brand-600"  bg="bg-brand-50"   to="/app/directory" />
+                <KPICard icon={Wrench}        label="Open Work Orders"    value={data.openWO}          sub={`${data.urgentWO} urgent · ${data.inProgressWO} in progress`} color="text-amber-600"  bg="bg-amber-50"   to="/app/maintenance" alert={data.urgentWO > 0} />
+                <KPICard icon={AlertTriangle} label="Open Incidents"      value={data.openIncidents}   sub="Awaiting review"                 color="text-red-600"    bg="bg-red-50"     to="/app/incidents"   alert={data.criticalInc > 0} />
+                <KPICard icon={CalendarDays}  label="Today's Activities"  value={data.todayActs}       sub="On schedule today"               color="text-purple-600" bg="bg-purple-50"  to="/app/activities" />
+                <KPICard icon={ClipboardList} label="Compliance Overdue"  value={data.overdueCompliance} sub={data.overduePM > 0 ? `+ ${data.overduePM} PM overdue` : 'Inspections past due'} color={data.overdueCompliance > 0 ? "text-red-600" : "text-green-600"} bg={data.overdueCompliance > 0 ? "bg-red-50" : "bg-green-50"} to="/app/maintenance" alert={data.overdueCompliance > 0} />
+                <KPICard icon={TrendingUp}    label="Incidents This Month" value={data.monthIncidents} sub="Last 30 days"                    color="text-orange-600" bg="bg-orange-50"  to="/app/incidents" />
+                <KPICard icon={UtensilsCrossed} label="Dietary Profiles"  value={data.dietProfiles}   sub={`${data.specialDiets} special diet${data.specialDiets !== 1 ? 's' : ''}`} color="text-green-600" bg="bg-green-50" to="/app/dietary" />
+                <KPICard icon={Gauge}         label="Utility Cost (MTD)"  value={data.monthCost > 0 ? `$${data.monthCost.toFixed(0)}` : '—'} sub="Month to date" color="text-slate-600" bg="bg-slate-100" to="/app/meters" />
               </div>
             </div>
 
