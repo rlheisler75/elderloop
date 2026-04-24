@@ -1,320 +1,526 @@
 // src/pages/communication/Communication.jsx
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
-import ComposeModal from '../../components/communication/ComposeModal'
+import BroadcastPanel from './BroadcastPanel'
 import {
-  Send, Bell, Mail, MessageSquare, Plus, Search,
-  Users, Clock, AlertTriangle, ChevronRight,
-  Calendar, UtensilsCrossed, Activity, Megaphone, RefreshCw, Lock
+  Plus, Pin, Cake, Star, Calendar, CloudSun,
+  Church, UtensilsCrossed, Bell, Megaphone,
+  X, Edit2, Trash2, Search, Monitor, Clock,
+  Image, Palette, Upload, Send
 } from 'lucide-react'
 
-const CATEGORY_META = {
-  general:  { label: 'General',   color: 'bg-slate-100 text-slate-600',     icon: Megaphone },
-  urgent:   { label: 'Urgent',    color: 'bg-red-100 text-red-700',         icon: AlertTriangle },
-  reminder: { label: 'Reminder',  color: 'bg-yellow-100 text-yellow-700',   icon: Clock },
-  activity: { label: 'Activity',  color: 'bg-blue-100 text-blue-700',       icon: Calendar },
-  meal:     { label: 'Meal',      color: 'bg-amber-100 text-amber-700',     icon: UtensilsCrossed },
-  health:   { label: 'Health',    color: 'bg-purple-100 text-purple-700',   icon: Activity },
-}
+const CATEGORIES = [
+  { key: 'general',            label: 'General',            icon: Megaphone,       color: 'bg-slate-100 text-slate-600 border-slate-200' },
+  { key: 'birthday',           label: 'Birthday',           icon: Cake,            color: 'bg-pink-50 text-pink-600 border-pink-200' },
+  { key: 'resident_spotlight', label: 'Resident Spotlight', icon: Star,            color: 'bg-yellow-50 text-yellow-600 border-yellow-200' },
+  { key: 'event',              label: 'Event',              icon: Calendar,        color: 'bg-blue-50 text-blue-600 border-blue-200' },
+  { key: 'weather',            label: 'Weather',            icon: CloudSun,        color: 'bg-sky-50 text-sky-600 border-sky-200' },
+  { key: 'chapel',             label: 'Chapel',             icon: Church,          color: 'bg-purple-50 text-purple-600 border-purple-200' },
+  { key: 'menu',               label: 'Menu',               icon: UtensilsCrossed, color: 'bg-green-50 text-green-600 border-green-200' },
+  { key: 'alert',              label: 'Alert',              icon: Bell,            color: 'bg-red-50 text-red-600 border-red-200' },
+]
 
-const AUDIENCE_LABELS = {
-  all:           'Everyone',
-  all_staff:     'All Staff',
-  all_residents: 'All Residents',
-  all_family:    'All Family',
-  department:    'Department',
-  individual:    'Individuals',
-}
+const BG_PRESETS = [
+  { label: 'Category Default', value: '' },
+  { label: 'Navy',        value: '#0a406b' },
+  { label: 'Forest',      value: '#1a3a2a' },
+  { label: 'Burgundy',    value: '#5a1a2a' },
+  { label: 'Slate',       value: '#1e293b' },
+  { label: 'Charcoal',    value: '#1c1917' },
+  { label: 'Midnight',    value: '#0f172a' },
+  { label: 'Plum',        value: '#3b1a5a' },
+  { label: 'Custom',      value: 'custom' },
+]
 
-function ChannelBadge({ channels }) {
+const getCat      = (key) => CATEGORIES.find(c => c.key === key) || CATEGORIES[0]
+const toDateInput = (iso) => iso ? iso.split('T')[0] : ''
+const today       = () => new Date().toISOString().split('T')[0]
+const isScheduled = (item) => item.starts_at && new Date(item.starts_at) > new Date()
+const isExpired   = (item) => item.expires_at && new Date(item.expires_at) < new Date()
+
+// ── Announcement Card ──────────────────────────────────────────
+function AnnouncementCard({ item, canEdit, canDelete, onEdit, onDelete }) {
+  const cat = getCat(item.category)
+  const Icon = cat.icon
+  const scheduled = isScheduled(item)
+  const expired   = isExpired(item)
+
   return (
-    <div className="flex gap-1">
-      {channels?.includes('push')  && <span className="px-1.5 py-0.5 bg-brand-100 text-brand-700 rounded text-[10px] font-medium">🔔 App</span>}
-      {channels?.includes('email') && <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px] font-medium">✉️ Email</span>}
-      {channels?.includes('sms')   && <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[10px] font-medium">💬 SMS</span>}
-    </div>
-  )
-}
-
-function relativeTime(ts) {
-  const diff = Date.now() - new Date(ts).getTime()
-  const mins = Math.floor(diff / 60000)
-  if (mins < 1) return 'just now'
-  if (mins < 60) return `${mins}m ago`
-  const hrs = Math.floor(mins / 60)
-  if (hrs < 24) return `${hrs}h ago`
-  const days = Math.floor(hrs / 24)
-  if (days < 7) return `${days}d ago`
-  return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-}
-
-function StatCard({ icon: Icon, label, value, sub, color }) {
-  return (
-    <div className="bg-white rounded-2xl border border-slate-100 p-5">
-      <div className="flex items-center justify-between mb-3">
-        <div className={`w-9 h-9 rounded-xl ${color} flex items-center justify-center`}>
-          <Icon size={17} />
+    <div className={`bg-white rounded-2xl border shadow-sm p-5 flex gap-4 transition-all hover:shadow-md
+      ${expired ? 'opacity-50' : ''}
+      ${scheduled ? 'border-dashed border-amber-300 bg-amber-50/30' : item.pinned ? 'border-amber-200 bg-amber-50/20' : 'border-slate-100'}`}>
+      <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${cat.color}`}>
+        <Icon size={18} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            {item.pinned && <Pin size={12} className="text-amber-500 fill-amber-400 flex-shrink-0" />}
+            {scheduled && <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-semibold">Scheduled</span>}
+            {expired   && <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full font-semibold">Expired</span>}
+            <h3 className="font-semibold text-slate-800 text-sm">{item.title}</h3>
+          </div>
+          {(canEdit || canDelete) && (
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {canEdit && (
+                <button onClick={() => onEdit(item)}
+                  className="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 transition-colors">
+                  <Edit2 size={14} />
+                </button>
+              )}
+              {canDelete && (
+                <button onClick={() => onDelete(item.id)}
+                  className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors">
+                  <Trash2 size={14} />
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+        {item.body && <p className="text-slate-600 text-sm mt-1.5 leading-relaxed">{item.body}</p>}
+        {item.image_url && (
+          <img src={item.image_url} alt="" className="mt-3 rounded-xl w-full max-h-48 object-cover border border-slate-100" />
+        )}
+        <div className="flex items-center gap-3 mt-2 text-xs text-slate-400 flex-wrap">
+          <span>Created {new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+          {item.expires_at && <span>Expires {new Date(item.expires_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>}
+          {item.profiles && <span>by {item.profiles.first_name} {item.profiles.last_name}</span>}
         </div>
       </div>
-      <div className="text-2xl font-bold text-slate-800">{value}</div>
-      <div className="text-sm text-slate-500 mt-0.5">{label}</div>
-      {sub && <div className="text-xs text-slate-400 mt-0.5">{sub}</div>}
     </div>
   )
 }
 
+// ── Announcement Modal ─────────────────────────────────────────
+function AnnouncementModal({ item, onClose, onSave }) {
+  const { organization, user } = useAuth()
+  const fileRef = useRef()
+  const [form, setForm] = useState({
+    title:      item?.title     || '',
+    body:       item?.body      || '',
+    category:   item?.category  || 'general',
+    pinned:     item?.pinned    || false,
+    starts_at:  item?.starts_at  ? toDateInput(item.starts_at)  : today(),
+    expires_at: item?.expires_at ? toDateInput(item.expires_at) : '',
+    bg_custom:  item?.bg_custom  || '',
+    image_url:  item?.image_url  || '',
+  })
+  const [bgMode, setBgMode]             = useState(item?.bg_custom ? (BG_PRESETS.find(p => p.value === item.bg_custom) ? item.bg_custom : 'custom') : '')
+  const [customHex, setCustomHex]       = useState(item?.bg_custom || '#0a406b')
+  const [imagePreview, setImagePreview] = useState(item?.image_url || '')
+  const [uploading, setUploading]       = useState(false)
+  const [saving, setSaving]             = useState(false)
+  const [error, setError]               = useState('')
+
+  // Use setField to avoid minifier collisions
+  const setField = (key, val) => setForm(f => ({ ...f, [key]: val }))
+
+  const handleBgSelect = (val) => {
+    setBgMode(val)
+    setField('bg_custom', val === 'custom' ? customHex : val)
+  }
+
+  const handleCustomHex = (hex) => {
+    setCustomHex(hex)
+    setField('bg_custom', hex)
+  }
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    setError('')
+    const ext  = file.name.split('.').pop()
+    const path = `${user.id}/${Date.now()}.${ext}`
+    const { error: upErr } = await supabase.storage.from('announcement-images').upload(path, file)
+    if (upErr) { setError('Image upload failed: ' + upErr.message); setUploading(false); return }
+    const { data } = supabase.storage.from('announcement-images').getPublicUrl(path)
+    setField('image_url', data.publicUrl)
+    setImagePreview(data.publicUrl)
+    setUploading(false)
+  }
+
+  const removeImage = () => { setField('image_url', ''); setImagePreview('') }
+
+  const handleSave = async () => {
+    if (!form.title.trim()) { setError('Title is required'); return }
+    if (form.expires_at && form.starts_at && form.expires_at < form.starts_at) {
+      setError('Expiration date must be after the post date'); return
+    }
+    setSaving(true)
+    const payload = {
+      title:           form.title.trim(),
+      body:            form.body.trim() || null,
+      category:        form.category,
+      pinned:          form.pinned,
+      starts_at:       form.starts_at || new Date().toISOString(),
+      expires_at:      form.expires_at || null,
+      bg_custom:       form.bg_custom  || null,
+      image_url:       form.image_url  || null,
+      organization_id: organization.id,
+      updated_at:      new Date().toISOString(),
+    }
+    let err
+    if (item?.id) {
+      ({ error: err } = await supabase.from('announcements').update(payload).eq('id', item.id))
+    } else {
+      ({ error: err } = await supabase.from('announcements').insert({ ...payload, is_active: true }))
+    }
+    if (err) { setError(err.message); setSaving(false); return }
+    onSave()
+  }
+
+  const isScheduledPost = form.starts_at && form.starts_at > today()
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 sticky top-0 bg-white rounded-t-2xl z-10">
+          <h2 className="font-display font-semibold text-slate-800">{item ? 'Edit Announcement' : 'New Announcement'}</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+        </div>
+
+        <div className="px-6 py-5 space-y-5">
+          {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+
+          {/* Title */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Title *</label>
+            <input value={form.title} onChange={e => setField('title', e.target.value)}
+              className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              placeholder="Announcement title" />
+          </div>
+
+          {/* Category */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Category</label>
+            <div className="grid grid-cols-4 gap-2">
+              {CATEGORIES.map(cat => {
+                const Icon = cat.icon
+                return (
+                  <button key={cat.key} onClick={() => setField('category', cat.key)}
+                    className={`flex flex-col items-center gap-1 p-2 rounded-xl border text-xs font-medium transition-all
+                      ${form.category === cat.key ? cat.color + ' ring-2 ring-offset-1 ring-brand-400' : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}>
+                    <Icon size={16} /><span className="leading-tight text-center">{cat.label}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Body */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Message</label>
+            <textarea value={form.body} onChange={e => setField('body', e.target.value)} rows={3}
+              className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+              placeholder="Optional message body..." />
+          </div>
+
+          {/* Photo Upload */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-1.5">
+              <Image size={14} /> Photo
+            </label>
+            {imagePreview ? (
+              <div className="relative rounded-xl overflow-hidden border border-slate-200">
+                <img src={imagePreview} alt="Preview" className="w-full h-40 object-cover" />
+                <button onClick={removeImage}
+                  className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-lg transition-colors">
+                  <X size={14} />
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => fileRef.current.click()} disabled={uploading}
+                className="w-full h-28 border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center gap-2 text-slate-400 hover:border-brand-400 hover:text-brand-500 transition-colors">
+                {uploading
+                  ? <><div className="w-5 h-5 border-2 border-brand-400 border-t-transparent rounded-full animate-spin" /><span className="text-xs">Uploading...</span></>
+                  : <><Upload size={20} /><span className="text-xs font-medium">Click to upload photo</span><span className="text-xs">JPG, PNG, GIF up to 5MB</span></>
+                }
+              </button>
+            )}
+            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+          </div>
+
+          {/* Background Color */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-1.5">
+              <Palette size={14} /> Background Color <span className="text-slate-400 font-normal">(signage display)</span>
+            </label>
+            <div className="grid grid-cols-4 gap-2">
+              {BG_PRESETS.map(preset => (
+                <button key={preset.value} onClick={() => handleBgSelect(preset.value)}
+                  className={`px-2 py-2 rounded-lg border text-xs font-medium transition-all flex items-center gap-1.5
+                    ${bgMode === preset.value ? 'ring-2 ring-brand-500 border-brand-400' : 'border-slate-200 hover:border-slate-300'}`}>
+                  {preset.value && preset.value !== 'custom'
+                    ? <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: preset.value }} />
+                    : preset.value === 'custom'
+                    ? <Palette size={10} className="flex-shrink-0" />
+                    : <span className="w-3 h-3 rounded-full flex-shrink-0 bg-gradient-to-br from-pink-400 to-purple-400" />
+                  }
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+            {bgMode === 'custom' && (
+              <div className="mt-2 flex items-center gap-3">
+                <input type="color" value={customHex} onChange={e => handleCustomHex(e.target.value)}
+                  className="w-10 h-10 rounded-lg border border-slate-200 cursor-pointer" />
+                <input type="text" value={customHex} onChange={e => handleCustomHex(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  placeholder="#000000" />
+              </div>
+            )}
+          </div>
+
+          {/* Schedule */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Post Date</label>
+              <input type="date" value={form.starts_at} onChange={e => setField('starts_at', e.target.value)}
+                className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Expiration Date <span className="text-slate-400 font-normal">(optional)</span></label>
+              <input type="date" value={form.expires_at} onChange={e => setField('expires_at', e.target.value)}
+                className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            </div>
+          </div>
+
+          {isScheduledPost && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
+              <Clock size={14} className="text-amber-500 flex-shrink-0" />
+              <p className="text-xs text-amber-700">
+                Hidden until <strong>{new Date(form.starts_at).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</strong>
+              </p>
+            </div>
+          )}
+
+          {/* Pin */}
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" checked={form.pinned} onChange={e => setField('pinned', e.target.checked)}
+              className="w-4 h-4 rounded text-brand-600" />
+            <span className="text-sm font-medium text-slate-700">Pin to top of board</span>
+          </label>
+        </div>
+
+        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 sticky bottom-0 bg-white rounded-b-2xl">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 hover:text-slate-800 font-medium">Cancel</button>
+          <button onClick={handleSave} disabled={saving || uploading}
+            className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
+            {saving ? 'Saving...' : isScheduledPost ? 'Schedule Announcement' : item ? 'Save Changes' : 'Post Announcement'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Main Communication Page ────────────────────────────────────
 export default function Communication() {
-  const { profile, organization, hasModule, canEdit } = useAuth()
-  const [messages, setMessages] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [showCompose, setShowCompose] = useState(false)
-  const [search, setSearch] = useState('')
-  const [filterCategory, setFilterCategory] = useState('all')
-  const [expandedId, setExpandedId] = useState(null)
-  const [stats, setStats] = useState({ total: 0, today: 0, emailSent: 0, smsSent: 0, pushSent: 0 })
+  const { profile, organization } = useAuth()
+  const [announcements, setAnnouncements] = useState([])
+  const [loading, setLoading]             = useState(true)
+  const [search, setSearch]               = useState('')
+  const [filterCat, setFilterCat]         = useState('all')
+  const [showScheduled, setShowScheduled] = useState(false)
+  const [showModal, setShowModal]         = useState(false)
+  const [editItem, setEditItem]           = useState(null)
 
-  // ── Access control ──────────────────────────────────────────
-  // View: must have hasModule('communication') — covers org_admin/ceo automatically,
-  //       plus any staff with view or edit permission granted in Admin Panel
-  // Send: must have canEdit('communication') — org_admin/ceo always, or explicit edit perm
-  const hasAccess = hasModule('communication')
-  const canSend   = canEdit('communication')
+  // ── Tab state ──────────────────────────────────────────────
+  const [activeTab, setActiveTab] = useState('announcements')
 
-  useEffect(() => {
-    if (organization && hasAccess) fetchMessages()
-  }, [organization, hasAccess])
+  const canPost    = profile && ['super_admin','org_admin','ceo','supervisor','manager','staff','maintenance','dietary','housekeeping'].includes(profile.role)
+  const canDelete  = profile && ['super_admin','org_admin','ceo','supervisor','manager'].includes(profile.role)
+  const canEditAll = profile && ['super_admin','org_admin','ceo','supervisor','manager'].includes(profile.role)
 
-  async function fetchMessages() {
+  // Only org_admin/ceo/manager/supervisor see the Broadcast tab
+  const canSeeBroadcast = profile && ['super_admin','org_admin','ceo','manager','supervisor'].includes(profile.role)
+
+  useEffect(() => { fetchAnnouncements() }, [organization])
+
+  async function fetchAnnouncements() {
+    if (!organization) return
     setLoading(true)
     const { data } = await supabase
-      .from('broadcast_messages')
-      .select('*, sender:profiles!sender_id(full_name, role)')
-      .eq('org_id', organization.id)
-      .order('sent_at', { ascending: false })
-      .limit(100)
-
-    if (data) {
-      setMessages(data)
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-      setStats({
-        total:     data.length,
-        today:     data.filter(m => new Date(m.sent_at) >= today).length,
-        emailSent: data.reduce((s, m) => s + (m.email_sent || 0), 0),
-        smsSent:   data.reduce((s, m) => s + (m.sms_sent || 0), 0),
-        pushSent:  data.reduce((s, m) => s + (m.push_sent || 0), 0),
-      })
-    }
+      .from('announcements')
+      .select('*, profiles(first_name, last_name)')
+      .eq('organization_id', organization.id)
+      .eq('is_active', true)
+      .order('pinned', { ascending: false })
+      .order('starts_at', { ascending: false })
+    setAnnouncements(data || [])
     setLoading(false)
   }
 
-  // ── No access gate ──────────────────────────────────────────
-  if (!hasAccess) {
-    return (
-      <div className="flex flex-col items-center justify-center h-96 text-center px-4">
-        <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-4">
-          <Lock size={28} className="text-slate-300" />
-        </div>
-        <h2 className="text-xl font-semibold text-slate-700">Access Restricted</h2>
-        <p className="text-slate-400 mt-2 max-w-sm text-sm">
-          The Communication module is restricted. Contact your administrator to request access.
-        </p>
-      </div>
-    )
+  async function handleDelete(id) {
+    if (!confirm('Delete this announcement?')) return
+    await supabase.from('announcements').update({ is_active: false }).eq('id', id)
+    fetchAnnouncements()
   }
 
-  const filtered = messages.filter(m => {
-    const matchSearch = !search ||
-      m.subject?.toLowerCase().includes(search.toLowerCase()) ||
-      m.body?.toLowerCase().includes(search.toLowerCase()) ||
-      m.sender?.full_name?.toLowerCase().includes(search.toLowerCase())
-    const matchCat = filterCategory === 'all' || m.category === filterCategory
+  const handleEdit = (item) => { setEditItem(item); setShowModal(true) }
+  const handleNew  = () => { setEditItem(null); setShowModal(true) }
+  const handleSave = () => { setShowModal(false); fetchAnnouncements() }
+
+  const live      = announcements.filter(a => !isScheduled(a))
+  const scheduled = announcements.filter(a =>  isScheduled(a))
+
+  const applyFilters = (list) => list.filter(a => {
+    const matchSearch = !search || a.title.toLowerCase().includes(search.toLowerCase()) || a.body?.toLowerCase().includes(search.toLowerCase())
+    const matchCat    = filterCat === 'all' || a.category === filterCat
     return matchSearch && matchCat
   })
 
+  const filteredLive      = applyFilters(live)
+  const filteredScheduled = applyFilters(scheduled)
+  const pinnedLive        = filteredLive.filter(a => a.pinned)
+  const regularLive       = filteredLive.filter(a => !a.pinned)
+
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto">
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      {/* Page header */}
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Communication</h1>
-          <p className="text-slate-400 text-sm mt-0.5">Send messages to residents, family, and staff</p>
+          <h1 className="font-display text-2xl font-semibold text-slate-800">Communication</h1>
+          <p className="text-slate-500 text-sm mt-0.5">Announcements, events, and community updates</p>
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={fetchMessages} className="p-2 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition-colors">
-            <RefreshCw size={16} />
-          </button>
-          {canSend && (
-            <button
-              onClick={() => setShowCompose(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
-            >
-              <Plus size={16} /> New Message
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard icon={Send}  label="Total Messages" value={stats.total}     color="bg-brand-50 text-brand-600" />
-        <StatCard icon={Clock} label="Sent Today"     value={stats.today}     color="bg-blue-50 text-blue-600" />
-        <StatCard icon={Bell}  label="Push Delivered" value={stats.pushSent}  color="bg-purple-50 text-purple-600" />
-        <StatCard icon={Mail}  label="Emails Sent"    value={stats.emailSent}
-          sub={stats.smsSent > 0 ? `+ ${stats.smsSent} SMS` : 'SMS pending A2P'}
-          color="bg-green-50 text-green-600" />
-      </div>
-
-      {/* Quick-send buttons — only for users who can send */}
-      {canSend && (
-        <div className="bg-white rounded-2xl border border-slate-100 p-5">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Quick Send</p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            {[
-              { label: 'Meal is ready',     subject: 'Dining room is now open',         body: 'The dining room is now open and serving. Please make your way to the dining area.',       category: 'meal',     icon: UtensilsCrossed },
-              { label: 'Activity starting', subject: 'Activity starting in 30 minutes', body: 'A community activity is starting soon! We hope to see you there.',                      category: 'activity', icon: Calendar },
-              { label: 'Emergency alert',   subject: '⚠️ Important Alert',             body: 'Please pay attention to the following important announcement.',                          category: 'urgent',   icon: AlertTriangle },
-              { label: 'Staff reminder',    subject: 'Staff reminder',                  body: 'This is a reminder for all staff members. Please check the bulletin board for details.', category: 'reminder', icon: Users },
-            ].map(q => {
-              const Icon = q.icon
-              return (
-                <button key={q.label}
-                  onClick={() => setShowCompose({ subject: q.subject, body: q.body, category: q.category })}
-                  className="flex items-center gap-2 px-3 py-2.5 bg-slate-50 hover:bg-brand-50 border border-slate-200 hover:border-brand-300 rounded-xl text-left transition-all group">
-                  <Icon size={14} className="text-slate-400 group-hover:text-brand-600 flex-shrink-0" />
-                  <span className="text-xs font-medium text-slate-600 group-hover:text-brand-700">{q.label}</span>
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Message Log */}
-      <div className="bg-white rounded-2xl border border-slate-100">
-        {/* Filters */}
-        <div className="flex flex-col md:flex-row md:items-center gap-3 p-4 border-b border-slate-100">
-          <div className="relative flex-1">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search messages..."
-              className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-            />
-          </div>
-          <div className="flex gap-1.5 flex-wrap">
-            <button onClick={() => setFilterCategory('all')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filterCategory === 'all' ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
-              All
-            </button>
-            {Object.entries(CATEGORY_META).map(([key, meta]) => (
-              <button key={key} onClick={() => setFilterCategory(key)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filterCategory === key ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
-                {meta.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* List */}
-        {loading ? (
-          <div className="py-16 text-center">
-            <div className="w-6 h-6 border-2 border-brand-600 border-t-transparent rounded-full animate-spin mx-auto" />
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="py-16 text-center">
-            <MessageSquare size={32} className="mx-auto text-slate-200 mb-3" />
-            <p className="text-slate-400 text-sm">No messages yet</p>
-            {canSend && (
-              <button onClick={() => setShowCompose(true)}
-                className="mt-3 text-sm text-brand-600 hover:text-brand-700 font-medium">
-                Send your first message →
+        {activeTab === 'announcements' && (
+          <div className="flex items-center gap-2">
+            <a href="/signage?org=sunrise-gardens" target="_blank"
+              className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 hover:text-brand-600 hover:border-brand-300 rounded-xl text-sm font-medium transition-colors">
+              <Monitor size={16} /> Digital Signage
+            </a>
+            {canPost && (
+              <button onClick={handleNew}
+                className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
+                <Plus size={16} /> New Announcement
               </button>
             )}
-          </div>
-        ) : (
-          <div className="divide-y divide-slate-50">
-            {filtered.map(msg => {
-              const cat = CATEGORY_META[msg.category] || CATEGORY_META.general
-              const CatIcon = cat.icon
-              const isExpanded = expandedId === msg.id
-
-              return (
-                <div key={msg.id} className="hover:bg-slate-50/50 transition-colors">
-                  <button
-                    onClick={() => setExpandedId(isExpanded ? null : msg.id)}
-                    className="w-full text-left px-5 py-4 flex items-start gap-4"
-                  >
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 ${cat.color}`}>
-                      <CatIcon size={16} />
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold text-slate-800 text-sm">{msg.subject}</span>
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${cat.color}`}>
-                          {cat.label}
-                        </span>
-                      </div>
-                      <p className="text-sm text-slate-500 mt-0.5 line-clamp-1">{msg.body}</p>
-                      <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-                        <span className="text-xs text-slate-400">
-                          {msg.sender?.full_name} · {relativeTime(msg.sent_at)}
-                        </span>
-                        <span className="text-xs text-slate-400">
-                          → {AUDIENCE_LABELS[msg.audience_type] || msg.audience_type}
-                          {msg.audience_type === 'department' && msg.audience_dept && ` (${msg.audience_dept})`}
-                        </span>
-                        <ChannelBadge channels={msg.channels} />
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-4 flex-shrink-0">
-                      <div className="text-right hidden md:block">
-                        <div className="flex items-center gap-2 text-xs text-slate-400">
-                          {(msg.push_sent > 0) && <span>🔔 {msg.push_sent}</span>}
-                          {(msg.email_sent > 0) && <span>✉️ {msg.email_sent}</span>}
-                          {(msg.sms_sent > 0) && <span>💬 {msg.sms_sent}</span>}
-                        </div>
-                        <div className={`text-[10px] mt-0.5 font-medium ${
-                          msg.status === 'sent' ? 'text-green-600' : msg.status === 'failed' ? 'text-red-500' : 'text-yellow-600'
-                        }`}>
-                          {msg.status === 'sent' ? '✓ Sent' : msg.status === 'failed' ? '✗ Failed' : '⏳ Sending'}
-                        </div>
-                      </div>
-                      <ChevronRight size={16} className={`text-slate-300 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
-                    </div>
-                  </button>
-
-                  {isExpanded && (
-                    <div className="px-5 pb-4">
-                      <div className="ml-13 pl-4 border-l-2 border-brand-100">
-                        <p className="text-sm text-slate-600 whitespace-pre-wrap leading-relaxed">{msg.body}</p>
-                        <div className="flex gap-4 mt-3 text-xs text-slate-400">
-                          <span>Recipients: {msg.recipient_count || '—'}</span>
-                          {msg.email_sent > 0 && <span>Email: {msg.email_sent} delivered</span>}
-                          {msg.sms_sent > 0 && <span>SMS: {msg.sms_sent} delivered</span>}
-                          {msg.push_sent > 0 && <span>Push: {msg.push_sent} delivered</span>}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
           </div>
         )}
       </div>
 
-      {showCompose && (
-        <ComposeModal
-          prefill={typeof showCompose === 'object' ? showCompose : null}
-          onClose={() => setShowCompose(false)}
-          onSent={() => { setShowCompose(false); fetchMessages() }}
-        />
+      {/* ── Tab bar — only show if user has broadcast access ── */}
+      {canSeeBroadcast && (
+        <div className="flex gap-1 mb-6 bg-slate-100 p-1 rounded-xl w-fit">
+          <button
+            onClick={() => setActiveTab('announcements')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              activeTab === 'announcements' ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            <Megaphone size={15} /> Announcements
+          </button>
+          <button
+            onClick={() => setActiveTab('broadcast')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              activeTab === 'broadcast' ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            <Send size={15} /> Broadcast Messages
+          </button>
+        </div>
+      )}
+
+      {/* ── Broadcast tab ── */}
+      {activeTab === 'broadcast' && <BroadcastPanel />}
+
+      {/* ── Announcements tab (original content, fully intact) ── */}
+      {activeTab === 'announcements' && (
+        <>
+          {/* Filters */}
+          <div className="flex flex-wrap items-center gap-2 mb-5">
+            <div className="relative flex-1 min-w-48">
+              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search announcements..."
+                className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            </div>
+            <div className="flex gap-1.5 flex-wrap">
+              <button onClick={() => setFilterCat('all')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filterCat === 'all' ? 'bg-brand-600 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:border-brand-300'}`}>
+                All
+              </button>
+              {CATEGORIES.map(cat => {
+                const Icon = cat.icon
+                return (
+                  <button key={cat.key} onClick={() => setFilterCat(cat.key)}
+                    className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filterCat === cat.key ? 'bg-brand-600 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:border-brand-300'}`}>
+                    <Icon size={12} />{cat.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Scheduled banner */}
+          {canPost && filteredScheduled.length > 0 && (
+            <button onClick={() => setShowScheduled(s => !s)}
+              className="w-full flex items-center justify-between px-4 py-3 mb-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700 font-medium hover:bg-amber-100 transition-colors">
+              <div className="flex items-center gap-2">
+                <Clock size={15} />
+                <span>{filteredScheduled.length} scheduled announcement{filteredScheduled.length > 1 ? 's' : ''} waiting to post</span>
+              </div>
+              <span className="text-xs">{showScheduled ? 'Hide' : 'Show'}</span>
+            </button>
+          )}
+
+          {showScheduled && filteredScheduled.length > 0 && (
+            <div className="mb-6 space-y-3">
+              <div className="text-xs font-semibold text-amber-600 uppercase tracking-wide flex items-center gap-2">
+                <Clock size={13} /> Scheduled
+              </div>
+              {filteredScheduled.map(a => (
+                <AnnouncementCard key={a.id} item={a}
+                  canEdit={canEditAll || a.created_by === profile?.id}
+                  canDelete={canDelete} onEdit={handleEdit} onDelete={handleDelete} />
+              ))}
+            </div>
+          )}
+
+          {loading ? (
+            <div className="text-center py-16 text-slate-400">Loading announcements...</div>
+          ) : filteredLive.length === 0 ? (
+            <div className="text-center py-16 text-slate-400">
+              <Megaphone size={40} className="mx-auto mb-3 opacity-30" />
+              <p className="font-display text-lg">No announcements yet</p>
+              {canPost && <p className="text-sm mt-1">Click "New Announcement" to post the first one.</p>}
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {pinnedLive.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Pin size={14} className="text-brand-500" />
+                    <span className="text-xs font-semibold text-brand-600 uppercase tracking-wide">Pinned</span>
+                  </div>
+                  <div className="space-y-3">
+                    {pinnedLive.map(a => (
+                      <AnnouncementCard key={a.id} item={a}
+                        canEdit={canEditAll || a.created_by === profile?.id}
+                        canDelete={canDelete} onEdit={handleEdit} onDelete={handleDelete} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {regularLive.length > 0 && (
+                <div>
+                  {pinnedLive.length > 0 && <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Recent</div>}
+                  <div className="space-y-3">
+                    {regularLive.map(a => (
+                      <AnnouncementCard key={a.id} item={a}
+                        canEdit={canEditAll || a.created_by === profile?.id}
+                        canDelete={canDelete} onEdit={handleEdit} onDelete={handleDelete} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {showModal && <AnnouncementModal item={editItem} onClose={() => setShowModal(false)} onSave={handleSave} />}
+        </>
       )}
     </div>
   )
