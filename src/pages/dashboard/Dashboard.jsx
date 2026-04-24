@@ -277,50 +277,50 @@ export default function Dashboard() {
         {hasModule('work_orders') && (
           <StatCard icon={Wrench} label="Open Maintenance" value={data.openWO}
             sub={data.inProgressWO > 0 ? `${data.inProgressWO} in progress` : 'No items in progress'}
-            color="text-brand-600" bg="bg-brand-50" to="/maintenance"
+            color="text-brand-600" bg="bg-brand-50" to="/app/maintenance"
             alert={data.urgentWO > 0} />
         )}
         {hasModule('incidents') && (
           <StatCard icon={AlertTriangle} label="Open Incidents" value={data.openIncidents}
             sub={data.criticalInc > 0 ? `${data.criticalInc} critical` : 'No critical incidents'}
-            color="text-red-600" bg="bg-red-50" to="/incidents"
+            color="text-red-600" bg="bg-red-50" to="/app/incidents"
             alert={data.criticalInc > 0} />
         )}
         {hasModule('transportation') && (
           <StatCard icon={Car} label="Today's Trips" value={data.todayTrips}
             sub={data.tripsInProgress > 0 ? `${data.tripsInProgress} in progress` : 'None in progress'}
-            color="text-green-600" bg="bg-green-50" to="/transportation" />
+            color="text-green-600" bg="bg-green-50" to="/app/transportation" />
         )}
         {hasModule('activities') && (
           <StatCard icon={CalendarDays} label="Today's Activities" value={data.todayActivities}
             sub="Scheduled for today"
-            color="text-purple-600" bg="bg-purple-50" to="/activities" />
+            color="text-purple-600" bg="bg-purple-50" to="/app/activities" />
         )}
         {hasModule('directory') && (
           <StatCard icon={BookUser} label="Residents" value={data.totalResidents}
             sub="Active residents on file"
-            color="text-slate-600" bg="bg-slate-100" to="/directory" />
+            color="text-slate-600" bg="bg-slate-100" to="/app/directory" />
         )}
         {hasModule('security') && (
           <StatCard icon={Shield} label="Security Rounds" value={data.todayRounds}
             sub={data.openSecReports > 0 ? `${data.openSecReports} open report${data.openSecReports > 1 ? 's' : ''}` : 'No open reports'}
-            color="text-indigo-600" bg="bg-indigo-50" to="/security"
+            color="text-indigo-600" bg="bg-indigo-50" to="/app/security"
             alert={data.urgentSecReports > 0} />
         )}
         {hasModule('meters') && data.meterCount > 0 && (
           <StatCard icon={Gauge} label="Meters" value={data.meterCount}
             sub="Active utility meters"
-            color="text-amber-600" bg="bg-amber-50" to="/meters" />
+            color="text-amber-600" bg="bg-amber-50" to="/app/meters" />
         )}
         {hasModule('housekeeping') && data.ilPending > 0 && (
           <StatCard icon={SprayCan} label="Housekeeping Pending" value={data.ilPending}
             sub="IL requests awaiting booking"
-            color="text-orange-600" bg="bg-orange-50" to="/housekeeping" />
+            color="text-orange-600" bg="bg-orange-50" to="/app/housekeeping" />
         )}
         {hasModule('chapel') && (
           <StatCard icon={Church} label="Chapel" value="Live?"
             sub="Click to manage services"
-            color="text-indigo-600" bg="bg-indigo-50" to="/chapel" />
+            color="text-indigo-600" bg="bg-indigo-50" to="/app/chapel" />
         )}
       </div>
 
