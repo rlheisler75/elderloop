@@ -17,6 +17,30 @@ const DEMO_ROLES = [
   { role: 'Resident',     email: 'demo.resident@elderloop.xyz',     color: 'bg-indigo-600 hover:bg-indigo-700' },
 ]
 
+// Audit helpers — non-blocking, never throw
+async function logLoginSuccess() {
+  try {
+    await supabase.rpc('log_audit_event', {
+      p_action: 'LOGIN',
+      p_notes:  'User authenticated successfully'
+    })
+  } catch (_) {}
+}
+
+async function logLoginFailed(email) {
+  try {
+    // Failed logins have no auth session, so we log anonymously via a
+    // separate insert. We use the service-free anon key path here —
+    // the RLS insert policy is intentionally open for LOGIN_FAILED rows
+    // so they're captured even without a valid session.
+    await supabase.from('audit_log').insert({
+      action:     'LOGIN_FAILED',
+      user_email: email,
+      notes:      'Failed login attempt'
+    })
+  } catch (_) {}
+}
+
 export default function Login() {
   const [searchParams] = useSearchParams()
   const [email, setEmail]       = useState('')
@@ -25,7 +49,9 @@ export default function Login() {
   const [error, setError]       = useState('')
   const [isDemo, setIsDemo]     = useState(false)
 
-  // Pre-fill from URL params (?email=...&demo=1)
+  // Show timeout message if redirected from session expiry
+  const timedOut = searchParams.get('reason') === 'timeout'
+
   useEffect(() => {
     const paramEmail = searchParams.get('email')
     const paramDemo  = searchParams.get('demo')
@@ -33,7 +59,6 @@ export default function Login() {
       setEmail(paramEmail)
       setPassword(DEMO_PASSWORD)
       setIsDemo(true)
-      // Auto-submit after a brief moment so user sees it fill in
       if (paramDemo) {
         const timer = setTimeout(() => {
           handleAutoLogin(paramEmail, DEMO_PASSWORD)
@@ -47,15 +72,26 @@ export default function Login() {
     setLoading(true)
     setError('')
     const { error } = await supabase.auth.signInWithPassword({ email: e, password: p })
-    if (error) { setError('Demo login failed — please try again.'); setLoading(false) }
+    if (error) {
+      setError('Demo login failed — please try again.')
+      setLoading(false)
+    } else {
+      await logLoginSuccess()
+    }
   }
 
-  const handleLogin = async (e) => {
-    e.preventDefault()
+  const handleLogin = async (evt) => {
+    evt.preventDefault()
     setLoading(true)
     setError('')
     const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) { setError(error.message); setLoading(false) }
+    if (error) {
+      await logLoginFailed(email)
+      setError(error.message)
+      setLoading(false)
+    } else {
+      await logLoginSuccess()
+    }
   }
 
   const handleDemoClick = (demoEmail) => {
@@ -65,8 +101,13 @@ export default function Login() {
     setError('')
     setLoading(true)
     supabase.auth.signInWithPassword({ email: demoEmail, password: DEMO_PASSWORD })
-      .then(({ error }) => {
-        if (error) { setError('Demo login failed — please try again.'); setLoading(false) }
+      .then(async ({ error }) => {
+        if (error) {
+          setError('Demo login failed — please try again.')
+          setLoading(false)
+        } else {
+          await logLoginSuccess()
+        }
       })
   }
 
@@ -93,13 +134,20 @@ export default function Login() {
           <div className="bg-white rounded-2xl shadow-2xl p-8">
             <h2 className="font-display text-xl font-semibold text-slate-800 mb-6">Sign in to your account</h2>
 
+            {/* Session timeout notice */}
+            {timedOut && !error && (
+              <div className="mb-4 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 text-sm">
+                Your session expired after 30 minutes of inactivity. Please sign in again.
+              </div>
+            )}
+
             {error && (
               <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
                 {error}
               </div>
             )}
 
-            {isDemo && !error && (
+            {isDemo && !error && !timedOut && (
               <div className="mb-4 px-4 py-2.5 bg-brand-50 border border-brand-200 rounded-lg text-brand-700 text-xs flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-brand-500 animate-pulse flex-shrink-0" />
                 Demo account pre-filled — click Sign In to continue
@@ -109,43 +157,54 @@ export default function Login() {
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
-                <input type="email" value={email} onChange={e => { setEmail(e.target.value); setIsDemo(false) }}
-                  required autoComplete="username"
-                  className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
-                  placeholder="you@example.com" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => { setEmail(e.target.value); setIsDemo(false) }}
+                  required
+                  autoComplete="email"
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  placeholder="you@example.com"
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
-                <input type="password" value={password} onChange={e => { setPassword(e.target.value); setIsDemo(false) }}
-                  required autoComplete="current-password"
-                  className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
-                  placeholder="••••••••" />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                  autoComplete="current-password"
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  placeholder="••••••••"
+                />
               </div>
-              <button type="submit" disabled={loading}
-                className="w-full py-2.5 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white font-medium rounded-lg text-sm transition-colors mt-2">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-2.5 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-semibold rounded-xl text-sm transition-colors"
+              >
                 {loading ? 'Signing in...' : 'Sign In'}
               </button>
             </form>
-
-            {/* Quick demo buttons */}
-            <div className="mt-6 pt-5 border-t border-slate-100">
-              <p className="text-xs text-slate-400 text-center mb-3 font-medium">Or try a demo account</p>
-              <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1">
-                {DEMO_ROLES.map(d => (
-                  <button key={d.role} onClick={() => handleDemoClick(d.email)}
-                    disabled={loading}
-                    className={`py-2 rounded-lg text-white text-xs font-semibold transition-colors disabled:opacity-50 ${d.color}`}>
-                    {d.role}
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
         )}
 
-        <p className="text-center text-brand-500 text-xs mt-6">
-          &copy; {new Date().getFullYear()} Loopware Solutions LLC
-        </p>
+        {/* Demo role buttons */}
+        <div className="mt-6">
+          <p className="text-white/40 text-xs text-center mb-3">Demo accounts</p>
+          <div className="grid grid-cols-2 gap-2">
+            {DEMO_ROLES.map(({ role, email: demoEmail, color }) => (
+              <button
+                key={role}
+                onClick={() => handleDemoClick(demoEmail)}
+                className={`${color} text-white text-xs font-medium py-2 px-3 rounded-lg transition-colors`}
+              >
+                {role}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )
