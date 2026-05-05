@@ -40,9 +40,11 @@ const Transportation = lazy(() => import('./pages/transportation/Transportation'
 const CEODashboard   = lazy(() => import('./pages/ceo/CEODashboard'))
 const SuperAdmin     = lazy(() => import('./pages/superadmin/SuperAdminDashboard'))
 
-// Public TV
-import TV      from './pages/tv/TV'
-import Signage from './pages/signage/Signage'
+// Public TV & role-specific portals (outside the staff Layout)
+import TV            from './pages/tv/TV'
+import Signage       from './pages/signage/Signage'
+import FamilyPortal  from './pages/family/FamilyPortal'
+import ResidentPortal from './pages/resident/ResidentPortal'
 
 // Upgrade wall
 import UpgradeWall from './components/ui/UpgradeWall'
@@ -102,13 +104,32 @@ function SuperAdminRoute({ children }) {
 // ── App ───────────────────────────────────────────────────────
 
 export default function App() {
-  const { user, loading } = useAuth()
+  const { user, loading, profile } = useAuth()
 
   if (loading) return (
     <div className="flex h-screen items-center justify-center bg-brand-950">
       <div className="text-white font-display text-3xl tracking-wide">ElderLoop</div>
     </div>
   )
+
+  // ── Role-based portal intercepts (bypass staff Layout entirely) ──
+  if (user && profile?.role === 'family') {
+    return (
+      <Routes>
+        <Route path="/family-portal" element={<FamilyPortal />} />
+        <Route path="*" element={<Navigate to="/family-portal" replace />} />
+      </Routes>
+    )
+  }
+
+  if (user && profile?.role === 'resident') {
+    return (
+      <Routes>
+        <Route path="/resident" element={<ResidentPortal />} />
+        <Route path="*" element={<Navigate to="/resident" replace />} />
+      </Routes>
+    )
+  }
 
   return (
     <>
