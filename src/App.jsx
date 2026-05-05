@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { Suspense, lazy } from 'react'
 import { useAuth } from './context/AuthContext'
 import Layout from './components/layout/Layout'
+import { Analytics } from '@vercel/analytics/react'
 
 // Landing & Auth
 import LandingPage from './pages/landing/LandingPage'
@@ -110,77 +111,80 @@ export default function App() {
   )
 
   return (
-    <Routes>
+    <>
+      <Routes>
 
-      {/* ── Public ── */}
-      <Route path="/"         element={<LandingPage />} />
-      <Route path="/tv/:slug" element={<TV />} />
-      <Route path="/signage"  element={<Signage />} />
+        {/* ── Public ── */}
+        <Route path="/"         element={<LandingPage />} />
+        <Route path="/tv/:slug" element={<TV />} />
+        <Route path="/signage"  element={<Signage />} />
 
-      {/* ── Auth ── */}
-      <Route path="/login"  element={user ? <Navigate to="/app/dashboard" replace /> : <Login />} />
-      <Route path="/signup" element={user ? <Navigate to="/app/dashboard" replace /> : <Signup />} />
+        {/* ── Auth ── */}
+        <Route path="/login"  element={user ? <Navigate to="/app/dashboard" replace /> : <Login />} />
+        <Route path="/signup" element={user ? <Navigate to="/app/dashboard" replace /> : <Signup />} />
 
-      {/* ── Protected app shell ── */}
-      <Route path="/app" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-        <Route index element={<Navigate to="/app/dashboard" replace />} />
+        {/* ── Protected app shell ── */}
+        <Route path="/app" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+          <Route index element={<Navigate to="/app/dashboard" replace />} />
 
-        <Route path="dashboard"  element={<Dashboard />} />
-        <Route path="admin"      element={<AdminRoute><AdminPanel /></AdminRoute>} />
-        <Route path="ceo"        element={<Lazy><CEODashboard /></Lazy>} />
-        <Route path="superadmin" element={<SuperAdminRoute><Lazy><SuperAdmin /></Lazy></SuperAdminRoute>} />
+          <Route path="dashboard"  element={<Dashboard />} />
+          <Route path="admin"      element={<AdminRoute><AdminPanel /></AdminRoute>} />
+          <Route path="ceo"        element={<Lazy><CEODashboard /></Lazy>} />
+          <Route path="superadmin" element={<SuperAdminRoute><Lazy><SuperAdmin /></Lazy></SuperAdminRoute>} />
 
-        {/* Core modules */}
-        <Route path="communication"
-          element={<ProtectedRoute requireModule="communication"><Communication /></ProtectedRoute>} />
-        <Route path="maintenance"
-          element={<ProtectedRoute requireModule="work_orders"><WorkOrders /></ProtectedRoute>} />
-        <Route path="dietary"
-          element={<ProtectedRoute requireModule="dietary"><Dietary /></ProtectedRoute>} />
-        <Route path="housekeeping"
-          element={<ProtectedRoute requireModule="housekeeping"><Housekeeping /></ProtectedRoute>} />
-        <Route path="chapel"
-          element={<ProtectedRoute requireModule="chapel"><Lazy><Chapel /></Lazy></ProtectedRoute>} />
-        <Route path="activities"
-          element={<ProtectedRoute requireModule="activities"><Lazy><Activities /></Lazy></ProtectedRoute>} />
-        <Route path="directory"
-          element={<ProtectedRoute requireModule="directory"><Lazy><Directory /></Lazy></ProtectedRoute>} />
-        <Route path="family"
-          element={<ProtectedRoute requireModule="family"><Lazy><Family /></Lazy></ProtectedRoute>} />
-        <Route path="surveys"
-          element={<ProtectedRoute requireModule="surveys"><Lazy><Surveys /></Lazy></ProtectedRoute>} />
+          {/* Core modules */}
+          <Route path="communication"
+            element={<ProtectedRoute requireModule="communication"><Communication /></ProtectedRoute>} />
+          <Route path="maintenance"
+            element={<ProtectedRoute requireModule="work_orders"><WorkOrders /></ProtectedRoute>} />
+          <Route path="dietary"
+            element={<ProtectedRoute requireModule="dietary"><Dietary /></ProtectedRoute>} />
+          <Route path="housekeeping"
+            element={<ProtectedRoute requireModule="housekeeping"><Housekeeping /></ProtectedRoute>} />
+          <Route path="chapel"
+            element={<ProtectedRoute requireModule="chapel"><Lazy><Chapel /></Lazy></ProtectedRoute>} />
+          <Route path="activities"
+            element={<ProtectedRoute requireModule="activities"><Lazy><Activities /></Lazy></ProtectedRoute>} />
+          <Route path="directory"
+            element={<ProtectedRoute requireModule="directory"><Lazy><Directory /></Lazy></ProtectedRoute>} />
+          <Route path="family"
+            element={<ProtectedRoute requireModule="family"><Lazy><Family /></Lazy></ProtectedRoute>} />
+          <Route path="surveys"
+            element={<ProtectedRoute requireModule="surveys"><Lazy><Surveys /></Lazy></ProtectedRoute>} />
 
-        {/* Community+ modules */}
-        <Route path="nursing"
-          element={<ProtectedRoute requireModule="nursing"><Lazy><Nursing /></Lazy></ProtectedRoute>} />
-        <Route path="incidents"
-          element={<ProtectedRoute requireModule="incidents"><Lazy><Incidents /></Lazy></ProtectedRoute>} />
-        <Route path="staff"
-          element={<ProtectedRoute requireModule="staff"><Lazy><Staff /></Lazy></ProtectedRoute>} />
-        <Route path="directory-staff"
-          element={<ProtectedRoute requireModule="staff"><Lazy><StaffDirectory /></Lazy></ProtectedRoute>} />
-        <Route path="scheduling"
-          element={<ProtectedRoute requireModule="staff"><Lazy><Scheduling /></Lazy></ProtectedRoute>} />
-        <Route path="timeclock"
-          element={<ProtectedRoute requireModule="timeclock"><Lazy><TimeClock /></Lazy></ProtectedRoute>} />
-        <Route path="transportation"
-          element={<ProtectedRoute requireModule="transportation"><Lazy><Transportation /></Lazy></ProtectedRoute>} />
-        <Route path="meters"
-          element={<ProtectedRoute requireModule="meters"><Lazy><Meters /></Lazy></ProtectedRoute>} />
-        <Route path="security"
-          element={<ProtectedRoute requireModule="security"><Lazy><Security /></Lazy></ProtectedRoute>} />
-        <Route path="it"
-          element={<ProtectedRoute requireModule="it"><Lazy><IT /></Lazy></ProtectedRoute>} />
-        <Route path="marketing"
-          element={<ProtectedRoute requireModule="marketing"><Lazy><Marketing /></Lazy></ProtectedRoute>} />
-        <Route path="property-management"
-          element={<ProtectedRoute requireModule="property_management"><Lazy><PropertyMgmt /></Lazy></ProtectedRoute>} />
+          {/* Community+ modules */}
+          <Route path="nursing"
+            element={<ProtectedRoute requireModule="nursing"><Lazy><Nursing /></Lazy></ProtectedRoute>} />
+          <Route path="incidents"
+            element={<ProtectedRoute requireModule="incidents"><Lazy><Incidents /></Lazy></ProtectedRoute>} />
+          <Route path="staff"
+            element={<ProtectedRoute requireModule="staff"><Lazy><Staff /></Lazy></ProtectedRoute>} />
+          <Route path="directory-staff"
+            element={<ProtectedRoute requireModule="staff"><Lazy><StaffDirectory /></Lazy></ProtectedRoute>} />
+          <Route path="scheduling"
+            element={<ProtectedRoute requireModule="staff"><Lazy><Scheduling /></Lazy></ProtectedRoute>} />
+          <Route path="timeclock"
+            element={<ProtectedRoute requireModule="timeclock"><Lazy><TimeClock /></Lazy></ProtectedRoute>} />
+          <Route path="transportation"
+            element={<ProtectedRoute requireModule="transportation"><Lazy><Transportation /></Lazy></ProtectedRoute>} />
+          <Route path="meters"
+            element={<ProtectedRoute requireModule="meters"><Lazy><Meters /></Lazy></ProtectedRoute>} />
+          <Route path="security"
+            element={<ProtectedRoute requireModule="security"><Lazy><Security /></Lazy></ProtectedRoute>} />
+          <Route path="it"
+            element={<ProtectedRoute requireModule="it"><Lazy><IT /></Lazy></ProtectedRoute>} />
+          <Route path="marketing"
+            element={<ProtectedRoute requireModule="marketing"><Lazy><Marketing /></Lazy></ProtectedRoute>} />
+          <Route path="property-management"
+            element={<ProtectedRoute requireModule="property_management"><Lazy><PropertyMgmt /></Lazy></ProtectedRoute>} />
 
-      </Route>
+        </Route>
 
-      {/* ── Fallback ── */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+        {/* ── Fallback ── */}
+        <Route path="*" element={<Navigate to="/" replace />} />
 
-    </Routes>
+      </Routes>
+      <Analytics />
+    </>
   )
 }
