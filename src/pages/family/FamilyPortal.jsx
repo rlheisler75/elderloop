@@ -8,6 +8,7 @@ import {
   Wrench, Camera, Phone, User, Home, ChevronDown,
   CheckCircle2, Clock, AlertCircle, Image, Users,
   Cake, MapPin, HeartHandshake, Shield, ClipboardList,
+  Church, Play, Radio,
 } from 'lucide-react'
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -25,6 +26,12 @@ const fmt12 = (t) => {
   const [h, m] = t.split(':')
   const hr = parseInt(h)
   return `${hr > 12 ? hr-12 : hr || 12}:${m} ${hr >= 12 ? 'PM' : 'AM'}`
+}
+
+const extractYouTubeId = (url) => {
+  if (!url) return null
+  const match = url.match(/(?:youtube\.com\/(?:watch\?v=|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
+  return match ? match[1] : url.length === 11 ? url : null
 }
 
 const CARE_LEVEL_LABELS = {
@@ -649,6 +656,8 @@ export default function FamilyPortal() {
   const [activeThread, setActiveThread]     = useState(null)
   const [photos, setPhotos]                 = useState([])
   const [myWorkOrders, setMyWorkOrders]     = useState([])
+  const [chapelServices, setChapelServices] = useState([])
+  const [liveService, setLiveService]       = useState(null)
   const [emergencyContacts, setEmergencyContacts] = useState([])
   const [medicalContacts, setMedicalContacts]     = useState([])
   const [loading, setLoading]               = useState(true)
@@ -679,7 +688,7 @@ export default function FamilyPortal() {
     const todayStr = new Date().toISOString().split('T')[0]
     const nextWeek = new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0]
 
-    const [updatesRes, msgsRes, annRes, actRes, ecRes, mcRes, woRes] = await Promise.all([
+    const [updatesRes, msgsRes, annRes, actRes, ecRes, mcRes, woRes, chapRes] = await Promise.all([
       supabase.from('resident_updates')
         .select('*, profiles(first_name,last_name,role)')
         .eq('resident_id', selectedResident.id)
@@ -710,6 +719,9 @@ export default function FamilyPortal() {
         .eq('resident_id', selectedResident.id)
         .eq('source', 'family')
         .order('created_at', { ascending: false }),
+      supabase.from('chapel_services').select('*')
+        .eq('organization_id', orgId).eq('is_active', true)
+        .order('service_date', { ascending: false }).limit(20),
     ])
 
     setUpdates(updatesRes.data || [])
@@ -721,6 +733,10 @@ export default function FamilyPortal() {
     const wos = woRes.data || []
     setMyWorkOrders(wos)
     setOpenWOCount(wos.filter(w => w.status !== 'closed').length)
+
+    const svcs = chapRes.data || []
+    setChapelServices(svcs)
+    setLiveService(svcs.find(s => s.is_live) || null)
 
     // Photos: extract updates with photos
     const photoUpdates = (updatesRes.data || []).filter(u => u.photo_url)
@@ -771,6 +787,7 @@ export default function FamilyPortal() {
     { key: 'maintenance',  label: 'Requests',     badge: openWOCount },
     { key: 'photos',       label: 'Photos',       badge: null },
     { key: 'activities',   label: 'Activities',   badge: null },
+    { key: 'chapel',       label: 'Chapel',       badge: liveService ? 1 : null, badgePulse: true },
   ]
 
   if (loading && residents.length === 0) {
@@ -875,8 +892,8 @@ export default function FamilyPortal() {
               }`}>
               {t.label}
               {t.badge > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center leading-none">
-                  {t.badge > 9 ? '9+' : t.badge}
+                <span className={`absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center leading-none ${t.badgePulse ? 'animate-pulse' : ''}`}>
+                  {t.badgePulse ? '●' : t.badge > 9 ? '9+' : t.badge}
                 </span>
               )}
             </button>
@@ -1041,6 +1058,113 @@ export default function FamilyPortal() {
                   })}
                 </div>
               )}
+
+              {/* ── CHAPEL ── */}
+              {tab === 'chapel' && (() => {
+                const today = new Date()
+                const upcoming = chapelServices
+                  .filter(s => new Date(s.service_date + 'T12:00:00') >= today)
+                  .slice(0, 3).reverse()
+                const past = chapelServices
+                  .filter(s => new Date(s.service_date + 'T12:00:00') < today && s.recording_youtube_id)
+                  .slice(0, 5)
+                return (
+                  <div className="space-y-4">
+                    {/* Live stream embed */}
+                    {liveService && (
+                      <div className="bg-brand-900 rounded-2xl overflow-hidden shadow-lg">
+                        <div className="aspect-video w-full">
+                          <iframe
+                            src={`https://www.youtube.com/embed/${extractYouTubeId(liveService.stream_youtube_id || liveService.recording_youtube_id)}?autoplay=1&rel=0`}
+                            className="w-full h-full" frameBorder="0" allowFullScreen
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" />
+                        </div>
+                        <div className="p-4">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xs bg-red-500 text-white font-bold px-2 py-0.5 rounded-full animate-pulse">LIVE</span>
+                            <span className="text-white font-semibold text-sm">{liveService.title}</span>
+                          </div>
+                          {liveService.description && <p className="text-brand-200 text-xs">{liveService.description}</p>}
+                          <p className="text-brand-300 text-xs mt-1">
+                            Watch your loved one's chapel service live from home.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Not live — promo card */}
+                    {!liveService && (
+                      <div className="bg-gradient-to-br from-brand-800 to-brand-950 rounded-2xl p-5 flex items-center gap-4">
+                        <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center flex-shrink-0">
+                          <Church size={22} className="text-white" />
+                        </div>
+                        <div className="text-white">
+                          <div className="font-semibold text-sm">Chapel Services</div>
+                          <p className="text-brand-200 text-xs mt-0.5">
+                            Watch services live or catch up on past recordings — stay connected to your loved one's community.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Upcoming services */}
+                    {upcoming.length > 0 && (
+                      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm">
+                        <div className="px-5 py-3 border-b border-slate-50">
+                          <h4 className="font-semibold text-slate-700 text-sm">Upcoming Services</h4>
+                        </div>
+                        <div className="divide-y divide-slate-50">
+                          {upcoming.map(s => (
+                            <div key={s.id} className="px-5 py-3">
+                              <div className="font-medium text-slate-800 text-sm">{s.title}</div>
+                              <div className="text-xs text-slate-400 mt-0.5">
+                                {new Date(s.service_date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                                {s.service_time ? ` · ${fmt12(s.service_time)}` : ''}
+                              </div>
+                              {s.speaker && <div className="text-xs text-slate-400 mt-0.5">Speaker: {s.speaker}</div>}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Past recordings */}
+                    {past.length > 0 && (
+                      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm">
+                        <div className="px-5 py-3 border-b border-slate-50">
+                          <h4 className="font-semibold text-slate-700 text-sm">Past Services</h4>
+                        </div>
+                        <div className="divide-y divide-slate-50">
+                          {past.map(s => (
+                            <a key={s.id}
+                              href={`https://youtube.com/watch?v=${s.recording_youtube_id}`}
+                              target="_blank" rel="noopener noreferrer"
+                              className="flex items-center justify-between px-5 py-3 hover:bg-slate-50 transition-colors group">
+                              <div>
+                                <div className="text-sm font-medium text-slate-700 group-hover:text-brand-600 transition-colors">{s.title}</div>
+                                <div className="text-xs text-slate-400">
+                                  {new Date(s.service_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1.5 text-xs text-brand-600 font-medium flex-shrink-0 group-hover:text-brand-700">
+                                <Play size={12} className="fill-brand-600 group-hover:fill-brand-700" /> Watch
+                              </div>
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {!liveService && upcoming.length === 0 && past.length === 0 && (
+                      <div className="text-center py-12 text-slate-400 bg-white rounded-2xl border border-dashed border-slate-200">
+                        <Church size={32} className="mx-auto mb-3 opacity-30" />
+                        <p className="font-medium text-slate-500">No chapel services yet</p>
+                        <p className="text-sm mt-1">Services and recordings will appear here.</p>
+                      </div>
+                    )}
+                  </div>
+                )
+              })()}
             </>
           )}
         </div>
