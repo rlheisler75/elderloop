@@ -659,7 +659,11 @@ function SurveyResults({ survey, onClose }) {
 
 // ── Main Surveys Page ──────────────────────────────────────────
 export default function Surveys() {
-  const { organization } = useAuth()
+  const { profile, organization } = useAuth()
+
+  // Progressive access: supervisor = view results + copy link only; manager+ = full
+  const canManage = ['manager','ceo','org_admin','super_admin'].includes(profile?.role)
+
   const [surveys, setSurveys]   = useState([])
   const [loading, setLoading]   = useState(true)
   const [search, setSearch]     = useState('')
@@ -717,10 +721,12 @@ export default function Surveys() {
           <h1 className="font-display text-2xl font-semibold text-slate-800">Surveys</h1>
           <p className="text-slate-500 text-sm mt-0.5">Build surveys, collect responses, analyze results</p>
         </div>
-        <button onClick={() => { setEditSurvey(null); setShowModal(true) }}
-          className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
-          <Plus size={15} /> New Survey
-        </button>
+        {canManage && (
+          <button onClick={() => { setEditSurvey(null); setShowModal(true) }}
+            className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
+            <Plus size={15} /> New Survey
+          </button>
+        )}
       </div>
 
       {/* Stats */}
@@ -782,18 +788,22 @@ export default function Surveys() {
                       className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600 transition-colors">
                       <BarChart3 size={12} /> Results
                     </button>
-                    <button onClick={() => { setEditSurvey(s); setShowModal(true) }}
-                      className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600 transition-colors">
-                      <Edit2 size={12} /> Edit
-                    </button>
-                    <button onClick={() => handleTogglePublish(s)}
-                      className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-colors ${s.is_published ? 'border-amber-200 text-amber-600 hover:bg-amber-50' : 'border-green-200 text-green-600 hover:bg-green-50'}`}>
-                      {s.is_published ? <><Eye size={12} /> Unpublish</> : <><Send size={12} /> Publish</>}
-                    </button>
-                    <button onClick={() => handleDelete(s.id)}
-                      className="p-1.5 text-slate-300 hover:text-red-500 rounded-lg transition-colors">
-                      <Trash2 size={14} />
-                    </button>
+                    {canManage && (
+                      <>
+                        <button onClick={() => { setEditSurvey(s); setShowModal(true) }}
+                          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600 transition-colors">
+                          <Edit2 size={12} /> Edit
+                        </button>
+                        <button onClick={() => handleTogglePublish(s)}
+                          className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-colors ${s.is_published ? 'border-amber-200 text-amber-600 hover:bg-amber-50' : 'border-green-200 text-green-600 hover:bg-green-50'}`}>
+                          {s.is_published ? <><Eye size={12} /> Unpublish</> : <><Send size={12} /> Publish</>}
+                        </button>
+                        <button onClick={() => handleDelete(s.id)}
+                          className="p-1.5 text-slate-300 hover:text-red-500 rounded-lg transition-colors">
+                          <Trash2 size={14} />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
