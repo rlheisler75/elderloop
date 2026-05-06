@@ -69,10 +69,25 @@ export function AuthProvider({ children }) {
     onTimeout: () => navigate('/login?reason=timeout'),
   })
 
-   const hasModule = (key) => {
+    // Modules that are automatically visible to certain roles
+  // without needing a user_module_permissions row.
+  // Format: module_key -> minimum roles that get it by default
+  const ROLE_MODULE_DEFAULTS = {
+    // Surveys: supervisor+ see the module; staff take via public link only
+    surveys:    ['supervisor', 'manager', 'ceo', 'org_admin', 'super_admin'],
+    // Incidents: all filing-eligible roles see their own reports
+    incidents:  ['staff', 'dietary', 'housekeeping', 'maintenance', 'nursing',
+                 'supervisor', 'manager', 'ceo', 'org_admin', 'super_admin'],
+  }
+
+  // Is this module enabled for the org AND does the user have access?
+  const hasModule = (key) => {
     if (!orgModules.includes(key)) return false
     // org_admin, ceo, super_admin always have full access
     if (['org_admin','ceo','super_admin'].includes(profile?.role) || superAdmin) return true
+    // Role-based defaults: some modules auto-grant to specific roles
+    if (ROLE_MODULE_DEFAULTS[key]?.includes(profile?.role)) return true
+    // Otherwise fall back to explicit user_module_permissions
     return userPerms.some(p => p.module_key === key)
   }
 
