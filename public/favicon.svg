@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Background rounded square -->
+  <rect width="32" height="32" rx="7" fill="#0c2340"/>
+  <!-- Heart path, centered, white fill -->
+  <path d="M16 23.5 C16 23.5 7 17.5 7 11.5 C7 8.5 9.5 6.5 12 6.5 C13.8 6.5 15.2 7.5 16 8.8 C16.8 7.5 18.2 6.5 20 6.5 C22.5 6.5 25 8.5 25 11.5 C25 17.5 16 23.5 16 23.5Z" fill="white" opacity="0.95"/>
+</svg>
