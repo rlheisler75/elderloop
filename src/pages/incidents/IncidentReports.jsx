@@ -159,8 +159,9 @@ function PrintReport({ report, orgName, filerName, reviewerName, onClose }) {
 // canReview: can change status and write review notes (manager+)
 // viewOnly:  supervisor viewing someone else's report — read only
 function IncidentModal({ incident, canEdit, canReview, viewOnly, onClose, onSave }) {
-  const { profile } = useAuth()
+  const { profile, organization } = useAuth()
   const isNew = !incident
+  const orgId = organization?.id || profile?.organization_id
 
   const [form, setForm] = useState({
     incident_type:           incident?.incident_type           || 'fall',
@@ -195,7 +196,7 @@ function IncidentModal({ incident, canEdit, canReview, viewOnly, onClose, onSave
     const finalStatus = submitStatus || form.status
     const payload = {
       ...form,
-      organization_id: profile.organization_id,
+      organization_id: orgId,
       filed_by:        incident?.filed_by || profile.id,
       status:          finalStatus,
       follow_up_date:  form.follow_up_date || null,
