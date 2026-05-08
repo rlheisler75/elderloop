@@ -153,18 +153,21 @@ export default function EarlyAccess() {
               ))}
             </div>
 
-            {/* Social proof */}
+            {/* Credibility block */}
             <div className="p-5 bg-white/5 border border-white/10 rounded-2xl">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-brand-600/20 rounded-full flex items-center justify-center text-brand-400 font-bold text-sm">BM</div>
-                <div>
-                  <div className="text-white text-sm font-semibold">Brian Miller</div>
-                  <div className="text-white/40 text-xs">CEO, Maranatha Village · Springfield, MO</div>
-                </div>
+              <div className="text-xs text-brand-400 font-semibold uppercase tracking-wider mb-4">Why ElderLoop</div>
+              <div className="space-y-3">
+                {[
+                  { stat: '12+', desc: 'Years working inside senior living communities' },
+                  { stat: '$8K+', desc: 'Average annual savings vs. legacy software' },
+                  { stat: '1 day', desc: 'Typical time from signup to fully live' },
+                ].map(({ stat, desc }) => (
+                  <div key={stat} className="flex items-center gap-3">
+                    <div className="text-brand-400 font-bold text-lg w-12 flex-shrink-0" style={{ fontFamily: '"Playfair Display", serif' }}>{stat}</div>
+                    <div className="text-white/50 text-sm">{desc}</div>
+                  </div>
+                ))}
               </div>
-              <p className="text-white/60 text-sm leading-relaxed italic">
-                "ElderLoop is replacing TheWorxHub for us — saving around $8,000 a year and finally giving us meter readings we never had before."
-              </p>
             </div>
           </div>
 
