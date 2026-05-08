@@ -45,6 +45,7 @@ import TV            from './pages/tv/TV'
 import Signage       from './pages/signage/Signage'
 import FamilyPortal  from './pages/family/FamilyPortal'
 import ResidentPortal from './pages/resident/ResidentPortal'
+import EarlyAccess   from './pages/landing/EarlyAccess'
 
 // Upgrade wall
 import UpgradeWall from './components/ui/UpgradeWall'
@@ -137,8 +138,9 @@ export default function App() {
 
         {/* ── Public ── */}
         <Route path="/"         element={<LandingPage />} />
-        <Route path="/tv/:slug" element={<TV />} />
-        <Route path="/signage"  element={<Signage />} />
+          <Route path="/tv/:slug"       element={<TV />} />
+        <Route path="/signage"        element={<Signage />} />
+        <Route path="/early-access"   element={<EarlyAccess />} />
 
         {/* ── Auth ── */}
         <Route path="/login"  element={user ? <Navigate to="/app/dashboard" replace /> : <Login />} />

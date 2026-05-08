@@ -115,7 +115,7 @@ export default function LandingPage() {
               className={`px-4 py-2 text-sm font-medium transition-colors ${scrolled ? 'text-slate-600 hover:text-brand-600' : 'text-white/80 hover:text-white'}`}>
               Sign In
             </button>
-            <button onClick={() => navigate('/login')}
+           <button onClick={() => navigate('/early-access')}
               className="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm">
               Request Demo
             </button>
@@ -130,10 +130,16 @@ export default function LandingPage() {
               <a key={item} href={`#${item.toLowerCase()}`} onClick={() => setMenuOpen(false)}
                 className="block text-slate-700 font-medium py-1.5 text-sm">{item}</a>
             ))}
-            <button onClick={() => navigate('/login')}
-              className="w-full mt-2 py-3 bg-brand-600 text-white font-semibold rounded-xl text-sm">
-              Sign In / Request Demo
-            </button>
+             <div className="flex flex-col gap-2 mt-2">
+              <button onClick={() => navigate('/early-access')}
+                className="w-full py-3 bg-brand-600 text-white font-semibold rounded-xl text-sm">
+                Request Demo
+              </button>
+              <button onClick={() => navigate('/login')}
+                className="w-full py-3 border border-slate-200 text-slate-600 font-semibold rounded-xl text-sm">
+                Sign In
+              </button>
+            </div>
           </div>
         )}
       </nav>
@@ -434,7 +440,7 @@ export default function LandingPage() {
               <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-3">
                 <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Contact</div>
                 {[
-                  { icon: Mail,  text: 'hello@elderloop.xyz' },
+                  { icon: Mail,  text: 'info@loopwaresolutions.com' },
                   { icon: MapPin,text: 'Springfield, Missouri' },
                   { icon: Phone, text: 'Available on request' },
                 ].map(c => {
@@ -451,28 +457,47 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── CTA ── */}
-      <section className="py-28 bg-brand-950 relative overflow-hidden">
-        <div className="absolute inset-0" style={{
-          backgroundImage: 'radial-gradient(ellipse 70% 80% at 20% 50%, rgba(12,144,225,0.2) 0%, transparent 60%)',
-        }} />
-        <div className="relative max-w-3xl mx-auto px-6 text-center">
-          <h2 style={{ fontFamily: '"Playfair Display", serif', fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: 700 }}
-            className="text-white mb-5">
-            Ready to simplify your operation?
+    
+//
+// REPLACE THE ENTIRE FINAL CTA SECTION with this:
+      {/* ── Early Access CTA ── */}
+      <section className="py-24 bg-brand-950">
+        <div className="max-w-3xl mx-auto px-6 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/15 bg-white/5 text-white/60 text-xs font-medium mb-8">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+            Now onboarding select communities
+          </div>
+          <h2 style={{ fontFamily: '"Playfair Display", serif', fontSize: 'clamp(2rem, 4vw, 3.2rem)', fontWeight: 700 }}
+            className="text-white mb-6">
+            Ready to modernize<br />
+            <em style={{ color: '#36aaf5', fontStyle: 'italic' }}>your community?</em>
           </h2>
-          <p className="text-white/65 text-lg mb-12 max-w-xl mx-auto">
+          <p className="text-white/65 text-lg mb-10 max-w-xl mx-auto">
             Join communities like Sunrise Gardens. We'll have your team set up and running within a day.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button onClick={() => navigate('/login')}
+            <button onClick={() => navigate('/early-access')}
               className="group flex items-center gap-2 px-8 py-4 bg-brand-500 hover:bg-brand-400 text-white font-semibold rounded-2xl text-base transition-all shadow-xl shadow-brand-900/50">
-              Request a Demo <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+              Request Early Access <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
             </button>
-            <a href="mailto:hello@elderloop.xyz"
+            <a href="mailto:info@loopwaresolutions.com"
               className="px-8 py-4 text-white/75 hover:text-white font-medium rounded-2xl border border-white/20 hover:border-white/40 transition-all text-base">
-              hello@elderloop.xyz
+              info@loopwaresolutions.com
             </a>
+          </div>
+
+          {/* Social proof strip */}
+          <div className="mt-14 pt-10 border-t border-white/10 grid grid-cols-3 gap-8 text-center">
+            {[
+              { value: '12+', label: 'Years senior living experience' },
+              { value: '$8K',  label: 'Avg annual savings vs legacy tools' },
+              { value: '1 day', label: 'Average time to go live' },
+            ].map(({ value, label }) => (
+              <div key={label}>
+                <div className="text-3xl font-bold text-white mb-1" style={{ fontFamily: '"Playfair Display", serif' }}>{value}</div>
+                <div className="text-white/40 text-xs">{label}</div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -492,7 +517,7 @@ export default function LandingPage() {
           <p className="text-slate-600 text-xs">© {new Date().getFullYear()} Loopware Solutions LLC · Springfield, Missouri</p>
           <div className="flex gap-6">
             <button onClick={() => navigate('/login')} className="text-slate-500 hover:text-white text-sm transition-colors">Sign In</button>
-            <a href="mailto:hello@elderloop.xyz" className="text-slate-500 hover:text-white text-sm transition-colors">Contact</a>
+            <a href="mailto:info@loopwaresolutions.com" className="text-slate-500 hover:text-white text-sm transition-colors">Contact</a>
             <a href="#pricing" className="text-slate-500 hover:text-white text-sm transition-colors">Pricing</a>
           </div>
         </div>
