@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import LeadsTab from './LeadsTab'   // adjust path if file is in same folder
 import { useAuth } from '../../context/AuthContext'
 import {
   Building2, Users, Shield, Plus, Settings, CheckCircle2,
@@ -522,6 +523,7 @@ export default function SuperAdminDashboard() {
           {[
             { key: 'overview',       icon: BarChart3,     label: 'Overview' },
             { key: 'organizations',  icon: Building2,     label: 'Organizations' },
+            { key: 'leads',          icon: Users,         label: 'Leads' },
             { key: 'surveys',        icon: ClipboardList, label: 'Platform Surveys' },
             { key: 'activity',       icon: Activity,      label: 'Platform Activity' },
           ].map(item => {
@@ -763,7 +765,20 @@ export default function SuperAdminDashboard() {
                   )
                 })}
               </div>
-
+               {/* ── PLATFORM LEADS TAB ── */}
+            {activeTab === 'leads' && (
+                <div>
+                  <div className="mb-6">
+                    <h2 style={{ fontFamily: '"Playfair Display", serif' }} className="text-xl font-semibold text-white">
+                      Leads & Pipeline
+                    </h2>
+                    <p className="text-slate-500 text-sm mt-0.5">
+                      Submissions from elderloop.xyz/early-access
+                    </p>
+                  </div>
+                  <LeadsTab />
+                </div>
+              )}  
               {/* ── PLATFORM SURVEYS TAB ── */}
           {activeTab === 'surveys' && (
             <div className="space-y-6">

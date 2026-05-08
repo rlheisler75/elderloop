@@ -60,6 +60,18 @@ export default function EarlyAccess() {
 
     setSubmitted(true)
     setLoading(false)
+
+    // Fire confirmation email (non-blocking — don't fail the UX if this errors)
+    supabase.functions.invoke('waitlist-confirm', {
+      body: {
+        name:           form.name.trim(),
+        email:          form.email.trim().toLowerCase(),
+        community:      form.community.trim() || null,
+        role:           form.role || null,
+        community_size: form.community_size || null,
+        message:        form.message.trim() || null,
+      }
+    }).catch(() => {}) // silently ignore email errors
   }
 
   if (submitted) {
