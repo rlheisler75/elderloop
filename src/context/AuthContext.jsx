@@ -13,7 +13,8 @@ export function AuthProvider({ children }) {
   const [orgModules, setOrgModules]   = useState([])
   const [userPerms, setUserPerms]     = useState([])
   const [superAdmin, setSuperAdmin]   = useState(false)
-  const [loading, setLoading]         = useState(true)
+   const [loading, setLoading]         = useState(true)
+  const [suspended, setSuspended]     = useState(false)
   const navigate                      = useNavigate()
 
   useEffect(() => {
@@ -52,7 +53,18 @@ export function AuthProvider({ children }) {
           supabase.from('user_module_permissions').select('module_key, access_level')
             .eq('user_id', userId),
         ])
-        setOrg(orgRes.data)
+          const org = orgRes.data
+
+        // Check if org is suspended — cancelled billing or deactivated org
+        // Super admins bypass this so you can always get in to fix things
+        const isSA = !!sa
+        const orgSuspended = !isSA && (
+          org?.is_active === false ||
+          ['cancelled'].includes(org?.billing_status)
+        )
+        setSuspended(orgSuspended)
+
+        setOrg(org)
         setOrgModules(modsRes.data?.filter(m => m.is_enabled !== false).map(m => m.module_key) || [])
         setUserPerms(permsRes.data || [])
       }
@@ -121,9 +133,9 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{
+      <AuthContext.Provider value={{
       user, profile, organization, orgModules, userPerms,
-      loading, hasModule, canEdit, accessibleModules,
+      loading, suspended, hasModule, canEdit, accessibleModules,
       isOrgAdmin, isSuperAdmin, isCEO, signOut, refreshModules
     }}>
       {children}

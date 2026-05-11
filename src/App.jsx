@@ -102,6 +102,40 @@ function SuperAdminRoute({ children }) {
   return children
 }
 
+function SuspendedWall() {
+  const { organization, signOut } = useAuth()
+  const navigate = useNavigate()
+  return (
+    <div className="flex h-screen items-center justify-center bg-slate-50 p-6">
+      <div className="max-w-md w-full text-center">
+        <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+          <span className="text-3xl">⏸</span>
+        </div>
+        <h2 className="text-2xl font-bold text-slate-800 mb-3" style={{ fontFamily: '"Playfair Display", serif' }}>
+          Account Suspended
+        </h2>
+        <p className="text-slate-500 mb-2">
+          Access to <strong>{organization?.name || 'your community'}</strong> has been suspended.
+        </p>
+        <p className="text-slate-400 text-sm mb-8">
+          Please contact ElderLoop support to restore access.
+        </p>
+        <div className="flex flex-col gap-3">
+          <a href="mailto:info@loopwaresolutions.com?subject=Account Suspension - Please Restore Access"
+            className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl transition-colors text-sm">
+            Contact Support
+          </a>
+          <button onClick={async () => { await signOut(); navigate('/login') }}
+            className="w-full py-3 border border-slate-200 text-slate-600 font-medium rounded-xl text-sm hover:bg-slate-50 transition-colors">
+            Sign Out
+          </button>
+        </div>
+        <p className="text-slate-400 text-xs mt-6">info@loopwaresolutions.com</p>
+      </div>
+    </div>
+  )
+}
+
 // ── App ───────────────────────────────────────────────────────
 
 export default function App() {
