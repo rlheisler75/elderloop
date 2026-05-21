@@ -33,7 +33,7 @@ const ALL_NAV = [
   { to: '/app/it',                  label: 'IT & Technology',  icon: Monitor,         module: 'it' },
   { to: '/app/marketing',           label: 'Marketing',        icon: Megaphone,       module: 'marketing' },
   { to: '/app/property-management', label: 'Property Mgmt',    icon: Home,            module: 'property_management' },
-  { to: '/central-supply',          label: 'Central Supply',   icon: ShoppingBag,     module: 'central_supply' },
+  { to: 'app/central-supply',          label: 'Central Supply',   icon: ShoppingBag,     module: 'central_supply' },
 ]
 
 export default function Layout() {
