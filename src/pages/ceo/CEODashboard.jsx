@@ -7,7 +7,7 @@ import {
   Shield, Gauge, Car, ChevronRight, LogOut, Settings,
   CheckCircle2, Clock, ArrowUpRight, Building2, Activity,
   Church, UtensilsCrossed, ClipboardList, Wifi, WifiOff,
-  Radio, AlertCircle, Home, Star
+  Radio, AlertCircle, Home, Star, Package
 } from 'lucide-react'
 
 const today = () => new Date().toISOString().split('T')[0]
@@ -68,7 +68,8 @@ export default function CEODashboard() {
     const [
       resRes, woRes, incRes, tripRes, actRes, meterRes,
       chapelRes, secRes, complianceRes, pmRes, dietRes,
-      surveyRes, careRes
+      surveyRes, careRes,
+      supplyItemsRes, supplyPORes, supplyTxRes
     ] = await Promise.all([
       // Residents
       supabase.from('residents').select('id,care_level').eq('organization_id', orgId).eq('is_active', true),
@@ -109,6 +110,16 @@ export default function CEODashboard() {
       supabase.from('care_notes').select('id')
         .eq('organization_id', orgId)
         .gte('created_at', new Date(Date.now() - 86400000).toISOString()),
+      // Central Supply — items (value + low stock)
+      supabase.from('supply_items').select('quantity_on_hand,cost_per_unit,par_level,reorder_point')
+        .eq('organization_id', orgId).eq('is_active', true),
+      // Central Supply — pending POs
+      supabase.from('supply_purchase_orders').select('id')
+        .eq('organization_id', orgId).in('status', ['submitted','partially_received']),
+      // Central Supply — items issued this month
+      supabase.from('supply_transactions').select('quantity,transaction_type')
+        .eq('organization_id', orgId).gte('created_at', monthStart)
+        .in('transaction_type', ['issue_dept','issue_resident']),
     ])
 
     const residents    = resRes.data    || []
@@ -180,6 +191,20 @@ export default function CEODashboard() {
       // Engagement
       surveyResponses: surveys.length,
       careNotes24h: careNotes.length,
+      // Central Supply
+      supplyInventoryValue: (supplyItemsRes.data || []).reduce((s, i) => s + (Number(i.quantity_on_hand) * Number(i.cost_per_unit || 0)), 0),
+      supplyLowStock: (supplyItemsRes.data || []).filter(i => {
+        const qty = Number(i.quantity_on_hand)
+        const rp  = Number(i.reorder_point)
+        const par = Number(i.par_level)
+        return rp > 0 ? qty <= rp : (par > 0 && qty < par)
+      }).length,
+      supplyCritical: (supplyItemsRes.data || []).filter(i =>
+        Number(i.quantity_on_hand) <= 0 ||
+        (Number(i.reorder_point) > 0 && Number(i.quantity_on_hand) <= Number(i.reorder_point))
+      ).length,
+      supplyPendingPOs: (supplyPORes.data || []).length,
+      supplyIssuedMTD:  (supplyTxRes.data || []).reduce((s, t) => s + Math.abs(Number(t.quantity)), 0),
     })
     setLoading(false)
   }
@@ -191,7 +216,7 @@ export default function CEODashboard() {
     return 'Good evening'
   }
 
-  const hasAlerts = data.criticalInc > 0 || data.urgentWO > 0 || data.overdueCompliance > 0 || data.overduePM > 0
+  const hasAlerts = data.criticalInc > 0 || data.urgentWO > 0 || data.overdueCompliance > 0 || data.overduePM > 0 || data.supplyCritical > 0
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -253,6 +278,7 @@ export default function CEODashboard() {
                     {data.urgentWO > 0 && <span>🔧 {data.urgentWO} urgent maintenance request{data.urgentWO > 1 ? 's' : ''}</span>}
                     {data.overdueCompliance > 0 && <span>📋 {data.overdueCompliance} compliance inspection{data.overdueCompliance > 1 ? 's' : ''} overdue</span>}
                     {data.overduePM > 0 && <span>🛠 {data.overduePM} PM schedule{data.overduePM > 1 ? 's' : ''} overdue</span>}
+                    {data.supplyCritical > 0 && <span>📦 {data.supplyCritical} supply item{data.supplyCritical > 1 ? 's' : ''} out or critical</span>}
                   </div>
                 </div>
               </div>
@@ -273,7 +299,51 @@ export default function CEODashboard() {
               </div>
             </div>
 
-            {/* ── Live Status Row ── */}
+            {/* ── Central Supply KPIs ── */}
+            {hasModule('central_supply') && (
+              <div>
+                <h2 className="font-semibold text-slate-500 mb-4 text-xs uppercase tracking-widest">Central Supply</h2>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  <KPICard
+                    icon={Package}
+                    label="Inventory Value"
+                    value={`$${(data.supplyInventoryValue || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}`}
+                    sub="At cost"
+                    color="text-slate-700"
+                    bg="bg-slate-100"
+                    to="/app/central-supply"
+                  />
+                  <KPICard
+                    icon={Package}
+                    label="Low / Critical Stock"
+                    value={data.supplyLowStock ?? 0}
+                    sub={data.supplyCritical > 0 ? `${data.supplyCritical} out or critical` : 'Items below par'}
+                    color={data.supplyCritical > 0 ? 'text-red-600' : data.supplyLowStock > 0 ? 'text-amber-600' : 'text-green-600'}
+                    bg={data.supplyCritical > 0 ? 'bg-red-50' : data.supplyLowStock > 0 ? 'bg-amber-50' : 'bg-green-50'}
+                    to="/app/central-supply"
+                    alert={data.supplyCritical > 0}
+                  />
+                  <KPICard
+                    icon={Package}
+                    label="Pending POs"
+                    value={data.supplyPendingPOs ?? 0}
+                    sub="Awaiting receipt"
+                    color={data.supplyPendingPOs > 0 ? 'text-blue-600' : 'text-slate-500'}
+                    bg={data.supplyPendingPOs > 0 ? 'bg-blue-50' : 'bg-slate-100'}
+                    to="/app/central-supply"
+                  />
+                  <KPICard
+                    icon={Package}
+                    label="Items Issued (MTD)"
+                    value={data.supplyIssuedMTD ?? 0}
+                    sub="Units issued this month"
+                    color="text-purple-600"
+                    bg="bg-purple-50"
+                    to="/app/central-supply"
+                  />
+                </div>
+              </div>
+            )}
             <div>
               <h2 className="font-semibold text-slate-500 mb-4 text-xs uppercase tracking-widest">Live Status</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -400,7 +470,8 @@ export default function CEODashboard() {
                     { label: 'Maintenance',           to: '/app/maintenance',    icon: Wrench,        color: 'text-amber-600' },
                     { label: 'Chapel',                to: '/app/chapel',         icon: Church,        color: 'text-purple-600' },
                     { label: 'Security Rounds',       to: '/app/security',       icon: Shield,        color: 'text-indigo-600' },
-                    { label: 'Admin Panel',           to: '/app/admin',          icon: Settings,      color: 'text-slate-600' },
+                    { label: 'Admin Panel',           to: '/app/admin',          icon: Settings,  color: 'text-slate-600' },
+                    { label: 'Central Supply',         to: '/app/central-supply', icon: Package,   color: 'text-teal-600' },
                   ].map(item => {
                     const Icon = item.icon
                     return (
