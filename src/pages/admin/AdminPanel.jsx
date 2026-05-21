@@ -27,25 +27,7 @@ const ALL_ROLES = [
   { key: 'family',      label: 'Family',      desc: 'Family portal access' },
 ]
 
-const ALL_MODULES = [
-  { key: 'communication', label: 'Communication' },
-  { key: 'work_orders',   label: 'Work Orders' },
-  { key: 'dietary',       label: 'Dietary' },
-  { key: 'housekeeping',  label: 'Housekeeping' },
-  { key: 'chapel',        label: 'Chapel' },
-  { key: 'activities',    label: 'Activities' },
-  { key: 'directory',     label: 'Resident Directory' },
-  { key: 'nursing',       label: 'Nursing / Clinical' },
-  { key: 'staff',         label: 'Staff Management' },
-  { key: 'scheduling',    label: 'Scheduling' },
-  { key: 'transportation',label: 'Transportation' },
-  { key: 'security',      label: 'Security' },
-  { key: 'incidents',     label: 'Incident Reports' },
-  { key: 'surveys',       label: 'Surveys' },
-  { key: 'meters',        label: 'Utility Meters' },
-  { key: 'timeclock',     label: 'Time Clock' },
-  { key: 'it',            label: 'IT & Technology' },
-]
+// ALL_MODULES is now fetched from the `modules` table — no longer hardcoded
 
 const BILLING_STATUSES = [
   { key: 'pilot',     label: 'Pilot',     color: 'bg-blue-100 text-blue-700 border-blue-200' },
@@ -335,7 +317,7 @@ function EditUserModal({ user, onClose, onSave }) {
 }
 
 // ── Org Settings Modal ─────────────────────────────────────────
-function OrgSettingsModal({ org, modules, onClose, onSave }) {
+function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
   const fileRef = useRef()
   const [form, setForm] = useState({
     name:    org.name    || '',
@@ -380,7 +362,7 @@ function OrgSettingsModal({ org, modules, onClose, onSave }) {
     }).eq('id', org.id)
 
     // Sync modules — update existing, insert new
-    for (const mod of ALL_MODULES) {
+    for (const mod of allModules) {
       const enabled = enabledModules.includes(mod.key)
       const exists  = modules.find(m => m.module_key === mod.key)
       if (exists) {
@@ -455,7 +437,7 @@ function OrgSettingsModal({ org, modules, onClose, onSave }) {
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Enabled Modules</label>
             <p className="text-xs text-slate-400 mb-3">Toggle which modules are visible in the sidebar for this community.</p>
             <div className="grid grid-cols-2 gap-2">
-              {ALL_MODULES.map(m => (
+              {allModules.map(m => (
                 <button key={m.key} onClick={() => toggleModule(m.key)}
                   className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition-all ${enabledModules.includes(m.key) ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 text-slate-500 hover:border-brand-300'}`}>
                   {enabledModules.includes(m.key) ? <Check size={14} /> : <div className="w-3.5 h-3.5 rounded-sm border border-slate-300" />}
@@ -478,7 +460,7 @@ function OrgSettingsModal({ org, modules, onClose, onSave }) {
 }
 
 // ── New Org Modal ──────────────────────────────────────────────
-function NewOrgModal({ onClose, onSave }) {
+function NewOrgModal({ allModules, onClose, onSave }) {
   const [form, setForm] = useState({ name: '', city: '', state: '', contact_name: '', contact_email: '' })
   const [saving, setSaving] = useState(false)
   const [error, setError]   = useState('')
@@ -496,7 +478,7 @@ function NewOrgModal({ onClose, onSave }) {
     if (err) { setError(err.message); setSaving(false); return }
     // Enable all modules by default
     await supabase.from('organization_modules').insert(
-      ALL_MODULES.map(m => ({ organization_id: org.id, module_key: m.key, is_enabled: true }))
+      allModules.map(m => ({ organization_id: org.id, module_key: m.key, is_enabled: true }))
     )
     setSaving(false)
     onSave()
@@ -561,6 +543,7 @@ export default function AdminPanel() {
   const [orgs, setOrgs]           = useState([])
   const [users, setUsers]         = useState([])
   const [orgModules, setOrgModules] = useState([])
+  const [allModules, setAllModules] = useState([])
   const [loading, setLoading]     = useState(true)
   const [search, setSearch]       = useState('')
   const [selectedOrg, setSelectedOrg] = useState(null)
@@ -599,12 +582,14 @@ export default function AdminPanel() {
   }
 
   async function fetchUsers() {
-    const [usersRes, modulesRes] = await Promise.all([
+    const [usersRes, modulesRes, allModsRes] = await Promise.all([
       supabase.from('profiles').select('*').eq('organization_id', currentOrgId).neq('role','super_admin').order('last_name'),
       supabase.from('organization_modules').select('*').eq('organization_id', currentOrgId),
+      supabase.from('modules').select('key, label').eq('is_active', true).order('label'),
     ])
     setUsers(usersRes.data || [])
     setOrgModules(modulesRes.data || [])
+    setAllModules(allModsRes.data || [])
   }
 
   const handleDeactivate = async (userId) => {
@@ -793,7 +778,7 @@ export default function AdminPanel() {
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
             <h3 className="font-display font-semibold text-slate-800 mb-4">Active Modules</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {ALL_MODULES.map(m => {
+              {allModules.map(m => {
                 const enabled = orgModules.find(om => om.module_key === m.key)?.is_enabled
                 return (
                   <div key={m.key} className={`flex items-center gap-2 px-4 py-3 rounded-xl border text-sm font-medium ${enabled ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
@@ -854,11 +839,13 @@ export default function AdminPanel() {
         <OrgSettingsModal
           org={editingOrg}
           modules={orgModules}
+          allModules={allModules}
           onClose={() => { setShowOrgSettings(false); setEditingOrg(null) }}
           onSave={async () => { setShowOrgSettings(false); setEditingOrg(null); await fetchAll(); await refreshModules() }} />
       )}
       {showNewOrg && (
         <NewOrgModal
+          allModules={allModules}
           onClose={() => setShowNewOrg(false)}
           onSave={() => { setShowNewOrg(false); fetchAll() }} />
       )}
