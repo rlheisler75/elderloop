@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import {
   Plus, X, ChevronRight, ClipboardList, Check, AlertTriangle,
   Package, Truck, Search, CheckCircle2, Clock, XCircle,
-  ArrowLeft, PackagePlus, Edit2
+  ArrowLeft, PackagePlus, Edit2, Undo2
 } from 'lucide-react'
 
 const STATUS_CFG = {
@@ -212,48 +212,91 @@ function CreatePOModal({ orgId, profileId, vendors, items, onClose, onSaved }) {
 
 // ── Inline Receive Input ───────────────────────────────────────
 function ReceiveLineRow({ line, po, orgId, profileId, onDone }) {
-  const remaining = Number(line.quantity_ordered) - Number(line.quantity_received)
-  const [qty, setQty]         = useState(remaining)
-  const [saving, setSaving]   = useState(false)
+  const received  = Number(line.quantity_received)
+  const ordered   = Number(line.quantity_ordered)
+  const remaining = ordered - received
+
+  const [receiveQty, setReceiveQty] = useState(remaining)
+  const [reverseQty, setReverseQty] = useState(received)
+  const [mode,   setMode]   = useState('idle')   // 'idle' | 'receive' | 'reverse'
+  const [saving, setSaving] = useState(false)
+
+  // Reset inputs whenever line data changes
+  useEffect(() => {
+    setReceiveQty(ordered - received)
+    setReverseQty(received)
+    setMode('idle')
+  }, [received, ordered])
 
   const lineStatus = () => {
-    const rcvd = Number(line.quantity_received)
-    const ord  = Number(line.quantity_ordered)
-    if (rcvd <= 0)       return 'pending'
-    if (rcvd >= ord)     return 'received'
+    if (received <= 0)      return 'pending'
+    if (received >= ordered) return 'received'
     return 'partial'
   }
   const status = lineStatus()
 
+  // ── Receive ──────────────────────────────────────────────────
   const handleReceive = async () => {
-    const receiveQty = Number(qty)
-    if (!receiveQty || receiveQty <= 0) return
+    const qty = Number(receiveQty)
+    if (!qty || qty <= 0) return
     setSaving(true)
     const now = new Date().toISOString()
+    const newReceived   = received + qty
+    const fullyReceived = newReceived >= ordered
 
-    const newReceived = Number(line.quantity_received) + receiveQty
-    const fullyReceived = newReceived >= Number(line.quantity_ordered)
-
-    // Update line item
     await supabase.from('supply_po_line_items').update({
       quantity_received: newReceived,
       is_received: fullyReceived,
       received_at: fullyReceived ? now : line.received_at,
     }).eq('id', line.id)
 
-    // Update inventory if linked to catalog
     if (line.supply_item_id) {
       const { data: item } = await supabase.from('supply_items')
         .select('quantity_on_hand').eq('id', line.supply_item_id).single()
       if (item) {
-        const newQty = Number(item.quantity_on_hand) + receiveQty
+        const newQty = Number(item.quantity_on_hand) + qty
         await supabase.from('supply_items').update({ quantity_on_hand: newQty }).eq('id', line.supply_item_id)
         await supabase.from('supply_transactions').insert({
           organization_id: orgId, supply_item_id: line.supply_item_id,
-          transaction_type: 'receive', quantity: receiveQty,
+          transaction_type: 'receive', quantity: qty,
           quantity_before: Number(item.quantity_on_hand), quantity_after: newQty,
           unit_cost: line.unit_cost, po_id: po.id, po_line_item_id: line.id,
           performed_by: profileId, reference_number: po.po_number,
+          notes: `Received via ${po.po_number}`,
+        })
+      }
+    }
+    setSaving(false)
+    onDone()
+  }
+
+  // ── Reverse ──────────────────────────────────────────────────
+  const handleReverse = async () => {
+    const qty = Number(reverseQty)
+    if (!qty || qty <= 0 || qty > received) return
+    if (!confirm(`Reverse ${qty} ${line.unit} of "${line.description}"? This will reduce inventory by ${qty}.`)) return
+    setSaving(true)
+
+    const newReceived = received - qty
+    await supabase.from('supply_po_line_items').update({
+      quantity_received: newReceived,
+      is_received: false,
+      received_at: newReceived > 0 ? line.received_at : null,
+    }).eq('id', line.id)
+
+    if (line.supply_item_id) {
+      const { data: item } = await supabase.from('supply_items')
+        .select('quantity_on_hand').eq('id', line.supply_item_id).single()
+      if (item) {
+        const newQty = Math.max(0, Number(item.quantity_on_hand) - qty)
+        await supabase.from('supply_items').update({ quantity_on_hand: newQty }).eq('id', line.supply_item_id)
+        await supabase.from('supply_transactions').insert({
+          organization_id: orgId, supply_item_id: line.supply_item_id,
+          transaction_type: 'adjustment', quantity: -qty,
+          quantity_before: Number(item.quantity_on_hand), quantity_after: newQty,
+          unit_cost: line.unit_cost, po_id: po.id, po_line_item_id: line.id,
+          performed_by: profileId, reference_number: po.po_number,
+          notes: `Receive reversed on ${po.po_number}`,
         })
       }
     }
@@ -268,10 +311,10 @@ function ReceiveLineRow({ line, po, orgId, profileId, onDone }) {
         {line.supply_items?.name && line.supply_items.name !== line.description &&
           <div className="text-xs text-slate-400">{line.supply_items.name}</div>}
       </td>
-      <td className="px-4 py-3 text-sm text-slate-700">{line.quantity_ordered} {line.unit}</td>
-      <td className="px-4 py-3 text-sm text-slate-700">
-        <span className={status === 'partial' ? 'text-amber-600 font-medium' : ''}>
-          {line.quantity_received} {line.unit}
+      <td className="px-4 py-3 text-sm text-slate-700">{ordered} {line.unit}</td>
+      <td className="px-4 py-3 text-sm">
+        <span className={status === 'partial' ? 'text-amber-600 font-medium' : 'text-slate-700'}>
+          {received} {line.unit}
         </span>
         {status === 'partial' && (
           <div className="text-xs text-slate-400">{remaining} remaining</div>
@@ -279,7 +322,7 @@ function ReceiveLineRow({ line, po, orgId, profileId, onDone }) {
       </td>
       <td className="px-4 py-3 text-sm text-slate-600">{line.unit_cost ? `$${Number(line.unit_cost).toFixed(2)}` : '—'}</td>
       <td className="px-4 py-3 text-sm font-medium text-slate-800">
-        ${(Number(line.quantity_ordered) * Number(line.unit_cost || 0)).toFixed(2)}
+        ${(ordered * Number(line.unit_cost || 0)).toFixed(2)}
       </td>
       <td className="px-4 py-3">
         {status === 'received' && (
@@ -299,18 +342,57 @@ function ReceiveLineRow({ line, po, orgId, profileId, onDone }) {
         )}
       </td>
       <td className="px-4 py-3">
-        {status !== 'received' && po.status !== 'cancelled' && (
-          <div className="flex items-center gap-1.5">
-            <input
-              type="number" min="1" max={remaining} value={qty}
-              onChange={e => setQty(Math.min(remaining, Math.max(1, Number(e.target.value))))}
-              className="w-16 px-2 py-1 border border-slate-200 rounded-lg text-xs text-center focus:outline-none focus:ring-2 focus:ring-green-400"
-            />
-            <span className="text-xs text-slate-400">{line.unit}</span>
-            <button onClick={handleReceive} disabled={saving}
-              className="text-xs px-2.5 py-1 bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 rounded-lg font-medium transition-colors disabled:opacity-50 whitespace-nowrap">
-              {saving ? '...' : status === 'partial' ? 'Receive More' : 'Receive'}
-            </button>
+        {po.status !== 'cancelled' && (
+          <div className="flex flex-col gap-1.5">
+
+            {/* Receive row */}
+            {status !== 'received' && mode !== 'reverse' && (
+              <div className="flex items-center gap-1.5">
+                {mode === 'receive' ? (
+                  <>
+                    <input type="number" min="1" max={remaining} value={receiveQty}
+                      onChange={e => setReceiveQty(Math.min(remaining, Math.max(1, Number(e.target.value))))}
+                      className="w-16 px-2 py-1 border border-slate-200 rounded-lg text-xs text-center focus:outline-none focus:ring-2 focus:ring-green-400" />
+                    <span className="text-xs text-slate-400">{line.unit}</span>
+                    <button onClick={handleReceive} disabled={saving}
+                      className="text-xs px-2.5 py-1 bg-green-600 text-white hover:bg-green-700 rounded-lg font-medium transition-colors disabled:opacity-50">
+                      {saving ? '...' : '✓ Confirm'}
+                    </button>
+                    <button onClick={() => setMode('idle')} className="text-xs text-slate-400 hover:text-slate-600"><X size={13} /></button>
+                  </>
+                ) : (
+                  <button onClick={() => setMode('receive')}
+                    className="text-xs px-2.5 py-1 bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 rounded-lg font-medium transition-colors whitespace-nowrap">
+                    {status === 'partial' ? 'Receive More' : 'Receive'}
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Reverse row — only when something has been received */}
+            {received > 0 && mode !== 'receive' && (
+              <div className="flex items-center gap-1.5">
+                {mode === 'reverse' ? (
+                  <>
+                    <input type="number" min="1" max={received} value={reverseQty}
+                      onChange={e => setReverseQty(Math.min(received, Math.max(1, Number(e.target.value))))}
+                      className="w-16 px-2 py-1 border border-red-200 rounded-lg text-xs text-center focus:outline-none focus:ring-2 focus:ring-red-400" />
+                    <span className="text-xs text-slate-400">{line.unit}</span>
+                    <button onClick={handleReverse} disabled={saving}
+                      className="text-xs px-2.5 py-1 bg-red-600 text-white hover:bg-red-700 rounded-lg font-medium transition-colors disabled:opacity-50">
+                      {saving ? '...' : 'Undo'}
+                    </button>
+                    <button onClick={() => setMode('idle')} className="text-xs text-slate-400 hover:text-slate-600"><X size={13} /></button>
+                  </>
+                ) : (
+                  <button onClick={() => setMode('reverse')}
+                    className="flex items-center gap-1 text-xs px-2.5 py-1 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 rounded-lg font-medium transition-colors">
+                    <Undo2 size={11} /> Reverse
+                  </button>
+                )}
+              </div>
+            )}
+
           </div>
         )}
       </td>
