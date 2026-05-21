@@ -18,6 +18,7 @@ import Communication from './pages/communication/Communication'
 import WorkOrders    from './pages/workorders/WorkOrders'
 import Dietary       from './pages/dietary/Dietary'
 import Housekeeping  from './pages/housekeeping/Housekeeping'
+import CentralSupply from './pages/supply/CentralSupply'
 
 // Lazy loaded
 const Chapel         = lazy(() => import('./pages/chapel/Chapel'))
@@ -234,6 +235,8 @@ export default function App() {
             element={<ProtectedRoute requireModule="marketing"><Lazy><Marketing /></Lazy></ProtectedRoute>} />
           <Route path="property-management"
             element={<ProtectedRoute requireModule="property_management"><Lazy><PropertyMgmt /></Lazy></ProtectedRoute>} />
+          <Route path="central-supply" 
+            element={<ProtectedRoute requireModule="central_supply"><CentralSupply /></ProtectedRoute>} />
 
         </Route>
 
