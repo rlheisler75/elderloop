@@ -2,31 +2,25 @@ import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import {
   Package, PackagePlus, PackageMinus, DollarSign,
-  ClipboardList, Truck, BarChart2, QrCode
+  ClipboardList, Truck, BarChart2
 } from 'lucide-react'
-import SupplyInventory from './SupplyInventory'
+import SupplyInventory    from './SupplyInventory'
+import SupplyReceive      from './SupplyReceive'
+import SupplyIssue        from './SupplyIssue'
+import SupplyCashSales    from './SupplyCashSales'
+import SupplyPurchaseOrders from './SupplyPurchaseOrders'
+import SupplyVendors      from './SupplyVendors'
+import SupplyReports      from './SupplyReports'
 
 const TABS = [
-  { key: 'inventory',  label: 'Inventory',        icon: Package,        built: true  },
-  { key: 'receive',    label: 'Receive Stock',     icon: PackagePlus,    built: false },
-  { key: 'issue',      label: 'Issue / Checkout',  icon: PackageMinus,   built: false },
-  { key: 'cash',       label: 'Cash Sales',        icon: DollarSign,     built: false },
-  { key: 'pos',        label: 'Purchase Orders',   icon: ClipboardList,  built: false },
-  { key: 'vendors',    label: 'Vendors',           icon: Truck,          built: false },
-  { key: 'reports',    label: 'Reports',           icon: BarChart2,      built: false },
+  { key: 'inventory', label: 'Inventory',       icon: Package,       component: SupplyInventory },
+  { key: 'receive',   label: 'Receive Stock',    icon: PackagePlus,   component: SupplyReceive },
+  { key: 'issue',     label: 'Issue / Checkout', icon: PackageMinus,  component: SupplyIssue },
+  { key: 'cash',      label: 'Cash Sales',       icon: DollarSign,    component: SupplyCashSales },
+  { key: 'pos',       label: 'Purchase Orders',  icon: ClipboardList, component: SupplyPurchaseOrders },
+  { key: 'vendors',   label: 'Vendors',          icon: Truck,         component: SupplyVendors },
+  { key: 'reports',   label: 'Reports',          icon: BarChart2,     component: SupplyReports },
 ]
-
-function ComingSoon({ label, icon: Icon }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-24 text-slate-400">
-      <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
-        <Icon size={28} className="text-slate-300" />
-      </div>
-      <p className="font-display font-semibold text-slate-600 text-lg mb-1">{label}</p>
-      <p className="text-sm">This section is coming soon.</p>
-    </div>
-  )
-}
 
 export default function CentralSupply() {
   const { hasModule } = useAuth()
@@ -45,6 +39,7 @@ export default function CentralSupply() {
   }
 
   const current = TABS.find(t => t.key === tab)
+  const ActiveComponent = current?.component
 
   return (
     <div className="flex flex-col h-full">
@@ -55,9 +50,7 @@ export default function CentralSupply() {
             <Package size={18} className="text-white" />
           </div>
           <div>
-            <h1 className="font-display font-semibold text-slate-800 text-xl leading-tight">
-              Central Supply
-            </h1>
+            <h1 className="font-display font-semibold text-slate-800 text-xl leading-tight">Central Supply</h1>
             <p className="text-xs text-slate-400 mt-0.5">Inventory, ordering, and supply tracking</p>
           </div>
         </div>
@@ -74,8 +67,7 @@ export default function CentralSupply() {
                   tab === t.key
                     ? 'border-brand-600 text-brand-700'
                     : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-                }`}
-              >
+                }`}>
                 <Icon size={14} />
                 {t.label}
               </button>
@@ -86,10 +78,7 @@ export default function CentralSupply() {
 
       {/* ── Tab content ── */}
       <div className="flex-1 overflow-y-auto">
-        {tab === 'inventory' && <SupplyInventory />}
-        {tab !== 'inventory' && current && (
-          <ComingSoon label={current.label} icon={current.icon} />
-        )}
+        {ActiveComponent && <ActiveComponent />}
       </div>
     </div>
   )
