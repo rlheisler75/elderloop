@@ -5,8 +5,10 @@ import {
   Plus, Search, X, Edit2, Trash2, Package,
   AlertTriangle, CheckCircle2, XCircle, ChevronDown,
   QrCode, MapPin, Tag, DollarSign, BarChart2,
-  Truck, Eye, EyeOff, Filter, ScanLine
+  Truck, Eye, EyeOff, Filter, ScanLine, Printer
 } from 'lucide-react'
+import SupplyBarcodeLabels  from './SupplyBarcodeLabels'
+import ResidentBarcodeLabels from './ResidentBarcodeLabels'
 
 // ── Constants ──────────────────────────────────────────────────
 const UNITS = ['each','box','case','pack','pair','bag','roll','carton','bottle','gallon','lb','oz']
@@ -471,6 +473,8 @@ export default function SupplyInventory() {
   const [showInactive, setShowInactive] = useState(false)
   const [selected, setSelected] = useState(null)   // item being edited
   const [showModal,setShowModal]= useState(false)
+  const [showItemLabels,    setShowItemLabels]    = useState(false)
+  const [showResidentLabels,setShowResidentLabels]= useState(false)
 
   useEffect(() => { if (organization) fetchAll() }, [organization])
 
@@ -603,6 +607,14 @@ export default function SupplyInventory() {
             {showInactive ? <Eye size={13} /> : <EyeOff size={13} />}
             {showInactive ? 'Hiding inactive' : 'Show inactive'}
           </button>
+          <button onClick={() => setShowItemLabels(true)}
+            className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-medium transition-colors">
+            <Printer size={13} /> Item Labels
+          </button>
+          <button onClick={() => setShowResidentLabels(true)}
+            className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-medium transition-colors">
+            <Printer size={13} /> Resident IDs
+          </button>
           <button onClick={handleNew}
             className="flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl transition-colors shadow-sm">
             <Plus size={15} /> Add Item
@@ -688,6 +700,8 @@ export default function SupplyInventory() {
           onSaved={handleSaved}
         />
       )}
+      {showItemLabels     && <SupplyBarcodeLabels   onClose={() => setShowItemLabels(false)} />}
+      {showResidentLabels && <ResidentBarcodeLabels onClose={() => setShowResidentLabels(false)} />}
     </div>
   )
 }
