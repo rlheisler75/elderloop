@@ -210,41 +210,172 @@ function CreatePOModal({ orgId, profileId, vendors, items, onClose, onSaved }) {
   )
 }
 
+// ── Inline Receive Input ───────────────────────────────────────
+function ReceiveLineRow({ line, po, orgId, profileId, onDone }) {
+  const remaining = Number(line.quantity_ordered) - Number(line.quantity_received)
+  const [qty, setQty]         = useState(remaining)
+  const [saving, setSaving]   = useState(false)
+
+  const lineStatus = () => {
+    const rcvd = Number(line.quantity_received)
+    const ord  = Number(line.quantity_ordered)
+    if (rcvd <= 0)       return 'pending'
+    if (rcvd >= ord)     return 'received'
+    return 'partial'
+  }
+  const status = lineStatus()
+
+  const handleReceive = async () => {
+    const receiveQty = Number(qty)
+    if (!receiveQty || receiveQty <= 0) return
+    setSaving(true)
+    const now = new Date().toISOString()
+
+    const newReceived = Number(line.quantity_received) + receiveQty
+    const fullyReceived = newReceived >= Number(line.quantity_ordered)
+
+    // Update line item
+    await supabase.from('supply_po_line_items').update({
+      quantity_received: newReceived,
+      is_received: fullyReceived,
+      received_at: fullyReceived ? now : line.received_at,
+    }).eq('id', line.id)
+
+    // Update inventory if linked to catalog
+    if (line.supply_item_id) {
+      const { data: item } = await supabase.from('supply_items')
+        .select('quantity_on_hand').eq('id', line.supply_item_id).single()
+      if (item) {
+        const newQty = Number(item.quantity_on_hand) + receiveQty
+        await supabase.from('supply_items').update({ quantity_on_hand: newQty }).eq('id', line.supply_item_id)
+        await supabase.from('supply_transactions').insert({
+          organization_id: orgId, supply_item_id: line.supply_item_id,
+          transaction_type: 'receive', quantity: receiveQty,
+          quantity_before: Number(item.quantity_on_hand), quantity_after: newQty,
+          unit_cost: line.unit_cost, po_id: po.id, po_line_item_id: line.id,
+          performed_by: profileId, reference_number: po.po_number,
+        })
+      }
+    }
+    setSaving(false)
+    onDone()
+  }
+
+  return (
+    <tr className="border-b border-slate-100 last:border-0">
+      <td className="px-4 py-3">
+        <div className="text-sm font-medium text-slate-800">{line.description}</div>
+        {line.supply_items?.name && line.supply_items.name !== line.description &&
+          <div className="text-xs text-slate-400">{line.supply_items.name}</div>}
+      </td>
+      <td className="px-4 py-3 text-sm text-slate-700">{line.quantity_ordered} {line.unit}</td>
+      <td className="px-4 py-3 text-sm text-slate-700">
+        <span className={status === 'partial' ? 'text-amber-600 font-medium' : ''}>
+          {line.quantity_received} {line.unit}
+        </span>
+        {status === 'partial' && (
+          <div className="text-xs text-slate-400">{remaining} remaining</div>
+        )}
+      </td>
+      <td className="px-4 py-3 text-sm text-slate-600">{line.unit_cost ? `$${Number(line.unit_cost).toFixed(2)}` : '—'}</td>
+      <td className="px-4 py-3 text-sm font-medium text-slate-800">
+        ${(Number(line.quantity_ordered) * Number(line.unit_cost || 0)).toFixed(2)}
+      </td>
+      <td className="px-4 py-3">
+        {status === 'received' && (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+            <Check size={10} /> Received
+          </span>
+        )}
+        {status === 'partial' && (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+            <Clock size={10} /> Partial
+          </span>
+        )}
+        {status === 'pending' && (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-500">
+            <Clock size={10} /> Pending
+          </span>
+        )}
+      </td>
+      <td className="px-4 py-3">
+        {status !== 'received' && po.status !== 'cancelled' && (
+          <div className="flex items-center gap-1.5">
+            <input
+              type="number" min="1" max={remaining} value={qty}
+              onChange={e => setQty(Math.min(remaining, Math.max(1, Number(e.target.value))))}
+              className="w-16 px-2 py-1 border border-slate-200 rounded-lg text-xs text-center focus:outline-none focus:ring-2 focus:ring-green-400"
+            />
+            <span className="text-xs text-slate-400">{line.unit}</span>
+            <button onClick={handleReceive} disabled={saving}
+              className="text-xs px-2.5 py-1 bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 rounded-lg font-medium transition-colors disabled:opacity-50 whitespace-nowrap">
+              {saving ? '...' : status === 'partial' ? 'Receive More' : 'Receive'}
+            </button>
+          </div>
+        )}
+      </td>
+    </tr>
+  )
+}
+
 // ── PO Detail / Receive View ───────────────────────────────────
 function PODetail({ po, orgId, profileId, onBack, onRefresh }) {
-  const [lines, setLines]     = useState([])
-  const [loading, setLoading] = useState(true)
-  const [receiving, setReceiving] = useState(false)
+  const [lines,    setLines]    = useState([])
+  const [loading,  setLoading]  = useState(true)
+  const [receiving,setReceiving]= useState(false)
   const cfg = STATUS_CFG[po.status] || STATUS_CFG.draft
 
   useEffect(() => { fetchLines() }, [po.id])
 
   async function fetchLines() {
     setLoading(true)
-    const { data } = await supabase.from('supply_po_line_items').select('*, supply_items(name, unit)').eq('po_id', po.id).order('sort_order')
+    const { data } = await supabase
+      .from('supply_po_line_items')
+      .select('*, supply_items(name, unit)')
+      .eq('po_id', po.id)
+      .order('sort_order')
     setLines(data || [])
     setLoading(false)
   }
 
-  async function receiveAll() {
-    if (!confirm('Mark all lines as received and update inventory?')) return
-    setReceiving(true)
-    const unreceived = lines.filter(l => !l.is_received)
+  async function updatePOStatus() {
+    const { data: fresh } = await supabase
+      .from('supply_po_line_items').select('quantity_ordered, quantity_received, is_received').eq('po_id', po.id)
+    if (!fresh) return
+    const allDone    = fresh.every(l => Number(l.quantity_received) >= Number(l.quantity_ordered))
+    const anyStarted = fresh.some(l => Number(l.quantity_received) > 0)
     const now = new Date().toISOString()
+    await supabase.from('supply_purchase_orders').update({
+      status: allDone ? 'received' : anyStarted ? 'partially_received' : 'submitted',
+      ...(allDone ? { received_date: now.split('T')[0], received_by: profileId } : {}),
+    }).eq('id', po.id)
+  }
 
-    for (const line of unreceived) {
-      // Mark line received
-      await supabase.from('supply_po_line_items').update({ is_received: true, quantity_received: line.quantity_ordered, received_at: now }).eq('id', line.id)
-      // Update inventory if linked to a catalog item
-      if (line.supply_item_id) {
-        const { data: item } = await supabase.from('supply_items').select('quantity_on_hand').eq('id', line.supply_item_id).single()
+  async function receiveAll() {
+    if (!confirm('Receive all remaining quantities and update inventory?')) return
+    setReceiving(true)
+    const now = new Date().toISOString()
+    const incomplete = lines.filter(l => Number(l.quantity_received) < Number(l.quantity_ordered))
+
+    for (const line of incomplete) {
+      const remaining  = Number(line.quantity_ordered) - Number(line.quantity_received)
+      const newReceived = Number(line.quantity_ordered)
+
+      await supabase.from('supply_po_line_items').update({
+        quantity_received: newReceived,
+        is_received: true,
+        received_at: now,
+      }).eq('id', line.id)
+
+      if (line.supply_item_id && remaining > 0) {
+        const { data: item } = await supabase.from('supply_items')
+          .select('quantity_on_hand').eq('id', line.supply_item_id).single()
         if (item) {
-          const newQty = Number(item.quantity_on_hand) + Number(line.quantity_ordered)
+          const newQty = Number(item.quantity_on_hand) + remaining
           await supabase.from('supply_items').update({ quantity_on_hand: newQty }).eq('id', line.supply_item_id)
-          // Log transaction
           await supabase.from('supply_transactions').insert({
             organization_id: orgId, supply_item_id: line.supply_item_id,
-            transaction_type: 'receive', quantity: Number(line.quantity_ordered),
+            transaction_type: 'receive', quantity: remaining,
             quantity_before: Number(item.quantity_on_hand), quantity_after: newQty,
             unit_cost: line.unit_cost, po_id: po.id, po_line_item_id: line.id,
             performed_by: profileId, reference_number: po.po_number,
@@ -253,41 +384,26 @@ function PODetail({ po, orgId, profileId, onBack, onRefresh }) {
       }
     }
 
-    // Update PO status
-    await supabase.from('supply_purchase_orders').update({ status: 'received', received_date: now.split('T')[0], received_by: profileId }).eq('id', po.id)
+    await supabase.from('supply_purchase_orders').update({
+      status: 'received',
+      received_date: now.split('T')[0],
+      received_by: profileId,
+    }).eq('id', po.id)
+
     setReceiving(false)
     fetchLines()
     onRefresh()
   }
 
-  async function receiveLine(line) {
-    const now = new Date().toISOString()
-    await supabase.from('supply_po_line_items').update({ is_received: true, quantity_received: line.quantity_ordered, received_at: now }).eq('id', line.id)
-    if (line.supply_item_id) {
-      const { data: item } = await supabase.from('supply_items').select('quantity_on_hand').eq('id', line.supply_item_id).single()
-      if (item) {
-        const newQty = Number(item.quantity_on_hand) + Number(line.quantity_ordered)
-        await supabase.from('supply_items').update({ quantity_on_hand: newQty }).eq('id', line.supply_item_id)
-        await supabase.from('supply_transactions').insert({
-          organization_id: orgId, supply_item_id: line.supply_item_id,
-          transaction_type: 'receive', quantity: Number(line.quantity_ordered),
-          quantity_before: Number(item.quantity_on_hand), quantity_after: newQty,
-          unit_cost: line.unit_cost, po_id: po.id, po_line_item_id: line.id,
-          performed_by: profileId, reference_number: po.po_number,
-        })
-      }
-    }
-    // Check if all received → update status
-    const updated = lines.map(l => l.id === line.id ? { ...l, is_received: true } : l)
-    const allDone = updated.every(l => l.is_received)
-    await supabase.from('supply_purchase_orders').update({ status: allDone ? 'received' : 'partially_received', ...(allDone ? { received_date: now.split('T')[0], received_by: profileId } : {}) }).eq('id', po.id)
+  const handleLineDone = async () => {
+    await updatePOStatus()
     fetchLines()
     onRefresh()
   }
 
-  const total = lines.reduce((s, l) => s + (Number(l.quantity_ordered) * Number(l.unit_cost || 0)), 0)
-  const allReceived = lines.length > 0 && lines.every(l => l.is_received)
-  const anyPending  = lines.some(l => !l.is_received)
+  const total       = lines.reduce((s, l) => s + (Number(l.quantity_ordered) * Number(l.unit_cost || 0)), 0)
+  const allReceived = lines.length > 0 && lines.every(l => Number(l.quantity_received) >= Number(l.quantity_ordered))
+  const anyPending  = lines.some(l => Number(l.quantity_received) < Number(l.quantity_ordered))
 
   return (
     <div className="p-6">
@@ -333,7 +449,7 @@ function PODetail({ po, orgId, profileId, onBack, onRefresh }) {
         <table className="w-full">
           <thead>
             <tr className="border-b border-slate-100 bg-slate-50">
-              {['Item / Description', 'Qty Ordered', 'Qty Received', 'Unit Cost', 'Line Total', 'Status', ''].map(h => (
+              {['Item / Description', 'Qty Ordered', 'Qty Received', 'Unit Cost', 'Line Total', 'Status', 'Receive'].map(h => (
                 <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">{h}</th>
               ))}
             </tr>
@@ -342,34 +458,20 @@ function PODetail({ po, orgId, profileId, onBack, onRefresh }) {
             {loading ? (
               <tr><td colSpan={7} className="text-center py-10 text-slate-400 text-sm">Loading...</td></tr>
             ) : lines.map(line => (
-              <tr key={line.id} className="border-b border-slate-100 last:border-0">
-                <td className="px-4 py-3">
-                  <div className="text-sm font-medium text-slate-800">{line.description}</div>
-                  {line.supply_items?.name && line.supply_items.name !== line.description && <div className="text-xs text-slate-400">{line.supply_items.name}</div>}
-                </td>
-                <td className="px-4 py-3 text-sm text-slate-700">{line.quantity_ordered} {line.unit}</td>
-                <td className="px-4 py-3 text-sm text-slate-700">{line.quantity_received} {line.unit}</td>
-                <td className="px-4 py-3 text-sm text-slate-600">{line.unit_cost ? `$${Number(line.unit_cost).toFixed(2)}` : '—'}</td>
-                <td className="px-4 py-3 text-sm font-medium text-slate-800">${(Number(line.quantity_ordered) * Number(line.unit_cost || 0)).toFixed(2)}</td>
-                <td className="px-4 py-3">
-                  {line.is_received
-                    ? <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700"><Check size={10} /> Received</span>
-                    : <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700"><Clock size={10} /> Pending</span>}
-                </td>
-                <td className="px-4 py-3">
-                  {!line.is_received && po.status !== 'cancelled' && (
-                    <button onClick={() => receiveLine(line)} className="text-xs px-2.5 py-1 bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 rounded-lg font-medium transition-colors">
-                      Receive
-                    </button>
-                  )}
-                </td>
-              </tr>
+              <ReceiveLineRow
+                key={line.id}
+                line={line}
+                po={po}
+                orgId={orgId}
+                profileId={profileId}
+                onDone={handleLineDone}
+              />
             ))}
           </tbody>
         </table>
         {allReceived && (
           <div className="flex items-center gap-2 px-5 py-3 bg-green-50 border-t border-green-100 text-green-700 text-sm font-medium">
-            <CheckCircle2 size={16} /> All items received
+            <CheckCircle2 size={16} /> All items fully received
           </div>
         )}
       </div>
