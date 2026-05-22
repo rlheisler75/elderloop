@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import {
   Users, BookOpen, Printer, Plus, X, Edit2, Search,
   ChevronLeft, ChevronRight, AlertTriangle, Check,
-  UtensilsCrossed, RefreshCw, ArrowRight, Clipboard
+  UtensilsCrossed, RefreshCw, ArrowRight, Clipboard, Link2
 } from 'lucide-react'
 
 // ── Constants ─────────────────────────────────────────────────
@@ -67,14 +67,125 @@ const MEAL_PERIODS = [
   { key: 'dinner',    label: 'Dinner' },
 ]
 
-const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+const CARE_LABELS = {
+  independent: 'Independent',
+  assisted:    'Assisted Living',
+  memory_care: 'Memory Care',
+  skilled:     'Skilled Nursing',
+  rehab:       'Rehab',
+}
 
 const getDiet = (key) => DIET_TYPES.find(d => d.key === key)?.label || key
 const getCons = (key) => CONSISTENCIES.find(c => c.key === key)?.label || key
 
+// ── Resident Directory Picker ──────────────────────────────────
+function ResidentPicker({ orgId, value, onSelect }) {
+  const [search, setSearch]   = useState('')
+  const [options, setOptions] = useState([])
+  const [open, setOpen]       = useState(false)
+  const [loading, setLoading] = useState(false)
+  const wrapRef = useRef()
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClick(e) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  useEffect(() => {
+    if (!search || search.length < 2) { setOptions([]); setOpen(false); return }
+    setLoading(true)
+    supabase.from('residents')
+      .select('id, first_name, last_name, room, unit, care_level')
+      .eq('organization_id', orgId)
+      .eq('is_active', true)
+      .or(`first_name.ilike.%${search}%,last_name.ilike.%${search}%,room.ilike.%${search}%`)
+      .order('last_name')
+      .limit(10)
+      .then(({ data }) => {
+        setOptions(data || [])
+        setLoading(false)
+        setOpen(true)
+      })
+  }, [search, orgId])
+
+  // Linked state — show the chosen resident
+  if (value) {
+    return (
+      <div className="flex items-center gap-3 px-3 py-2.5 bg-brand-50 border border-brand-200 rounded-xl">
+        <div className="w-9 h-9 rounded-full bg-brand-200 flex items-center justify-center text-brand-700 font-bold text-sm flex-shrink-0">
+          {value.first_name?.[0]}{value.last_name?.[0]}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-slate-800">{value.first_name} {value.last_name}</p>
+          <p className="text-xs text-slate-500">
+            Room {value.room}{value.care_level ? ` · ${CARE_LABELS[value.care_level] || value.care_level}` : ''}
+          </p>
+        </div>
+        <div className="flex items-center gap-1 text-brand-600 text-xs font-medium flex-shrink-0">
+          <Link2 size={12} /> Linked
+        </div>
+        <button
+          onClick={() => onSelect(null)}
+          className="text-xs text-slate-400 hover:text-slate-600 font-medium ml-1"
+        >
+          Change
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="relative" ref={wrapRef}>
+      <div className="relative">
+        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Search by name or room number..."
+          className="w-full pl-8 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+        />
+        {loading && (
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">Searching…</span>
+        )}
+      </div>
+
+      {open && (
+        <div className="absolute z-30 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden">
+          {options.length > 0 ? options.map(r => (
+            <button
+              key={r.id}
+              onClick={() => { onSelect(r); setSearch(''); setOpen(false) }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-brand-50 text-left transition-colors border-b border-slate-50 last:border-0"
+            >
+              <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-semibold text-xs flex-shrink-0">
+                {r.first_name?.[0]}{r.last_name?.[0]}
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-800">{r.first_name} {r.last_name}</p>
+                <p className="text-xs text-slate-500">
+                  Room {r.room}{r.care_level ? ` · ${CARE_LABELS[r.care_level] || r.care_level}` : ''}
+                </p>
+              </div>
+            </button>
+          )) : (
+            <div className="px-4 py-3 text-sm text-slate-400">
+              No residents found. You can still fill in the name below manually.
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Resident Profile Card ──────────────────────────────────────
 function ResidentCard({ resident, onEdit, onPrint }) {
   const hasAllergens = resident.allergens?.length > 0
+  const dir = resident.residents  // joined directory record
   const dietColor = {
     regular:      'bg-slate-100 text-slate-700',
     heart_healthy:'bg-red-100 text-red-700',
@@ -96,13 +207,34 @@ function ResidentCard({ resident, onEdit, onPrint }) {
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-all">
       <div className="flex items-start justify-between mb-3">
-        <div>
-          <h3 className="font-display font-semibold text-slate-800">{resident.first_name} {resident.last_name}</h3>
-          <p className="text-slate-400 text-xs mt-0.5">
-            {[resident.room && `Room ${resident.room}`, resident.unit && `Unit ${resident.unit}`, resident.dining_location].filter(Boolean).join(' · ')}
-          </p>
+        <div className="flex items-center gap-2.5 min-w-0">
+          {/* Avatar / initials */}
+          {dir?.photo_url ? (
+            <img src={dir.photo_url} alt="" className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
+          ) : (
+            <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-semibold text-sm flex-shrink-0">
+              {resident.first_name?.[0]}{resident.last_name?.[0]}
+            </div>
+          )}
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <h3 className="font-display font-semibold text-slate-800 truncate">
+                {resident.first_name} {resident.last_name}
+              </h3>
+              {resident.resident_id && (
+                <Link2 size={11} className="text-brand-400 flex-shrink-0" title="Linked to Resident Directory" />
+              )}
+            </div>
+            <p className="text-slate-400 text-xs mt-0.5">
+              {[
+                resident.room && `Room ${resident.room}`,
+                resident.dining_location,
+                dir?.care_level && (CARE_LABELS[dir.care_level] || dir.care_level),
+              ].filter(Boolean).join(' · ')}
+            </p>
+          </div>
         </div>
-        <div className="flex gap-1.5">
+        <div className="flex gap-1.5 flex-shrink-0">
           <button onClick={() => onPrint(resident)} className="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 transition-colors" title="Print ticket">
             <Printer size={14} />
           </button>
@@ -147,28 +279,50 @@ function ResidentCard({ resident, onEdit, onPrint }) {
 
 // ── Resident Profile Modal ─────────────────────────────────────
 function ResidentProfileModal({ resident, onClose, onSave }) {
-  const { profile } = useAuth()
+  const { profile, organization } = useAuth()
+
+  // If editing an existing profile that has a joined residents record, restore it
+  const initialLinked = resident?.residents || null
+
+  const [linkedResident, setLinkedResident] = useState(initialLinked)
   const [form, setForm] = useState({
-    first_name: resident?.first_name || '',
-    last_name:  resident?.last_name  || '',
-    unit:       resident?.unit       || '',
-    room:       resident?.room       || '',
-    diet_type:  resident?.diet_type  || 'regular',
-    consistency:resident?.consistency|| 'regular',
-    allergens:  resident?.allergens  || [],
-    allergy_notes: resident?.allergy_notes || '',
-    likes:      resident?.likes      || '',
-    dislikes:   resident?.dislikes   || '',
+    first_name:        resident?.first_name        || '',
+    last_name:         resident?.last_name         || '',
+    unit:              resident?.unit              || '',
+    room:              resident?.room              || '',
+    resident_id:       resident?.resident_id       || null,
+    diet_type:         resident?.diet_type         || 'regular',
+    consistency:       resident?.consistency       || 'regular',
+    allergens:         resident?.allergens         || [],
+    allergy_notes:     resident?.allergy_notes     || '',
+    likes:             resident?.likes             || '',
+    dislikes:          resident?.dislikes          || '',
     fluid_restriction: resident?.fluid_restriction || false,
-    fluid_notes: resident?.fluid_notes || '',
-    dining_location: resident?.dining_location || '',
+    fluid_notes:       resident?.fluid_notes       || '',
+    dining_location:   resident?.dining_location   || '',
     assistance_needed: resident?.assistance_needed || false,
-    assistance_notes: resident?.assistance_notes || '',
-    general_notes: resident?.general_notes || '',
+    assistance_notes:  resident?.assistance_notes  || '',
+    general_notes:     resident?.general_notes     || '',
   })
   const [saving, setSaving] = useState(false)
   const [error, setError]   = useState('')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+  function handleResidentSelect(r) {
+    setLinkedResident(r)
+    if (r) {
+      setForm(f => ({
+        ...f,
+        resident_id: r.id,
+        first_name:  r.first_name,
+        last_name:   r.last_name,
+        room:        r.room || '',
+        unit:        r.unit || '',
+      }))
+    } else {
+      setForm(f => ({ ...f, resident_id: null }))
+    }
+  }
 
   const toggleAllergen = (key) => {
     set('allergens', form.allergens.includes(key)
@@ -179,7 +333,12 @@ function ResidentProfileModal({ resident, onClose, onSave }) {
   const handleSave = async () => {
     if (!form.first_name.trim() || !form.last_name.trim()) { setError('Name is required'); return }
     setSaving(true)
-    const payload = { ...form, organization_id: profile.organization_id, updated_at: new Date().toISOString() }
+    const payload = {
+      ...form,
+      resident_id:     form.resident_id || null,
+      organization_id: profile.organization_id,
+      updated_at:      new Date().toISOString(),
+    }
     let err
     if (resident?.id) {
       ({ error: err } = await supabase.from('resident_dietary_profiles').update(payload).eq('id', resident.id))
@@ -189,6 +348,8 @@ function ResidentProfileModal({ resident, onClose, onSave }) {
     if (err) { setError(err.message); setSaving(false); return }
     onSave()
   }
+
+  const isLinked = !!linkedResident
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -200,31 +361,74 @@ function ResidentProfileModal({ resident, onClose, onSave }) {
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
           {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
 
-          {/* Name / Location */}
+          {/* ── Link to Resident Directory ── */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
+              Link to Resident Directory
+            </label>
+            <ResidentPicker
+              orgId={organization.id}
+              value={linkedResident}
+              onSelect={handleResidentSelect}
+            />
+            {isLinked && (
+              <p className="text-xs text-brand-500 mt-1.5 flex items-center gap-1">
+                <Link2 size={11} /> Name and room are synced from the directory record.
+              </p>
+            )}
+            {!isLinked && (
+              <p className="text-xs text-slate-400 mt-1.5">
+                Search to link this profile to an existing directory resident, or fill in the name below manually.
+              </p>
+            )}
+          </div>
+
+          {/* ── Name / Location ── */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">First Name *</label>
-              <input value={form.first_name} onChange={e => set('first_name', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
+                First Name *
+              </label>
+              <input
+                value={form.first_name}
+                onChange={e => set('first_name', e.target.value)}
+                readOnly={isLinked}
+                className={`w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 ${isLinked ? 'bg-slate-50 text-slate-500 cursor-default' : ''}`}
+              />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Last Name *</label>
-              <input value={form.last_name} onChange={e => set('last_name', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
+                Last Name *
+              </label>
+              <input
+                value={form.last_name}
+                onChange={e => set('last_name', e.target.value)}
+                readOnly={isLinked}
+                className={`w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 ${isLinked ? 'bg-slate-50 text-slate-500 cursor-default' : ''}`}
+              />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Room</label>
-              <input value={form.room} onChange={e => set('room', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Room number" />
+              <input
+                value={form.room}
+                onChange={e => set('room', e.target.value)}
+                readOnly={isLinked}
+                className={`w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 ${isLinked ? 'bg-slate-50 text-slate-500 cursor-default' : ''}`}
+                placeholder="Room number"
+              />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Dining Location</label>
-              <input value={form.dining_location} onChange={e => set('dining_location', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="e.g. Dining Room, Room Tray" />
+              <input
+                value={form.dining_location}
+                onChange={e => set('dining_location', e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                placeholder="e.g. Dining Room, Room Tray"
+              />
             </div>
           </div>
 
-          {/* Diet Type */}
+          {/* ── Diet Type ── */}
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Diet Type</label>
             <p className="text-xs text-slate-400 mb-2">Based on Academy of Nutrition and Dietetics (AND) terminology</p>
@@ -239,7 +443,7 @@ function ResidentProfileModal({ resident, onClose, onSave }) {
             </div>
           </div>
 
-          {/* Consistency */}
+          {/* ── Consistency ── */}
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Texture & Liquid Consistency</label>
             <p className="text-xs text-slate-400 mb-2">Based on IDDSI Framework (International Dysphagia Diet Standardisation Initiative)</p>
@@ -273,7 +477,7 @@ function ResidentProfileModal({ resident, onClose, onSave }) {
             </div>
           </div>
 
-          {/* Allergens */}
+          {/* ── Allergens ── */}
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Allergens</label>
             <div className="grid grid-cols-5 gap-2 mb-2">
@@ -289,7 +493,7 @@ function ResidentProfileModal({ resident, onClose, onSave }) {
               placeholder="Additional allergy notes..." />
           </div>
 
-          {/* Likes / Dislikes */}
+          {/* ── Likes / Dislikes ── */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Likes</label>
@@ -305,7 +509,7 @@ function ResidentProfileModal({ resident, onClose, onSave }) {
             </div>
           </div>
 
-          {/* Fluid / Assistance */}
+          {/* ── Fluid / Assistance ── */}
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl">
               <label className="flex items-center gap-2 cursor-pointer mb-2">
@@ -331,7 +535,7 @@ function ResidentProfileModal({ resident, onClose, onSave }) {
             </div>
           </div>
 
-          {/* General Notes */}
+          {/* ── General Notes ── */}
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">General Notes</label>
             <textarea value={form.general_notes} onChange={e => set('general_notes', e.target.value)} rows={2}
@@ -465,8 +669,11 @@ export default function Dietary() {
     setLoading(true)
     const [resRes, menuRes] = await Promise.all([
       supabase.from('resident_dietary_profiles')
-        .select('*').eq('organization_id', organization.id)
-        .eq('is_active', true).order('last_name'),
+        // Join residents table to get live directory data (photo, care level, etc.)
+        .select('*, residents(id, first_name, last_name, room, unit, care_level, photo_url)')
+        .eq('organization_id', organization.id)
+        .eq('is_active', true)
+        .order('last_name'),
       supabase.from('cycle_menus')
         .select('*').eq('organization_id', organization.id)
         .eq('is_active', true)
