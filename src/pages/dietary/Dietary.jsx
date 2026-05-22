@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import CycleMenuBuilder from './CycleMenuBuilder'
 import {
   Users, BookOpen, Printer, Plus, X, Edit2, Search,
   ChevronLeft, ChevronRight, AlertTriangle, Check,
@@ -655,6 +656,7 @@ export default function Dietary() {
   const [tab, setTab]               = useState('residents')
   const [residents, setResidents]   = useState([])
   const [menus, setMenus]           = useState([])
+  const [menuItems, setMenuItems]   = useState([])
   const [loading, setLoading]       = useState(true)
   const [search, setSearch]         = useState('')
   const [showProfileModal, setShowProfileModal] = useState(false)
@@ -667,7 +669,7 @@ export default function Dietary() {
 
   async function fetchAll() {
     setLoading(true)
-    const [resRes, menuRes] = await Promise.all([
+    const [resRes, menuRes, itemsRes] = await Promise.all([
       supabase.from('resident_dietary_profiles')
         // Join residents table to get live directory data (photo, care level, etc.)
         .select('*, residents(id, first_name, last_name, room, unit, care_level, photo_url)')
@@ -675,11 +677,18 @@ export default function Dietary() {
         .eq('is_active', true)
         .order('last_name'),
       supabase.from('cycle_menus')
-        .select('*').eq('organization_id', organization.id)
+        .select('*')
+        .eq('organization_id', organization.id)
+        .eq('is_active', true),
+      supabase.from('menu_items')
+        .select('*')
+        .eq('organization_id', organization.id)
         .eq('is_active', true)
+        .order('name'),
     ])
     setResidents(resRes.data || [])
     setMenus(menuRes.data || [])
+    setMenuItems(itemsRes.data || [])
     setLoading(false)
   }
 
@@ -779,13 +788,13 @@ export default function Dietary() {
 
       {/* MENUS TAB */}
       {tab === 'menus' && (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8 text-center">
-          <BookOpen size={40} className="mx-auto mb-3 text-slate-300" />
-          <p className="font-display text-lg text-slate-700">Cycle Menu Builder</p>
-          <p className="text-slate-400 text-sm mt-1 max-w-sm mx-auto">
-            Create rotating cycle menus, assign items per meal period, and set backup substitutions. Coming in the next build.
-          </p>
-        </div>
+        <CycleMenuBuilder
+          menus={menus}
+          items={menuItems}
+          onRefresh={fetchAll}
+          orgId={organization.id}
+          userId={profile.id}
+        />
       )}
 
       {/* Modals */}
