@@ -540,14 +540,14 @@ export default function SuperAdminDashboard() {
             {orgs.slice(0, 8).map(org => (
               <div key={org.id} className="flex items-center gap-1 mb-0.5">
                 <button
-                  onClick={() => navigate(`/admin?org=${org.id}`)}
+                  onClick={() => navigate('/app/admin')}
                   title="Open Admin Panel"
                   className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-slate-500 hover:bg-slate-800 hover:text-white transition-all text-left truncate">
                   <Settings size={12} className="flex-shrink-0" />
                   <span className="truncate">{org.name}</span>
                 </button>
                 <button
-                  onClick={() => navigate(`/dashboard?org=${org.id}`)}
+                  onClick={() => navigate('/app/dashboard')}
                   title="View Dashboard"
                   className="p-1.5 text-slate-700 hover:text-green-400 hover:bg-slate-800 rounded-lg transition-colors flex-shrink-0">
                   <BarChart3 size={12} />
@@ -700,11 +700,11 @@ export default function SuperAdminDashboard() {
                             </td>
                             <td className="px-5 py-4">
                               <div className="flex items-center gap-2">
-                                <div className="text-white text-sm">{org.enabled_modules}<span className="text-slate-600 text-xs"> /17</span></div>
+                                <div className="text-white text-sm">{org.enabled_modules}<span className="text-slate-600 text-xs"> /21</span></div>
                               </div>
                               <div className="w-20 h-1.5 bg-slate-800 rounded-full mt-1.5 overflow-hidden">
                                 <div className="h-full bg-brand-500 rounded-full transition-all"
-                                  style={{ width: `${Math.round((org.enabled_modules / 17) * 100)}%` }} />
+                                  style={{ width: `${Math.round((org.enabled_modules / 21) * 100)}%` }} />
                               </div>
                             </td>
                             <td className="px-5 py-4">
@@ -720,13 +720,13 @@ export default function SuperAdminDashboard() {
                             <td className="px-5 py-4">
                               <div className="flex items-center gap-1">
                                 <button
-                                  onClick={() => navigate(`/admin?org=${org.id}`)}
+                                  onClick={() => navigate('/app/admin')}
                                   title="Open Admin Panel for this org"
                                   className="flex items-center gap-1 px-2 py-1 text-xs text-slate-400 hover:text-brand-400 hover:bg-brand-900/30 rounded-lg transition-colors font-medium">
                                   <Settings size={12} /> Admin
                                 </button>
                                 <button
-                                  onClick={() => navigate(`/dashboard?org=${org.id}`)}
+                                  onClick={() => navigate('/app/dashboard')}
                                   title="View Dashboard for this org"
                                   className="flex items-center gap-1 px-2 py-1 text-xs text-slate-400 hover:text-green-400 hover:bg-green-900/30 rounded-lg transition-colors font-medium">
                                   <BarChart3 size={12} /> View
