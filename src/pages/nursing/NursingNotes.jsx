@@ -560,7 +560,7 @@ function ResidentPanel({ resident, orgId, profile, canEdit }) {
           </div>
           <div>
             <h2 className="font-display font-semibold text-slate-800">{resident.first_name} {resident.last_name}</h2>
-            <p className="text-xs text-slate-400 capitalize">{resident.care_level?.replace('_',' ')} · Room {resident.room_number || '—'}</p>
+            <p className="text-xs text-slate-400 capitalize">{resident.care_level?.replace('_',' ')} · Room {resident.room || '—'}</p>
           </div>
         </div>
 
@@ -850,7 +850,7 @@ export default function NursingNotes() {
     setLoading(true)
     const todayStr = new Date().toISOString().split('T')[0]
     const [resRes, statsRes] = await Promise.all([
-      supabase.from('residents').select('id,first_name,last_name,room_number,care_level,is_active')
+      supabase.from('residents').select('id,first_name,last_name,room,care_level,is_active')
         .eq('organization_id', organization.id).eq('is_active', true)
         .order('last_name').order('first_name'),
       Promise.all([
@@ -873,7 +873,7 @@ export default function NursingNotes() {
   }
 
   const filtered = residents.filter(r =>
-    !search || `${r.first_name} ${r.last_name} ${r.room_number}`.toLowerCase().includes(search.toLowerCase())
+    !search || `${r.first_name} ${r.last_name} ${r.room}`.toLowerCase().includes(search.toLowerCase())
   )
 
   return (
@@ -921,7 +921,7 @@ export default function NursingNotes() {
                   {r.first_name} {r.last_name}
                 </div>
                 <div className={`text-xs truncate capitalize ${selected?.id === r.id ? 'text-brand-200' : 'text-slate-400'}`}>
-                  {r.room_number ? `Room ${r.room_number} · ` : ''}{r.care_level?.replace('_',' ')}
+                  {r.room ? `Room ${r.room} · ` : ''}{r.care_level?.replace('_',' ')}
                 </div>
               </div>
             </button>

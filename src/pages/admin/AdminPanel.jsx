@@ -57,34 +57,24 @@ function CreateUserModal({ orgId, orgName, onClose, onSave }) {
     if (form.password.length < 8) { setError('Password must be at least 8 characters'); return }
     setSaving(true)
 
-    // Step 1 — create the auth account
-    const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
-      email: form.email.trim(),
-      password: form.password,
-      options: {
-        data: {
-          first_name: form.first_name.trim(),
-          last_name:  form.last_name.trim(),
-        }
-      }
+    // Use Edge Function with service role — avoids client signUp switching the admin's session
+    const { data, error: fnErr } = await supabase.functions.invoke('create-user', {
+      body: {
+        email:           form.email.trim(),
+        password:        form.password,
+        first_name:      form.first_name.trim(),
+        last_name:       form.last_name.trim(),
+        phone:           form.phone || null,
+        role:            form.role,
+        organization_id: orgId,
+      },
     })
 
-    if (signUpErr) { setError(signUpErr.message); setSaving(false); return }
-    if (!signUpData.user) { setError('User creation failed — try again'); setSaving(false); return }
-
-    // Step 2 — update their profile with org + role
-    const { error: profileErr } = await supabase.from('profiles').upsert({
-      id:              signUpData.user.id,
-      organization_id: orgId,
-      role:            form.role,
-      first_name:      form.first_name.trim(),
-      last_name:       form.last_name.trim(),
-      phone:           form.phone || null,
-      is_active:       true,
-      updated_at:      new Date().toISOString(),
-    })
-
-    if (profileErr) { setError('Account created but profile setup failed: ' + profileErr.message); setSaving(false); return }
+    if (fnErr || data?.error) {
+      setError(fnErr?.message || data?.error || 'User creation failed')
+      setSaving(false)
+      return
+    }
 
     setSaving(false)
     onSave()
