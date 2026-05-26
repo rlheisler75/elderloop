@@ -110,7 +110,24 @@ function WORow({ wo, onClick }) {
           {wo.is_recurring && <RefreshCw size={12} className="text-brand-400 flex-shrink-0" />}
           <div>
             <div className="font-medium text-slate-800 text-sm">{wo.title}</div>
-            <div className="text-xs text-slate-400 mt-0.5">{cat?.label} {wo.location_detail ? `· ${wo.location_detail}` : ''}</div>
+            <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+              {wo.source === 'family' && (
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-purple-100 text-purple-700 text-xs font-semibold rounded-full">
+                  👨‍👩‍👧 Family
+                </span>
+              )}
+              {wo.source === 'resident' && (
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                  🏠 Resident
+                </span>
+              )}
+            </div>
+            <div className="text-xs text-slate-400 mt-0.5">
+              {cat?.label} {wo.location_detail ? `· ${wo.location_detail}` : ''}
+              {wo.submitted_by_name && wo.source !== 'staff' && (
+                <span className="ml-1">· Submitted by {wo.submitted_by_name}</span>
+              )}
+            </div>
           </div>
         </div>
       </td>
@@ -316,6 +333,7 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
     }
 
     const payload = {
+      organization_id: profile.organization_id,
       title: form.title.trim(), description: form.description || null,
       category: form.category, priority: form.priority,
       unit: form.unit || null, building: form.building || null,
@@ -498,6 +516,17 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
                     className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                     placeholder="Describe the issue..." />
                 : <p className="text-slate-800 font-medium">{wo.title}</p>}
+              {!editing && wo.source && wo.source !== 'staff' && (
+                <div className="mt-2 flex items-center gap-2 text-xs">
+                  <span className={`px-2 py-0.5 rounded-full font-semibold ${
+                    wo.source === 'family'   ? 'bg-purple-100 text-purple-700' :
+                    wo.source === 'resident' ? 'bg-green-100 text-green-700'   : ''
+                  }`}>
+                    {wo.source === 'family' ? '👨‍👩‍👧 Submitted by Family' : '🏠 Submitted by Resident'}
+                  </span>
+                  {wo.submitted_by_name && <span className="text-slate-400">{wo.submitted_by_name}</span>}
+                </div>
+              )}
             </div>
 
             {/* Category / Priority / Status row */}
@@ -903,6 +932,7 @@ export default function WorkOrders() {
   const [search, setSearch]           = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
   const [filterCat, setFilterCat]     = useState('all')
+  const [filterPriority, setFilterPriority] = useState('all')
   const [showModal, setShowModal]     = useState(false)
   const [selected, setSelected]       = useState(null)
   const [sortBy, setSortBy]           = useState('created_at')
@@ -943,9 +973,10 @@ export default function WorkOrders() {
     const matchSearch = !search || [wo.title, wo.unit, wo.building, wo.location_detail,
       wo.residents?.first_name, wo.residents?.last_name, wo.description]
       .filter(Boolean).some(f => f.toLowerCase().includes(search.toLowerCase()))
-    const matchStatus = filterStatus === 'all' || wo.status === filterStatus
-    const matchCat    = filterCat === 'all' || wo.category === filterCat
-    return matchSearch && matchStatus && matchCat
+    const matchStatus   = filterStatus === 'all' || wo.status === filterStatus
+    const matchCat      = filterCat === 'all' || wo.category === filterCat
+    const matchPriority = filterPriority === 'all' || wo.priority === filterPriority
+    return matchSearch && matchStatus && matchCat && matchPriority
   })
 
   // Stats
@@ -1055,6 +1086,11 @@ export default function WorkOrders() {
           className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
           <option value="all">All Categories</option>
           {CATEGORIES.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
+        </select>
+        <select value={filterPriority} onChange={e => setFilterPriority(e.target.value)}
+          className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+          <option value="all">All Priorities</option>
+          {PRIORITIES.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
         </select>
       </div>
 
