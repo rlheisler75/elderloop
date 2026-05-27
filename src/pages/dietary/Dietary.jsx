@@ -629,6 +629,7 @@ function PrintTicket({ resident, menus, onClose }) {
       ...course,
       alternates: altData.filter(a => a.meal_course_id === course.id)
     }))
+    console.log('[ElderLoop] fetchMeal', { courseData, altData, merged })
     setCourses(merged)
     setLoading(false)
   }
