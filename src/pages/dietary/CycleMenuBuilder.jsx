@@ -288,11 +288,13 @@ function CooksCount({ weekNum, dayIdx, menuId, items }) {
 
   async function fetchCounts() {
     setLoading(true)
-    const { data: day } = await supabase.from('cycle_menu_days')
-      .select('id').eq('cycle_menu_id', menuId).eq('week_number', weekNum).eq('day_of_week', dayIdx).single()
+    const { data: dayData } = await supabase.from('cycle_menu_days')
+      .select('id').eq('cycle_menu_id', menuId).eq('week_number', weekNum).eq('day_of_week', dayIdx).limit(1)
+    const day = dayData?.[0] || null
     if (!day) { setCounts(null); setLoading(false); return }
-    const { data: meal } = await supabase.from('cycle_menu_meals')
-      .select('id').eq('cycle_menu_day_id', day.id).eq('meal_period', period).single()
+    const { data: mealRows } = await supabase.from('cycle_menu_meals')
+      .select('id').eq('cycle_menu_day_id', day.id).eq('meal_period', period).limit(1)
+    const meal = mealRows?.[0] || null
     if (!meal) { setCounts(null); setLoading(false); return }
     const { data: courses } = await supabase.from('meal_courses')
       .select('*, menu_items(name), backup_items:menu_items!meal_courses_backup_item_id_fkey(name)')
@@ -350,7 +352,7 @@ function CycleMenuGrid({ menu, items, onBack }) {
   async function fetchWeekData() {
     setLoading(true)
     const { data: days } = await supabase.from('cycle_menu_days')
-      .select(`id, day_of_week, cycle_menu_meals(id, meal_period, courses:meal_courses(id, course_name, sort_order, menu_item_id, backup_item_id, menu_items:menu_items!meal_courses_menu_item_id_fkey(id,name), backup_items:menu_items!meal_courses_backup_item_id_fkey(id,name)))`)
+      .select(`id, day_of_week, cycle_menu_meals(id, meal_period, courses:meal_courses(id, course_name, sort_order, menu_item_id, backup_item_id))`)
       .eq('cycle_menu_id', menu.id).eq('week_number', week)
     const grid = {}
     days?.forEach(d => { grid[d.day_of_week] = { id: d.id, meals: d.cycle_menu_meals } })
