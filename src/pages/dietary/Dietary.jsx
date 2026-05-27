@@ -558,8 +558,51 @@ function ResidentProfileModal({ resident, menus, onClose, onSave }) {
 }
 
 // ── Print Ticket ───────────────────────────────────────────────
-function PrintTicket({ resident, meal, period, onClose }) {
-  const printRef = useRef()
+function PrintTicket({ resident, menus, onClose }) {
+  const printRef  = useRef()
+  const today     = new Date().toISOString().split('T')[0]
+  const [date, setDate]       = useState(today)
+  const [period, setPeriod]   = useState('lunch')
+  const [courses, setCourses] = useState(null)
+  const [loading, setLoading] = useState(false)
+
+  // Calculate which week + day-of-week a given date falls on in the cycle
+  function calcCycleDay(menu, dateStr) {
+    if (!menu?.start_date) return null
+    const start   = new Date(menu.start_date + 'T12:00:00')
+    const target  = new Date(dateStr + 'T12:00:00')
+    const diffDays = Math.floor((target - start) / 86400000)
+    if (diffDays < 0) return null
+    const totalWeeks  = Math.floor(diffDays / 7)
+    const cycleWeek   = (totalWeeks % menu.cycle_length) + 1   // 1-indexed
+    const dayOfWeek   = target.getDay()                         // 0=Sun … 6=Sat
+    return { cycleWeek, dayOfWeek }
+  }
+
+  useEffect(() => {
+    const menu = menus?.find(m => m.id === resident.cycle_menu_id)
+    if (!menu) { setCourses(null); return }
+    const pos = calcCycleDay(menu, date)
+    if (!pos) { setCourses(null); return }
+    fetchMeal(menu.id, pos.cycleWeek, pos.dayOfWeek, period)
+  }, [date, period, resident.cycle_menu_id, menus])
+
+  async function fetchMeal(menuId, weekNum, dayOfWeek, mealPeriod) {
+    setLoading(true)
+    const { data: dayRows } = await supabase.from('cycle_menu_days')
+      .select('id').eq('cycle_menu_id', menuId).eq('week_number', weekNum).eq('day_of_week', dayOfWeek).limit(1)
+    const day = dayRows?.[0]
+    if (!day) { setCourses([]); setLoading(false); return }
+    const { data: mealRows } = await supabase.from('cycle_menu_meals')
+      .select('id').eq('cycle_menu_day_id', day.id).eq('meal_period', mealPeriod).limit(1)
+    const meal = mealRows?.[0]
+    if (!meal) { setCourses([]); setLoading(false); return }
+    const { data } = await supabase.from('meal_courses')
+      .select('*, menu_items:menu_items!meal_courses_menu_item_id_fkey(name,allergens), backup_items:menu_items!meal_courses_backup_item_id_fkey(name)')
+      .eq('meal_id', meal.id).order('sort_order')
+    setCourses(data || [])
+    setLoading(false)
+  }
 
   const handlePrint = () => {
     const content = printRef.current.innerHTML
@@ -568,15 +611,17 @@ function PrintTicket({ resident, meal, period, onClose }) {
       <html><head><title>Meal Ticket - ${resident.first_name} ${resident.last_name}</title>
       <style>
         body { font-family: Arial, sans-serif; padding: 20px; max-width: 400px; }
-        h2 { margin: 0; font-size: 18px; }
-        .sub { color: #666; font-size: 13px; margin-bottom: 12px; }
+        h2 { margin: 0 0 4px; font-size: 18px; }
+        .sub { color: #666; font-size: 13px; margin-bottom: 10px; }
+        .badges { margin-bottom: 8px; }
         .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; margin: 2px; }
         .diet { background: #e0f2fe; color: #0369a1; }
         .cons { background: #f0fdf4; color: #166534; }
         .allergy { background: #fee2e2; color: #dc2626; }
         .section { margin-top: 10px; }
         .section label { font-weight: bold; font-size: 12px; color: #444; display: block; margin-bottom: 4px; }
-        .item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #eee; font-size: 13px; }
+        .item { padding: 4px 0; border-bottom: 1px solid #eee; font-size: 13px; }
+        .course-name { font-weight: bold; font-size: 11px; color: #888; text-transform: uppercase; }
         .backup { color: #999; font-style: italic; font-size: 11px; }
         hr { margin: 12px 0; }
         @media print { button { display: none; } }
@@ -587,31 +632,72 @@ function PrintTicket({ resident, meal, period, onClose }) {
   }
 
   const allergenLabels = resident.allergens?.map(a => ALLERGENS.find(al => al.key === a)?.label || a) || []
+  const menu = menus?.find(m => m.id === resident.cycle_menu_id)
+  const cyclePos = menu ? calcCycleDay(menu, date) : null
+  const dateLabel = new Date(date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
           <h2 className="font-display font-semibold text-slate-800">Meal Ticket Preview</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
         </div>
-        <div className="px-6 py-4">
+
+        {/* Date + Period pickers */}
+        <div className="px-6 pt-4 pb-2 flex gap-3 flex-shrink-0">
+          <div className="flex-1">
+            <label className="block text-xs font-medium text-slate-500 mb-1">Date</label>
+            <input type="date" value={date} onChange={e => setDate(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          </div>
+          <div className="flex-1">
+            <label className="block text-xs font-medium text-slate-500 mb-1">Meal Period</label>
+            <select value={period} onChange={e => setPeriod(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+              {MEAL_PERIODS.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
+            </select>
+          </div>
+        </div>
+
+        {/* Cycle info */}
+        {menu && cyclePos && (
+          <div className="px-6 py-1 flex-shrink-0">
+            <p className="text-xs text-slate-400">{menu.name} · Week {cyclePos.cycleWeek} of {menu.cycle_length}</p>
+          </div>
+        )}
+        {!menu && (
+          <div className="px-6 py-1 flex-shrink-0">
+            <p className="text-xs text-amber-500">No cycle menu assigned to this resident.</p>
+          </div>
+        )}
+
+        <div className="flex-1 overflow-y-auto px-6 py-4">
           <div ref={printRef}>
             <h2>{resident.first_name} {resident.last_name}</h2>
             <div className="sub">
               {[resident.room && `Room ${resident.room}`, resident.dining_location].filter(Boolean).join(' · ')}
-              {' · '}{MEAL_PERIODS.find(m => m.key === period)?.label}
+              {' · '}{dateLabel}{' · '}{MEAL_PERIODS.find(m => m.key === period)?.label}
             </div>
-            <span className="badge diet">{getDiet(resident.diet_type)}</span>
-            <span className="badge cons">{getCons(resident.consistency)}</span>
-            {allergenLabels.map(a => <span key={a} className="badge allergy">⚠ {a}</span>)}
-            {resident.fluid_restriction && <span className="badge allergy">Fluid Restriction</span>}
+            <div className="badges">
+              <span className="badge diet">{getDiet(resident.diet_type)}</span>
+              {' '}
+              <span className="badge cons">{getCons(resident.consistency)}</span>
+              {allergenLabels.map(a => <span key={a} className="badge allergy"> ⚠ {a}</span>)}
+              {resident.fluid_restriction && <span className="badge allergy"> Fluid Restriction</span>}
+            </div>
             <hr />
-            {meal?.courses?.length > 0 ? (
+            {loading ? (
+              <p style={{ color: '#999', fontSize: 13 }}>Loading menu...</p>
+            ) : !menu ? (
+              <p style={{ color: '#999', fontSize: 13 }}>No cycle menu assigned to this resident.</p>
+            ) : !cyclePos ? (
+              <p style={{ color: '#999', fontSize: 13 }}>Selected date is before the menu start date.</p>
+            ) : courses?.length > 0 ? (
               <div className="section">
                 <label>Menu Items</label>
-                {meal.courses.map((course, i) => {
-                  const item = course.menu_items
+                {courses.map((course, i) => {
+                  const item   = course.menu_items
                   const backup = course.backup_items
                   const needsBackup = item && (
                     resident.allergens?.some(a => item.allergens?.includes(a)) ||
@@ -619,17 +705,15 @@ function PrintTicket({ resident, meal, period, onClose }) {
                   )
                   return (
                     <div key={i} className="item">
-                      <div>
-                        <div style={{ fontWeight: 'bold', fontSize: 12 }}>{course.course_name}</div>
-                        <div>{needsBackup && backup ? backup.name : item?.name || '—'}</div>
-                        {needsBackup && backup && <div className="backup">Sub for: {item?.name}</div>}
-                      </div>
+                      <div className="course-name">{course.course_name}</div>
+                      <div>{needsBackup && backup ? backup.name : item?.name || '—'}</div>
+                      {needsBackup && backup && <div className="backup">Sub for: {item?.name}</div>}
                     </div>
                   )
                 })}
               </div>
             ) : (
-              <p style={{ color: '#999', fontSize: 13 }}>No menu assigned for this meal</p>
+              <p style={{ color: '#999', fontSize: 13 }}>No menu items set for this meal.</p>
             )}
             {resident.general_notes && (
               <div className="section">
@@ -639,7 +723,8 @@ function PrintTicket({ resident, meal, period, onClose }) {
             )}
           </div>
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
+
+        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
           <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Close</button>
           <button onClick={handlePrint}
             className="flex items-center gap-2 px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg transition-colors">
@@ -663,7 +748,6 @@ export default function Dietary() {
   const [showProfileModal, setShowProfileModal] = useState(false)
   const [editResident, setEditResident]         = useState(null)
   const [printResident, setPrintResident]       = useState(null)
-  const [printPeriod, setPrintPeriod]           = useState('lunch')
   const [filterDiet, setFilterDiet] = useState('all')
 
   useEffect(() => { if (organization) fetchAll() }, [organization])
@@ -803,7 +887,7 @@ export default function Dietary() {
         <ResidentProfileModal resident={editResident} menus={menus} onClose={() => setShowProfileModal(false)} onSave={handleSave} />
       )}
       {printResident && (
-        <PrintTicket resident={printResident} meal={null} period={printPeriod} onClose={() => setPrintResident(null)} />
+        <PrintTicket resident={printResident} menus={menus} onClose={() => setPrintResident(null)} />
       )}
     </div>
   )
