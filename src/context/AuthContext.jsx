@@ -41,9 +41,9 @@ export function AuthProvider({ children }) {
         .from('profiles').select('*').eq('id', userId).single()
       setProfile(prof)
 
-      const { data: sa } = await supabase
-        .from('super_admins').select('id').eq('id', userId).single()
-      setSuperAdmin(!!sa)
+      // Use role from profile rather than a separate super_admins table lookup
+      const sa = prof?.role === 'super_admin'
+      setSuperAdmin(sa)
 
       if (prof?.organization_id) {
         const [orgRes, modsRes, permsRes] = await Promise.all([
@@ -57,7 +57,7 @@ export function AuthProvider({ children }) {
 
         // Check if org is suspended — cancelled billing or deactivated org
         // Super admins bypass this so you can always get in to fix things
-        const isSA = !!sa
+        const isSA = sa
         const orgSuspended = !isSA && (
           org?.is_active === false ||
           ['cancelled'].includes(org?.billing_status)
