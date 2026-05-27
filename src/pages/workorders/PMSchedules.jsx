@@ -227,9 +227,9 @@ export default function PMSchedules({ orgId: orgIdProp, profile: profileProp }) 
       action: `Work order generated from PM schedule: ${schedule.title}`,
       action_type: 'created',
     })
-    // Update last_generated and calculate next_due
+    // Advance next_due from today (not the old due date) so overdue schedules don't stay overdue
     const freqDays = schedule.frequency_days || 30
-    const nextDue  = new Date(schedule.next_due + 'T12:00:00')
+    const nextDue  = new Date()
     nextDue.setDate(nextDue.getDate() + freqDays)
     await supabase.from('pm_schedules').update({
       last_generated: new Date().toISOString().split('T')[0],
