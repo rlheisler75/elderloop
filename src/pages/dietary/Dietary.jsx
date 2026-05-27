@@ -611,7 +611,7 @@ function PrintTicket({ resident, menus, onClose }) {
     const meal = mealRows?.[0]
     if (!meal) { setCourses([]); setLoading(false); return }
     const { data } = await supabase.from('meal_courses')
-      .select('*, menu_items:menu_items!meal_courses_menu_item_id_fkey(name,allergens,suitable_diets,suitable_consistencies), backup_items:menu_items!meal_courses_backup_item_id_fkey(name)')
+      .select('*, menu_items:menu_items!meal_courses_menu_item_id_fkey(name,allergens,suitable_diets,suitable_consistencies), alternates:course_alternates(id,priority,conditions,item:menu_items!course_alternates_menu_item_id_fkey(id,name,allergens,suitable_diets,suitable_consistencies))')
       .eq('meal_id', meal.id).order('sort_order')
     setCourses(data || [])
     setLoading(false)
@@ -711,21 +711,53 @@ function PrintTicket({ resident, menus, onClose }) {
                 {courses.map((course, i) => {
                   const item   = course.menu_items
                   const backup = course.backup_items
-                  const needsBackup = item && (
-                    // Allergen conflict
-                    resident.allergens?.some(a => item.allergens?.includes(a)) ||
-                    // Diet type not suitable for this item
-                    (item.suitable_diets?.length > 0 && !item.suitable_diets.includes(resident.diet_type)) ||
-                    // Consistency not suitable for this item
-                    (item.suitable_consistencies?.length > 0 && !item.suitable_consistencies.includes(resident.consistency)) ||
-                    // Resident dislikes this item
-                    (resident.dislikes && resident.dislikes.toLowerCase().includes(item.name?.toLowerCase()))
-                  )
+                  // Check if resident can have the main item
+                  const itemSuitable = (it) => {
+                    if (!it) return false
+                    if (resident.allergens?.some(a => it.allergens?.includes(a))) return false
+                    if (it.suitable_diets?.length > 0 && !it.suitable_diets.includes(resident.diet_type)) return false
+                    if (it.suitable_consistencies?.length > 0 && !it.suitable_consistencies.includes(resident.consistency)) return false
+                    if (resident.dislikes && it.name && resident.dislikes.toLowerCase().includes(it.name.toLowerCase())) return false
+                    return true
+                  }
+
+                  // Walk alternates chain in priority order to find best match
+                  const sortedAlts = (course.alternates || []).sort((a,b) => a.priority - b.priority)
+
+                  let servedItem = null
+                  let substitutedFor = null
+
+                  if (itemSuitable(item)) {
+                    servedItem = item
+                  } else {
+                    substitutedFor = item
+                    // Find first alternate that matches resident AND satisfies conditions
+                    for (const alt of sortedAlts) {
+                      const altItem = alt.item
+                      if (!altItem) continue
+                      // Check conditions — if conditions set, this alternate is only for matching residents
+                      const dietMatch  = !alt.conditions?.diets?.length || alt.conditions.diets.includes(resident.diet_type)
+                      const algMatch   = !alt.conditions?.allergens?.length || resident.allergens?.some(a => alt.conditions.allergens.includes(a))
+                      const condMatch  = dietMatch && (alt.conditions?.allergens?.length ? algMatch : true)
+                      if (condMatch && itemSuitable(altItem)) {
+                        servedItem = altItem
+                        break
+                      }
+                    }
+                    // If no conditioned alternate matched, fall back to any suitable alternate
+                    if (!servedItem) {
+                      for (const alt of sortedAlts) {
+                        if (alt.item && itemSuitable(alt.item)) { servedItem = alt.item; break }
+                      }
+                    }
+                  }
+
                   return (
                     <div key={i} className="item">
                       <div className="course-name">{course.course_name}</div>
-                      <div>{needsBackup && backup ? backup.name : item?.name || '—'}</div>
-                      {needsBackup && backup && <div className="backup">Sub for: {item?.name}</div>}
+                      <div>{servedItem?.name || item?.name || '—'}</div>
+                      {substitutedFor && servedItem && <div className="backup">Sub for: {substitutedFor.name}</div>}
+                      {substitutedFor && !servedItem && <div className="backup" style={{color:'#dc2626'}}>⚠ No suitable alternate — verify with kitchen</div>}
                     </div>
                   )
                 })}

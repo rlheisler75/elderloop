@@ -234,17 +234,40 @@ function DayMealCell({ weekNum, dayIdx, period, dayData, items, onSave }) {
     if (open && meal) {
       setCourses(meal.courses?.map(c => ({
         id: c.id, course_name: c.course_name,
-        menu_item_id: c.menu_item_id, backup_item_id: c.backup_item_id,
-        sort_order: c.sort_order
+        menu_item_id: c.menu_item_id, sort_order: c.sort_order,
+        alternates: (c.alternates || []).sort((a,b) => a.priority - b.priority).map(a => ({
+          id: a.id, menu_item_id: a.menu_item_id, priority: a.priority,
+          conditions: a.conditions || {}
+        }))
       })) || [])
     } else if (open && !meal) {
-      setCourses([{ course_name: 'Entree', menu_item_id: null, backup_item_id: null, sort_order: 0 }])
+      setCourses([{ course_name: 'Entree', menu_item_id: null, sort_order: 0, alternates: [] }])
     }
   }, [open])
 
-  const addCourse = () => setCourses(c => [...c, { course_name: '', menu_item_id: null, backup_item_id: null, sort_order: c.length }])
-  const removeCourse = (idx) => setCourses(c => c.filter((_, i) => i !== idx))
-  const updateCourse = (idx, key, val) => setCourses(c => c.map((course, i) => i === idx ? { ...course, [key]: val } : course))
+  const addCourse = () => setCourses(cs => [...cs, { course_name: '', menu_item_id: null, sort_order: cs.length, alternates: [] }])
+  const removeCourse = (idx) => setCourses(cs => cs.filter((_, i) => i !== idx))
+  const updateCourse = (idx, key, val) => setCourses(cs => cs.map((course, i) => i === idx ? { ...course, [key]: val } : course))
+  const addAlternate = (idx) => setCourses(cs => cs.map((course, i) => i === idx
+    ? { ...course, alternates: [...course.alternates, { menu_item_id: null, priority: course.alternates.length + 1, conditions: {} }] }
+    : course))
+  const removeAlternate = (cIdx, aIdx) => setCourses(cs => cs.map((course, i) => i === cIdx
+    ? { ...course, alternates: course.alternates.filter((_, j) => j !== aIdx).map((a, j) => ({ ...a, priority: j + 1 })) }
+    : course))
+  const updateAlternate = (cIdx, aIdx, key, val) => setCourses(cs => cs.map((course, i) => i === cIdx
+    ? { ...course, alternates: course.alternates.map((a, j) => j === aIdx ? { ...a, [key]: val } : a) }
+    : course))
+  const toggleAltCondition = (cIdx, aIdx, type, key) => {
+    setCourses(cs => cs.map((course, i) => {
+      if (i !== cIdx) return course
+      return { ...course, alternates: course.alternates.map((a, j) => {
+        if (j !== aIdx) return a
+        const existing = a.conditions?.[type] || []
+        const updated  = existing.includes(key) ? existing.filter(k => k !== key) : [...existing, key]
+        return { ...a, conditions: { ...a.conditions, [type]: updated } }
+      })}
+    }))
+  }
 
   const handleSave = async () => {
     setSaving(true)
@@ -298,17 +321,60 @@ function DayMealCell({ weekNum, dayIdx, period, dayData, items, onSave }) {
                       placeholder="Course name (e.g. Entree, Vegetable, Dessert)" />
                     <button onClick={() => removeCourse(idx)} className="text-slate-300 hover:text-red-400 transition-colors flex-shrink-0"><X size={15} /></button>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block text-xs text-slate-500 mb-1">Menu Item</label>
-                      <ItemPicker items={items} value={course.menu_item_id}
-                        onChange={v => updateCourse(idx, 'menu_item_id', v)} placeholder="Select item..." />
+                  <div className="mb-2">
+                    <label className="block text-xs text-slate-500 mb-1">Menu Item</label>
+                    <ItemPicker items={items} value={course.menu_item_id}
+                      onChange={v => updateCourse(idx, 'menu_item_id', v)} placeholder="Select item..." />
+                  </div>
+                  {/* Alternates */}
+                  <div className="mt-2">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Alternates / Substitutions</label>
+                      <button onClick={() => addAlternate(idx)}
+                        className="flex items-center gap-1 text-xs text-brand-600 hover:text-brand-800 font-medium">
+                        <Plus size={11} /> Add Alternate
+                      </button>
                     </div>
-                    <div>
-                      <label className="block text-xs text-slate-500 mb-1">Backup / Sub</label>
-                      <ItemPicker items={items} value={course.backup_item_id}
-                        onChange={v => updateCourse(idx, 'backup_item_id', v)} placeholder="Select backup..." />
-                    </div>
+                    {course.alternates?.length === 0 && (
+                      <p className="text-xs text-slate-400 italic">No alternates — click "Add Alternate" to set substitutions.</p>
+                    )}
+                    {course.alternates?.map((alt, aIdx) => (
+                      <div key={aIdx} className="mb-2 p-2 bg-white rounded-lg border border-slate-200">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <span className="text-xs font-bold text-slate-400 w-5 text-center">{aIdx + 1}</span>
+                          <div className="flex-1">
+                            <ItemPicker items={items} value={alt.menu_item_id}
+                              onChange={v => updateAlternate(idx, aIdx, 'menu_item_id', v)} placeholder="Select alternate item..." />
+                          </div>
+                          <button onClick={() => removeAlternate(idx, aIdx)} className="text-slate-300 hover:text-red-400"><X size={13} /></button>
+                        </div>
+                        {/* Conditions */}
+                        <div className="pl-7 space-y-1.5">
+                          <div>
+                            <p className="text-xs text-slate-400 mb-1">Use for diets: <span className="text-slate-300">(blank = all diets)</span></p>
+                            <div className="flex flex-wrap gap-1">
+                              {DIET_TYPES.map(d => (
+                                <button key={d.key} onClick={() => toggleAltCondition(idx, aIdx, 'diets', d.key)}
+                                  className={`px-1.5 py-0.5 rounded text-xs border transition-all ${(alt.conditions?.diets || []).includes(d.key) ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 text-slate-500 hover:border-brand-300'}`}>
+                                  {d.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-400 mb-1">Use for allergens:</p>
+                            <div className="flex flex-wrap gap-1">
+                              {ALLERGENS.map(a => (
+                                <button key={a} onClick={() => toggleAltCondition(idx, aIdx, 'allergens', a)}
+                                  className={`px-1.5 py-0.5 rounded text-xs border transition-all capitalize ${(alt.conditions?.allergens || []).includes(a) ? 'bg-red-500 text-white border-red-500' : 'border-slate-200 text-slate-500 hover:border-red-300'}`}>
+                                  {a.replace('_',' ')}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               ))}
@@ -351,8 +417,8 @@ function CooksCount({ weekNum, dayIdx, menuId, items }) {
     const meal = mealRows?.[0] || null
     if (!meal) { setCounts(null); setLoading(false); return }
     const { data: courses } = await supabase.from('meal_courses')
-      .select('*, menu_items:menu_items!meal_courses_menu_item_id_fkey(name), backup_items:menu_items!meal_courses_backup_item_id_fkey(name)')
-      .eq('meal_id', meal.id)
+      .select('*, menu_items:menu_items!meal_courses_menu_item_id_fkey(name), alternates:course_alternates(priority, item:menu_items!course_alternates_menu_item_id_fkey(name))')
+      .eq('meal_id', meal.id).order('sort_order')
     setCounts(courses || [])
     setLoading(false)
   }
@@ -375,7 +441,7 @@ function CooksCount({ weekNum, dayIdx, menuId, items }) {
               <tr className="border-b border-slate-100">
                 <th className="text-left text-xs font-semibold text-slate-500 pb-2">Course</th>
                 <th className="text-left text-xs font-semibold text-slate-500 pb-2">Item</th>
-                <th className="text-left text-xs font-semibold text-slate-500 pb-2">Backup</th>
+                <th className="text-left text-xs font-semibold text-slate-500 pb-2">Alternates</th>
               </tr>
             </thead>
             <tbody>
@@ -383,7 +449,11 @@ function CooksCount({ weekNum, dayIdx, menuId, items }) {
                 <tr key={i} className="border-b border-slate-50">
                   <td className="py-2 text-xs font-medium text-slate-700">{c.course_name}</td>
                   <td className="py-2 text-xs text-slate-600">{c.menu_items?.name || '—'}</td>
-                  <td className="py-2 text-xs text-slate-400 italic">{c.backup_items?.name || '—'}</td>
+                  <td className="py-2 text-xs text-slate-400 italic">
+                    {c.alternates?.length > 0
+                      ? c.alternates.sort((a,b) => a.priority - b.priority).map(a => a.item?.name).filter(Boolean).join(' → ')
+                      : '—'}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -406,7 +476,7 @@ function CycleMenuGrid({ menu, items, onBack }) {
   async function fetchWeekData() {
     setLoading(true)
     const { data: days } = await supabase.from('cycle_menu_days')
-      .select(`id, day_of_week, cycle_menu_meals(id, meal_period, courses:meal_courses(id, course_name, sort_order, menu_item_id, backup_item_id))`)
+      .select(`id, day_of_week, cycle_menu_meals(id, meal_period, courses:meal_courses(id, course_name, sort_order, menu_item_id, alternates:course_alternates(id, menu_item_id, priority, conditions, item:menu_items!course_alternates_menu_item_id_fkey(id,name,suitable_diets,suitable_consistencies,allergens))))`)
       .eq('cycle_menu_id', menu.id).eq('week_number', week)
     const grid = {}
     days?.forEach(d => { grid[d.day_of_week] = { id: d.id, meals: d.cycle_menu_meals } })
@@ -439,15 +509,32 @@ function CycleMenuGrid({ menu, items, onBack }) {
     await supabase.from('meal_courses').delete().eq('meal_id', meal.id)
     const validCourses = courses.filter(c => c.course_name.trim())
     if (validCourses.length > 0) {
-      const { error: insertErr } = await supabase.from('meal_courses').insert(
+      const { data: savedCourses, error: insertErr } = await supabase.from('meal_courses').insert(
         validCourses.map((c, i) => ({
           meal_id: meal.id, course_name: c.course_name,
           menu_item_id: c.menu_item_id || null,
-          backup_item_id: c.backup_item_id || null,
           sort_order: i
         }))
-      )
+      ).select()
       if (insertErr) { console.error('Failed to save courses:', insertErr.message); return }
+
+      // Save alternates for each course
+      const alternateRows = []
+      savedCourses.forEach((savedCourse, i) => {
+        const origCourse = validCourses[i]
+        origCourse.alternates?.filter(a => a.menu_item_id).forEach((a, j) => {
+          alternateRows.push({
+            meal_course_id: savedCourse.id,
+            menu_item_id:   a.menu_item_id,
+            priority:       j + 1,
+            conditions:     a.conditions || {}
+          })
+        })
+      })
+      if (alternateRows.length > 0) {
+        const { error: altErr } = await supabase.from('course_alternates').insert(alternateRows)
+        if (altErr) { console.error('Failed to save alternates:', altErr.message); return }
+      }
     }
     fetchWeekData()
   }
