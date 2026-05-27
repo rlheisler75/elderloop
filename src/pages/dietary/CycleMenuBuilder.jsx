@@ -297,7 +297,7 @@ function CooksCount({ weekNum, dayIdx, menuId, items }) {
     const meal = mealRows?.[0] || null
     if (!meal) { setCounts(null); setLoading(false); return }
     const { data: courses } = await supabase.from('meal_courses')
-      .select('*, menu_items(name), backup_items:menu_items!meal_courses_backup_item_id_fkey(name)')
+      .select('*, menu_items:menu_items!meal_courses_menu_item_id_fkey(name), backup_items:menu_items!meal_courses_backup_item_id_fkey(name)')
       .eq('meal_id', meal.id)
     setCounts(courses || [])
     setLoading(false)
@@ -493,7 +493,7 @@ function CycleMenuGrid({ menu, items, onBack }) {
 }
 
 // ── Cycle Menu List ────────────────────────────────────────────
-function CycleMenuList({ menus, onSelect, onCreate, onDelete }) {
+function CycleMenuList({ menus, onSelect, onCreate, onDelete, onSetCurrent }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -534,9 +534,18 @@ function CycleMenuList({ menus, onSelect, onCreate, onDelete }) {
                   </button>
                 </div>
               </div>
-              <div className="mt-3 flex items-center gap-2 text-xs text-brand-600 font-medium">
-                <span>Open menu builder</span>
-                <ChevronRight size={13} />
+              <div className="mt-3 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs text-brand-600 font-medium">
+                  <span>Open menu builder</span>
+                  <ChevronRight size={13} />
+                </div>
+                {menu.is_current
+                  ? <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">✓ Active</span>
+                  : <button onClick={e => { e.stopPropagation(); onSetCurrent(menu.id) }}
+                      className="px-2 py-0.5 bg-slate-100 hover:bg-brand-100 text-slate-500 hover:text-brand-700 text-xs font-medium rounded-full transition-colors">
+                      Set Active
+                    </button>
+                }
               </div>
             </div>
           ))}
@@ -618,6 +627,13 @@ export default function CycleMenuBuilder({ menus, items, onRefresh, orgId, userI
     onRefresh()
   }
 
+  const handleSetCurrent = async (id) => {
+    // Clear current flag on all org menus, then set on selected
+    await supabase.from('cycle_menus').update({ is_current: false }).eq('organization_id', orgId)
+    await supabase.from('cycle_menus').update({ is_current: true }).eq('id', id)
+    onRefresh()
+  }
+
   return (
     <div>
       {/* Sub-tabs */}
@@ -651,7 +667,7 @@ export default function CycleMenuBuilder({ menus, items, onRefresh, orgId, userI
       )}
 
       {view === 'list' && (
-        <CycleMenuList menus={menus} onSelect={handleSelectMenu} onCreate={handleCreate} onDelete={handleDelete} />
+        <CycleMenuList menus={menus} onSelect={handleSelectMenu} onCreate={handleCreate} onDelete={handleDelete} onSetCurrent={handleSetCurrent} />
       )}
 
       {view === 'grid' && activeMenu && (

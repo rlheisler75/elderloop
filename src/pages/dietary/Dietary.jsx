@@ -279,7 +279,7 @@ function ResidentCard({ resident, onEdit, onPrint }) {
 }
 
 // ── Resident Profile Modal ─────────────────────────────────────
-function ResidentProfileModal({ resident, onClose, onSave }) {
+function ResidentProfileModal({ resident, menus, onClose, onSave }) {
   const { profile, organization } = useAuth()
 
   // If editing an existing profile that has a joined residents record, restore it
@@ -304,6 +304,7 @@ function ResidentProfileModal({ resident, onClose, onSave }) {
     assistance_needed: resident?.assistance_needed || false,
     assistance_notes:  resident?.assistance_notes  || '',
     general_notes:     resident?.general_notes     || '',
+    cycle_menu_id:     resident?.cycle_menu_id     || null,
   })
   const [saving, setSaving] = useState(false)
   const [error, setError]   = useState('')
@@ -799,7 +800,7 @@ export default function Dietary() {
 
       {/* Modals */}
       {showProfileModal && (
-        <ResidentProfileModal resident={editResident} onClose={() => setShowProfileModal(false)} onSave={handleSave} />
+        <ResidentProfileModal resident={editResident} menus={menus} onClose={() => setShowProfileModal(false)} onSave={handleSave} />
       )}
       {printResident && (
         <PrintTicket resident={printResident} meal={null} period={printPeriod} onClose={() => setPrintResident(null)} />
