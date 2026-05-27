@@ -468,6 +468,138 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
   )
 }
 
+// ── Create Staff Modal ─────────────────────────────────────────
+function CreateStaffModal({ orgId, onClose, onSave }) {
+  const [form, setForm] = useState({
+    first_name: '', last_name: '', email: '', password: '',
+    job_title: '', department: '', phone: '', role: 'staff',
+  })
+  const [saving, setSaving] = useState(false)
+  const [error, setError]   = useState('')
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+  const handleSave = async () => {
+    if (!form.first_name.trim() || !form.email.trim() || !form.password.trim()) {
+      setError('First name, email, and password are required'); return
+    }
+    if (form.password.length < 8) { setError('Password must be at least 8 characters'); return }
+    setSaving(true); setError('')
+
+    const { data, error: fnErr } = await supabase.functions.invoke('create-user', {
+      body: {
+        email:           form.email.trim(),
+        password:        form.password,
+        first_name:      form.first_name.trim(),
+        last_name:       form.last_name.trim(),
+        phone:           form.phone || null,
+        role:            form.role,
+        organization_id: orgId,
+      },
+    })
+
+    if (fnErr || data?.error) {
+      setError(fnErr?.message || data?.error || 'Failed to create staff member')
+      setSaving(false); return
+    }
+
+    // If department/job_title provided, update the new profile
+    if (form.department || form.job_title) {
+      await supabase.from('profiles').update({
+        department: form.department || null,
+        job_title:  form.job_title  || null,
+      }).eq('id', data.user_id)
+    }
+
+    setSaving(false)
+    onSave()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+          <h2 className="font-display font-semibold text-slate-800">Add Staff Member</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+          {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">First Name *</label>
+              <input value={form.first_name} onChange={e => set('first_name', e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Last Name</label>
+              <input value={form.last_name} onChange={e => set('last_name', e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-1">Email *</label>
+            <input type="email" value={form.email} onChange={e => set('email', e.target.value)}
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-1">Password *</label>
+            <input type="password" value={form.password} onChange={e => set('password', e.target.value)}
+              placeholder="Min. 8 characters"
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Job Title</label>
+              <input value={form.job_title} onChange={e => set('job_title', e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Department</label>
+              <select value={form.department} onChange={e => set('department', e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+                <option value="">Select...</option>
+                {DEPARTMENTS.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Phone</label>
+              <input value={form.phone} onChange={e => set('phone', e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Role</label>
+              <select value={form.role} onChange={e => set('role', e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+                <option value="staff">Staff</option>
+                <option value="nursing">Nursing</option>
+                <option value="supervisor">Supervisor</option>
+                <option value="manager">Manager</option>
+                <option value="org_admin">Admin</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-3 px-6 py-4 border-t border-slate-100">
+          <button onClick={onClose} className="flex-1 px-4 py-2 border border-slate-200 rounded-xl text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+            Cancel
+          </button>
+          <button onClick={handleSave} disabled={saving}
+            className="flex-1 px-4 py-2 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-colors">
+            {saving ? 'Creating...' : 'Add Staff Member'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Main Staff Management Page ─────────────────────────────────
 export default function StaffManagement() {
   const { profile, organization, isOrgAdmin } = useAuth()
@@ -480,6 +612,7 @@ export default function StaffManagement() {
   const [selectedStaff, setSelectedStaff] = useState(null)
   const [showDetail, setShowDetail] = useState(false)
   const [certAlerts, setCertAlerts] = useState([])
+  const [showAddStaff, setShowAddStaff] = useState(false)
 
   useEffect(() => { if (organization) fetchAll() }, [organization])
 
@@ -534,6 +667,12 @@ export default function StaffManagement() {
           <h1 className="font-display text-2xl font-semibold text-slate-800">Staff Management</h1>
           <p className="text-slate-500 text-sm mt-0.5">Staff profiles, certifications, and compliance tracking</p>
         </div>
+        {isOrgAdmin && (
+          <button onClick={() => setShowAddStaff(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
+            <Plus size={15} /> Add Staff Member
+          </button>
+        )}
       </div>
 
       {/* Stats */}
@@ -602,7 +741,7 @@ export default function StaffManagement() {
         <div className="text-center py-16 text-slate-400">
           <User size={40} className="mx-auto mb-3 opacity-30" />
           <p className="font-display text-lg">No staff found</p>
-          <p className="text-sm mt-1">Add staff in the Admin Panel, then manage their profiles here.</p>
+          <p className="text-sm mt-1">No staff match your filters. Use the button above to add staff members.</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -663,6 +802,13 @@ export default function StaffManagement() {
           certTypes={certTypes}
           onClose={() => { setShowDetail(false); setSelectedStaff(null) }}
           onSave={() => { setShowDetail(false); setSelectedStaff(null); fetchAll() }} />
+      )}
+
+      {showAddStaff && (
+        <CreateStaffModal
+          orgId={organization.id}
+          onClose={() => setShowAddStaff(false)}
+          onSave={() => { setShowAddStaff(false); fetchAll() }} />
       )}
     </div>
   )
