@@ -350,7 +350,7 @@ function CycleMenuGrid({ menu, items, onBack }) {
   async function fetchWeekData() {
     setLoading(true)
     const { data: days } = await supabase.from('cycle_menu_days')
-      .select(`id, day_of_week, cycle_menu_meals(id, meal_period, meal_courses(id, course_name, sort_order, menu_item_id, backup_item_id, menu_items(id,name), backup_items:menu_items!meal_courses_backup_item_id_fkey(id,name)))`)
+      .select(`id, day_of_week, cycle_menu_meals(id, meal_period, meal_courses(id, course_name, sort_order, menu_item_id, backup_item_id, menu_items:menu_items!meal_courses_menu_item_id_fkey(id,name), backup_items:menu_items!meal_courses_backup_item_id_fkey(id,name)))`)
       .eq('cycle_menu_id', menu.id).eq('week_number', week)
     const grid = {}
     days?.forEach(d => { grid[d.day_of_week] = { id: d.id, meals: d.cycle_menu_meals } })
