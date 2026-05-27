@@ -611,7 +611,7 @@ function PrintTicket({ resident, menus, onClose }) {
     const meal = mealRows?.[0]
     if (!meal) { setCourses([]); setLoading(false); return }
     const { data } = await supabase.from('meal_courses')
-      .select('*, menu_items:menu_items!meal_courses_menu_item_id_fkey(name,allergens), backup_items:menu_items!meal_courses_backup_item_id_fkey(name)')
+      .select('*, menu_items:menu_items!meal_courses_menu_item_id_fkey(name,allergens,suitable_diets,suitable_consistencies), backup_items:menu_items!meal_courses_backup_item_id_fkey(name)')
       .eq('meal_id', meal.id).order('sort_order')
     setCourses(data || [])
     setLoading(false)
@@ -712,8 +712,14 @@ function PrintTicket({ resident, menus, onClose }) {
                   const item   = course.menu_items
                   const backup = course.backup_items
                   const needsBackup = item && (
+                    // Allergen conflict
                     resident.allergens?.some(a => item.allergens?.includes(a)) ||
-                    resident.dislikes?.toLowerCase().includes(item.name?.toLowerCase())
+                    // Diet type not suitable for this item
+                    (item.suitable_diets?.length > 0 && !item.suitable_diets.includes(resident.diet_type)) ||
+                    // Consistency not suitable for this item
+                    (item.suitable_consistencies?.length > 0 && !item.suitable_consistencies.includes(resident.consistency)) ||
+                    // Resident dislikes this item
+                    (resident.dislikes && resident.dislikes.toLowerCase().includes(item.name?.toLowerCase()))
                   )
                   return (
                     <div key={i} className="item">
