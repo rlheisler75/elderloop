@@ -544,6 +544,19 @@ function ResidentProfileModal({ resident, menus, onClose, onSave }) {
               className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
               placeholder="Any other dietary notes..." />
           </div>
+
+          {/* ── Cycle Menu Assignment ── */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Assigned Cycle Menu</label>
+            <select value={form.cycle_menu_id || ''} onChange={e => set('cycle_menu_id', e.target.value || null)}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+              <option value="">Default to active menu</option>
+              {(menus || []).map(m => (
+                <option key={m.id} value={m.id}>{m.name}{m.is_current ? ' ✓ Active' : ''}</option>
+              ))}
+            </select>
+            <p className="text-xs text-slate-400 mt-1">Leave blank to use the org's active menu automatically.</p>
+          </div>
         </div>
         <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
           <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 hover:text-slate-800 font-medium">Cancel</button>
@@ -580,7 +593,7 @@ function PrintTicket({ resident, menus, onClose }) {
   }
 
   useEffect(() => {
-    const menu = menus?.find(m => m.id === resident.cycle_menu_id)
+    const menu = menus?.find(m => m.id === resident.cycle_menu_id) || menus?.find(m => m.is_current) || null
     if (!menu) { setCourses(null); return }
     const pos = calcCycleDay(menu, date)
     if (!pos) { setCourses(null); return }
@@ -632,7 +645,7 @@ function PrintTicket({ resident, menus, onClose }) {
   }
 
   const allergenLabels = resident.allergens?.map(a => ALLERGENS.find(al => al.key === a)?.label || a) || []
-  const menu = menus?.find(m => m.id === resident.cycle_menu_id)
+  const menu = menus?.find(m => m.id === resident.cycle_menu_id) || menus?.find(m => m.is_current) || null
   const cyclePos = menu ? calcCycleDay(menu, date) : null
   const dateLabel = new Date(date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
 
@@ -668,7 +681,7 @@ function PrintTicket({ resident, menus, onClose }) {
         )}
         {!menu && (
           <div className="px-6 py-1 flex-shrink-0">
-            <p className="text-xs text-amber-500">No cycle menu assigned to this resident.</p>
+            <p className="text-xs text-amber-500">No cycle menu assigned and no active menu set for this org.</p>
           </div>
         )}
 
@@ -679,12 +692,11 @@ function PrintTicket({ resident, menus, onClose }) {
               {[resident.room && `Room ${resident.room}`, resident.dining_location].filter(Boolean).join(' · ')}
               {' · '}{dateLabel}{' · '}{MEAL_PERIODS.find(m => m.key === period)?.label}
             </div>
-            <div className="badges">
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '8px' }}>
               <span className="badge diet">{getDiet(resident.diet_type)}</span>
-              {' '}
               <span className="badge cons">{getCons(resident.consistency)}</span>
-              {allergenLabels.map(a => <span key={a} className="badge allergy"> ⚠ {a}</span>)}
-              {resident.fluid_restriction && <span className="badge allergy"> Fluid Restriction</span>}
+              {allergenLabels.map(a => <span key={a} className="badge allergy">⚠ {a}</span>)}
+              {resident.fluid_restriction && <span className="badge allergy">Fluid Restriction</span>}
             </div>
             <hr />
             {loading ? (
