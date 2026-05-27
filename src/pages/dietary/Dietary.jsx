@@ -724,6 +724,13 @@ function PrintTicket({ resident, menus, onClose }) {
                   // Walk alternates chain in priority order to find best match
                   const sortedAlts = (course.alternates || []).sort((a,b) => a.priority - b.priority)
 
+                  // For alternates: only check allergens (safety), trust conditions for diet/consistency
+                  const altSafe = (altItem) => {
+                    if (!altItem) return false
+                    if (resident.allergens?.some(a => altItem.allergens?.includes(a))) return false
+                    return true
+                  }
+
                   let servedItem = null
                   let substitutedFor = null
 
@@ -731,23 +738,22 @@ function PrintTicket({ resident, menus, onClose }) {
                     servedItem = item
                   } else {
                     substitutedFor = item
-                    // Find first alternate that matches resident AND satisfies conditions
+                    // Pass 1: find first alternate whose conditions match this resident AND is allergen-safe
                     for (const alt of sortedAlts) {
                       const altItem = alt.item
-                      if (!altItem) continue
-                      // Check conditions — if conditions set, this alternate is only for matching residents
-                      const dietMatch  = !alt.conditions?.diets?.length || alt.conditions.diets.includes(resident.diet_type)
-                      const algMatch   = !alt.conditions?.allergens?.length || resident.allergens?.some(a => alt.conditions.allergens.includes(a))
-                      const condMatch  = dietMatch && (alt.conditions?.allergens?.length ? algMatch : true)
-                      if (condMatch && itemSuitable(altItem)) {
-                        servedItem = altItem
-                        break
-                      }
+                      if (!altItem || !altSafe(altItem)) continue
+                      const hasDietCond = alt.conditions?.diets?.length > 0
+                      const hasAlgCond  = alt.conditions?.allergens?.length > 0
+                      const dietMatch   = !hasDietCond || alt.conditions.diets.includes(resident.diet_type)
+                      const algMatch    = !hasAlgCond  || resident.allergens?.some(a => alt.conditions.allergens.includes(a))
+                      // No conditions = applies to everyone; with conditions = must match
+                      const condMatch   = (!hasDietCond && !hasAlgCond) || dietMatch || algMatch
+                      if (condMatch) { servedItem = altItem; break }
                     }
-                    // If no conditioned alternate matched, fall back to any suitable alternate
+                    // Pass 2: if nothing matched, use any allergen-safe alternate
                     if (!servedItem) {
                       for (const alt of sortedAlts) {
-                        if (alt.item && itemSuitable(alt.item)) { servedItem = alt.item; break }
+                        if (altSafe(alt.item)) { servedItem = alt.item; break }
                       }
                     }
                   }
