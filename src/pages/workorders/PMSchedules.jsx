@@ -206,7 +206,7 @@ export default function PMSchedules({ orgId: orgIdProp, profile: profileProp }) 
       title:           `[PM] ${schedule.title}`,
       description:     schedule.description || `Preventive maintenance task: ${schedule.title}`,
       category:        schedule.category || 'equipment',
-      priority:        'medium',
+      priority:        'normal',
       status:          'open',
       asset_id:        schedule.asset_id || null,
       assigned_to:     schedule.assign_to || null,
