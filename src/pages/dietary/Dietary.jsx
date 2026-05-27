@@ -610,10 +610,26 @@ function PrintTicket({ resident, menus, onClose }) {
       .select('id').eq('cycle_menu_day_id', day.id).eq('meal_period', mealPeriod).limit(1)
     const meal = mealRows?.[0]
     if (!meal) { setCourses([]); setLoading(false); return }
-    const { data } = await supabase.from('meal_courses')
-      .select('*, menu_items:menu_items!meal_courses_menu_item_id_fkey(name,allergens,suitable_diets,suitable_consistencies), alternates:course_alternates(id,priority,conditions,item:menu_items!course_alternates_menu_item_id_fkey(id,name,allergens,suitable_diets,suitable_consistencies))')
+    const { data: courseData } = await supabase.from('meal_courses')
+      .select('*, menu_items:menu_items!meal_courses_menu_item_id_fkey(name,allergens,suitable_diets,suitable_consistencies)')
       .eq('meal_id', meal.id).order('sort_order')
-    setCourses(data || [])
+
+    // Fetch alternates separately — avoids deep RLS chain in nested PostgREST joins
+    const courseIds = courseData?.map(d => d.id) || []
+    let altData = []
+    if (courseIds.length > 0) {
+      const { data: alts } = await supabase.from('course_alternates')
+        .select('id, meal_course_id, priority, conditions, item:menu_items!course_alternates_menu_item_id_fkey(id,name,allergens,suitable_diets,suitable_consistencies)')
+        .in('meal_course_id', courseIds)
+        .order('priority')
+      altData = alts || []
+    }
+
+    const merged = (courseData || []).map(course => ({
+      ...course,
+      alternates: altData.filter(a => a.meal_course_id === course.id)
+    }))
+    setCourses(merged)
     setLoading(false)
   }
 
@@ -744,11 +760,12 @@ function PrintTicket({ resident, menus, onClose }) {
                       if (!altItem || !altSafe(altItem)) continue
                       const hasDietCond = alt.conditions?.diets?.length > 0
                       const hasAlgCond  = alt.conditions?.allergens?.length > 0
-                      const dietMatch   = !hasDietCond || alt.conditions.diets.includes(resident.diet_type)
-                      const algMatch    = !hasAlgCond  || resident.allergens?.some(a => alt.conditions.allergens.includes(a))
-                      // No conditions = applies to everyone; with conditions = must match
-                      const condMatch   = (!hasDietCond && !hasAlgCond) || dietMatch || algMatch
-                      if (condMatch) { servedItem = altItem; break }
+                      // No conditions = applies to everyone
+                      // Diet condition = resident must be in the allowed diet list
+                      // Allergen condition = resident must have that allergen
+                      const dietMatch = !hasDietCond || alt.conditions.diets.includes(resident.diet_type)
+                      const algMatch  = !hasAlgCond  || resident.allergens?.some(a => alt.conditions.allergens.includes(a))
+                      if (dietMatch && algMatch) { servedItem = altItem; break }
                     }
                     // Pass 2: if nothing matched, use any allergen-safe alternate
                     if (!servedItem) {
