@@ -17,6 +17,28 @@ const MEAL_PERIODS = [
 const DAYS     = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
 const ALLERGENS = ['milk','eggs','fish','shellfish','tree_nuts','peanuts','wheat','gluten','soy','sesame']
 
+const DIET_TYPES = [
+  { key: 'regular',      label: 'Regular' },
+  { key: 'vegetarian',   label: 'Vegetarian' },
+  { key: 'vegan',        label: 'Vegan' },
+  { key: 'diabetic',     label: 'Diabetic' },
+  { key: 'heart_healthy',label: 'Heart Healthy' },
+  { key: 'renal',        label: 'Renal' },
+  { key: 'low_sodium',   label: 'Low Sodium' },
+  { key: 'low_fat',      label: 'Low Fat' },
+  { key: 'gluten_free',  label: 'Gluten Free' },
+  { key: 'kosher',       label: 'Kosher' },
+  { key: 'halal',        label: 'Halal' },
+]
+
+const CONSISTENCY_LEVELS = [
+  { key: 'regular',          label: 'Regular' },
+  { key: 'mechanical_soft',  label: 'Mechanical Soft' },
+  { key: 'minced_moist',     label: 'Minced & Moist' },
+  { key: 'pureed',           label: 'Pureed' },
+  { key: 'thickened_liquid', label: 'Thickened Liquid' },
+]
+
 // ── Item Picker Dropdown ───────────────────────────────────────
 function ItemPicker({ items, value, onChange, placeholder = 'Select item...' }) {
   const [open, setOpen]     = useState(false)
@@ -62,21 +84,22 @@ function ItemPicker({ items, value, onChange, placeholder = 'Select item...' }) 
 function MenuItemsCatalog({ items, onRefresh, orgId }) {
   const [showForm, setShowForm] = useState(false)
   const [editItem, setEditItem] = useState(null)
-  const [form, setForm]         = useState({ name: '', description: '', allergens: [] })
+  const [form, setForm]         = useState({ name: '', description: '', allergens: [], suitable_diets: [], suitable_consistencies: [] })
   const [saving, setSaving]     = useState(false)
   const [search, setSearch]     = useState('')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
-  const openNew  = () => { setForm({ name: '', description: '', allergens: [] }); setEditItem(null); setShowForm(true) }
-  const openEdit = (item) => { setForm({ name: item.name, description: item.description || '', allergens: item.allergens || [] }); setEditItem(item); setShowForm(true) }
+  const openNew  = () => { setForm({ name: '', description: '', allergens: [], suitable_diets: [], suitable_consistencies: [] }); setEditItem(null); setShowForm(true) }
+  const openEdit = (item) => { setForm({ name: item.name, description: item.description || '', allergens: item.allergens || [], suitable_diets: item.suitable_diets || [], suitable_consistencies: item.suitable_consistencies || [] }); setEditItem(item); setShowForm(true) }
 
-  const toggleAllergen = (key) => set('allergens',
-    form.allergens.includes(key) ? form.allergens.filter(a => a !== key) : [...form.allergens, key])
+  const toggleAllergen  = (key) => set('allergens', form.allergens.includes(key) ? form.allergens.filter(a => a !== key) : [...form.allergens, key])
+  const toggleDiet      = (key) => set('suitable_diets', form.suitable_diets.includes(key) ? form.suitable_diets.filter(d => d !== key) : [...form.suitable_diets, key])
+  const toggleCons      = (key) => set('suitable_consistencies', form.suitable_consistencies.includes(key) ? form.suitable_consistencies.filter(c => c !== key) : [...form.suitable_consistencies, key])
 
   const handleSave = async () => {
     if (!form.name.trim()) return
     setSaving(true)
-    const payload = { name: form.name.trim(), description: form.description || null, allergens: form.allergens, organization_id: orgId }
+    const payload = { name: form.name.trim(), description: form.description || null, allergens: form.allergens, suitable_diets: form.suitable_diets, suitable_consistencies: form.suitable_consistencies, organization_id: orgId }
     if (editItem) {
       await supabase.from('menu_items').update(payload).eq('id', editItem.id)
     } else {
@@ -129,6 +152,30 @@ function MenuItemsCatalog({ items, onRefresh, orgId }) {
                 ))}
               </div>
             </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Suitable For Diets</label>
+              <div className="flex flex-wrap gap-1.5">
+                {DIET_TYPES.map(d => (
+                  <button key={d.key} onClick={() => toggleDiet(d.key)}
+                    className={`px-2 py-1 rounded-lg border text-xs font-medium transition-all ${form.suitable_diets.includes(d.key) ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 text-slate-600 hover:border-brand-300'}`}>
+                    {d.label}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-slate-400 mt-1">Select all diets this item is appropriate for.</p>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Suitable Consistencies</label>
+              <div className="flex flex-wrap gap-1.5">
+                {CONSISTENCY_LEVELS.map(cl => (
+                  <button key={cl.key} onClick={() => toggleCons(cl.key)}
+                    className={`px-2 py-1 rounded-lg border text-xs font-medium transition-all ${form.suitable_consistencies.includes(cl.key) ? 'bg-teal-600 text-white border-teal-600' : 'border-slate-200 text-slate-600 hover:border-teal-300'}`}>
+                    {cl.label}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-slate-400 mt-1">Select all texture levels this item can be served at.</p>
+            </div>
             <div className="flex justify-end gap-2">
               <button onClick={() => setShowForm(false)} className="px-3 py-1.5 text-sm text-slate-600 font-medium">Cancel</button>
               <button onClick={handleSave} disabled={saving}
@@ -150,6 +197,13 @@ function MenuItemsCatalog({ items, onRefresh, orgId }) {
                 <div className="flex flex-wrap gap-1 mt-1.5">
                   {item.allergens.map(a => (
                     <span key={a} className="text-xs px-1.5 py-0.5 bg-red-50 text-red-600 rounded border border-red-100 capitalize">{a.replace('_',' ')}</span>
+                  ))}
+                </div>
+              )}
+              {item.suitable_diets?.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {item.suitable_diets.map(d => (
+                    <span key={d} className="text-xs px-1.5 py-0.5 bg-brand-50 text-brand-600 rounded border border-brand-100 capitalize">{d.replace('_',' ')}</span>
                   ))}
                 </div>
               )}
