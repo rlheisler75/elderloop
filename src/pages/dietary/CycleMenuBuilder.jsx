@@ -224,8 +224,8 @@ function DayMealCell({ weekNum, dayIdx, period, dayData, items, onSave }) {
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 flex-shrink-0">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white rounded-t-2xl flex items-center justify-between px-5 py-4 border-b border-slate-100 z-10">
               <div>
                 <h3 className="font-display font-semibold text-slate-800 text-base">
                   {period.label} — Week {weekNum}, {DAYS[dayIdx]}
@@ -235,7 +235,7 @@ function DayMealCell({ weekNum, dayIdx, period, dayData, items, onSave }) {
               <button onClick={() => setOpen(false)} className="text-slate-400 hover:text-slate-600"><X size={18} /></button>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
+            <div className="px-5 py-4 space-y-3">
               {courses.map((course, idx) => (
                 <div key={idx} className="p-3 bg-slate-50 rounded-xl border border-slate-100">
                   <div className="flex items-center gap-2 mb-2">
@@ -264,7 +264,7 @@ function DayMealCell({ weekNum, dayIdx, period, dayData, items, onSave }) {
               </button>
             </div>
 
-            <div className="px-5 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
+            <div className="sticky bottom-0 bg-white rounded-b-2xl px-5 py-4 border-t border-slate-100 flex justify-end gap-3">
               <button onClick={() => setOpen(false)} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
               <button onClick={handleSave} disabled={saving}
                 className="flex items-center gap-2 px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
@@ -360,26 +360,28 @@ function CycleMenuGrid({ menu, items, onBack }) {
 
   async function handleSaveMeal(weekNum, dayIdx, periodKey, courses) {
     // Get or create day
-    let { data: day } = await supabase.from('cycle_menu_days')
-      .select('id').eq('cycle_menu_id', menu.id).eq('week_number', weekNum).eq('day_of_week', dayIdx).single()
+    let { data: day, error: dayErr } = await supabase.from('cycle_menu_days')
+      .select('id').eq('cycle_menu_id', menu.id).eq('week_number', weekNum).eq('day_of_week', dayIdx).maybeSingle()
     if (!day) {
-      const { data: newDay } = await supabase.from('cycle_menu_days')
+      const { data: newDay, error: newDayErr } = await supabase.from('cycle_menu_days')
         .insert({ cycle_menu_id: menu.id, week_number: weekNum, day_of_week: dayIdx }).select().single()
+      if (newDayErr) { console.error('Failed to create day:', newDayErr.message); return }
       day = newDay
     }
     // Get or create meal
     let { data: meal } = await supabase.from('cycle_menu_meals')
-      .select('id').eq('cycle_menu_day_id', day.id).eq('meal_period', periodKey).single()
+      .select('id').eq('cycle_menu_day_id', day.id).eq('meal_period', periodKey).maybeSingle()
     if (!meal) {
-      const { data: newMeal } = await supabase.from('cycle_menu_meals')
+      const { data: newMeal, error: newMealErr } = await supabase.from('cycle_menu_meals')
         .insert({ cycle_menu_day_id: day.id, meal_period: periodKey }).select().single()
+      if (newMealErr) { console.error('Failed to create meal:', newMealErr.message); return }
       meal = newMeal
     }
     // Delete old courses and re-insert
     await supabase.from('meal_courses').delete().eq('meal_id', meal.id)
     const validCourses = courses.filter(c => c.course_name.trim())
     if (validCourses.length > 0) {
-      await supabase.from('meal_courses').insert(
+      const { error: insertErr } = await supabase.from('meal_courses').insert(
         validCourses.map((c, i) => ({
           meal_id: meal.id, course_name: c.course_name,
           menu_item_id: c.menu_item_id || null,
@@ -387,6 +389,7 @@ function CycleMenuGrid({ menu, items, onBack }) {
           sort_order: i
         }))
       )
+      if (insertErr) { console.error('Failed to save courses:', insertErr.message); return }
     }
     fetchWeekData()
   }
