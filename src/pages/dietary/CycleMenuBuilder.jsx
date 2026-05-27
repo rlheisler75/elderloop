@@ -360,8 +360,9 @@ function CycleMenuGrid({ menu, items, onBack }) {
 
   async function handleSaveMeal(weekNum, dayIdx, periodKey, courses) {
     // Get or create day
-    let { data: day, error: dayErr } = await supabase.from('cycle_menu_days')
-      .select('id').eq('cycle_menu_id', menu.id).eq('week_number', weekNum).eq('day_of_week', dayIdx).maybeSingle()
+    const { data: dayRows } = await supabase.from('cycle_menu_days')
+      .select('id').eq('cycle_menu_id', menu.id).eq('week_number', weekNum).eq('day_of_week', dayIdx).limit(1)
+    let day = dayRows?.[0] || null
     if (!day) {
       const { data: newDay, error: newDayErr } = await supabase.from('cycle_menu_days')
         .insert({ cycle_menu_id: menu.id, week_number: weekNum, day_of_week: dayIdx }).select().single()
@@ -369,8 +370,9 @@ function CycleMenuGrid({ menu, items, onBack }) {
       day = newDay
     }
     // Get or create meal
-    let { data: meal } = await supabase.from('cycle_menu_meals')
-      .select('id').eq('cycle_menu_day_id', day.id).eq('meal_period', periodKey).maybeSingle()
+    const { data: mealRows } = await supabase.from('cycle_menu_meals')
+      .select('id').eq('cycle_menu_day_id', day.id).eq('meal_period', periodKey).limit(1)
+    let meal = mealRows?.[0] || null
     if (!meal) {
       const { data: newMeal, error: newMealErr } = await supabase.from('cycle_menu_meals')
         .insert({ cycle_menu_day_id: day.id, meal_period: periodKey }).select().single()
