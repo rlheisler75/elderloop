@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../context/AuthContext'
 import {
   Plus, X, Edit2, Trash2, Calendar, Clock, Check,
   RefreshCw, AlertTriangle, Play, ChevronRight
@@ -166,7 +167,10 @@ function PMModal({ schedule, assets, staff, orgId, profile, onClose, onSaved }) 
   )
 }
 
-export default function PMSchedules({ orgId, profile }) {
+export default function PMSchedules({ orgId: orgIdProp, profile: profileProp }) {
+  const { organization, profile: authProfile } = useAuth()
+  const orgId   = orgIdProp   || organization?.id
+  const profile = profileProp || authProfile
   const [schedules, setSchedules] = useState([])
   const [assets, setAssets]       = useState([])
   const [staff, setStaff]         = useState([])
@@ -174,6 +178,7 @@ export default function PMSchedules({ orgId, profile }) {
   const [editSchedule, setEditSchedule] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [generating, setGenerating] = useState(null)
+  const [generateError, setGenerateError] = useState('')
 
   useEffect(() => { if (orgId) fetchAll() }, [orgId])
 
@@ -195,6 +200,7 @@ export default function PMSchedules({ orgId, profile }) {
   // Generate a work order from a PM schedule
   const generateWO = async (schedule) => {
     setGenerating(schedule.id)
+    setGenerateError('')
     const { data: wo, error } = await supabase.from('work_orders').insert({
       organization_id: orgId,
       title:           `[PM] ${schedule.title}`,
@@ -209,23 +215,27 @@ export default function PMSchedules({ orgId, profile }) {
       submitted_by:    profile.id,
     }).select().single()
 
-    if (!error && wo) {
-      await supabase.from('wo_activity').insert({
-        work_order_id: wo.id,
-        user_id: profile.id,
-        action: `Work order generated from PM schedule: ${schedule.title}`,
-        action_type: 'created',
-      })
-      // Update last_generated and calculate next_due
-      const freqDays = schedule.frequency_days || 30
-      const nextDue  = new Date(schedule.next_due + 'T12:00:00')
-      nextDue.setDate(nextDue.getDate() + freqDays)
-      await supabase.from('pm_schedules').update({
-        last_generated: new Date().toISOString().split('T')[0],
-        next_due: nextDue.toISOString().split('T')[0],
-      }).eq('id', schedule.id)
-      fetchAll()
+    if (error || !wo) {
+      setGenerateError(`Failed to generate work order: ${error?.message || 'Unknown error'}`)
+      setGenerating(null)
+      return
     }
+
+    await supabase.from('wo_activity').insert({
+      work_order_id: wo.id,
+      user_id: profile.id,
+      action: `Work order generated from PM schedule: ${schedule.title}`,
+      action_type: 'created',
+    })
+    // Update last_generated and calculate next_due
+    const freqDays = schedule.frequency_days || 30
+    const nextDue  = new Date(schedule.next_due + 'T12:00:00')
+    nextDue.setDate(nextDue.getDate() + freqDays)
+    await supabase.from('pm_schedules').update({
+      last_generated: new Date().toISOString().split('T')[0],
+      next_due: nextDue.toISOString().split('T')[0],
+    }).eq('id', schedule.id)
+    fetchAll()
     setGenerating(null)
   }
 
@@ -247,6 +257,13 @@ export default function PMSchedules({ orgId, profile }) {
           <Plus size={14} /> New Schedule
         </button>
       </div>
+
+      {generateError && (
+        <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm flex items-center justify-between">
+          <span>{generateError}</span>
+          <button onClick={() => setGenerateError('')} className="ml-3 text-red-400 hover:text-red-600"><X size={14} /></button>
+        </div>
+      )}
 
       <div className="grid grid-cols-3 gap-3 mb-5">
         {[
