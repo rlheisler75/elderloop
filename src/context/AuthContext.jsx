@@ -13,8 +13,9 @@ export function AuthProvider({ children }) {
   const [orgModules, setOrgModules]   = useState([])
   const [userPerms, setUserPerms]     = useState([])
   const [superAdmin, setSuperAdmin]   = useState(false)
-   const [loading, setLoading]         = useState(true)
+  const [loading, setLoading]         = useState(true)
   const [suspended, setSuspended]     = useState(false)
+  const [impersonating, setImpersonating] = useState(false)
   const navigate                      = useNavigate()
 
   useEffect(() => {
@@ -41,11 +42,14 @@ export function AuthProvider({ children }) {
         .from('profiles').select('*').eq('id', userId).single()
       setProfile(prof)
 
-      // Use role from profile rather than a separate super_admins table lookup
       const sa = prof?.role === 'super_admin'
       setSuperAdmin(sa)
 
-      if (prof?.organization_id) {
+      // Super admin impersonation: if a target org is stored, load it instead
+      const storedOrgId = sa ? localStorage.getItem('elderloop_super_admin_org') : null
+      const orgIdToLoad = storedOrgId || prof?.organization_id
+
+      if (orgIdToLoad) {
         const [orgRes, modsRes, permsRes] = await Promise.all([
           supabase.from('organizations').select('*').eq('id', prof.organization_id).single(),
           supabase.from('organization_modules').select('module_key, is_enabled')
@@ -67,6 +71,7 @@ export function AuthProvider({ children }) {
         setOrg(org)
         setOrgModules(modsRes.data?.filter(m => m.is_enabled !== false).map(m => m.module_key) || [])
         setUserPerms(permsRes.data || [])
+        if (storedOrgId) setImpersonating(true)
       }
     } catch (e) {
       console.error('Profile fetch error:', e)
@@ -132,11 +137,33 @@ export function AuthProvider({ children }) {
     setOrgModules(data?.filter(m => m.is_enabled !== false).map(m => m.module_key) || [])
   }
 
+  // ── Super Admin Org Impersonation ─────────────────────────────
+  const impersonateOrg = async (orgId) => {
+    localStorage.setItem('elderloop_super_admin_org', orgId)
+    const [orgRes, modsRes] = await Promise.all([
+      supabase.from('organizations').select('*').eq('id', orgId).single(),
+      supabase.from('organization_modules').select('module_key, is_enabled')
+        .eq('organization_id', orgId),
+    ])
+    setOrg(orgRes.data)
+    setOrgModules(modsRes.data?.filter(m => m.is_enabled !== false).map(m => m.module_key) || [])
+    setImpersonating(true)
+  }
+
+  const exitImpersonation = () => {
+    localStorage.removeItem('elderloop_super_admin_org')
+    setImpersonating(false)
+    setOrg(null)
+    setOrgModules([])
+    navigate('/super-admin')
+  }
+
   return (
       <AuthContext.Provider value={{
       user, profile, organization, orgModules, userPerms,
       loading, suspended, hasModule, canEdit, accessibleModules,
-      isOrgAdmin, isSuperAdmin, isCEO, signOut, refreshModules
+      isOrgAdmin, isSuperAdmin, isCEO, signOut, refreshModules,
+      impersonating, impersonateOrg, exitImpersonation,
     }}>
       {children}
 

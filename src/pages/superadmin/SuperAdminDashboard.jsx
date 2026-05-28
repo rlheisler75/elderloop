@@ -35,7 +35,7 @@ function AddOrgModal({ onClose, onSave }) {
   const handleSave = async () => {
     if (!form.name.trim() || !form.slug.trim()) { setError('Name and slug are required'); return }
     setSaving(true)
-    const { error: err } = await supabase.from('organizations').insert({
+    const { data: newOrg, error: err } = await supabase.from('organizations').insert({
       name: form.name.trim(),
       slug: form.slug.trim().toLowerCase().replace(/\s+/g, '-'),
       city: form.city || null,
@@ -46,9 +46,9 @@ function AddOrgModal({ onClose, onSave }) {
       billing_status: form.billing_status,
       billing_note: form.billing_note || null,
       is_active: true,
-    })
+    }).select().single()
     if (err) { setError(err.message); setSaving(false); return }
-    onSave()
+    onSave(newOrg)
   }
 
   return (
@@ -424,7 +424,7 @@ function WipeModal({ org, onClose, onDone }) {
 }
 
 export default function SuperAdminDashboard() {
-  const { profile, signOut } = useAuth()
+  const { profile, signOut, impersonateOrg } = useAuth()
   const navigate = useNavigate()
   const [orgs, setOrgs]           = useState([])
   const [platformSurveys, setPlatformSurveys] = useState([])
@@ -540,14 +540,14 @@ export default function SuperAdminDashboard() {
             {orgs.slice(0, 8).map(org => (
               <div key={org.id} className="flex items-center gap-1 mb-0.5">
                 <button
-                  onClick={() => navigate('/app/admin')}
+                  onClick={async () => { await impersonateOrg(org.id); navigate('/app/admin') }}
                   title="Open Admin Panel"
                   className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-slate-500 hover:bg-slate-800 hover:text-white transition-all text-left truncate">
                   <Settings size={12} className="flex-shrink-0" />
                   <span className="truncate">{org.name}</span>
                 </button>
                 <button
-                  onClick={() => navigate('/app/dashboard')}
+                  onClick={async () => { await impersonateOrg(org.id); navigate('/app/dashboard') }}
                   title="View Dashboard"
                   className="p-1.5 text-slate-700 hover:text-green-400 hover:bg-slate-800 rounded-lg transition-colors flex-shrink-0">
                   <BarChart3 size={12} />
@@ -946,7 +946,11 @@ export default function SuperAdminDashboard() {
       {showAddOrg && (
         <AddOrgModal
           onClose={() => setShowAddOrg(false)}
-          onSave={() => { setShowAddOrg(false); fetchAll() }} />
+          onSave={async (newOrg) => {
+            setShowAddOrg(false)
+            await fetchAll()
+            if (newOrg?.id) { await impersonateOrg(newOrg.id); navigate('/app/admin') }
+          }} />
       )}
 
       {logoModal && (
