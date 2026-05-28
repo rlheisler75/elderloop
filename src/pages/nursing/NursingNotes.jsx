@@ -503,7 +503,7 @@ function NoteModal({ note, resident, orgId, profile, onClose, onSaved }) {
 }
 
 // ── Resident Detail Panel ──────────────────────────────────────
-function ResidentPanel({ resident, orgId, profile, canEdit }) {
+function ResidentPanel({ resident, orgId, profile, canEdit, onSaved }) {
   const [tab, setTab]       = useState('vitals')
   const [vitals, setVitals] = useState([])
   const [meds, setMeds]     = useState([])
@@ -825,9 +825,9 @@ function ResidentPanel({ resident, orgId, profile, canEdit }) {
       </div>
 
       {/* Modals */}
-      {showVitals && <VitalsModal resident={resident} orgId={orgId} profile={profile} onClose={() => setShowVitals(false)} onSaved={() => { setShowVitals(false); fetchAll() }} />}
-      {showMed    && <MedModal    med={editMed}   resident={resident} orgId={orgId} profile={profile} onClose={() => { setShowMed(false); setEditMed(null) }} onSaved={() => { setShowMed(false); setEditMed(null); fetchAll() }} />}
-      {showNote   && <NoteModal   note={editNote} resident={resident} orgId={orgId} profile={profile} onClose={() => { setShowNote(false); setEditNote(null) }} onSaved={() => { setShowNote(false); setEditNote(null); fetchAll() }} />}
+      {showVitals && <VitalsModal resident={resident} orgId={orgId} profile={profile} onClose={() => setShowVitals(false)} onSaved={() => { setShowVitals(false); fetchAll(); onSaved?.() }} />}
+      {showMed    && <MedModal    med={editMed}   resident={resident} orgId={orgId} profile={profile} onClose={() => { setShowMed(false); setEditMed(null) }} onSaved={() => { setShowMed(false); setEditMed(null); fetchAll(); onSaved?.() }} />}
+      {showNote   && <NoteModal   note={editNote} resident={resident} orgId={orgId} profile={profile} onClose={() => { setShowNote(false); setEditNote(null) }} onSaved={() => { setShowNote(false); setEditNote(null); fetchAll(); onSaved?.() }} />}
     </div>
   )
 }
@@ -948,7 +948,8 @@ export default function NursingNotes() {
             resident={selected}
             orgId={organization.id}
             profile={profile}
-            canEdit={canEditNursing} />
+            canEdit={canEditNursing}
+            onSaved={fetchAll} />
         )}
       </div>
     </div>
