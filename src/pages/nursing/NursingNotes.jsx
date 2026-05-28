@@ -89,14 +89,24 @@ function Sparkline({ data, color = '#0c90e1' }) {
 }
 
 // ── Vitals Entry Modal ─────────────────────────────────────────
-function VitalsModal({ resident, orgId, profile, onClose, onSaved }) {
+function VitalsModal({ vital, resident, orgId, profile, onClose, onSaved }) {
+  const isEdit = !!vital
   const [form, setForm] = useState({
-    shift: 'day', bp_systolic: '', bp_diastolic: '', pulse: '',
-    temperature: '', weight: '', o2_sat: '', blood_sugar: '',
-    respirations: '', pain_level: '', notes: '',
+    shift:        vital?.shift         || 'day',
+    bp_systolic:  vital?.bp_systolic   ?? '',
+    bp_diastolic: vital?.bp_diastolic  ?? '',
+    pulse:        vital?.pulse         ?? '',
+    temperature:  vital?.temperature   ?? '',
+    weight:       vital?.weight        ?? '',
+    o2_sat:       vital?.o2_sat        ?? '',
+    blood_sugar:  vital?.blood_sugar   ?? '',
+    respirations: vital?.respirations  ?? '',
+    pain_level:   vital?.pain_level != null ? String(vital.pain_level) : '',
+    notes:        vital?.notes         || '',
   })
-  const [saving, setSaving] = useState(false)
-  const [error, setError]   = useState('')
+  const [saving, setSaving]   = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [error, setError]     = useState('')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
   const handleSave = async () => {
@@ -105,7 +115,7 @@ function VitalsModal({ resident, orgId, profile, onClose, onSaved }) {
       organization_id: orgId,
       resident_id:     resident.id,
       recorded_by:     profile.id,
-      recorded_at:     new Date().toISOString(),
+      recorded_at:     isEdit ? vital.recorded_at : new Date().toISOString(),
       shift:           form.shift,
       bp_systolic:     form.bp_systolic  ? parseInt(form.bp_systolic)    : null,
       bp_diastolic:    form.bp_diastolic ? parseInt(form.bp_diastolic)   : null,
@@ -118,8 +128,17 @@ function VitalsModal({ resident, orgId, profile, onClose, onSaved }) {
       pain_level:      form.pain_level !== '' ? parseInt(form.pain_level): null,
       notes:           form.notes        || null,
     }
-    const { error: err } = await supabase.from('resident_vitals').insert(payload)
+    const { error: err } = isEdit
+      ? await supabase.from('resident_vitals').update(payload).eq('id', vital.id)
+      : await supabase.from('resident_vitals').insert(payload)
     if (err) { setError(err.message); setSaving(false); return }
+    onSaved()
+  }
+
+  const handleDelete = async () => {
+    if (!confirm('Delete this vitals record? This cannot be undone.')) return
+    setDeleting(true)
+    await supabase.from('resident_vitals').delete().eq('id', vital.id)
     onSaved()
   }
 
@@ -130,7 +149,7 @@ function VitalsModal({ resident, orgId, profile, onClose, onSaved }) {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
           <div>
-            <h2 className="font-display font-semibold text-slate-800">Record Vitals</h2>
+            <h2 className="font-display font-semibold text-slate-800">{isEdit ? 'Edit Vitals' : 'Record Vitals'}</h2>
             <p className="text-xs text-slate-400 mt-0.5">{resident.first_name} {resident.last_name}</p>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
@@ -222,12 +241,22 @@ function VitalsModal({ resident, orgId, profile, onClose, onSaved }) {
           </div>
         </div>
 
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
-          <button onClick={handleSave} disabled={saving}
-            className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
-            {saving ? 'Saving...' : 'Save Vitals'}
-          </button>
+        <div className="px-6 py-4 border-t border-slate-100 flex justify-between gap-3 flex-shrink-0">
+          <div>
+            {isEdit && (
+              <button onClick={handleDelete} disabled={deleting}
+                className="px-4 py-2 text-sm text-red-500 hover:text-red-700 font-medium disabled:opacity-50">
+                {deleting ? 'Deleting...' : 'Delete'}
+              </button>
+            )}
+          </div>
+          <div className="flex gap-3">
+            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+            <button onClick={handleSave} disabled={saving}
+              className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
+              {saving ? 'Saving...' : isEdit ? 'Update Vitals' : 'Save Vitals'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -510,6 +539,7 @@ function ResidentPanel({ resident, orgId, profile, canEdit, onSaved }) {
   const [notes, setNotes]   = useState([])
   const [loading, setLoading] = useState(true)
   const [showVitals, setShowVitals] = useState(false)
+  const [editVital, setEditVital]   = useState(null)
   const [showMed, setShowMed]     = useState(false)
   const [editMed, setEditMed]     = useState(null)
   const [showNote, setShowNote]   = useState(false)
@@ -606,7 +636,7 @@ function ResidentPanel({ resident, orgId, profile, canEdit, onSaved }) {
             {tab === 'vitals' && (
               <div>
                 {canEdit && (
-                  <button onClick={() => setShowVitals(true)}
+                  <button onClick={() => { setEditVital(null); setShowVitals(true) }}
                     className="w-full mb-4 flex items-center justify-center gap-2 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
                     <Plus size={15} /> Record Vitals
                   </button>
@@ -646,11 +676,17 @@ function ResidentPanel({ resident, orgId, profile, canEdit, onSaved }) {
                               <span className="text-xs text-slate-400">{fmtDateTime(v.recorded_at)}</span>
                               {v.profiles && <span className="text-xs text-slate-400">by {v.profiles.first_name} {v.profiles.last_name}</span>}
                             </div>
-                            {v.pain_level != null && (
-                              <span className={`text-xs font-bold ${v.pain_level >= 7 ? 'text-red-600' : v.pain_level >= 4 ? 'text-amber-600' : 'text-green-600'}`}>
-                                Pain {v.pain_level}/10
-                              </span>
-                            )}
+                            <div className="flex items-center gap-1">
+                              {v.pain_level != null && (
+                                <span className={`text-xs font-bold mr-2 ${v.pain_level >= 7 ? 'text-red-600' : v.pain_level >= 4 ? 'text-amber-600' : 'text-green-600'}`}>
+                                  Pain {v.pain_level}/10
+                                </span>
+                              )}
+                              {canEdit && (
+                                <button onClick={() => { setEditVital(v); setShowVitals(true) }}
+                                  className="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg transition-colors"><Edit2 size={13} /></button>
+                              )}
+                            </div>
                           </div>
                           <div className="grid grid-cols-4 gap-2 text-xs">
                             {[
@@ -825,7 +861,7 @@ function ResidentPanel({ resident, orgId, profile, canEdit, onSaved }) {
       </div>
 
       {/* Modals */}
-      {showVitals && <VitalsModal resident={resident} orgId={orgId} profile={profile} onClose={() => setShowVitals(false)} onSaved={() => { setShowVitals(false); fetchAll(); onSaved?.() }} />}
+      {showVitals && <VitalsModal vital={editVital} resident={resident} orgId={orgId} profile={profile} onClose={() => { setShowVitals(false); setEditVital(null) }} onSaved={() => { setShowVitals(false); setEditVital(null); fetchAll(); onSaved?.() }} />}
       {showMed    && <MedModal    med={editMed}   resident={resident} orgId={orgId} profile={profile} onClose={() => { setShowMed(false); setEditMed(null) }} onSaved={() => { setShowMed(false); setEditMed(null); fetchAll(); onSaved?.() }} />}
       {showNote   && <NoteModal   note={editNote} resident={resident} orgId={orgId} profile={profile} onClose={() => { setShowNote(false); setEditNote(null) }} onSaved={() => { setShowNote(false); setEditNote(null); fetchAll(); onSaved?.() }} />}
     </div>
@@ -848,26 +884,29 @@ export default function NursingNotes() {
 
   async function fetchAll() {
     setLoading(true)
-    const todayStr = new Date().toISOString().split('T')[0]
+    const todayStr  = new Date().toISOString().split('T')[0]
+    const now       = new Date()
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
+    const endOfDay   = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999).toISOString()
     const [resRes, statsRes] = await Promise.all([
       supabase.from('residents').select('id,first_name,last_name,room,care_level,is_active')
         .eq('organization_id', organization.id).eq('is_active', true)
         .order('last_name').order('first_name'),
       Promise.all([
-        supabase.from('resident_vitals').select('id', { count: 'exact', head: true })
+        supabase.from('resident_vitals').select('id')
           .eq('organization_id', organization.id)
-          .gte('recorded_at', todayStr + 'T00:00:00').lte('recorded_at', todayStr + 'T23:59:59'),
-        supabase.from('care_notes').select('id', { count: 'exact', head: true })
+          .gte('recorded_at', startOfDay).lte('recorded_at', endOfDay),
+        supabase.from('care_notes').select('id')
           .eq('organization_id', organization.id).eq('note_date', todayStr).eq('is_active', true),
-        supabase.from('care_notes').select('id', { count: 'exact', head: true })
+        supabase.from('care_notes').select('id')
           .eq('organization_id', organization.id).eq('is_flagged', true).eq('is_active', true),
       ])
     ])
     setResidents(resRes.data || [])
     setTodayStats({
-      vitalsToday: statsRes[0].count || 0,
-      notesToday:  statsRes[1].count || 0,
-      flagged:     statsRes[2].count || 0,
+      vitalsToday: statsRes[0].data?.length || 0,
+      notesToday:  statsRes[1].data?.length || 0,
+      flagged:     statsRes[2].data?.length || 0,
     })
     setLoading(false)
   }
