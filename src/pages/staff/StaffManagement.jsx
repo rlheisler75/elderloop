@@ -497,8 +497,8 @@ function CreateStaffModal({ orgId, onClose, onSave }) {
       },
     })
 
-    if (fnErr || data?.error) {
-      setError(fnErr?.message || data?.error || 'Failed to create staff member')
+    if (fnErr || !data?.success) {
+      setError(data?.error || fnErr?.message || 'Failed to create staff member')
       setSaving(false); return
     }
 
