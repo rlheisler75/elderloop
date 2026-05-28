@@ -281,8 +281,9 @@ function MedModal({ med, resident, orgId, profile, onClose, onSaved }) {
     is_prn:      med?.is_prn      || false,
     notes:       med?.notes       || '',
   })
-  const [saving, setSaving] = useState(false)
-  const [error, setError]   = useState('')
+  const [saving, setSaving]     = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [error, setError]       = useState('')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
   const handleSave = async () => {
@@ -302,6 +303,13 @@ function MedModal({ med, resident, orgId, profile, onClose, onSaved }) {
       ? await supabase.from('resident_medications').update(payload).eq('id', med.id)
       : await supabase.from('resident_medications').insert(payload)
     if (err) { setError(err.message); setSaving(false); return }
+    onSaved()
+  }
+
+  const handleDelete = async () => {
+    if (!confirm('Discontinue this medication? This cannot be undone.')) return
+    setDeleting(true)
+    await supabase.from('resident_medications').update({ is_active: false }).eq('id', med.id)
     onSaved()
   }
 
@@ -401,12 +409,22 @@ function MedModal({ med, resident, orgId, profile, onClose, onSaved }) {
           </div>
         </div>
 
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
-          <button onClick={handleSave} disabled={saving}
-            className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
-            {saving ? 'Saving...' : isNew ? 'Add Medication' : 'Save Changes'}
-          </button>
+        <div className="px-6 py-4 border-t border-slate-100 flex justify-between gap-3 flex-shrink-0">
+          <div>
+            {!isNew && (
+              <button onClick={handleDelete} disabled={deleting}
+                className="px-4 py-2 text-sm text-red-500 hover:text-red-700 font-medium disabled:opacity-50">
+                {deleting ? 'Discontinuing...' : 'Discontinue'}
+              </button>
+            )}
+          </div>
+          <div className="flex gap-3">
+            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+            <button onClick={handleSave} disabled={saving}
+              className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
+              {saving ? 'Saving...' : isNew ? 'Add Medication' : 'Save Changes'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -424,8 +442,9 @@ function NoteModal({ note, resident, orgId, profile, onClose, onSaved }) {
     flag_reason:note?.flag_reason || '',
     note_date:  note?.note_date || new Date().toISOString().split('T')[0],
   })
-  const [saving, setSaving] = useState(false)
-  const [error, setError]   = useState('')
+  const [saving, setSaving]     = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [error, setError]       = useState('')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
   const handleSave = async () => {
@@ -447,6 +466,13 @@ function NoteModal({ note, resident, orgId, profile, onClose, onSaved }) {
       ? await supabase.from('care_notes').update(payload).eq('id', note.id)
       : await supabase.from('care_notes').insert(payload)
     if (err) { setError(err.message); setSaving(false); return }
+    onSaved()
+  }
+
+  const handleDelete = async () => {
+    if (!confirm('Delete this care note? This cannot be undone.')) return
+    setDeleting(true)
+    await supabase.from('care_notes').update({ is_active: false }).eq('id', note.id)
     onSaved()
   }
 
@@ -519,12 +545,22 @@ function NoteModal({ note, resident, orgId, profile, onClose, onSaved }) {
           </label>
         </div>
 
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
-          <button onClick={handleSave} disabled={saving}
-            className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
-            {saving ? 'Saving...' : isNew ? 'Add Note' : 'Save Changes'}
-          </button>
+        <div className="px-6 py-4 border-t border-slate-100 flex justify-between gap-3 flex-shrink-0">
+          <div>
+            {!isNew && (
+              <button onClick={handleDelete} disabled={deleting}
+                className="px-4 py-2 text-sm text-red-500 hover:text-red-700 font-medium disabled:opacity-50">
+                {deleting ? 'Deleting...' : 'Delete'}
+              </button>
+            )}
+          </div>
+          <div className="flex gap-3">
+            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+            <button onClick={handleSave} disabled={saving}
+              className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
+              {saving ? 'Saving...' : isNew ? 'Add Note' : 'Save Changes'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -683,8 +719,15 @@ function ResidentPanel({ resident, orgId, profile, canEdit, onSaved }) {
                                 </span>
                               )}
                               {canEdit && (
-                                <button onClick={() => { setEditVital(v); setShowVitals(true) }}
-                                  className="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg transition-colors"><Edit2 size={13} /></button>
+                                <div className="flex gap-1">
+                                  <button onClick={() => { setEditVital(v); setShowVitals(true) }}
+                                    className="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg transition-colors"><Edit2 size={13} /></button>
+                                  <button onClick={async () => {
+                                    if (!confirm('Delete this vitals record?')) return
+                                    await supabase.from('resident_vitals').delete().eq('id', v.id)
+                                    fetchAll(); onSaved?.()
+                                  }} className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg transition-colors"><X size={13} /></button>
+                                </div>
                               )}
                             </div>
                           </div>
