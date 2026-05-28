@@ -614,20 +614,21 @@ function PrintTicket({ resident, menus, onClose }) {
       .select('*, menu_items:menu_items!meal_courses_menu_item_id_fkey(name,allergens,suitable_diets,suitable_consistencies)')
       .eq('meal_id', meal.id).order('sort_order')
 
-    // Fetch alternates separately — avoids deep RLS chain in nested PostgREST joins
-    const courseIds = courseData?.map(d => d.id) || []
+    // Fetch alternates by source_item_id (menu item level) so alternates apply
+    // across all cycle days, not just the one instance where they were originally defined
+    const menuItemIds = courseData?.map(d => d.menu_item_id) || []
     let altData = []
-    if (courseIds.length > 0) {
+    if (menuItemIds.length > 0) {
       const { data: alts } = await supabase.from('course_alternates')
-        .select('id, meal_course_id, priority, conditions, item:menu_items!course_alternates_menu_item_id_fkey(id,name,allergens,suitable_diets,suitable_consistencies)')
-        .in('meal_course_id', courseIds)
+        .select('id, source_item_id, priority, conditions, item:menu_items!course_alternates_menu_item_id_fkey(id,name,allergens,suitable_diets,suitable_consistencies)')
+        .in('source_item_id', menuItemIds)
         .order('priority')
       altData = alts || []
     }
 
     const merged = (courseData || []).map(course => ({
       ...course,
-      alternates: altData.filter(a => a.meal_course_id === course.id)
+      alternates: altData.filter(a => a.source_item_id === course.menu_item_id)
     }))
     setCourses(merged)
     setLoading(false)
