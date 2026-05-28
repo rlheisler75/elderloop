@@ -720,13 +720,13 @@ export default function SuperAdminDashboard() {
                             <td className="px-5 py-4">
                               <div className="flex items-center gap-1">
                                 <button
-                                  onClick={() => navigate('/app/admin')}
+                                  onClick={async () => { await impersonateOrg(org.id); navigate('/app/admin') }}
                                   title="Open Admin Panel for this org"
                                   className="flex items-center gap-1 px-2 py-1 text-xs text-slate-400 hover:text-brand-400 hover:bg-brand-900/30 rounded-lg transition-colors font-medium">
                                   <Settings size={12} /> Admin
                                 </button>
                                 <button
-                                  onClick={() => navigate('/app/dashboard')}
+                                  onClick={async () => { await impersonateOrg(org.id); navigate('/app/dashboard') }}
                                   title="View Dashboard for this org"
                                   className="flex items-center gap-1 px-2 py-1 text-xs text-slate-400 hover:text-green-400 hover:bg-green-900/30 rounded-lg transition-colors font-medium">
                                   <BarChart3 size={12} /> View
