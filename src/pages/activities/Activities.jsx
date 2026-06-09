@@ -688,6 +688,7 @@ export default function Activities() {
       {/* Modals */}
       {showModal && (
         <ActivityModal
+          key={editActivity?.id || 'new'}
           activity={editActivity ? editActivity : (defaultDate ? { start_date: defaultDate } : null)}
           onClose={() => { setShowModal(false); setEditActivity(null); setDefaultDate(null) }}
           onSave={() => { setShowModal(false); setEditActivity(null); setDefaultDate(null); fetchActivities() }} />
