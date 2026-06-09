@@ -77,14 +77,8 @@ const UPDATE_ICONS = {
   photo:       { icon: Camera,         bg: 'bg-pink-50',   color: 'text-pink-500' },
 }
 
-const DEPARTMENTS = [
-  { key: 'maintenance', label: 'Maintenance' },
-  { key: 'nursing',     label: 'Nursing' },
-  { key: 'dietary',     label: 'Dietary' },
-  { key: 'activities',  label: 'Activities' },
-  { key: 'management',  label: 'Management' },
-  { key: 'front_desk',  label: 'Front Desk' },
-]
+// DEPARTMENTS is now fetched dynamically from org settings
+const DEPARTMENTS = [] // fallback — overridden by org.messaging_departments
 
 // ── Maintenance Request Modal ─────────────────────────────────
 function MaintenanceModal({ resident, orgId, profile, onClose, onSubmitted }) {
@@ -265,7 +259,7 @@ function NewMessageModal({ resident, orgId, profile, onClose, onSent }) {
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Send To</label>
             <select value={form.department} onChange={e => set('department', e.target.value)}
               className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-              {DEPARTMENTS.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
+              {(organization?.messaging_departments || DEPARTMENTS).map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
             </select>
           </div>
           <div>
@@ -300,7 +294,8 @@ function ThreadView({ thread, profile, onReply, onBack }) {
   const [sending, setSending] = useState(false)
   const bottomRef = useRef(null)
   const first = thread[0]
-  const dept  = DEPARTMENTS.find(d => d.key === first?.to_department)
+  const _depts = organization?.messaging_departments || DEPARTMENTS
+  const dept  = _depts.find(d => d.key === first?.to_department)
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [thread.length])
 
@@ -983,7 +978,8 @@ export default function FamilyPortal() {
                     ) : threads.map(thread => {
                       const first = thread[0]
                       const last  = thread[thread.length - 1]
-                      const dept  = DEPARTMENTS.find(d => d.key === first?.to_department)
+                      const _depts = organization?.messaging_departments || DEPARTMENTS
+  const dept  = _depts.find(d => d.key === first?.to_department)
                       const unread = thread.filter(m => m.sender_type === 'staff' && !m.is_read_by_family).length
                       return (
                         <button key={first.thread_id || first.id}

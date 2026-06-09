@@ -8,13 +8,8 @@ import {
   ChevronRight, Users, Clock, RefreshCw, Eye
 } from 'lucide-react'
 
-const DEPARTMENTS = [
-  { key: 'nursing',        label: 'Nursing' },
-  { key: 'dietary',        label: 'Dietary' },
-  { key: 'administration', label: 'Administration' },
-  { key: 'activities',     label: 'Activities' },
-  { key: 'social_work',    label: 'Social Work' },
-]
+// DEPARTMENTS is now fetched dynamically from org settings
+const DEPARTMENTS = [] // fallback
 
 const UPDATE_CATEGORIES = [
   { key: 'general',   label: 'General',   icon: Bell },
@@ -167,6 +162,12 @@ function PostUpdateModal({ residents, orgId, profile, onClose, onSaved }) {
 // ── Main Family Messaging (Staff Side) ─────────────────────────
 export default function FamilyMessaging() {
   const { profile, organization } = useAuth()
+  const DEPTS = organization?.messaging_departments?.length ? organization.messaging_departments : [
+    {key:'nursing',label:'Nursing'},{key:'dietary',label:'Dietary'},
+    {key:'activities',label:'Activities'},{key:'administration',label:'Administration'},
+    {key:'social_work',label:'Social Work'},{key:'maintenance',label:'Maintenance'},
+    {key:'front_desk',label:'Front Desk'},
+  ]
   const fileRef = useRef()
   const [threads, setThreads]       = useState([])
   const [residents, setResidents]   = useState([])
@@ -334,7 +335,7 @@ export default function FamilyMessaging() {
               <select value={filterDept} onChange={e => setFilterDept(e.target.value)}
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
                 <option value="all">All Departments</option>
-                {DEPARTMENTS.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
+                {DEPTS.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
               </select>
             </div>
             <div className="flex-1 overflow-y-auto">
@@ -346,7 +347,7 @@ export default function FamilyMessaging() {
               ) : threads.map(thread => {
                 const first   = thread[0]
                 const last    = thread[thread.length - 1]
-                const dept    = DEPARTMENTS.find(d => d.key === first.to_department)
+                const dept    = DEPTS.find(d => d.key === first.to_department)
                 const unread  = thread.filter(m => m.sender_type === 'family' && !m.is_read_by_staff).length
                 const res     = residentMap[first.resident_id]
                 const isActive = activeThread?.[0]?.id === first.id
@@ -388,7 +389,7 @@ export default function FamilyMessaging() {
                 <div className="p-4 border-b border-slate-100 flex-shrink-0">
                   <div className="font-semibold text-slate-800 text-sm">{activeThread[0].subject || 'Message Thread'}</div>
                   <div className="text-xs text-slate-400 mt-0.5">
-                    {DEPARTMENTS.find(d => d.key === activeThread[0].to_department)?.label} ·
+                    {DEPTS.find(d => d.key === activeThread[0].to_department)?.label} ·
                     Resident: {residentMap[activeThread[0].resident_id]?.first_name} {residentMap[activeThread[0].resident_id]?.last_name} ·
                     {activeThread.length} message{activeThread.length !== 1 ? 's' : ''}
                   </div>
