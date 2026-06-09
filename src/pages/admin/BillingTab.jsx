@@ -70,7 +70,8 @@ const STATUS_CONFIG = {
   active:   { label: 'Active',      icon: CheckCircle,    color: 'text-green-600',  bg: 'bg-green-50  border-green-200' },
   trialing: { label: 'Free Trial',  icon: Clock,          color: 'text-blue-600',   bg: 'bg-blue-50   border-blue-200' },
   past_due: { label: 'Past Due',    icon: AlertTriangle,  color: 'text-amber-600',  bg: 'bg-amber-50  border-amber-200' },
-  canceled: { label: 'Canceled',    icon: XCircle,        color: 'text-red-500',    bg: 'bg-red-50    border-red-200' },
+  canceled:  { label: 'Canceled',    icon: XCircle,        color: 'text-red-500',    bg: 'bg-red-50    border-red-200' },
+  cancelled: { label: 'Cancelled',   icon: XCircle,        color: 'text-red-500',    bg: 'bg-red-50    border-red-200' },
   inactive: { label: 'No Plan',     icon: Zap,            color: 'text-slate-400',  bg: 'bg-slate-50  border-slate-200' },
   pilot:    { label: 'Pilot',       icon: Star,           color: 'text-purple-600', bg: 'bg-purple-50 border-purple-200' },
   paused:   { label: 'Paused',      icon: Clock,          color: 'text-slate-500',  bg: 'bg-slate-50  border-slate-200' },
@@ -160,7 +161,11 @@ export default function BillingTab() {
     </div>
   )
 
-  const status     = org?.subscription_status || org?.billing_status || 'inactive'
+  // Only prefer subscription_status when it's a real Stripe status — 'inactive' is a placeholder
+  const STRIPE_STATUSES = ['active', 'trialing', 'past_due', 'canceled', 'unpaid', 'paused']
+  const status = (STRIPE_STATUSES.includes(org?.subscription_status) ? org.subscription_status : null)
+              || org?.billing_status
+              || 'inactive'
   const statusConf = STATUS_CONFIG[status] || STATUS_CONFIG.inactive
   const StatusIcon = statusConf.icon
   const hasActiveSub = ['active', 'trialing'].includes(status)
