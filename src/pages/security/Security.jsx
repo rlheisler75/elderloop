@@ -86,7 +86,7 @@ function CheckpointModal({ checkpoint, onClose, onSave }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
           <h2 className="font-display font-semibold text-slate-800">{checkpoint ? 'Edit Checkpoint' : 'New Checkpoint'}</h2>
@@ -404,7 +404,7 @@ function RoundHistory({ round, checkpoints, onClose }) {
     : null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
           <div>
@@ -573,7 +573,7 @@ function SecurityReportModal({ report, roundId, checkpoints, onClose, onSave }) 
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[92vh] flex flex-col">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
           <div className="flex items-center gap-3">
@@ -1125,14 +1125,6 @@ export default function Security() {
       )}
 
       {/* Modals */}
-      {showReport && (
-        <SecurityReportModal
-          report={editReport}
-          roundId={null}
-          checkpoints={checkpoints}
-          onClose={() => { setShowReport(false); setEditReport(null) }}
-          onSave={() => { setShowReport(false); setEditReport(null); fetchAll() }} />
-      )}
       {showCpModal && (
         <CheckpointModal
           checkpoint={editCp}
@@ -1145,6 +1137,14 @@ export default function Security() {
           guardId={profile.id}
           orgId={organization.id}
           onClose={() => { setShowRound(false); fetchAll() }} />
+      )}
+      {showReport && (
+        <SecurityReportModal
+          report={editReport}
+          roundId={null}
+          checkpoints={checkpoints}
+          onClose={() => { setShowReport(false); setEditReport(null) }}
+          onSave={() => { setShowReport(false); setEditReport(null); fetchAll() }} />
       )}
       {showRound && checkpoints.length === 0 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
