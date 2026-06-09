@@ -141,7 +141,7 @@ function ActivityModal({ activity, onClose, onSave }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
-          <h2 className="font-display font-semibold text-slate-800">{activity ? 'Edit Activity' : 'New Activity'}</h2>
+          <h2 className="font-display font-semibold text-slate-800">{activity?.id ? 'Edit Activity' : 'New Activity'}</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
         </div>
 
@@ -285,7 +285,7 @@ function ActivityModal({ activity, onClose, onSave }) {
 function ActivityPill({ activity, onClick }) {
   const cat = getCat(activity.category)
   return (
-    <button onClick={() => onClick(activity)}
+    <button onClick={e => { e.stopPropagation(); onClick(activity) }}
       className="w-full text-left px-1.5 py-0.5 rounded text-xs font-medium truncate mb-0.5 transition-opacity hover:opacity-80"
       style={{ backgroundColor: activity.color + '33', color: activity.color, borderLeft: `3px solid ${activity.color}` }}>
       {activity.start_time && <span className="opacity-70 mr-1">{fmt12(activity.start_time).replace(':00','')}</span>}
@@ -336,7 +336,7 @@ function MonthCalendar({ year, month, expanded, onEditActivity, onNewActivity })
               </div>
               <div>
                 {dayActivities.slice(0, 3).map((a, idx) => (
-                  <ActivityPill key={`${a.id}-${idx}`} activity={a} onClick={e => { e.stopPropagation(); onEditActivity(a) }} />
+                  <ActivityPill key={`${a.id}-${idx}`} activity={a} onClick={(a) => onEditActivity(a)} />
                 ))}
                 {dayActivities.length > 3 && (
                   <div className="text-xs text-slate-400 pl-1">+{dayActivities.length - 3} more</div>
