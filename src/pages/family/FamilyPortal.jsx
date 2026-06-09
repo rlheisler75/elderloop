@@ -685,8 +685,10 @@ export default function FamilyPortal() {
     setLoading(true)
     const orgId   = organization?.id || profile?.organization_id
     const now     = new Date().toISOString()
-    const todayStr = new Date().toISOString().split('T')[0]
-    const nextWeek = new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0]
+    const _today = new Date()
+    const todayStr = `${_today.getFullYear()}-${String(_today.getMonth()+1).padStart(2,'0')}-${String(_today.getDate()).padStart(2,'0')}`
+    const _next = new Date(Date.now() + 7*24*60*60*1000)
+    const nextWeek = `${_next.getFullYear()}-${String(_next.getMonth()+1).padStart(2,'0')}-${String(_next.getDate()).padStart(2,'0')}`
 
     const [updatesRes, msgsRes, annRes, actRes, ecRes, mcRes, woRes, chapRes] = await Promise.all([
       supabase.from('resident_updates')

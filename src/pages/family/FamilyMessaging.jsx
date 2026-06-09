@@ -190,7 +190,7 @@ export default function FamilyMessaging() {
         .eq('organization_id', organization.id)
         .eq('is_active', true)
         .order('created_at'),
-      supabase.from('residents').select('id,first_name,last_name,room_number,care_level')
+      supabase.from('residents').select('id,first_name,last_name,room,care_level')
         .eq('organization_id', organization.id)
         .eq('is_active', true).order('last_name'),
       supabase.from('resident_updates')
