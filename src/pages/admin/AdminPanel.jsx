@@ -309,6 +309,7 @@ function EditUserModal({ user, onClose, onSave }) {
 // ── Org Settings Modal ─────────────────────────────────────────
 function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
   const fileRef = useRef()
+  const { refreshModules } = useAuth()
   const [form, setForm] = useState({
     name:    org.name    || '',
     address: org.address || '',
@@ -363,6 +364,7 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
       }
     }
     setSaving(false)
+    await refreshModules()  // Update sidebar immediately
     onSave()
   }
 
@@ -831,7 +833,7 @@ export default function AdminPanel() {
           modules={orgModules}
           allModules={allModules}
           onClose={() => { setShowOrgSettings(false); setEditingOrg(null) }}
-          onSave={async () => { setShowOrgSettings(false); setEditingOrg(null); await fetchAll(); await refreshModules() }} />
+          onSave={async () => { setShowOrgSettings(false); setEditingOrg(null); await fetchAll() }} />
       )}
       {showNewOrg && (
         <NewOrgModal
