@@ -938,20 +938,27 @@ export default function WorkOrders() {
   const [sortBy, setSortBy]           = useState('created_at')
   const [mainView, setMainView]       = useState('work_orders') // 'work_orders' | 'compliance'
 
-  const canCreate  = profile && ['super_admin','org_admin','ceo','supervisor','manager','maintenance','staff','dietary','housekeeping'].includes(profile.role)
-  const canEdit    = profile && ['super_admin','org_admin','ceo','supervisor','manager','maintenance'].includes(profile.role)
-  const canAssign  = profile && ['super_admin','org_admin','ceo','supervisor','manager'].includes(profile.role)
-  const canClose   = profile && ['super_admin','org_admin','ceo','supervisor','manager','maintenance'].includes(profile.role)
+  const canCreate      = profile && ['super_admin','org_admin','ceo','supervisor','manager','maintenance','staff','dietary','housekeeping'].includes(profile.role)
+  const canEdit        = profile && ['super_admin','org_admin','ceo','supervisor','manager','maintenance'].includes(profile.role)
+  const canAssign      = profile && ['super_admin','org_admin','ceo','supervisor','manager'].includes(profile.role)
+  const canClose       = profile && ['super_admin','org_admin','ceo','supervisor','manager','maintenance'].includes(profile.role)
+  // Privileged roles see all WOs; others only see their own submissions
+  const isPrivileged   = profile && ['super_admin','org_admin','ceo','supervisor','manager','maintenance'].includes(profile.role)
 
   useEffect(() => { if (organization) { fetchAll() } }, [organization])
 
   async function fetchAll() {
     setLoading(true)
+    let woQuery = supabase.from('work_orders')
+      .select('*, residents(first_name,last_name,unit), assigned_profiles:profiles!work_orders_assigned_to_fkey(first_name,last_name)')
+      .eq('organization_id', organization.id)
+      .order('created_at', { ascending: false })
+
+    // Non-privileged staff only see WOs they submitted
+    if (!isPrivileged) woQuery = woQuery.eq('submitted_by', profile.id)
+
     const [woRes, staffRes, resRes] = await Promise.all([
-      supabase.from('work_orders')
-        .select('*, residents(first_name,last_name,unit), assigned_profiles:profiles!work_orders_assigned_to_fkey(first_name,last_name)')
-        .eq('organization_id', organization.id)
-        .order('created_at', { ascending: false }),
+      woQuery,
       supabase.from('profiles').select('id,first_name,last_name,role')
         .eq('organization_id', organization.id)
         .in('role', ['maintenance','supervisor','manager','org_admin','super_admin']),

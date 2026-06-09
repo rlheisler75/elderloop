@@ -382,7 +382,7 @@ export default function ITTickets() {
   const [assetLocations, setAssetLocations] = useState([])
   const [loading, setLoading]       = useState(true)
   const [tab, setTab]               = useState('tickets')
-  const [ticketView, setTicketView] = useState('all') // 'all' | 'mine' | 'assigned'
+  const [ticketView, setTicketView] = useState(isOrgAdmin ? 'all' : 'mine') // non-admins default to their own tickets
   const [filterStatus, setFilterStatus]   = useState('open')
   const [filterPriority, setFilterPriority] = useState('all')
   const [search, setSearch]         = useState('')
@@ -393,7 +393,7 @@ export default function ITTickets() {
   const [assetSearch, setAssetSearch] = useState('')
   const [assetTypeFilter, setAssetTypeFilter] = useState('all')
 
-  const admin  = isOrgAdmin()
+  const admin  = isOrgAdmin  // boolean — not a function call
   const orgId  = organization?.id
   const userId = profile?.id
 
