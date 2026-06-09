@@ -124,8 +124,12 @@ function ILRequestModal({ request, onClose, onSave }) {
       ...form,
       organization_id: profile.organization_id,
       requested_by: profile.id,
+      // Null-out empty strings for typed columns — PostgreSQL rejects '' for date/time/numeric
+      booked_date:    form.booked_date    || null,
+      booked_time:    form.booked_time    || null,
       duration_hours: form.duration_hours || null,
       actual_hours:   form.actual_hours   || null,
+      resident_id:    form.resident_id    || null,
       completed_at: form.status === 'completed' && !request?.completed_at ? new Date().toISOString() : (request?.completed_at || null),
       billed_at: form.billed && !request?.billed_at ? new Date().toISOString() : (request?.billed_at || null),
       updated_at: new Date().toISOString(),
