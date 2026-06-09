@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { Suspense, lazy } from 'react'
 import { useAuth } from './context/AuthContext'
 import Layout from './components/layout/Layout'
@@ -47,6 +47,7 @@ import Signage       from './pages/signage/Signage'
 import FamilyPortal  from './pages/family/FamilyPortal'
 import ResidentPortal from './pages/resident/ResidentPortal'
 import EarlyAccess   from './pages/landing/EarlyAccess'
+import SurveyPublic  from './pages/surveys/SurveyPublic'
 
 // Upgrade wall
 import UpgradeWall from './components/ui/UpgradeWall'
@@ -92,14 +93,14 @@ function ProtectedRoute({ children, requireModule }) {
 function AdminRoute({ children }) {
   const { user, loading, isOrgAdmin } = useAuth()
   if (loading) return null
-  if (!user || !isOrgAdmin()) return <Navigate to="/app/dashboard" replace />
+  if (!user || !isOrgAdmin) return <Navigate to="/app/dashboard" replace />
   return children
 }
 
 function SuperAdminRoute({ children }) {
   const { user, loading, isSuperAdmin } = useAuth()
   if (loading) return null
-  if (!user || !isSuperAdmin()) return <Navigate to="/app/dashboard" replace />
+  if (!user || !isSuperAdmin) return <Navigate to="/app/dashboard" replace />
   return children
 }
 
@@ -176,6 +177,7 @@ export default function App() {
           <Route path="/tv/:slug"       element={<TV />} />
         <Route path="/signage"        element={<Signage />} />
         <Route path="/early-access"   element={<EarlyAccess />} />
+        <Route path="/survey/:token"   element={<SurveyPublic />} />
 
         {/* ── Auth ── */}
         <Route path="/login"  element={user ? <Navigate to="/app/dashboard" replace /> : <Login />} />
