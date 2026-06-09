@@ -548,7 +548,7 @@ export default function AdminPanel() {
   const [editingOrg, setEditingOrg]           = useState(null)
   const [showNewOrg, setShowNewOrg]           = useState(false)
 
-  const superAdmin = isSuperAdmin()
+  const superAdmin = isSuperAdmin
   const currentOrgId = selectedOrg?.id || organization?.id
 
   useEffect(() => { fetchAll() }, [organization])

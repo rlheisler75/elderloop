@@ -25,14 +25,15 @@ function poTotal(lines) {
 }
 
 // ── Create PO Modal ────────────────────────────────────────────
-function CreatePOModal({ orgId, profileId, vendors, items, onClose, onSaved }) {
-  const [poType, setPoType]   = useState('stock')
-  const [vendorId, setVendorId] = useState('')
-  const [vendorFree, setVendorFree] = useState('')
-  const [orderedDate, setOrderedDate] = useState(new Date().toISOString().split('T')[0])
-  const [expectedDate, setExpectedDate] = useState('')
-  const [notes, setNotes]     = useState('')
-  const [lines, setLines]     = useState([{ supply_item_id: '', description: '', unit: 'each', quantity_ordered: 1, unit_cost: '' }])
+function CreatePOModal({ orgId, profileId, vendors, items, editPO, editLines, onClose, onSaved }) {
+  const isEdit = !!editPO
+  const [poType, setPoType]   = useState(editPO?.po_type || 'stock')
+  const [vendorId, setVendorId] = useState(editPO?.vendor_id || '')
+  const [vendorFree, setVendorFree] = useState(editPO?.vendor_name_free || '')
+  const [orderedDate, setOrderedDate] = useState(editPO?.ordered_date || new Date().toISOString().split('T')[0])
+  const [expectedDate, setExpectedDate] = useState(editPO?.expected_date || '')
+  const [notes, setNotes]     = useState(editPO?.notes || '')
+  const [lines, setLines]     = useState(editLines?.length ? editLines.map(l => ({ supply_item_id: l.supply_item_id || '', description: l.description, unit: l.unit, quantity_ordered: l.quantity_ordered, unit_cost: l.unit_cost ?? '' })) : [{ supply_item_id: '', description: '', unit: 'each', quantity_ordered: 1, unit_cost: '' }])
   const [saving, setSaving]   = useState(false)
   const [error, setError]     = useState('')
 
@@ -58,29 +59,38 @@ function CreatePOModal({ orgId, profileId, vendors, items, onClose, onSaved }) {
     if (lines.every(l => !l.description.trim())) { setError('Add at least one line item'); return }
     setSaving(true); setError('')
 
-    // Generate PO number
-    const { count } = await supabase.from('supply_purchase_orders').select('*', { count: 'exact', head: true }).eq('organization_id', orgId)
-    const poNumber = `PO-${1000 + (count || 0) + 1}`
-
-    const { data: po, error: err } = await supabase.from('supply_purchase_orders').insert({
-      organization_id: orgId,
-      po_number: poNumber,
-      po_type: poType,
-      status,
+    const poPayload = {
+      po_type: poType, status,
       vendor_id: vendorId || null,
       vendor_name_free: vendorFree || null,
-      ordered_by: profileId,
       ordered_date: orderedDate,
       expected_date: expectedDate || null,
       notes: notes || null,
-    }).select().single()
+    }
 
-    if (err) { setError(err.message); setSaving(false); return }
+    let poId
+    if (isEdit) {
+      // Update existing PO
+      const { error: err } = await supabase.from('supply_purchase_orders').update(poPayload).eq('id', editPO.id)
+      if (err) { setError(err.message); setSaving(false); return }
+      poId = editPO.id
+      // Replace line items
+      await supabase.from('supply_po_line_items').delete().eq('po_id', poId)
+    } else {
+      // Generate PO number and insert
+      const { count } = await supabase.from('supply_purchase_orders').select('*', { count: 'exact', head: true }).eq('organization_id', orgId)
+      const poNumber = `PO-${1000 + (count || 0) + 1}`
+      const { data: po, error: err } = await supabase.from('supply_purchase_orders').insert({
+        ...poPayload, organization_id: orgId, po_number: poNumber, ordered_by: profileId,
+      }).select().single()
+      if (err) { setError(err.message); setSaving(false); return }
+      poId = po.id
+    }
 
     const validLines = lines.filter(l => l.description.trim())
     await supabase.from('supply_po_line_items').insert(
       validLines.map((l, idx) => ({
-        po_id: po.id,
+        po_id: poId,
         organization_id: orgId,
         supply_item_id: l.supply_item_id || null,
         description: l.description,
@@ -102,7 +112,7 @@ function CreatePOModal({ orgId, profileId, vendors, items, onClose, onSaved }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[94vh] flex flex-col">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
-          <h2 className="font-display font-semibold text-slate-800">New Purchase Order</h2>
+          <h2 className="font-display font-semibold text-slate-800">{isEdit ? `Edit ${editPO.po_number}` : 'New Purchase Order'}</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
@@ -401,7 +411,7 @@ function ReceiveLineRow({ line, po, orgId, profileId, onDone }) {
 }
 
 // ── PO Detail / Receive View ───────────────────────────────────
-function PODetail({ po, orgId, profileId, onBack, onRefresh }) {
+function PODetail({ po, orgId, profileId, onBack, onRefresh, onEdit }) {
   const [lines,    setLines]    = useState([])
   const [loading,  setLoading]  = useState(true)
   const [receiving,setReceiving]= useState(false)
@@ -515,8 +525,33 @@ function PODetail({ po, orgId, profileId, onBack, onRefresh }) {
         </div>
       </div>
 
+      {/* Draft actions */}
+      {po.status === 'draft' && (
+        <div className="flex items-center gap-2 mb-4">
+          <button onClick={onEdit}
+            className="flex items-center gap-2 px-4 py-2 border border-brand-200 text-brand-700 hover:bg-brand-50 text-sm font-medium rounded-xl transition-colors">
+            <Edit2 size={14} /> Edit PO
+          </button>
+          <button onClick={async () => {
+            if (!confirm('Submit this PO to the vendor?')) return
+            await supabase.from('supply_purchase_orders').update({ status: 'submitted' }).eq('id', po.id)
+            onRefresh()
+          }} className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl transition-colors">
+            <Check size={14} /> Submit PO
+          </button>
+          <button onClick={async () => {
+            if (!confirm('Delete this draft PO? This cannot be undone.')) return
+            await supabase.from('supply_po_line_items').delete().eq('po_id', po.id)
+            await supabase.from('supply_purchase_orders').delete().eq('id', po.id)
+            onBack()
+          }} className="flex items-center gap-2 px-4 py-2 border border-red-200 text-red-600 hover:bg-red-50 text-sm font-medium rounded-xl transition-colors ml-auto">
+            <XCircle size={14} /> Delete Draft
+          </button>
+        </div>
+      )}
+
       {/* Receive All button */}
-      {anyPending && po.status !== 'cancelled' && (
+      {anyPending && po.status !== 'cancelled' && po.status !== 'draft' && (
         <div className="flex justify-end mb-4">
           <button onClick={receiveAll} disabled={receiving}
             className="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 disabled:bg-green-300 text-white text-sm font-medium rounded-xl shadow-sm transition-colors">
@@ -571,6 +606,8 @@ export default function SupplyPurchaseOrders() {
   const [search,   setSearch]   = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [showCreate, setShowCreate] = useState(false)
+  const [editPOData, setEditPOData]   = useState(null)
+  const [editPOLines, setEditPOLines] = useState([])
   const [selectedPO, setSelectedPO] = useState(null)
 
   useEffect(() => { if (organization) fetchAll() }, [organization])
@@ -589,7 +626,7 @@ export default function SupplyPurchaseOrders() {
   }
 
   if (selectedPO) {
-    return <PODetail po={selectedPO} orgId={organization.id} profileId={profile.id} onBack={() => setSelectedPO(null)} onRefresh={() => { fetchAll(); setSelectedPO(null) }} />
+    return <PODetail po={selectedPO} orgId={organization.id} profileId={profile.id} onBack={() => setSelectedPO(null)} onRefresh={() => { fetchAll(); setSelectedPO(null) }} onEdit={() => handleEditDraft(selectedPO)} />
   }
 
   const filtered = pos.filter(p => {
@@ -667,6 +704,7 @@ export default function SupplyPurchaseOrders() {
       </div>
 
       {showCreate && <CreatePOModal orgId={organization.id} profileId={profile.id} vendors={vendors} items={items} onClose={() => setShowCreate(false)} onSaved={() => { setShowCreate(false); fetchAll() }} />}
+      {editPOData && <CreatePOModal orgId={organization.id} profileId={profile.id} vendors={vendors} items={items} editPO={editPOData} editLines={editPOLines} onClose={() => { setEditPOData(null); setEditPOLines([]) }} onSaved={() => { setEditPOData(null); setEditPOLines([]); fetchAll() }} />}
     </div>
   )
 }
