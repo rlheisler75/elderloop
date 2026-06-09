@@ -757,7 +757,7 @@ export default function Transportation() {
             </div>
           )}
         </>
-      )}
+      
 
       {/* LIST VIEW */}
       {view === 'list' && (
