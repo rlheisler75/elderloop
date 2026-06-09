@@ -5,7 +5,7 @@ import {
   Plus, X, Edit2, Trash2, Search, Printer,
   Car, Calendar, Clock, MapPin, Phone, User,
   ChevronLeft, ChevronRight, CheckCircle2,
-  AlertCircle, XCircle, Navigation, FileText
+  AlertCircle, XCircle, Navigation, FileText, Grid3x3
 } from 'lucide-react'
 
 // ── Constants ─────────────────────────────────────────────────
@@ -163,14 +163,126 @@ function TripSheetPrint({ trips, date, orgName, onClose }) {
 }
 
 // ── Trip Modal ─────────────────────────────────────────────────
-function TripModal({ trip, vehicles, onClose, onSave }) {
+// ── Resident Lookup ────────────────────────────────────────────
+function ResidentLookup({ residents, value, onChange }) {
+  const [search, setSearch] = useState(value || '')
+  const [open, setOpen]     = useState(false)
+
+  const filtered = residents.filter(r => {
+    if (!search) return true
+    const q = search.toLowerCase()
+    return `${r.first_name} ${r.last_name}`.toLowerCase().includes(q) ||
+           r.room?.toLowerCase().includes(q)
+  })
+
+  const handleSelect = (r) => {
+    const name = `${r.first_name} ${r.last_name}`
+    setSearch(name)
+    setOpen(false)
+    onChange(name, r.room || '', r.phone || '')
+  }
+
+  return (
+    <div className="relative">
+      <div className="relative">
+        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+        <input
+          value={search}
+          onChange={e => { setSearch(e.target.value); setOpen(true); onChange(e.target.value, '', '') }}
+          onFocus={() => setOpen(true)}
+          onBlur={() => setTimeout(() => setOpen(false), 150)}
+          placeholder="Search resident by name or room *"
+          className="w-full pl-8 pr-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+        />
+      </div>
+      {open && search && (
+        <div className="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+          {filtered.slice(0, 8).map(r => (
+            <button key={r.id} onMouseDown={() => handleSelect(r)}
+              className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-50 border-b border-slate-50 last:border-0 text-left">
+              <span className="text-sm font-medium text-slate-800">{r.first_name} {r.last_name}</span>
+              {r.room && <span className="text-xs text-slate-400">Room {r.room}</span>}
+            </button>
+          ))}
+          {filtered.length === 0 && (
+            <div className="px-4 py-3 text-sm text-slate-400">No residents found</div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Month Calendar View ────────────────────────────────────────
+const MONTH_DAYS  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December']
+
+function TripMonthCalendar({ trips, year, month, onDayClick, onTripClick }) {
+  const today       = new Date()
+  const todayStr    = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`
+  const firstDay    = new Date(year, month, 1).getDay()
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+
+  const cells = []
+  for (let i = 0; i < firstDay; i++) cells.push(null)
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d)
+
+  const dateStr = (d) => `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`
+  const tripsForDay = (d) => trips.filter(t => t.trip_date === dateStr(d))
+    .sort((a,b) => (a.pickup_time||'').localeCompare(b.pickup_time||''))
+
+  return (
+    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <div className="grid grid-cols-7 border-b border-slate-100 bg-slate-50">
+        {MONTH_DAYS.map(d => (
+          <div key={d} className="py-2 text-center text-xs font-semibold text-slate-400 uppercase tracking-wide">{d}</div>
+        ))}
+      </div>
+      <div className="grid grid-cols-7">
+        {cells.map((d, i) => {
+          if (!d) return <div key={`e-${i}`} className="min-h-[100px] border-b border-r border-slate-50 bg-slate-50/30" />
+          const ds        = dateStr(d)
+          const isToday   = ds === todayStr
+          const dayTrips  = tripsForDay(d)
+          const isPast    = ds < todayStr
+          return (
+            <div key={d}
+              onClick={() => onDayClick(ds)}
+              className={`min-h-[100px] border-b border-r border-slate-100 p-1.5 cursor-pointer hover:bg-slate-50 transition-colors ${isToday ? 'bg-brand-50' : isPast ? 'bg-slate-50/50' : ''}`}>
+              <div className={`text-xs font-semibold mb-1 w-6 h-6 flex items-center justify-center rounded-full ${isToday ? 'bg-brand-600 text-white' : isPast ? 'text-slate-400' : 'text-slate-700'}`}>
+                {d}
+              </div>
+              <div className="space-y-0.5">
+                {dayTrips.slice(0, 3).map((t, idx) => {
+                  const s = TRIP_STATUSES.find(s => s.key === t.status) || TRIP_STATUSES[0]
+                  return (
+                    <div key={idx}
+                      onClick={e => { e.stopPropagation(); onTripClick(t) }}
+                      className={`text-xs px-1.5 py-0.5 rounded truncate cursor-pointer hover:opacity-80 transition-opacity ${s.color} border`}>
+                      {t.pickup_time ? t.pickup_time.slice(0,5) : ''} {t.resident_name.split(' ')[1] || t.resident_name}
+                    </div>
+                  )
+                })}
+                {dayTrips.length > 3 && (
+                  <div className="text-xs text-slate-400 pl-1">+{dayTrips.length - 3} more</div>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function TripModal({ trip, vehicles, residents, defaultDate, onClose, onSave }) {
   const { profile } = useAuth()
   const isNew = !trip
   const [form, setForm] = useState({
     resident_name:    trip?.resident_name    || '',
     unit:             trip?.unit             || '',
     phone:            trip?.phone            || '',
-    trip_date:        trip?.trip_date        || today(),
+    trip_date:        trip?.trip_date        || defaultDate || today(),
     pickup_time:      trip?.pickup_time      || '',
     return_time:      trip?.return_time      || '',
     appointment_type: trip?.appointment_type || 'medical',
@@ -238,19 +350,14 @@ function TripModal({ trip, vehicles, onClose, onSave }) {
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
           {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
 
-          {/* Resident */}
+          {/* Resident lookup */}
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Resident</label>
-            <div className="grid grid-cols-3 gap-2">
-              <div className="col-span-2">
-                <input value={form.resident_name} onChange={e => set('resident_name', e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  placeholder="Full name *" />
-              </div>
-              <input value={form.unit} onChange={e => set('unit', e.target.value)}
-                className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-                placeholder="Unit" />
-            </div>
+            <ResidentLookup
+              residents={residents}
+              value={form.resident_name}
+              onChange={(name, unit, phone) => { set('resident_name', name); set('unit', unit || ''); set('phone', phone || '') }}
+            />
             <input value={form.phone} onChange={e => set('phone', e.target.value)}
               className="w-full mt-2 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="Phone number" />
@@ -395,11 +502,14 @@ export default function Transportation() {
   const { profile, organization } = useAuth()
   const [trips, setTrips]         = useState([])
   const [vehicles, setVehicles]   = useState([])
+  const [residents, setResidents] = useState([])
   const [loading, setLoading]     = useState(true)
   const [selectedDate, setSelectedDate] = useState(today())
   const [search, setSearch]       = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
-  const [view, setView]           = useState('day') // 'day' | 'list'
+  const [view, setView]           = useState('day') // 'day' | 'month' | 'list'
+  const [calMonth, setCalMonth]   = useState(new Date().getMonth())
+  const [calYear, setCalYear]     = useState(new Date().getFullYear())
   const [showModal, setShowModal] = useState(false)
   const [editTrip, setEditTrip]   = useState(null)
   const [showPrint, setShowPrint] = useState(false)
@@ -408,7 +518,7 @@ export default function Transportation() {
 
   async function fetchAll() {
     setLoading(true)
-    const [tripsRes, vehiclesRes] = await Promise.all([
+    const [tripsRes, vehiclesRes, resRes] = await Promise.all([
       supabase.from('trips').select('*')
         .eq('organization_id', organization.id)
         .order('trip_date', { ascending: true })
@@ -416,8 +526,12 @@ export default function Transportation() {
       supabase.from('vehicles').select('*')
         .eq('organization_id', organization.id)
         .eq('is_active', true),
+      supabase.from('residents').select('id,first_name,last_name,room,phone')
+        .eq('organization_id', organization.id)
+        .eq('is_active', true).order('last_name'),
     ])
     setTrips(tripsRes.data || [])
+    setResidents(resRes.data || [])
     setVehicles(vehiclesRes.data || [])
     setLoading(false)
   }
@@ -501,6 +615,10 @@ export default function Transportation() {
             className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${view === 'day' ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500'}`}>
             Day View
           </button>
+          <button onClick={() => setView('month')}
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${view === 'month' ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500'}`}>
+            <Grid3x3 size={13} /> Month
+          </button>
           <button onClick={() => setView('list')}
             className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${view === 'list' ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500'}`}>
             All Trips
@@ -508,8 +626,33 @@ export default function Transportation() {
         </div>
       </div>
 
-      {/* DAY VIEW */}
-      {view === 'day' && (
+      {/* MONTH VIEW */}
+      {view === 'month' && (
+        <>
+          <div className="flex items-center gap-3 mb-4">
+            <button onClick={() => { if (calMonth === 0) { setCalMonth(11); setCalYear(y => y-1) } else setCalMonth(m => m-1) }}
+              className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
+              <ChevronLeft size={18} />
+            </button>
+            <div className="flex-1 text-center">
+              <h2 className="font-display font-semibold text-slate-800 text-lg">{MONTH_NAMES[calMonth]} {calYear}</h2>
+            </div>
+            <button onClick={() => { if (calMonth === 11) { setCalMonth(0); setCalYear(y => y+1) } else setCalMonth(m => m+1) }}
+              className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
+              <ChevronRight size={18} />
+            </button>
+          </div>
+          <TripMonthCalendar
+            trips={trips}
+            year={calYear}
+            month={calMonth}
+            onDayClick={(date) => { setSelectedDate(date); setEditTrip(null); setShowModal(true) }}
+            onTripClick={(trip) => { setEditTrip(trip); setShowModal(true) }}
+          />
+        </>
+      )}
+
+
         <>
           {/* Date nav */}
           <div className="flex items-center gap-3 mb-4">
@@ -680,7 +823,8 @@ export default function Transportation() {
 
       {/* Modals */}
       {showModal && (
-        <TripModal trip={editTrip} vehicles={vehicles}
+        <TripModal trip={editTrip} vehicles={vehicles} residents={residents}
+          defaultDate={!editTrip ? selectedDate : undefined}
           onClose={() => setShowModal(false)} onSave={handleSave} />
       )}
       {showPrint && (
