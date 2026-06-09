@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import {
   Search, Phone, Mail, MapPin, Building2, Edit2, X,
   Check, Eye, EyeOff, User, Shield, ChevronDown,
-  ChevronUp, Filter, Save, Upload, Info
+  ChevronUp, Filter, Save, Upload, Info, ExternalLink
 } from 'lucide-react'
 
 // ── Constants ─────────────────────────────────────────────────
@@ -199,7 +200,7 @@ function EditProfileModal({ staffMember, isSelf, canEditAll, onClose, onSaved })
 }
 
 // ── Staff Card ─────────────────────────────────────────────────
-function StaffCard({ member, canSeeAll, isSelf, canEdit, onEdit }) {
+function StaffCard({ member, canSeeAll, isSelf, canEdit, onEdit, onViewProfile }) {
   const [expanded, setExpanded] = useState(false)
   const roleCfg = getRoleCfg(member.role)
 
@@ -242,13 +243,22 @@ function StaffCard({ member, canSeeAll, isSelf, canEdit, onEdit }) {
             </div>
           </div>
 
-          {/* Edit button */}
-          {canEdit && (
-            <button onClick={() => onEdit(member)}
-              className="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 transition-colors flex-shrink-0">
-              <Edit2 size={14} />
-            </button>
-          )}
+          {/* Action buttons */}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {canEdit && canSeeAll && (
+              <button onClick={() => onViewProfile(member.id)}
+                title="View full profile in Staff Management"
+                className="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 transition-colors">
+                <ExternalLink size={14} />
+              </button>
+            )}
+            {canEdit && (
+              <button onClick={() => onEdit(member)}
+                className="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 transition-colors">
+                <Edit2 size={14} />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Contact info — always show if can see */}
@@ -294,6 +304,7 @@ function StaffCard({ member, canSeeAll, isSelf, canEdit, onEdit }) {
 // ── Main Staff Directory ───────────────────────────────────────
 export default function StaffDirectory() {
   const { profile, organization } = useAuth()
+  const navigate = useNavigate()
   const [staff, setStaff]           = useState([])
   const [loading, setLoading]       = useState(true)
   const [search, setSearch]         = useState('')
@@ -431,6 +442,7 @@ export default function StaffDirectory() {
                       isSelf={member.id === profile.id}
                       canEdit={canEditMember(member)}
                       onEdit={handleEdit}
+                      onViewProfile={(id) => navigate(`/app/staff-management?staffId=${id}`)}
                     />
                   ))}
                 </div>

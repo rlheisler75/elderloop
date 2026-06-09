@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import {
@@ -603,6 +604,7 @@ function CreateStaffModal({ orgId, onClose, onSave }) {
 // ── Main Staff Management Page ─────────────────────────────────
 export default function StaffManagement() {
   const { profile, organization, isOrgAdmin } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [staff, setStaff]           = useState([])
   const [certTypes, setCertTypes]   = useState([])
   const [loading, setLoading]       = useState(true)
@@ -615,6 +617,19 @@ export default function StaffManagement() {
   const [showAddStaff, setShowAddStaff] = useState(false)
 
   useEffect(() => { if (organization) fetchAll() }, [organization])
+
+  // Auto-open staff detail if navigated here from Staff Directory
+  useEffect(() => {
+    const staffId = searchParams.get('staffId')
+    if (staffId && staff.length > 0) {
+      const found = staff.find(s => s.id === staffId)
+      if (found) {
+        setSelectedStaff(found)
+        setShowDetail(true)
+        setSearchParams({}) // clear param after opening
+      }
+    }
+  }, [searchParams, staff])
 
   async function fetchAll() {
     setLoading(true)
