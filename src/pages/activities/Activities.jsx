@@ -45,7 +45,7 @@ const fmt12 = (t) => {
   return `${hour > 12 ? hour - 12 : hour || 12}:${m} ${hour >= 12 ? 'PM' : 'AM'}`
 }
 
-const toDateStr = (d) => d.toISOString().split('T')[0]
+const toDateStr = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
 const today = () => toDateStr(new Date())
 
 // Expand recurring activities into individual occurrences for a date range
@@ -58,13 +58,15 @@ function expandActivities(activities, startDate, endDate) {
     const actStart = new Date(act.start_date + 'T00:00:00')
     const actEnd   = act.recur_end_date ? new Date(act.recur_end_date + 'T23:59:59') : end
 
-    if (act.recur_type === 'none') {
+    // Guard: treat null/undefined recur_type as 'none' — prevents infinite loop
+    if (!act.recur_type || act.recur_type === 'none') {
       if (actStart >= start && actStart <= end) result.push({ ...act, _date: act.start_date })
       continue
     }
 
     let cursor = new Date(actStart)
     const step = { daily: 1, weekly: 7, biweekly: 14, monthly: null }[act.recur_type]
+    if (step === undefined) continue // Unknown recur_type — skip safely
 
     while (cursor <= end && cursor <= actEnd) {
       if (cursor >= start) result.push({ ...act, _date: toDateStr(cursor) })
