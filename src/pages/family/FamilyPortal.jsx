@@ -79,6 +79,15 @@ const UPDATE_ICONS = {
 
 // DEPARTMENTS is now fetched dynamically from org settings
 const DEPARTMENTS = [] // fallback — overridden by org.messaging_departments
+const DEPARTMENTS_DEFAULT = [
+  { key: 'nursing',        label: 'Nursing' },
+  { key: 'dietary',        label: 'Dietary' },
+  { key: 'activities',     label: 'Activities' },
+  { key: 'maintenance',    label: 'Maintenance' },
+  { key: 'social_work',    label: 'Social Work' },
+  { key: 'administration', label: 'Administration' },
+  { key: 'front_desk',     label: 'Front Desk' },
+]
 
 // ── Maintenance Request Modal ─────────────────────────────────
 function MaintenanceModal({ resident, orgId, profile, onClose, onSubmitted }) {
@@ -290,11 +299,12 @@ function NewMessageModal({ resident, orgId, profile, onClose, onSent }) {
 
 // ── Thread View ───────────────────────────────────────────────
 function ThreadView({ thread, profile, onReply, onBack }) {
+  const { organization: threadOrg } = useAuth()
   const [reply, setReply] = useState('')
   const [sending, setSending] = useState(false)
   const bottomRef = useRef(null)
   const first = thread[0]
-  const _depts = organization?.messaging_departments || DEPARTMENTS
+  const _depts = threadOrg?.messaging_departments?.length ? threadOrg.messaging_departments : DEPARTMENTS_DEFAULT
   const dept  = _depts.find(d => d.key === first?.to_department)
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [thread.length])
@@ -978,8 +988,8 @@ export default function FamilyPortal() {
                     ) : threads.map(thread => {
                       const first = thread[0]
                       const last  = thread[thread.length - 1]
-                      const _depts = organization?.messaging_departments || DEPARTMENTS
-  const dept  = _depts.find(d => d.key === first?.to_department)
+                      const _depts = DEPARTMENTS_DEFAULT
+                      const dept  = _depts.find(d => d.key === first?.to_department)
                       const unread = thread.filter(m => m.sender_type === 'staff' && !m.is_read_by_family).length
                       return (
                         <button key={first.thread_id || first.id}
