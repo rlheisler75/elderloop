@@ -666,6 +666,39 @@ export default function FamilyPortal() {
   const [emergencyContacts, setEmergencyContacts] = useState([])
   const [medicalContacts, setMedicalContacts]     = useState([])
   const [loading, setLoading]               = useState(true)
+  const [notifs, setNotifs]         = useState([])
+  const [showNotifs, setShowNotifs] = useState(false)
+  const notifRef = useRef(null)
+  const unread = notifs.filter(n => !n.is_read).length
+
+  useEffect(() => {
+    if (profile?.id) fetchPortalNotifs()
+    const interval = setInterval(() => { if (profile?.id) fetchPortalNotifs() }, 30000)
+    return () => clearInterval(interval)
+  }, [profile?.id])
+
+  useEffect(() => {
+    const handleClick = (e) => { if (notifRef.current && !notifRef.current.contains(e.target)) setShowNotifs(false) }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  async function fetchPortalNotifs() {
+    const { data } = await supabase.from('push_notifications')
+      .select('*, broadcast_messages(subject, body, created_at)')
+      .eq('recipient_id', profile.id)
+      .order('created_at', { ascending: false }).limit(20)
+    setNotifs(data || [])
+  }
+
+  async function markAllRead() {
+    const ids = notifs.filter(n => !n.is_read).map(n => n.id)
+    if (!ids.length) return
+    await supabase.from('push_notifications').update({ is_read: true }).in('id', ids)
+    setNotifs(ns => ns.map(n => ({ ...n, is_read: true })))
+  }
+
+  const handleOpenNotifs = () => { setShowNotifs(v => !v); if (!showNotifs) markAllRead() }
   const [tab, setTab]                       = useState('updates')
   const [showNewMsg, setShowNewMsg]         = useState(false)
   const [showMaintenanceModal, setShowMaintenanceModal] = useState(false)
@@ -833,10 +866,57 @@ export default function FamilyPortal() {
               ElderLoop
             </span>
           </div>
-          <button onClick={handleSignOut}
-            className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600 px-2 py-1 rounded-lg hover:bg-slate-100">
-            <LogOut size={13} /> Sign Out
-          </button>
+          <div className="flex items-center gap-2">
+            <div ref={notifRef} className="relative">
+              <button onClick={handleOpenNotifs}
+                className="relative p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
+                <Bell size={16} />
+                {unread > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                    {unread > 9 ? '9+' : unread}
+                  </span>
+                )}
+              </button>
+              {showNotifs && (
+                <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+                    <span className="font-semibold text-slate-800 text-sm">Notifications</span>
+                    {unread === 0 && <span className="text-xs text-slate-400">All caught up</span>}
+                  </div>
+                  <div className="max-h-80 overflow-y-auto divide-y divide-slate-50">
+                    {notifs.length === 0 ? (
+                      <div className="px-4 py-8 text-center text-slate-400 text-sm">No notifications yet</div>
+                    ) : notifs.map(n => {
+                      const msg = n.broadcast_messages
+                      const ago = (() => {
+                        const diff = Math.floor((Date.now() - new Date(n.created_at)) / 60000)
+                        if (diff < 1) return 'Just now'
+                        if (diff < 60) return `${diff}m ago`
+                        if (diff < 1440) return `${Math.floor(diff/60)}h ago`
+                        return `${Math.floor(diff/1440)}d ago`
+                      })()
+                      return (
+                        <div key={n.id} className={`px-4 py-3 ${n.is_read ? '' : 'bg-brand-50'}`}>
+                          <div className="flex items-start gap-2">
+                            {!n.is_read && <div className="w-2 h-2 rounded-full bg-brand-500 mt-1.5 flex-shrink-0" />}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-slate-800 truncate">{n.title || msg?.subject}</p>
+                              <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{n.body || msg?.body}</p>
+                              <p className="text-xs text-slate-400 mt-1">{ago}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+            <button onClick={handleSignOut}
+              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600 px-2 py-1 rounded-lg hover:bg-slate-100">
+              <LogOut size={13} /> Sign Out
+            </button>
+          </div>
         </div>
       </div>
 
