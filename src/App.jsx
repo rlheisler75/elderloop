@@ -177,7 +177,9 @@ export default function App() {
           <Route path="/tv/:slug"       element={<TV />} />
         <Route path="/signage"        element={<Signage />} />
         <Route path="/early-access"   element={<EarlyAccess />} />
-        <Route path="/survey/:token"   element={<SurveyPublic />} />
+        <Route path="/survey/:token"  element={<SurveyPublic />} />
+        <Route path="/resident"       element={user ? <ResidentPortal /> : <Navigate to="/login" replace />} />
+        <Route path="/family-portal"  element={user ? <FamilyPortal />  : <Navigate to="/login" replace />} />
 
         {/* ── Auth ── */}
         <Route path="/login"  element={user ? <Navigate to="/app/dashboard" replace /> : <Login />} />
@@ -243,7 +245,7 @@ export default function App() {
         </Route>
 
         {/* ── Fallback ── */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to={user ? "/app/dashboard" : "/login"} replace />} />
 
       </Routes>
       <Analytics />
