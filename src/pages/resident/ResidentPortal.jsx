@@ -67,7 +67,7 @@ const MEAL_STATUS = {
 
 // ── Maintenance Request Modal ─────────────────────────────────
 function MaintenanceModal({ resident, profile, orgId, onClose, onSaved }) {
-  const [form, setForm] = useState({ title: '', description: '', category: 'general', priority: 'medium' })
+  const [form, setForm] = useState({ title: '', description: '', category: 'general', priority: 'normal' })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
@@ -133,7 +133,7 @@ function MaintenanceModal({ resident, profile, orgId, onClose, onSaved }) {
             <div className="flex gap-2">
               {[
                 { key: 'low', label: 'Not Urgent', cls: 'border-slate-400 bg-slate-50 text-slate-700' },
-                { key: 'medium', label: 'Normal', cls: 'border-amber-400 bg-amber-50 text-amber-700' },
+                { key: 'normal', label: 'Normal', cls: 'border-amber-400 bg-amber-50 text-amber-700' },
                 { key: 'high', label: 'Urgent', cls: 'border-red-400 bg-red-50 text-red-700' },
               ].map(p => (
                 <button key={p.key} onClick={() => set('priority', p.key)}
@@ -286,7 +286,7 @@ function DiningTab({ resident, orgId }) {
   async function fetchDining() {
     const [dpRes, ordRes] = await Promise.all([
       supabase.from('resident_dietary_profiles')
-        .select('*').eq('resident_id', resident.id).maybeSingle(),
+        .select('*').eq('resident_id', resident.id).limit(1),
       supabase.from('meal_delivery_orders')
         .select('*').eq('resident_id', resident.id)
         .order('created_at', { ascending: false }).limit(10),
@@ -439,13 +439,15 @@ export default function ResidentPortal() {
   async function fetchAll() {
     setLoading(true)
     const now = new Date().toISOString()
-    const todayStr = new Date().toISOString().split('T')[0]
-    const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    const _today = new Date()
+    const todayStr = `${_today.getFullYear()}-${String(_today.getMonth()+1).padStart(2,'0')}-${String(_today.getDate()).padStart(2,'0')}`
+    const _next = new Date(Date.now() + 7*24*60*60*1000)
+    const nextWeek = `${_next.getFullYear()}-${String(_next.getMonth()+1).padStart(2,'0')}-${String(_next.getDate()).padStart(2,'0')}`
 
     const [residentRes, annRes, actRes, chapRes, woRes] = await Promise.all([
       // Find resident record linked to this auth user
       supabase.from('residents').select('*')
-        .eq('profile_id', profile.id).maybeSingle(),
+        .eq('profile_id', profile.id).limit(1),
       supabase.from('announcements').select('*')
         .eq('organization_id', orgId).eq('is_active', true)
         .lte('starts_at', now).or(`expires_at.is.null,expires_at.gte.${now}`)
@@ -462,7 +464,7 @@ export default function ResidentPortal() {
         .order('created_at', { ascending: false }).limit(20),
     ])
 
-    setResident(residentRes.data || null)
+    setResident(residentRes.data?.[0] || null)
     setAnnouncements(annRes.data || [])
     setActivities(actRes.data || [])
 
@@ -489,7 +491,8 @@ export default function ResidentPortal() {
 
   const todayActivities = activities.filter(a => a.start_date === todayStr)
   const laterActivities = activities.filter(a => a.start_date !== todayStr)
-  const todayStr = new Date().toISOString().split('T')[0]
+  const _t2 = new Date()
+  const todayStr = `${_t2.getFullYear()}-${String(_t2.getMonth()+1).padStart(2,'0')}-${String(_t2.getDate()).padStart(2,'0')}`
 
   const TABS = [
     { key: 'home',        label: 'Home',        icon: Home },
