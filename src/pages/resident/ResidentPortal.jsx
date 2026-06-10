@@ -291,10 +291,11 @@ function DiningTab({ resident, orgId }) {
         .select('*').eq('resident_id', resident.id)
         .order('created_at', { ascending: false }).limit(10),
     ])
-    if (dpRes.data) {
-      setDietProfile(dpRes.data)
-      setLikes(dpRes.data.likes || '')
-      setDislikes(dpRes.data.dislikes || '')
+    const dp = dpRes.data?.[0] || null
+    if (dp) {
+      setDietProfile(dp)
+      setLikes(dp.likes || '')
+      setDislikes(dp.dislikes || '')
     }
     setOrders(ordRes.data || [])
   }
@@ -489,10 +490,11 @@ export default function ResidentPortal() {
     .filter(s => new Date(s.service_date + 'T12:00:00') < today && s.recording_youtube_id)
     .slice(0, 5)
 
-  const todayActivities = activities.filter(a => a.start_date === todayStr)
-  const laterActivities = activities.filter(a => a.start_date !== todayStr)
   const _t2 = new Date()
   const todayStr = `${_t2.getFullYear()}-${String(_t2.getMonth()+1).padStart(2,'0')}-${String(_t2.getDate()).padStart(2,'0')}`
+
+  const todayActivities = activities.filter(a => a.start_date === todayStr)
+  const laterActivities = activities.filter(a => a.start_date !== todayStr)
 
   const TABS = [
     { key: 'home',        label: 'Home',        icon: Home },
