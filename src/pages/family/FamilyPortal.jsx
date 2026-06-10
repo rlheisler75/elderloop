@@ -92,7 +92,7 @@ const DEPARTMENTS_DEFAULT = [
 // ── Maintenance Request Modal ─────────────────────────────────
 function MaintenanceModal({ resident, orgId, profile, onClose, onSubmitted }) {
   const [form, setForm] = useState({
-    title: '', description: '', category: 'general', priority: 'medium',
+    title: '', description: '', category: 'general', priority: 'normal',
     unit: resident?.unit || '', building: resident?.building || '',
   })
   const [saving, setSaving] = useState(false)
@@ -178,7 +178,7 @@ function MaintenanceModal({ resident, orgId, profile, onClose, onSubmitted }) {
             <div className="flex gap-2">
               {[
                 { key: 'low',    label: 'Not Urgent', color: 'text-slate-600 border-slate-200', active: 'border-slate-500 bg-slate-50' },
-                { key: 'medium', label: 'Normal',     color: 'text-amber-600 border-amber-200',  active: 'border-amber-500 bg-amber-50' },
+                { key: 'normal',  label: 'Normal',     color: 'text-amber-600 border-amber-200',  active: 'border-amber-500 bg-amber-50' },
                 { key: 'high',   label: 'Urgent',     color: 'text-red-600 border-red-200',      active: 'border-red-500 bg-red-50' },
               ].map(p => (
                 <button key={p.key} onClick={() => set('priority', p.key)}
