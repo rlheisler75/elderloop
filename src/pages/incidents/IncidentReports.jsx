@@ -155,10 +155,64 @@ function PrintReport({ report, orgName, filerName, reviewerName, onClose }) {
 }
 
 // ── Incident Form / View Modal ─────────────────────────────────
+// ── Resident Lookup ────────────────────────────────────────────
+function ResidentLookup({ residents, value, onChange, disabled, inputCls }) {
+  const [search, setSearch] = useState(value || '')
+  const [open, setOpen]     = useState(false)
+
+  const filtered = residents.filter(r => {
+    if (!search) return true
+    const q = search.toLowerCase()
+    return `${r.first_name} ${r.last_name}`.toLowerCase().includes(q) ||
+           r.room?.toLowerCase().includes(q)
+  })
+
+  const handleSelect = (r) => {
+    const name = `${r.first_name} ${r.last_name}`
+    setSearch(name)
+    setOpen(false)
+    onChange(name, r.room || '')
+  }
+
+  const handleChange = (e) => {
+    setSearch(e.target.value)
+    setOpen(true)
+    onChange(e.target.value, '')
+  }
+
+  return (
+    <div className="relative">
+      <input
+        value={search}
+        onChange={handleChange}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        disabled={disabled}
+        placeholder="Search resident or type N/A"
+        className={inputCls}
+      />
+      {open && !disabled && search && (
+        <div className="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+          {filtered.slice(0, 8).map(r => (
+            <button key={r.id} onMouseDown={() => handleSelect(r)}
+              className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-50 border-b border-slate-50 last:border-0 text-left">
+              <span className="text-sm font-medium text-slate-800">{r.first_name} {r.last_name}</span>
+              {r.room && <span className="text-xs text-slate-400">Room {r.room}</span>}
+            </button>
+          ))}
+          {filtered.length === 0 && (
+            <div className="px-4 py-3 text-sm text-slate-400">No residents found</div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // canEdit:   can save changes to this specific report
 // canReview: can change status and write review notes (manager+)
 // viewOnly:  supervisor viewing someone else's report — read only
-function IncidentModal({ incident, canEdit, canReview, viewOnly, onClose, onSave }) {
+function IncidentModal({ incident, canEdit, canReview, viewOnly, residents, onClose, onSave }) {
   const { profile, organization } = useAuth()
   const isNew = !incident
   const orgId = organization?.id || profile?.organization_id
@@ -276,14 +330,21 @@ function IncidentModal({ incident, canEdit, canReview, viewOnly, onClose, onSave
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Resident Name</label>
-              <input value={form.resident_name} onChange={e => set('resident_name', e.target.value)}
-                disabled={readOnly} placeholder="Full name or 'N/A'"
-                className={inputCls} />
+              <ResidentLookup
+                residents={residents || []}
+                value={form.resident_name}
+                onChange={(name, room) => {
+                  set('resident_name', name)
+                  if (room) set('resident_unit', room)
+                }}
+                disabled={readOnly}
+                inputCls={inputCls}
+              />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Room / Unit</label>
               <input value={form.resident_unit} onChange={e => set('resident_unit', e.target.value)}
-                disabled={readOnly} placeholder="e.g. 205"
+                disabled={readOnly} placeholder="Auto-filled or enter manually"
                 className={inputCls} />
             </div>
           </div>
@@ -415,8 +476,8 @@ function IncidentModal({ incident, canEdit, canReview, viewOnly, onClose, onSave
             </div>
           )}
 
-          {/* Can edit own (staff filing) */}
-          {(canEdit || isNew) && !viewOnly && (
+          {/* Can edit own (staff filing) — hidden when canReview to avoid duplicate save buttons */}
+          {(canEdit || isNew) && !viewOnly && !canReview && (
             <div className="flex gap-2">
               {(isNew || form.status === 'draft') && (
                 <button onClick={() => handleSave('draft')} disabled={saving}
@@ -476,12 +537,17 @@ export default function IncidentReports() {
   async function fetchAll() {
     setLoading(true)
     // RLS handles visibility: staff see own, supervisor+ see all
-    const { data } = await supabase.from('incident_reports')
-      .select('*, filer:profiles!incident_reports_filed_by_fkey(first_name,last_name), reviewer:profiles!incident_reports_reviewed_by_fkey(first_name,last_name)')
-      .eq('organization_id', organization.id)
-      .eq('is_active', true)
-      .order('created_at', { ascending: false })
-    setReports(data || [])
+    const [repsRes, resRes] = await Promise.all([
+      supabase.from('incident_reports')
+        .select('*, filer:profiles!incident_reports_filed_by_fkey(first_name,last_name), reviewer:profiles!incident_reports_reviewed_by_fkey(first_name,last_name)')
+        .eq('organization_id', organization.id)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false }),
+      supabase.from('residents').select('id,first_name,last_name,room')
+        .eq('organization_id', organization.id).eq('is_active', true).order('last_name'),
+    ])
+    setReports(repsRes.data || [])
+    setResidents(resRes.data || [])
     setLoading(false)
   }
 
