@@ -160,6 +160,9 @@ function ResidentLookup({ residents, value, onChange, disabled, inputCls }) {
   const [search, setSearch] = useState(value || '')
   const [open, setOpen]     = useState(false)
 
+  // Sync when editing an existing incident
+  useEffect(() => { setSearch(value || '') }, [value])
+
   const filtered = residents.filter(r => {
     if (!search) return true
     const q = search.toLowerCase()
@@ -726,6 +729,7 @@ export default function IncidentReports() {
           canEdit={selected ? canEditReport(selected) : canFile}
           canReview={canEditAny}
           viewOnly={selected ? getModalViewOnly(selected) : false}
+          residents={residents}
           onClose={() => { setShowModal(false); setSelected(null) }}
           onSave={handleSave}
         />
