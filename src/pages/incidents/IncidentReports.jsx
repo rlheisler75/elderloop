@@ -514,6 +514,7 @@ function IncidentModal({ incident, canEdit, canReview, viewOnly, residents, onCl
 export default function IncidentReports() {
   const { profile, organization } = useAuth()
   const [reports, setReports]     = useState([])
+  const [residents, setResidents] = useState([])
   const [loading, setLoading]     = useState(true)
   const [search, setSearch]       = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
