@@ -9,7 +9,8 @@ import {
 } from 'lucide-react'
 
 // ── Constants ──────────────────────────────────────────────────
-const DEPARTMENTS = [
+// Fallback list — overridden by organization.scheduling_departments
+const DEPARTMENTS_DEFAULT = [
   { key: 'nursing',        label: 'Nursing' },
   { key: 'dietary',        label: 'Dietary' },
   { key: 'maintenance',    label: 'Maintenance' },
@@ -65,6 +66,8 @@ const shiftsOverlap = (s1, s2) => {
 
 // ── Shift Template Manager ─────────────────────────────────────
 function TemplateManager({ orgId, templates, onRefresh, onClose }) {
+  const { organization } = useAuth()
+  const DEPTS = organization?.scheduling_departments?.length ? organization.scheduling_departments : DEPARTMENTS_DEFAULT
   const [adding, setAdding] = useState(false)
   const [form, setForm]     = useState({ name:'', department:'', start_time:'', end_time:'', color:'#0c90e1' })
   const [saving, setSaving] = useState(false)
@@ -108,7 +111,7 @@ function TemplateManager({ orgId, templates, onRefresh, onClose }) {
                 <select value={form.department} onChange={e => set('department', e.target.value)}
                   className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                   <option value="">All departments</option>
-                  {DEPARTMENTS.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
+                  {DEPTS.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
                 </select>
                 <input type="color" value={form.color} onChange={e => set('color', e.target.value)}
                   className="h-10 w-full rounded-lg border border-slate-200 cursor-pointer p-0.5" />
@@ -151,7 +154,8 @@ function TemplateManager({ orgId, templates, onRefresh, onClose }) {
 
 // ── Schedule Shift Modal ───────────────────────────────────────
 function ShiftModal({ shift, date, orgId, staff, templates, existingShifts, onClose, onSave }) {
-  const { profile } = useAuth()
+  const { profile, organization } = useAuth()
+  const DEPTS = organization?.scheduling_departments?.length ? organization.scheduling_departments : DEPARTMENTS_DEFAULT
   const isNew = !shift
   const [form, setForm] = useState({
     staff_id:      shift?.staff_id    || '',
@@ -312,7 +316,7 @@ function ShiftModal({ shift, date, orgId, staff, templates, existingShifts, onCl
               <select value={form.department} onChange={e => set('department', e.target.value)}
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                 <option value="">All</option>
-                {DEPARTMENTS.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
+                {DEPTS.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
               </select>
             </div>
             <div>
@@ -382,7 +386,8 @@ function ShiftModal({ shift, date, orgId, staff, templates, existingShifts, onCl
 
 // ── Day Drill-Down Modal ───────────────────────────────────────
 function DayDetail({ date, shifts, staff, orgId, isMgr, onClose, onRefresh }) {
-  const { profile } = useAuth()
+  const { profile, organization } = useAuth()
+  const DEPTS = organization?.scheduling_departments?.length ? organization.scheduling_departments : DEPARTMENTS_DEFAULT
   const [showCallOff, setShowCallOff] = useState(null)
   const [callOffReason, setCallOffReason] = useState('')
   const [showSwapRequest, setShowSwapRequest] = useState(null)
@@ -429,7 +434,7 @@ function DayDetail({ date, shifts, staff, orgId, isMgr, onClose, onRefresh }) {
             <div className="text-center py-10 text-slate-400 text-sm">No shifts scheduled for this day.</div>
           ) : (
             Object.keys(grouped).sort().map(deptKey => {
-              const dept = DEPARTMENTS.find(d => d.key === deptKey) || { label: deptKey }
+              const dept = DEPTS.find(d => d.key === deptKey) || { label: deptKey }
               return (
                 <div key={deptKey}>
                   <div className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2 flex items-center gap-1.5">
@@ -771,6 +776,7 @@ function SwapPanel({ orgId, profile, staff, shifts, isMgr, onRefresh }) {
 // ── Main Scheduling Page ───────────────────────────────────────
 export default function Scheduling() {
   const { profile, organization } = useAuth()
+  const DEPTS = organization?.scheduling_departments?.length ? organization.scheduling_departments : DEPARTMENTS_DEFAULT
   const [shifts, setShifts]       = useState([])
   const [staff, setStaff]         = useState([])
   const [templates, setTemplates] = useState([])
@@ -894,7 +900,7 @@ export default function Scheduling() {
             <select value={filterDept} onChange={e => setFilterDept(e.target.value)}
               className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
               <option value="all">All Departments</option>
-              {DEPARTMENTS.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
+              {DEPTS.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
             </select>
           </div>
         )}
