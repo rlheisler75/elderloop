@@ -85,8 +85,9 @@ function expandActivities(activities, startDate, endDate) {
 }
 
 // ── Activity Form Modal ────────────────────────────────────────
-function ActivityModal({ activity, onClose, onSave }) {
+function ActivityModal({ activity, canEdit, onClose, onSave, onDelete }) {
   const { profile } = useAuth()
+  const readOnly = !canEdit
   const [form, setForm] = useState({
     title:          activity?.title          || '',
     description:    activity?.description    || '',
@@ -145,7 +146,7 @@ function ActivityModal({ activity, onClose, onSave }) {
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+        <fieldset disabled={readOnly} className="flex-1 overflow-y-auto px-6 py-5 space-y-5 disabled:opacity-75">
           {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
 
           {/* Title */}
@@ -267,14 +268,24 @@ function ActivityModal({ activity, onClose, onSave }) {
               </div>
             </label>
           </div>
-        </div>
+        </fieldset>
 
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
-          <button onClick={handleSave} disabled={saving}
-            className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
-            {saving ? 'Saving...' : activity ? 'Save Changes' : 'Add Activity'}
-          </button>
+        <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between gap-3 flex-shrink-0">
+          {!readOnly && activity?.id ? (
+            <button onClick={() => onDelete(activity.id)}
+              className="flex items-center gap-1.5 px-3 py-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg text-sm font-medium transition-colors">
+              <Trash2 size={14} /> Delete
+            </button>
+          ) : <div />}
+          <div className="flex gap-3">
+            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">{readOnly ? 'Close' : 'Cancel'}</button>
+            {!readOnly && (
+              <button onClick={handleSave} disabled={saving}
+                className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
+                {saving ? 'Saving...' : activity ? 'Save Changes' : 'Add Activity'}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -296,7 +307,7 @@ function ActivityPill({ activity, onClick }) {
 }
 
 // ── Month Calendar ─────────────────────────────────────────────
-function MonthCalendar({ year, month, expanded, onEditActivity, onNewActivity }) {
+function MonthCalendar({ year, month, expanded, onEditActivity, onNewActivity, canEdit }) {
   const firstDay  = new Date(year, month, 1).getDay()
   const daysCount = new Date(year, month + 1, 0).getDate()
   const todayStr  = today()
@@ -329,8 +340,8 @@ function MonthCalendar({ year, month, expanded, onEditActivity, onNewActivity })
           const dayActivities = activitiesForDay(d)
           return (
             <div key={d}
-              className={`min-h-[90px] border-b border-r border-slate-100 p-1.5 cursor-pointer hover:bg-slate-50 transition-colors ${isToday ? 'bg-brand-50' : ''}`}
-              onClick={() => onNewActivity(ds)}>
+              className={`min-h-[90px] border-b border-r border-slate-100 p-1.5 transition-colors ${canEdit ? 'cursor-pointer hover:bg-slate-50' : ''} ${isToday ? 'bg-brand-50' : ''}`}
+              onClick={() => canEdit && onNewActivity(ds)}>
               <div className={`text-xs font-semibold mb-1 w-6 h-6 flex items-center justify-center rounded-full ${isToday ? 'bg-brand-600 text-white' : 'text-slate-600'}`}>
                 {d}
               </div>
@@ -443,7 +454,7 @@ function PrintSchedule({ activities, month, year, orgName, onClose }) {
 }
 
 // ── Upcoming List (resident-style) ─────────────────────────────
-function UpcomingList({ activities, onEdit }) {
+function UpcomingList({ activities, onEdit, canEdit }) {
   const upcoming = activities
     .filter(a => a._date >= today())
     .slice(0, 30)
@@ -496,7 +507,7 @@ function UpcomingList({ activities, onEdit }) {
                     </div>
                     <span className="text-xs px-2 py-1 rounded-full font-medium flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
                       style={{ background: a.color + '22', color: a.color }}>
-                      Edit
+                      {canEdit ? 'Edit' : 'View'}
                     </span>
                   </div>
                 )
@@ -518,7 +529,10 @@ function UpcomingList({ activities, onEdit }) {
 
 // ── Main Activities Page ───────────────────────────────────────
 export default function Activities() {
-  const { profile, organization } = useAuth()
+  const { profile, organization, canEdit } = useAuth()
+  // Supervisors/managers get edit by default for activities; org admins can
+  // grant/restrict edit access per-user via Admin Panel > Module Access
+  const canEditActivities = canEdit('activities', ['supervisor','manager'])
   const [activities, setActivities] = useState([])
   const [loading, setLoading]       = useState(true)
   const [view, setView]             = useState('calendar') // 'calendar' | 'list'
@@ -595,10 +609,12 @@ export default function Activities() {
             className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
             <Printer size={15} /> Print Schedule
           </button>
-          <button onClick={() => { setEditActivity(null); setDefaultDate(today()); setShowModal(true) }}
-            className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
-            <Plus size={15} /> Add Activity
-          </button>
+          {canEditActivities && (
+            <button onClick={() => { setEditActivity(null); setDefaultDate(today()); setShowModal(true) }}
+              className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
+              <Plus size={15} /> Add Activity
+            </button>
+          )}
         </div>
       </div>
 
@@ -670,7 +686,8 @@ export default function Activities() {
               year={calYear} month={calMonth}
               expanded={expanded}
               onEditActivity={handleEdit}
-              onNewActivity={handleNewOnDate} />
+              onNewActivity={handleNewOnDate}
+              canEdit={canEditActivities} />
           )}
           <p className="text-xs text-slate-400 text-center mt-3">Click any day to add an activity · Click an event to edit it</p>
         </>
@@ -681,7 +698,7 @@ export default function Activities() {
         loading ? (
           <div className="text-center py-16 text-slate-400">Loading...</div>
         ) : (
-          <UpcomingList activities={expandedList} onEdit={handleEdit} />
+          <UpcomingList activities={expandedList} onEdit={handleEdit} canEdit={canEditActivities} />
         )
       )}
 
@@ -690,8 +707,10 @@ export default function Activities() {
         <ActivityModal
           key={editActivity?.id || 'new'}
           activity={editActivity ? editActivity : (defaultDate ? { start_date: defaultDate } : null)}
+          canEdit={canEditActivities}
           onClose={() => { setShowModal(false); setEditActivity(null); setDefaultDate(null) }}
-          onSave={() => { setShowModal(false); setEditActivity(null); setDefaultDate(null); fetchActivities() }} />
+          onSave={() => { setShowModal(false); setEditActivity(null); setDefaultDate(null); fetchActivities() }}
+          onDelete={(id) => { handleDelete(id); setShowModal(false); setEditActivity(null); setDefaultDate(null) }} />
       )}
       {showPrint && (
         <PrintSchedule
