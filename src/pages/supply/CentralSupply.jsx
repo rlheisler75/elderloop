@@ -12,19 +12,26 @@ import SupplyPurchaseOrders from './SupplyPurchaseOrders'
 import SupplyVendors      from './SupplyVendors'
 import SupplyReports      from './SupplyReports'
 
-const TABS = [
-  { key: 'inventory', label: 'Inventory',       icon: Package,       component: SupplyInventory },
-  { key: 'receive',   label: 'Receive Stock',    icon: PackagePlus,   component: SupplyReceive },
-  { key: 'issue',     label: 'Issue / Checkout', icon: PackageMinus,  component: SupplyIssue },
-  { key: 'cash',      label: 'Cash Sales',       icon: DollarSign,    component: SupplyCashSales },
-  { key: 'pos',       label: 'Purchase Orders',  icon: ClipboardList, component: SupplyPurchaseOrders },
-  { key: 'vendors',   label: 'Vendors',          icon: Truck,         component: SupplyVendors },
-  { key: 'reports',   label: 'Reports',          icon: BarChart2,     component: SupplyReports },
+const ALL_TABS = [
+  { key: 'inventory', label: 'Inventory',       icon: Package,       component: SupplyInventory,       editOnly: false },
+  { key: 'receive',   label: 'Receive Stock',    icon: PackagePlus,   component: SupplyReceive,         editOnly: true },
+  { key: 'issue',     label: 'Issue / Checkout', icon: PackageMinus,  component: SupplyIssue,           editOnly: true },
+  { key: 'cash',      label: 'Cash Sales',       icon: DollarSign,    component: SupplyCashSales,       editOnly: true },
+  { key: 'pos',       label: 'Purchase Orders',  icon: ClipboardList, component: SupplyPurchaseOrders,  editOnly: false },
+  { key: 'vendors',   label: 'Vendors',          icon: Truck,         component: SupplyVendors,         editOnly: false },
+  { key: 'reports',   label: 'Reports',          icon: BarChart2,     component: SupplyReports,         editOnly: false },
 ]
 
 export default function CentralSupply() {
-  const { hasModule } = useAuth()
+  const { hasModule, canEdit } = useAuth()
   const [tab, setTab] = useState('inventory')
+
+  // Supply staff/supervisors/managers get edit by default for central_supply;
+  // org admins can grant/restrict edit access per-user via Admin Panel > Module Access.
+  // View-only users see Inventory, Purchase Orders, Vendors, and Reports in read-only
+  // mode; Receive/Issue/Cash Sales are pure write-workflows and are hidden entirely
+  // for view-only users.
+  const canEditSupply = canEdit('central_supply', ['supervisor','manager'])
 
   if (!hasModule('central_supply')) {
     return (
@@ -38,7 +45,9 @@ export default function CentralSupply() {
     )
   }
 
-  const current = TABS.find(t => t.key === tab)
+  const TABS = ALL_TABS.filter(t => !t.editOnly || canEditSupply)
+  // If the current tab is no longer visible (e.g. permission downgraded), fall back to inventory
+  const current = TABS.find(t => t.key === tab) || TABS[0]
   const ActiveComponent = current?.component
 
   return (
@@ -78,7 +87,7 @@ export default function CentralSupply() {
 
       {/* ── Tab content ── */}
       <div className="flex-1 overflow-y-auto">
-        {ActiveComponent && <ActiveComponent />}
+        {ActiveComponent && <ActiveComponent canEdit={canEditSupply} />}
       </div>
     </div>
   )

@@ -81,7 +81,7 @@ function ItemPicker({ items, value, onChange, placeholder = 'Select item...' }) 
 }
 
 // ── Menu Items Catalog ─────────────────────────────────────────
-function MenuItemsCatalog({ items, onRefresh, orgId }) {
+function MenuItemsCatalog({ items, onRefresh, orgId, canEdit }) {
   const [showForm, setShowForm] = useState(false)
   const [editItem, setEditItem] = useState(null)
   const [form, setForm]         = useState({ name: '', description: '', allergens: [], suitable_diets: [], suitable_consistencies: [] })
@@ -125,10 +125,12 @@ function MenuItemsCatalog({ items, onRefresh, orgId }) {
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search items..."
             className="w-full pl-4 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
         </div>
-        <button onClick={openNew}
-          className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
-          <Plus size={15} /> Add Item
-        </button>
+        {canEdit && (
+          <button onClick={openNew}
+            className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
+            <Plus size={15} /> Add Item
+          </button>
+        )}
       </div>
 
       {showForm && (
@@ -208,10 +210,12 @@ function MenuItemsCatalog({ items, onRefresh, orgId }) {
                 </div>
               )}
             </div>
-            <div className="flex gap-1 flex-shrink-0">
-              <button onClick={() => openEdit(item)} className="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 transition-colors"><Edit2 size={13} /></button>
-              <button onClick={() => handleDelete(item.id)} className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors"><Trash2 size={13} /></button>
-            </div>
+            {canEdit && (
+              <div className="flex gap-1 flex-shrink-0">
+                <button onClick={() => openEdit(item)} className="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 transition-colors"><Edit2 size={13} /></button>
+                <button onClick={() => handleDelete(item.id)} className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors"><Trash2 size={13} /></button>
+              </div>
+            )}
           </div>
         ))}
         {filtered.length === 0 && (
@@ -223,7 +227,7 @@ function MenuItemsCatalog({ items, onRefresh, orgId }) {
 }
 
 // ── Day Cell (one meal period in the grid) ─────────────────────
-function DayMealCell({ weekNum, dayIdx, period, dayData, items, onSave }) {
+function DayMealCell({ weekNum, dayIdx, period, dayData, items, onSave, canEdit }) {
   const [open, setOpen]     = useState(false)
   const [courses, setCourses] = useState([])
   const [saving, setSaving] = useState(false)
@@ -312,7 +316,7 @@ function DayMealCell({ weekNum, dayIdx, period, dayData, items, onSave }) {
               <button onClick={() => setOpen(false)} className="text-slate-400 hover:text-slate-600"><X size={18} /></button>
             </div>
 
-            <div className="px-5 py-4 space-y-3">
+            <fieldset disabled={!canEdit} className="px-5 py-4 space-y-3 disabled:opacity-75">
               {courses.map((course, idx) => (
                 <div key={idx} className="p-3 bg-slate-50 rounded-xl border border-slate-100">
                   <div className="flex items-center gap-2 mb-2">
@@ -382,14 +386,16 @@ function DayMealCell({ weekNum, dayIdx, period, dayData, items, onSave }) {
                 className="w-full py-2 border-2 border-dashed border-slate-200 rounded-xl text-sm text-slate-400 hover:border-brand-400 hover:text-brand-500 transition-colors flex items-center justify-center gap-1.5">
                 <Plus size={14} /> Add Course
               </button>
-            </div>
+            </fieldset>
 
             <div className="sticky bottom-0 bg-white rounded-b-2xl px-5 py-4 border-t border-slate-100 flex justify-end gap-3">
-              <button onClick={() => setOpen(false)} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
-              <button onClick={handleSave} disabled={saving}
-                className="flex items-center gap-2 px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
-                <Save size={14} />{saving ? 'Saving...' : 'Save Meal'}
-              </button>
+              <button onClick={() => setOpen(false)} className="px-4 py-2 text-sm text-slate-600 font-medium">{canEdit ? 'Cancel' : 'Close'}</button>
+              {canEdit && (
+                <button onClick={handleSave} disabled={saving}
+                  className="flex items-center gap-2 px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
+                  <Save size={14} />{saving ? 'Saving...' : 'Save Meal'}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -464,7 +470,7 @@ function CooksCount({ weekNum, dayIdx, menuId, items }) {
 }
 
 // ── Cycle Menu Grid ────────────────────────────────────────────
-function CycleMenuGrid({ menu, items, onBack }) {
+function CycleMenuGrid({ menu, items, onBack, canEdit }) {
   const [week, setWeek]     = useState(1)
   const [gridData, setGridData] = useState({})
   const [loading, setLoading]   = useState(true)
@@ -618,6 +624,7 @@ function CycleMenuGrid({ menu, items, onBack }) {
                           weekNum={week} dayIdx={dayIdx}
                           period={period} dayData={gridData[dayIdx]}
                           items={items} onSave={handleSaveMeal}
+                          canEdit={canEdit}
                         />
                       </td>
                     ))}
@@ -634,15 +641,17 @@ function CycleMenuGrid({ menu, items, onBack }) {
 }
 
 // ── Cycle Menu List ────────────────────────────────────────────
-function CycleMenuList({ menus, onSelect, onCreate, onDelete, onSetCurrent }) {
+function CycleMenuList({ menus, onSelect, onCreate, onDelete, onSetCurrent, canEdit }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
         <p className="text-sm text-slate-500">{menus.length} cycle menu{menus.length !== 1 ? 's' : ''}</p>
-        <button onClick={onCreate}
-          className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
-          <Plus size={15} /> New Cycle Menu
-        </button>
+        {canEdit && (
+          <button onClick={onCreate}
+            className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
+            <Plus size={15} /> New Cycle Menu
+          </button>
+        )}
       </div>
 
       {menus.length === 0 ? (
@@ -668,12 +677,14 @@ function CycleMenuList({ menus, onSelect, onCreate, onDelete, onSetCurrent }) {
                     </p>
                   )}
                 </div>
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={e => { e.stopPropagation(); onDelete(menu.id) }}
-                    className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors">
-                    <Trash2 size={14} />
-                  </button>
-                </div>
+                {canEdit && (
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={e => { e.stopPropagation(); onDelete(menu.id) }}
+                      className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="mt-3 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-xs text-brand-600 font-medium">
@@ -682,10 +693,12 @@ function CycleMenuList({ menus, onSelect, onCreate, onDelete, onSetCurrent }) {
                 </div>
                 {menu.is_current
                   ? <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">✓ Active</span>
-                  : <button onClick={e => { e.stopPropagation(); onSetCurrent(menu.id) }}
-                      className="px-2 py-0.5 bg-slate-100 hover:bg-brand-100 text-slate-500 hover:text-brand-700 text-xs font-medium rounded-full transition-colors">
-                      Set Active
-                    </button>
+                  : canEdit
+                    ? <button onClick={e => { e.stopPropagation(); onSetCurrent(menu.id) }}
+                        className="px-2 py-0.5 bg-slate-100 hover:bg-brand-100 text-slate-500 hover:text-brand-700 text-xs font-medium rounded-full transition-colors">
+                        Set Active
+                      </button>
+                    : <span className="px-2 py-0.5 bg-slate-100 text-slate-400 text-xs font-medium rounded-full">Inactive</span>
                 }
               </div>
             </div>
@@ -753,22 +766,24 @@ function NewMenuModal({ onClose, onSave, orgId, userId }) {
 }
 
 // ── Main Export ────────────────────────────────────────────────
-export default function CycleMenuBuilder({ menus, items, onRefresh, orgId, userId }) {
+export default function CycleMenuBuilder({ menus, items, onRefresh, orgId, userId, canEdit }) {
   const [view, setView]         = useState('list') // 'list' | 'grid' | 'items'
   const [activeMenu, setActiveMenu] = useState(null)
   const [showNewMenu, setShowNewMenu] = useState(false)
 
   const handleSelectMenu = (menu) => { setActiveMenu(menu); setView('grid') }
   const handleBack       = () => { setActiveMenu(null); setView('list'); onRefresh() }
-  const handleCreate     = () => setShowNewMenu(true)
+  const handleCreate     = () => { if (canEdit) setShowNewMenu(true) }
   const handleCreated    = () => { setShowNewMenu(false); onRefresh() }
   const handleDelete     = async (id) => {
+    if (!canEdit) return
     if (!confirm('Delete this cycle menu and all its meals?')) return
     await supabase.from('cycle_menus').update({ is_active: false }).eq('id', id)
     onRefresh()
   }
 
   const handleSetCurrent = async (id) => {
+    if (!canEdit) return
     // Clear current flag on all org menus, then set on selected
     await supabase.from('cycle_menus').update({ is_current: false }).eq('organization_id', orgId)
     await supabase.from('cycle_menus').update({ is_current: true }).eq('id', id)
@@ -803,16 +818,16 @@ export default function CycleMenuBuilder({ menus, items, onRefresh, orgId, userI
               <Package size={14} /> Menu Items
             </button>
           </div>
-          <MenuItemsCatalog items={items} onRefresh={onRefresh} orgId={orgId} />
+          <MenuItemsCatalog items={items} onRefresh={onRefresh} orgId={orgId} canEdit={canEdit} />
         </div>
       )}
 
       {view === 'list' && (
-        <CycleMenuList menus={menus} onSelect={handleSelectMenu} onCreate={handleCreate} onDelete={handleDelete} onSetCurrent={handleSetCurrent} />
+        <CycleMenuList menus={menus} onSelect={handleSelectMenu} onCreate={handleCreate} onDelete={handleDelete} onSetCurrent={handleSetCurrent} canEdit={canEdit} />
       )}
 
       {view === 'grid' && activeMenu && (
-        <CycleMenuGrid menu={activeMenu} items={items} onBack={handleBack} />
+        <CycleMenuGrid menu={activeMenu} items={items} onBack={handleBack} canEdit={canEdit} />
       )}
 
       {showNewMenu && (

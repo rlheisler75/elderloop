@@ -43,8 +43,9 @@ const STATUS_CONFIG = {
 const fmt$ = (v) => v != null && v !== '' ? `$${Number(v).toFixed(2)}` : '—'
 
 // ── Item Modal ─────────────────────────────────────────────────
-function ItemModal({ item, vendors, orgId, profileId, onClose, onSaved }) {
+function ItemModal({ item, vendors, orgId, profileId, canEdit, onClose, onSaved }) {
   const isNew = !item
+  const readOnly = !canEdit
   const [tab, setTab] = useState('details')
   const [saving, setSaving] = useState(false)
   const [error, setError]   = useState('')
@@ -147,7 +148,7 @@ function ItemModal({ item, vendors, orgId, profileId, onClose, onSaved }) {
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-6 py-5">
+        <fieldset disabled={readOnly} className="flex-1 overflow-y-auto px-6 py-5 disabled:opacity-75">
           {error && (
             <div className="mb-4 px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
               {error}
@@ -214,8 +215,8 @@ function ItemModal({ item, vendors, orgId, profileId, onClose, onSaved }) {
                   { key: 'is_active',              label: 'Active',              desc: 'Show in catalog and allow transactions' },
                 ].map(flag => (
                   <div key={flag.key}
-                    onClick={() => set(flag.key, !form[flag.key])}
-                    className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                    onClick={() => !readOnly && set(flag.key, !form[flag.key])}
+                    className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${readOnly ? 'cursor-default' : 'cursor-pointer'} ${
                       form[flag.key] ? 'bg-brand-50 border-brand-200' : 'bg-slate-50 border-slate-200'
                     }`}>
                     <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${
@@ -344,12 +345,12 @@ function ItemModal({ item, vendors, orgId, profileId, onClose, onSaved }) {
               </div>
             </div>
           )}
-        </div>
+        </fieldset>
 
         {/* Footer */}
         <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between flex-shrink-0">
           <div>
-            {!isNew && (
+            {!isNew && canEdit && (
               <button onClick={handleDelete}
                 className="flex items-center gap-1.5 px-3 py-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg text-sm transition-colors">
                 <Trash2 size={14} /> Delete
@@ -359,12 +360,14 @@ function ItemModal({ item, vendors, orgId, profileId, onClose, onSaved }) {
           <div className="flex gap-3">
             <button onClick={onClose}
               className="px-4 py-2 text-sm text-slate-600 font-medium hover:bg-slate-50 rounded-lg transition-colors">
-              Cancel
+              {canEdit ? 'Cancel' : 'Close'}
             </button>
-            <button onClick={handleSave} disabled={saving}
-              className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
-              {saving ? 'Saving...' : isNew ? 'Add Item' : 'Save Changes'}
-            </button>
+            {canEdit && (
+              <button onClick={handleSave} disabled={saving}
+                className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
+                {saving ? 'Saving...' : isNew ? 'Add Item' : 'Save Changes'}
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -373,7 +376,7 @@ function ItemModal({ item, vendors, orgId, profileId, onClose, onSaved }) {
 }
 
 // ── Item Row ───────────────────────────────────────────────────
-function ItemRow({ item, onEdit }) {
+function ItemRow({ item, onEdit, canEdit }) {
   const status = stockStatus(item)
   const cfg    = STATUS_CONFIG[status]
   const StatusIcon = cfg.icon
@@ -452,8 +455,9 @@ function ItemRow({ item, onEdit }) {
             <span className="text-xs px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded font-medium">Chargeable</span>
           )}
           <button onClick={e => { e.stopPropagation(); onEdit(item) }}
-            className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors">
-            <Edit2 size={13} />
+            className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors"
+            title={canEdit ? 'Edit item' : 'View item'}>
+            {canEdit ? <Edit2 size={13} /> : <Eye size={13} />}
           </button>
         </div>
       </td>
@@ -463,7 +467,10 @@ function ItemRow({ item, onEdit }) {
 
 // ── Main Inventory Page ────────────────────────────────────────
 export default function SupplyInventory() {
-  const { organization, profile } = useAuth()
+  const { organization, profile, canEdit } = useAuth()
+  // Supply staff/supervisors/managers get edit by default for central_supply;
+  // org admins can grant/restrict per-user via Admin Panel > Module Access
+  const canEditSupply = canEdit('central_supply', ['supervisor','manager'])
   const [items,    setItems]    = useState([])
   const [vendors,  setVendors]  = useState([])
   const [loading,  setLoading]  = useState(true)
@@ -607,18 +614,22 @@ export default function SupplyInventory() {
             {showInactive ? <Eye size={13} /> : <EyeOff size={13} />}
             {showInactive ? 'Hiding inactive' : 'Show inactive'}
           </button>
-          <button onClick={() => setShowItemLabels(true)}
-            className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-medium transition-colors">
-            <Printer size={13} /> Item Labels
-          </button>
-          <button onClick={() => setShowResidentLabels(true)}
-            className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-medium transition-colors">
-            <Printer size={13} /> Resident IDs
-          </button>
-          <button onClick={handleNew}
-            className="flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl transition-colors shadow-sm">
-            <Plus size={15} /> Add Item
-          </button>
+          {canEditSupply && (
+            <>
+              <button onClick={() => setShowItemLabels(true)}
+                className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-medium transition-colors">
+                <Printer size={13} /> Item Labels
+              </button>
+              <button onClick={() => setShowResidentLabels(true)}
+                className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-medium transition-colors">
+                <Printer size={13} /> Resident IDs
+              </button>
+              <button onClick={handleNew}
+                className="flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl transition-colors shadow-sm">
+                <Plus size={15} /> Add Item
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -656,7 +667,7 @@ export default function SupplyInventory() {
                 ? 'Click "Add Item" to start building your supply catalog.'
                 : 'Try adjusting your search or filters.'}
             </p>
-            {items.length === 0 && (
+            {items.length === 0 && canEditSupply && (
               <button onClick={handleNew}
                 className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl transition-colors">
                 <Plus size={15} /> Add First Item
@@ -677,7 +688,7 @@ export default function SupplyInventory() {
               </thead>
               <tbody>
                 {filtered.map(item => (
-                  <ItemRow key={item.id} item={item} onEdit={handleEdit} />
+                  <ItemRow key={item.id} item={item} onEdit={handleEdit} canEdit={canEditSupply} />
                 ))}
               </tbody>
             </table>
@@ -696,6 +707,7 @@ export default function SupplyInventory() {
           vendors={vendors}
           orgId={organization.id}
           profileId={profile.id}
+          canEdit={canEditSupply}
           onClose={() => { setShowModal(false); setSelected(null) }}
           onSaved={handleSaved}
         />

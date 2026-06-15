@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import {
-  Plus, Search, X, Edit2, Trash2, Truck,
+  Plus, Search, X, Edit2, Trash2, Truck, Eye,
   Phone, Mail, Globe, Hash, Clock, FileText
 } from 'lucide-react'
 
-function VendorModal({ vendor, orgId, onClose, onSaved }) {
+function VendorModal({ vendor, orgId, canEdit, onClose, onSaved }) {
   const isNew = !vendor
+  const readOnly = !canEdit
   const [form, setForm] = useState({
     name:           vendor?.name           || '',
     contact_name:   vendor?.contact_name   || '',
@@ -50,7 +51,7 @@ function VendorModal({ vendor, orgId, onClose, onSaved }) {
           <h2 className="font-display font-semibold text-slate-800">{isNew ? 'Add Vendor' : 'Edit Vendor'}</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
         </div>
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+        <fieldset disabled={readOnly} className="flex-1 overflow-y-auto px-6 py-5 space-y-4 disabled:opacity-75">
           {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
           <div>
             <label className={labelCls}>Vendor Name *</label>
@@ -94,8 +95,8 @@ function VendorModal({ vendor, orgId, onClose, onSaved }) {
             <label className={labelCls}>Notes</label>
             <textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows={3} className={inputCls + ' resize-none'} />
           </div>
-          <div onClick={() => set('is_active', !form.is_active)}
-            className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${form.is_active ? 'bg-brand-50 border-brand-200' : 'bg-slate-50 border-slate-200'}`}>
+          <div onClick={() => !readOnly && set('is_active', !form.is_active)}
+            className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${readOnly ? 'cursor-default' : 'cursor-pointer'} ${form.is_active ? 'bg-brand-50 border-brand-200' : 'bg-slate-50 border-slate-200'}`}>
             <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${form.is_active ? 'bg-brand-600 border-brand-600' : 'border-slate-300 bg-white'}`}>
               {form.is_active && <svg width="10" height="10" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
             </div>
@@ -104,14 +105,16 @@ function VendorModal({ vendor, orgId, onClose, onSaved }) {
               <div className="text-xs text-slate-400">Show in vendor lists and purchase orders</div>
             </div>
           </div>
-        </div>
+        </fieldset>
         <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between flex-shrink-0">
-          <div>{!isNew && <button onClick={handleDelete} className="flex items-center gap-1.5 px-3 py-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg text-sm transition-colors"><Trash2 size={14} /> Delete</button>}</div>
+          <div>{!isNew && canEdit && <button onClick={handleDelete} className="flex items-center gap-1.5 px-3 py-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg text-sm transition-colors"><Trash2 size={14} /> Delete</button>}</div>
           <div className="flex gap-3">
-            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium hover:bg-slate-50 rounded-lg">Cancel</button>
-            <button onClick={handleSave} disabled={saving} className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
-              {saving ? 'Saving...' : isNew ? 'Add Vendor' : 'Save Changes'}
-            </button>
+            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium hover:bg-slate-50 rounded-lg">{canEdit ? 'Cancel' : 'Close'}</button>
+            {canEdit && (
+              <button onClick={handleSave} disabled={saving} className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
+                {saving ? 'Saving...' : isNew ? 'Add Vendor' : 'Save Changes'}
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -120,7 +123,8 @@ function VendorModal({ vendor, orgId, onClose, onSaved }) {
 }
 
 export default function SupplyVendors() {
-  const { organization } = useAuth()
+  const { organization, canEdit } = useAuth()
+  const canEditSupply = canEdit('central_supply', ['supervisor','manager'])
   const [vendors,  setVendors]  = useState([])
   const [loading,  setLoading]  = useState(true)
   const [search,   setSearch]   = useState('')
@@ -157,9 +161,11 @@ export default function SupplyVendors() {
           <button onClick={() => setShowInactive(!showInactive)} className={`px-3 py-2 rounded-xl text-xs font-medium border transition-all ${showInactive ? 'bg-slate-700 text-white border-slate-700' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}>
             {showInactive ? 'Showing inactive' : 'Show inactive'}
           </button>
-          <button onClick={() => { setSelected(null); setShowModal(true) }} className="flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl transition-colors shadow-sm">
-            <Plus size={15} /> Add Vendor
-          </button>
+          {canEditSupply && (
+            <button onClick={() => { setSelected(null); setShowModal(true) }} className="flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl transition-colors shadow-sm">
+              <Plus size={15} /> Add Vendor
+            </button>
+          )}
         </div>
       </div>
 
@@ -171,7 +177,7 @@ export default function SupplyVendors() {
             <Truck size={36} className="mx-auto mb-3 opacity-30" />
             <p className="font-display text-lg text-slate-600">{vendors.length === 0 ? 'No vendors yet' : 'No vendors match'}</p>
             <p className="text-sm mt-1">{vendors.length === 0 ? 'Add your first vendor to get started.' : 'Try adjusting your search.'}</p>
-            {vendors.length === 0 && <button onClick={() => { setSelected(null); setShowModal(true) }} className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl"><Plus size={15} /> Add Vendor</button>}
+            {vendors.length === 0 && canEditSupply && <button onClick={() => { setSelected(null); setShowModal(true) }} className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl"><Plus size={15} /> Add Vendor</button>}
           </div>
         ) : filtered.map(v => (
           <div key={v.id} className={`bg-white rounded-2xl border shadow-sm p-5 flex flex-col gap-3 hover:shadow-md transition-shadow ${!v.is_active ? 'opacity-60' : 'border-slate-100'}`}>
@@ -180,7 +186,9 @@ export default function SupplyVendors() {
                 <div className="font-display font-semibold text-slate-800">{v.name}</div>
                 {!v.is_active && <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">Inactive</span>}
               </div>
-              <button onClick={() => { setSelected(v); setShowModal(true) }} className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors"><Edit2 size={14} /></button>
+              <button onClick={() => { setSelected(v); setShowModal(true) }} className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors" title={canEditSupply ? 'Edit vendor' : 'View vendor'}>
+                {canEditSupply ? <Edit2 size={14} /> : <Eye size={14} />}
+              </button>
             </div>
             <div className="space-y-1.5 text-sm text-slate-600">
               {v.contact_name    && <div className="flex items-center gap-2"><FileText size={13} className="text-slate-400 flex-shrink-0" />{v.contact_name}</div>}
@@ -197,7 +205,7 @@ export default function SupplyVendors() {
         ))}
       </div>
 
-      {showModal && <VendorModal vendor={selected} orgId={organization.id} onClose={() => { setShowModal(false); setSelected(null) }} onSaved={() => { setShowModal(false); setSelected(null); fetchVendors() }} />}
+      {showModal && <VendorModal vendor={selected} orgId={organization.id} canEdit={canEditSupply} onClose={() => { setShowModal(false); setSelected(null) }} onSaved={() => { setShowModal(false); setSelected(null); fetchVendors() }} />}
     </div>
   )
 }

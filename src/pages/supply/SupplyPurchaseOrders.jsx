@@ -221,7 +221,7 @@ function CreatePOModal({ orgId, profileId, vendors, items, editPO, editLines, on
 }
 
 // ── Inline Receive Input ───────────────────────────────────────
-function ReceiveLineRow({ line, po, orgId, profileId, onDone }) {
+function ReceiveLineRow({ line, po, orgId, profileId, canEdit, onDone }) {
   const received  = Number(line.quantity_received)
   const ordered   = Number(line.quantity_ordered)
   const remaining = ordered - received
@@ -352,7 +352,7 @@ function ReceiveLineRow({ line, po, orgId, profileId, onDone }) {
         )}
       </td>
       <td className="px-4 py-3">
-        {po.status !== 'cancelled' && (
+        {po.status !== 'cancelled' && canEdit && (
           <div className="flex flex-col gap-1.5">
 
             {/* Receive row */}
@@ -411,7 +411,7 @@ function ReceiveLineRow({ line, po, orgId, profileId, onDone }) {
 }
 
 // ── PO Detail / Receive View ───────────────────────────────────
-function PODetail({ po, orgId, profileId, onBack, onRefresh, onEdit }) {
+function PODetail({ po, orgId, profileId, canEdit, onBack, onRefresh, onEdit }) {
   const [lines,    setLines]    = useState([])
   const [loading,  setLoading]  = useState(true)
   const [receiving,setReceiving]= useState(false)
@@ -526,7 +526,7 @@ function PODetail({ po, orgId, profileId, onBack, onRefresh, onEdit }) {
       </div>
 
       {/* Draft actions */}
-      {po.status === 'draft' && (
+      {po.status === 'draft' && canEdit && (
         <div className="flex items-center gap-2 mb-4">
           <button onClick={onEdit}
             className="flex items-center gap-2 px-4 py-2 border border-brand-200 text-brand-700 hover:bg-brand-50 text-sm font-medium rounded-xl transition-colors">
@@ -551,7 +551,7 @@ function PODetail({ po, orgId, profileId, onBack, onRefresh, onEdit }) {
       )}
 
       {/* Receive All button */}
-      {anyPending && po.status !== 'cancelled' && po.status !== 'draft' && (
+      {anyPending && po.status !== 'cancelled' && po.status !== 'draft' && canEdit && (
         <div className="flex justify-end mb-4">
           <button onClick={receiveAll} disabled={receiving}
             className="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 disabled:bg-green-300 text-white text-sm font-medium rounded-xl shadow-sm transition-colors">
@@ -581,6 +581,7 @@ function PODetail({ po, orgId, profileId, onBack, onRefresh, onEdit }) {
                 po={po}
                 orgId={orgId}
                 profileId={profileId}
+                canEdit={canEdit}
                 onDone={handleLineDone}
               />
             ))}
@@ -598,7 +599,8 @@ function PODetail({ po, orgId, profileId, onBack, onRefresh, onEdit }) {
 
 // ── Main Purchase Orders page ──────────────────────────────────
 export default function SupplyPurchaseOrders() {
-  const { organization, profile } = useAuth()
+  const { organization, profile, canEdit } = useAuth()
+  const canEditSupply = canEdit('central_supply', ['supervisor','manager'])
   const [pos,      setPos]      = useState([])
   const [vendors,  setVendors]  = useState([])
   const [items,    setItems]    = useState([])
@@ -625,8 +627,16 @@ export default function SupplyPurchaseOrders() {
     setLoading(false)
   }
 
+  const handleEditDraft = async (po) => {
+    const { data } = await supabase.from('supply_po_line_items')
+      .select('*').eq('po_id', po.id).order('sort_order')
+    setEditPOData(po)
+    setEditPOLines(data || [])
+    setSelectedPO(null)
+  }
+
   if (selectedPO) {
-    return <PODetail po={selectedPO} orgId={organization.id} profileId={profile.id} onBack={() => setSelectedPO(null)} onRefresh={() => { fetchAll(); setSelectedPO(null) }} onEdit={() => handleEditDraft(selectedPO)} />
+    return <PODetail po={selectedPO} orgId={organization.id} profileId={profile.id} canEdit={canEditSupply} onBack={() => setSelectedPO(null)} onRefresh={() => { fetchAll(); setSelectedPO(null) }} onEdit={() => handleEditDraft(selectedPO)} />
   }
 
   const filtered = pos.filter(p => {
@@ -647,9 +657,11 @@ export default function SupplyPurchaseOrders() {
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search PO number, vendor..." className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white" />
         </div>
-        <button onClick={() => setShowCreate(true)} className="flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl shadow-sm transition-colors">
-          <Plus size={15} /> New PO
-        </button>
+        {canEditSupply && (
+          <button onClick={() => setShowCreate(true)} className="flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl shadow-sm transition-colors">
+            <Plus size={15} /> New PO
+          </button>
+        )}
       </div>
 
       {/* Status filters */}
@@ -672,7 +684,7 @@ export default function SupplyPurchaseOrders() {
             <ClipboardList size={36} className="mx-auto mb-3 opacity-30" />
             <p className="font-display text-lg text-slate-600">{pos.length === 0 ? 'No purchase orders yet' : 'No POs match'}</p>
             <p className="text-sm mt-1">{pos.length === 0 ? 'Create your first PO to get started.' : 'Try adjusting filters.'}</p>
-            {pos.length === 0 && <button onClick={() => setShowCreate(true)} className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white text-sm font-medium rounded-xl"><Plus size={15} /> New PO</button>}
+            {pos.length === 0 && canEditSupply && <button onClick={() => setShowCreate(true)} className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white text-sm font-medium rounded-xl"><Plus size={15} /> New PO</button>}
           </div>
         ) : (
           <table className="w-full">
