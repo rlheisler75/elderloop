@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import CycleMenuBuilder from './CycleMenuBuilder'
 import {
-  Users, BookOpen, Printer, Plus, X, Edit2, Search,
+  Users, BookOpen, Printer, Plus, X, Edit2, Search, Eye,
   ChevronLeft, ChevronRight, AlertTriangle, Check,
   UtensilsCrossed, RefreshCw, ArrowRight, Clipboard, Link2
 } from 'lucide-react'
@@ -184,7 +184,7 @@ function ResidentPicker({ orgId, value, onSelect }) {
 }
 
 // ── Resident Profile Card ──────────────────────────────────────
-function ResidentCard({ resident, onEdit, onPrint }) {
+function ResidentCard({ resident, onEdit, onPrint, canEdit }) {
   const hasAllergens = resident.allergens?.length > 0
   const dir = resident.residents  // joined directory record
   const dietColor = {
@@ -239,8 +239,8 @@ function ResidentCard({ resident, onEdit, onPrint }) {
           <button onClick={() => onPrint(resident)} className="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 transition-colors" title="Print ticket">
             <Printer size={14} />
           </button>
-          <button onClick={() => onEdit(resident)} className="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 transition-colors">
-            <Edit2 size={14} />
+          <button onClick={() => onEdit(resident)} className="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 transition-colors" title={canEdit ? 'Edit profile' : 'View profile'}>
+            {canEdit ? <Edit2 size={14} /> : <Eye size={14} />}
           </button>
         </div>
       </div>
@@ -279,8 +279,9 @@ function ResidentCard({ resident, onEdit, onPrint }) {
 }
 
 // ── Resident Profile Modal ─────────────────────────────────────
-function ResidentProfileModal({ resident, menus, onClose, onSave }) {
+function ResidentProfileModal({ resident, menus, canEdit, onClose, onSave }) {
   const { profile, organization } = useAuth()
+  const readOnly = !canEdit
 
   // If editing an existing profile that has a joined residents record, restore it
   const initialLinked = resident?.residents || null
@@ -360,7 +361,7 @@ function ResidentProfileModal({ resident, menus, onClose, onSave }) {
           <h2 className="font-display font-semibold text-slate-800">{resident ? 'Edit Dietary Profile' : 'New Resident Profile'}</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
         </div>
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+        <fieldset disabled={readOnly} className="flex-1 overflow-y-auto px-6 py-5 space-y-5 disabled:opacity-75">
           {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
 
           {/* ── Link to Resident Directory ── */}
@@ -557,13 +558,15 @@ function ResidentProfileModal({ resident, menus, onClose, onSave }) {
             </select>
             <p className="text-xs text-slate-400 mt-1">Leave blank to use the org's active menu automatically.</p>
           </div>
-        </div>
+        </fieldset>
         <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 hover:text-slate-800 font-medium">Cancel</button>
-          <button onClick={handleSave} disabled={saving}
-            className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
-            {saving ? 'Saving...' : 'Save Profile'}
-          </button>
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 hover:text-slate-800 font-medium">{readOnly ? 'Close' : 'Cancel'}</button>
+          {!readOnly && (
+            <button onClick={handleSave} disabled={saving}
+              className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
+              {saving ? 'Saving...' : 'Save Profile'}
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -812,7 +815,10 @@ function PrintTicket({ resident, menus, onClose }) {
 
 // ── Main Dietary Page ──────────────────────────────────────────
 export default function Dietary() {
-  const { profile, organization } = useAuth()
+  const { profile, organization, canEdit } = useAuth()
+  // Dietary/kitchen staff, supervisors, and managers get edit by default;
+  // org admins can override per-user via Admin Panel > Module Access
+  const canEditDietary = canEdit('dietary', ['dietary','supervisor','manager'])
   const [tab, setTab]               = useState('residents')
   const [residents, setResidents]   = useState([])
   const [menus, setMenus]           = useState([])
@@ -881,7 +887,7 @@ export default function Dietary() {
           <h1 className="font-display text-2xl font-semibold text-slate-800">Dietary</h1>
           <p className="text-slate-500 text-sm mt-0.5">Resident profiles, dietary restrictions, and cycle menus</p>
         </div>
-        {tab === 'residents' && (
+        {tab === 'residents' && canEditDietary && (
           <button onClick={handleNew}
             className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
             <Plus size={16} /> New Resident Profile
@@ -938,7 +944,7 @@ export default function Dietary() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filtered.map(r => (
-                <ResidentCard key={r.id} resident={r} onEdit={handleEdit} onPrint={handlePrint} />
+                <ResidentCard key={r.id} resident={r} onEdit={handleEdit} onPrint={handlePrint} canEdit={canEditDietary} />
               ))}
             </div>
           )}
@@ -953,12 +959,13 @@ export default function Dietary() {
           onRefresh={fetchAll}
           orgId={organization.id}
           userId={profile.id}
+          canEdit={canEditDietary}
         />
       )}
 
       {/* Modals */}
       {showProfileModal && (
-        <ResidentProfileModal resident={editResident} menus={menus} onClose={() => setShowProfileModal(false)} onSave={handleSave} />
+        <ResidentProfileModal resident={editResident} menus={menus} canEdit={canEditDietary} onClose={() => setShowProfileModal(false)} onSave={handleSave} />
       )}
       {printResident && (
         <PrintTicket resident={printResident} menus={menus} onClose={() => setPrintResident(null)} />

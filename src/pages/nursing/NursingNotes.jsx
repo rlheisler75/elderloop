@@ -913,15 +913,17 @@ function ResidentPanel({ resident, orgId, profile, canEdit, onSaved }) {
 
 // ── Main Nursing Notes Page ────────────────────────────────────
 export default function NursingNotes() {
-  const { profile, organization } = useAuth()
+  const { profile, organization, canEdit } = useAuth()
   const [residents, setResidents]     = useState([])
   const [selected, setSelected]       = useState(null)
   const [search, setSearch]           = useState('')
   const [loading, setLoading]         = useState(true)
   const [todayStats, setTodayStats]   = useState({ vitalsToday: 0, notesToday: 0, flagged: 0 })
 
-  const canEditNursing =
-    ['org_admin','ceo','super_admin','supervisor','manager','nursing'].includes(profile?.role)
+  // Nursing/supervisor/manager get edit by default; org admins can override
+  // per-user via Admin Panel > Module Access (grant edit to other roles, or
+  // downgrade a nursing-role user to view-only)
+  const canEditNursing = canEdit('nursing', ['nursing','supervisor','manager'])
 
   useEffect(() => { if (organization) fetchAll() }, [organization])
 
