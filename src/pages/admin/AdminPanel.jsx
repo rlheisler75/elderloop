@@ -147,28 +147,6 @@ function CreateUserModal({ orgId, orgName, onClose, onSave }) {
         </div>
         <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
           <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
-          {/* ── Messaging Departments ── */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-              Family Messaging Departments
-            </label>
-            <p className="text-xs text-slate-400 mb-2">Departments families can send messages to. Drag to reorder — not yet; add/remove to customize.</p>
-            <div className="space-y-1.5 mb-2">
-              {msgDepts.map((d, idx) => (
-                <div key={idx} className="flex items-center gap-2">
-                  <input value={d.label} onChange={e => setMsgDepts(ds => ds.map((x,i) => i===idx ? {...x, label: e.target.value, key: e.target.value.toLowerCase().replace(/\s+/g,'_')} : x))}
-                    className="flex-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
-                  <button onClick={() => setMsgDepts(ds => ds.filter((_,i) => i!==idx))}
-                    className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg"><X size={14} /></button>
-                </div>
-              ))}
-            </div>
-            <button onClick={() => setMsgDepts(ds => [...ds, {key:'new_dept',label:'New Department'}])}
-              className="flex items-center gap-1.5 text-xs text-brand-600 hover:text-brand-800 font-medium">
-              + Add Department
-            </button>
-          </div>
-
           <button onClick={handleSave} disabled={saving}
             className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
             {saving ? 'Creating...' : 'Create User'}
@@ -318,28 +296,6 @@ function EditUserModal({ user, onClose, onSave }) {
 
         <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
           <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
-          {/* ── Messaging Departments ── */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-              Family Messaging Departments
-            </label>
-            <p className="text-xs text-slate-400 mb-2">Departments families can send messages to. Drag to reorder — not yet; add/remove to customize.</p>
-            <div className="space-y-1.5 mb-2">
-              {msgDepts.map((d, idx) => (
-                <div key={idx} className="flex items-center gap-2">
-                  <input value={d.label} onChange={e => setMsgDepts(ds => ds.map((x,i) => i===idx ? {...x, label: e.target.value, key: e.target.value.toLowerCase().replace(/\s+/g,'_')} : x))}
-                    className="flex-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
-                  <button onClick={() => setMsgDepts(ds => ds.filter((_,i) => i!==idx))}
-                    className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg"><X size={14} /></button>
-                </div>
-              ))}
-            </div>
-            <button onClick={() => setMsgDepts(ds => [...ds, {key:'new_dept',label:'New Department'}])}
-              className="flex items-center gap-1.5 text-xs text-brand-600 hover:text-brand-800 font-medium">
-              + Add Department
-            </button>
-          </div>
-
           <button onClick={handleSave} disabled={saving}
             className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
             {saving ? 'Saving...' : 'Save Changes'}
@@ -369,6 +325,14 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
       {key:'activities',label:'Activities'},{key:'administration',label:'Administration'},
       {key:'social_work',label:'Social Work'},{key:'maintenance',label:'Maintenance'},
       {key:'front_desk',label:'Front Desk'},
+    ]
+  )
+  const [schedDepts, setSchedDepts] = useState(
+    org.scheduling_departments || [
+      {key:'nursing',label:'Nursing'},{key:'dietary',label:'Dietary'},
+      {key:'maintenance',label:'Maintenance'},{key:'housekeeping',label:'Housekeeping'},
+      {key:'transportation',label:'Transportation'},{key:'administration',label:'Administration'},
+      {key:'activities',label:'Activities'},{key:'security',label:'Security'},
     ]
   )
   const [enabledModules, setEnabledModules] = useState(
@@ -401,6 +365,8 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
       name: form.name, address: form.address, city: form.city,
       state: form.state, zip: form.zip, phone: form.phone,
       website: form.website, logo_url: logoUrl || null,
+      messaging_departments: msgDepts,
+      scheduling_departments: schedDepts,
       updated_at: new Date().toISOString()
     }).eq('id', org.id)
 
@@ -490,15 +456,13 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
               ))}
             </div>
           </div>
-        </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
-          {/* ── Messaging Departments ── */}
+
+          {/* ── Family Messaging Departments ── */}
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
               Family Messaging Departments
             </label>
-            <p className="text-xs text-slate-400 mb-2">Departments families can send messages to. Drag to reorder — not yet; add/remove to customize.</p>
+            <p className="text-xs text-slate-400 mb-2">Departments families can send messages to from the Family Portal.</p>
             <div className="space-y-1.5 mb-2">
               {msgDepts.map((d, idx) => (
                 <div key={idx} className="flex items-center gap-2">
@@ -515,6 +479,30 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
             </button>
           </div>
 
+          {/* ── Scheduling Departments ── */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+              Scheduling Departments
+            </label>
+            <p className="text-xs text-slate-400 mb-2">Departments available when building shift schedules and templates.</p>
+            <div className="space-y-1.5 mb-2">
+              {schedDepts.map((d, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <input value={d.label} onChange={e => setSchedDepts(ds => ds.map((x,i) => i===idx ? {...x, label: e.target.value, key: e.target.value.toLowerCase().replace(/\s+/g,'_')} : x))}
+                    className="flex-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                  <button onClick={() => setSchedDepts(ds => ds.filter((_,i) => i!==idx))}
+                    className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg"><X size={14} /></button>
+                </div>
+              ))}
+            </div>
+            <button onClick={() => setSchedDepts(ds => [...ds, {key:'new_dept',label:'New Department'}])}
+              className="flex items-center gap-1.5 text-xs text-brand-600 hover:text-brand-800 font-medium">
+              + Add Department
+            </button>
+          </div>
+        </div>
+        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
             {saving ? 'Saving...' : 'Save Settings'}
@@ -590,28 +578,6 @@ function NewOrgModal({ allModules, onClose, onSave }) {
         </div>
         <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
           <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
-          {/* ── Messaging Departments ── */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-              Family Messaging Departments
-            </label>
-            <p className="text-xs text-slate-400 mb-2">Departments families can send messages to. Drag to reorder — not yet; add/remove to customize.</p>
-            <div className="space-y-1.5 mb-2">
-              {msgDepts.map((d, idx) => (
-                <div key={idx} className="flex items-center gap-2">
-                  <input value={d.label} onChange={e => setMsgDepts(ds => ds.map((x,i) => i===idx ? {...x, label: e.target.value, key: e.target.value.toLowerCase().replace(/\s+/g,'_')} : x))}
-                    className="flex-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
-                  <button onClick={() => setMsgDepts(ds => ds.filter((_,i) => i!==idx))}
-                    className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg"><X size={14} /></button>
-                </div>
-              ))}
-            </div>
-            <button onClick={() => setMsgDepts(ds => [...ds, {key:'new_dept',label:'New Department'}])}
-              className="flex items-center gap-1.5 text-xs text-brand-600 hover:text-brand-800 font-medium">
-              + Add Department
-            </button>
-          </div>
-
           <button onClick={handleSave} disabled={saving}
             className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
             {saving ? 'Creating...' : 'Create Organization'}
@@ -644,7 +610,7 @@ export default function AdminPanel() {
   const [editingOrg, setEditingOrg]           = useState(null)
   const [showNewOrg, setShowNewOrg]           = useState(false)
 
-  const superAdmin = isSuperAdmin()
+  const superAdmin = isSuperAdmin
   const currentOrgId = selectedOrg?.id || organization?.id
 
   useEffect(() => { fetchAll() }, [organization])

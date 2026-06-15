@@ -133,10 +133,11 @@ function PrintResidentCard({ resident, emergencyContacts, medicalContacts, orgNa
 }
 
 // ── Resident Detail / Edit ─────────────────────────────────────
-function ResidentDetail({ resident, onClose, onSave }) {
+function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
   const { profile } = useAuth()
   const fileRef = useRef()
   const isNew = !resident
+  const readOnly = !canEdit  // view-only users see all info but cannot modify
 
   const [form, setForm] = useState({
     first_name:         resident?.first_name         || '',
@@ -311,7 +312,7 @@ function ResidentDetail({ resident, onClose, onSave }) {
 
           {/* INFO TAB */}
           {tab === 'info' && (
-            <div className="space-y-4">
+            <fieldset disabled={readOnly} className="space-y-4 disabled:opacity-75">
               {/* Photo */}
               <div className="flex items-center gap-4">
                 <div className="relative">
@@ -322,11 +323,13 @@ function ResidentDetail({ resident, onClose, onSave }) {
                       {form.first_name?.[0] || '?'}
                     </div>
                   )}
-                  <button onClick={() => fileRef.current.click()}
-                    className="absolute -bottom-2 -right-2 w-7 h-7 bg-brand-600 text-white rounded-full flex items-center justify-center shadow hover:bg-brand-700 transition-colors">
-                    <Camera size={13} />
-                  </button>
-                  <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                  {!readOnly && (
+                    <button onClick={() => fileRef.current.click()}
+                      className="absolute -bottom-2 -right-2 w-7 h-7 bg-brand-600 text-white rounded-full flex items-center justify-center shadow hover:bg-brand-700 transition-colors">
+                      <Camera size={13} />
+                    </button>
+                  )}
+                  <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={readOnly} />
                 </div>
                 <div className="text-xs text-slate-400">
                   {uploading ? 'Uploading...' : 'Click the camera to upload a photo'}
@@ -408,8 +411,8 @@ function ResidentDetail({ resident, onClose, onSave }) {
               </div>
 
               {/* Resident directory visibility */}
-              <div className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${form.show_in_directory ? 'bg-green-50 border-green-200' : 'bg-slate-50 border-slate-200'}`}
-                onClick={() => set('show_in_directory', !form.show_in_directory)}>
+              <div className={`flex items-start gap-3 p-4 rounded-xl border transition-all ${readOnly ? 'cursor-default' : 'cursor-pointer'} ${form.show_in_directory ? 'bg-green-50 border-green-200' : 'bg-slate-50 border-slate-200'}`}
+                onClick={() => !readOnly && set('show_in_directory', !form.show_in_directory)}>
                 <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${form.show_in_directory ? 'bg-green-500 border-green-500' : 'border-slate-300 bg-white'}`}>
                   {form.show_in_directory && <Check size={12} className="text-white" />}
                 </div>
@@ -420,12 +423,12 @@ function ResidentDetail({ resident, onClose, onSave }) {
                   </div>
                 </div>
               </div>
-            </div>
+            </fieldset>
           )}
 
           {/* EMERGENCY CONTACTS TAB */}
           {tab === 'emergency' && (
-            <div className="space-y-3">
+            <fieldset disabled={readOnly} className="space-y-3 disabled:opacity-75">
               {isNew && (
                 <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-700">
                   Save the resident info first before adding contacts.
@@ -475,12 +478,12 @@ function ResidentDetail({ resident, onClose, onSave }) {
                   <Plus size={15} /> Add Emergency Contact
                 </button>
               )}
-            </div>
+            </fieldset>
           )}
 
           {/* MEDICAL CONTACTS TAB */}
           {tab === 'medical' && (
-            <div className="space-y-3">
+            <fieldset disabled={readOnly} className="space-y-3 disabled:opacity-75">
               {isNew && (
                 <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-700">
                   Save the resident info first before adding contacts.
@@ -521,23 +524,33 @@ function ResidentDetail({ resident, onClose, onSave }) {
                   <Plus size={15} /> Add Medical Contact
                 </button>
               )}
-            </div>
+            </fieldset>
           )}
         </div>
 
         {/* Footer — only show save on info tab */}
-        {tab === 'info' && (
-          <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
-            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
-            <button onClick={handleSaveInfo} disabled={saving}
-              className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
-              {saving ? 'Saving...' : isNew ? 'Add Resident' : 'Save Changes'}
-            </button>
+        {tab === 'info' && !readOnly && (
+          <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between gap-3 flex-shrink-0">
+            {!isNew ? (
+              <button onClick={() => onDelete(resident.id)}
+                className="px-4 py-2 text-sm text-red-500 hover:bg-red-50 rounded-lg font-medium transition-colors">
+                Deactivate Resident
+              </button>
+            ) : <div />}
+            <div className="flex gap-3">
+              <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+              <button onClick={handleSaveInfo} disabled={saving}
+                className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
+                {saving ? 'Saving...' : isNew ? 'Add Resident' : 'Save Changes'}
+              </button>
+            </div>
           </div>
         )}
-        {tab !== 'info' && (
+        {(tab !== 'info' || readOnly) && (
           <div className="px-6 py-4 border-t border-slate-100 flex justify-end flex-shrink-0">
-            <button onClick={onClose} className="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg transition-colors">Done</button>
+            <button onClick={onClose} className="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg transition-colors">
+              {readOnly && tab === 'info' ? 'Close' : 'Done'}
+            </button>
           </div>
         )}
       </div>
@@ -556,7 +569,8 @@ function ResidentDetail({ resident, onClose, onSave }) {
 
 // ── Main Directory Page ────────────────────────────────────────
 export default function ResidentDirectory() {
-  const { organization } = useAuth()
+  const { organization, canEdit, isOrgAdmin } = useAuth()
+  const canEditDirectory = canEdit('directory') || isOrgAdmin
   const [residents, setResidents]   = useState([])
   const [loading, setLoading]       = useState(true)
   const [search, setSearch]         = useState('')
@@ -581,8 +595,9 @@ export default function ResidentDirectory() {
   const handleNew    = () => { setSelected(null); setShowDetail(true) }
   const handleSave   = () => { setShowDetail(false); setSelected(null); fetchResidents() }
   const handleDelete = async (id) => {
-    if (!confirm('Remove this resident from the directory?')) return
+    if (!confirm('Deactivate this resident? They will be removed from the directory but their records will be retained.')) return
     await supabase.from('residents').update({ is_active: false }).eq('id', id)
+    setShowDetail(false); setSelected(null)
     fetchResidents()
   }
 
@@ -612,10 +627,12 @@ export default function ResidentDirectory() {
           <h1 className="font-display text-2xl font-semibold text-slate-800">Resident Directory</h1>
           <p className="text-slate-500 text-sm mt-0.5">{residents.length} resident{residents.length !== 1 ? 's' : ''} on file</p>
         </div>
-        <button onClick={handleNew}
-          className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
-          <Plus size={15} /> Add Resident
-        </button>
+        {canEditDirectory && (
+          <button onClick={handleNew}
+            className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
+            <Plus size={15} /> Add Resident
+          </button>
+        )}
       </div>
 
       {/* Care level stats */}
@@ -734,8 +751,10 @@ export default function ResidentDirectory() {
       {showDetail && (
         <ResidentDetail
           resident={selected}
+          canEdit={canEditDirectory}
           onClose={() => { setShowDetail(false); setSelected(null) }}
-          onSave={handleSave} />
+          onSave={handleSave}
+          onDelete={handleDelete} />
       )}
     </div>
   )
