@@ -161,7 +161,10 @@ function PostUpdateModal({ residents, orgId, profile, onClose, onSaved }) {
 
 // ── Main Family Messaging (Staff Side) ─────────────────────────
 export default function FamilyMessaging() {
-  const { profile, organization } = useAuth()
+  const { profile, organization, canEdit } = useAuth()
+  // Supervisors/managers get edit (reply + post updates) by default for family
+  // messaging; org admins can grant/restrict per-user via Admin Panel > Module Access
+  const canEditMessaging = canEdit('family', ['supervisor','manager'])
   const DEPTS = organization?.messaging_departments?.length ? organization.messaging_departments : [
     {key:'nursing',label:'Nursing'},{key:'dietary',label:'Dietary'},
     {key:'activities',label:'Activities'},{key:'administration',label:'Administration'},
@@ -296,10 +299,12 @@ export default function FamilyMessaging() {
           <h1 className="font-display text-2xl font-semibold text-slate-800">Family Communication</h1>
           <p className="text-slate-500 text-sm mt-0.5">Manage family messages and resident updates</p>
         </div>
-        <button onClick={() => setShowPostUpdate(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
-          <Plus size={15} /> Post Resident Update
-        </button>
+        {canEditMessaging && (
+          <button onClick={() => setShowPostUpdate(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
+            <Plus size={15} /> Post Resident Update
+          </button>
+        )}
       </div>
 
       {/* Stats */}
@@ -423,31 +428,37 @@ export default function FamilyMessaging() {
                 </div>
 
                 {/* Reply box */}
-                <div className="p-4 border-t border-slate-100 flex-shrink-0">
-                  {attachment && (
-                    <div className="flex items-center gap-2 mb-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg text-xs">
-                      <Paperclip size={12} className="text-green-600" />
-                      <span className="flex-1 truncate text-green-700">{attachment.name}</span>
-                      <button onClick={() => setAttachment(null)} className="text-slate-400 hover:text-red-500"><X size={12} /></button>
+                {canEditMessaging ? (
+                  <div className="p-4 border-t border-slate-100 flex-shrink-0">
+                    {attachment && (
+                      <div className="flex items-center gap-2 mb-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg text-xs">
+                        <Paperclip size={12} className="text-green-600" />
+                        <span className="flex-1 truncate text-green-700">{attachment.name}</span>
+                        <button onClick={() => setAttachment(null)} className="text-slate-400 hover:text-red-500"><X size={12} /></button>
+                      </div>
+                    )}
+                    <div className="flex gap-2 items-end">
+                      <button onClick={() => fileRef.current.click()}
+                        className="p-2 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 transition-colors flex-shrink-0">
+                        <Paperclip size={16} />
+                      </button>
+                      <textarea value={reply} onChange={e => setReply(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleReply() } }}
+                        rows={2} placeholder="Reply to family... (Enter to send)"
+                        className="flex-1 px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none" />
+                      <button onClick={handleReply} disabled={!reply.trim() || sending}
+                        className="p-2.5 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white rounded-xl transition-colors flex-shrink-0">
+                        <Send size={16} />
+                      </button>
                     </div>
-                  )}
-                  <div className="flex gap-2 items-end">
-                    <button onClick={() => fileRef.current.click()}
-                      className="p-2 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 transition-colors flex-shrink-0">
-                      <Paperclip size={16} />
-                    </button>
-                    <textarea value={reply} onChange={e => setReply(e.target.value)}
-                      onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleReply() } }}
-                      rows={2} placeholder="Reply to family... (Enter to send)"
-                      className="flex-1 px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none" />
-                    <button onClick={handleReply} disabled={!reply.trim() || sending}
-                      className="p-2.5 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white rounded-xl transition-colors flex-shrink-0">
-                      <Send size={16} />
-                    </button>
+                    <input ref={fileRef} type="file" accept="image/*,.pdf,.doc,.docx" className="hidden"
+                      onChange={e => setAttachment(e.target.files?.[0] || null)} />
                   </div>
-                  <input ref={fileRef} type="file" accept="image/*,.pdf,.doc,.docx" className="hidden"
-                    onChange={e => setAttachment(e.target.files?.[0] || null)} />
-                </div>
+                ) : (
+                  <div className="p-4 border-t border-slate-100 flex-shrink-0 text-center text-xs text-slate-400">
+                    View-only access — you don't have permission to reply to family messages.
+                  </div>
+                )}
               </>
             )}
           </div>

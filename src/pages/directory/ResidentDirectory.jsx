@@ -5,7 +5,7 @@ import {
   Plus, X, Edit2, Trash2, Search, Printer, Phone,
   Mail, MapPin, User, Heart, Stethoscope, Calendar,
   ChevronRight, Upload, Camera, Shield, Building2,
-  AlertTriangle, Check
+  AlertTriangle, Check, Wifi, WifiOff
 } from 'lucide-react'
 
 const CARE_LEVELS = [
@@ -138,6 +138,54 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
   const fileRef = useRef()
   const isNew = !resident
   const readOnly = !canEdit  // view-only users see all info but cannot modify
+  const { organization } = useAuth()
+  const [portalEmail,    setPortalEmail]    = useState('')
+  const [showPortalForm, setShowPortalForm] = useState(false)
+  const [portalSaving,   setPortalSaving]   = useState(false)
+  const [portalError,    setPortalError]    = useState('')
+  const [portalSuccess,  setPortalSuccess]  = useState('')
+  // Linked profile email — resolved from resident.profile_id
+  const [linkedEmail,    setLinkedEmail]    = useState(resident?.profiles?.email || '')
+
+  // Re-resolve if resident changes
+  useEffect(() => {
+    if (resident?.profile_id && !linkedEmail) {
+      supabase.from('profiles').select('email').eq('id', resident.profile_id).limit(1)
+        .then(({ data }) => { if (data?.[0]?.email) setLinkedEmail(data[0].email) })
+    }
+  }, [resident?.profile_id])
+
+  const handleEnablePortal = async () => {
+    if (!portalEmail.trim()) { setPortalError('Email address is required'); return }
+    setPortalSaving(true); setPortalError('')
+    const { data: { session } } = await supabase.auth.getSession()
+    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/enable-resident-portal`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'enable', email: portalEmail.trim(), resident_id: resident.id, organization_id: organization.id })
+    })
+    const result = await res.json()
+    setPortalSaving(false)
+    if (!result.success) { setPortalError(result.error); return }
+    setLinkedEmail(portalEmail.trim())
+    setShowPortalForm(false)
+    setPortalEmail('')
+    setPortalSuccess('Portal access enabled — welcome email sent!')
+    setTimeout(() => setPortalSuccess(''), 4000)
+  }
+
+  const handleRemovePortal = async () => {
+    if (!confirm('Remove portal access for this resident? They will no longer be able to log in.')) return
+    setPortalSaving(true)
+    const { data: { session } } = await supabase.auth.getSession()
+    await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/enable-resident-portal`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'disable', resident_id: resident.id })
+    })
+    setPortalSaving(false)
+    setLinkedEmail('')
+  }
 
   const [form, setForm] = useState({
     first_name:         resident?.first_name         || '',
@@ -409,6 +457,54 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
                 </div>
               </div>
+
+              {/* Portal Access */}
+              {!isNew && canEdit && (
+                <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {linkedEmail ? <Wifi size={15} className="text-green-500" /> : <WifiOff size={15} className="text-slate-400" />}
+                      <span className="text-sm font-medium text-slate-700">Resident Portal Access</span>
+                    </div>
+                    {linkedEmail ? (
+                      <button onClick={handleRemovePortal} disabled={portalSaving}
+                        className="text-xs text-red-500 hover:text-red-700 font-medium transition-colors">
+                        {portalSaving ? 'Removing...' : 'Remove Access'}
+                      </button>
+                    ) : (
+                      <button onClick={() => setShowPortalForm(v => !v)}
+                        className="text-xs text-brand-600 hover:text-brand-800 font-medium transition-colors">
+                        {showPortalForm ? 'Cancel' : '+ Enable Access'}
+                      </button>
+                    )}
+                  </div>
+
+                  {linkedEmail ? (
+                    <p className="text-xs text-green-700">Active · <span className="font-mono">{linkedEmail}</span></p>
+                  ) : (
+                    <p className="text-xs text-slate-400">No portal account — resident cannot log in yet.</p>
+                  )}
+
+                  {showPortalForm && !linkedEmail && (
+                    <div className="pt-2 space-y-2">
+                      <input
+                        value={portalEmail}
+                        onChange={e => setPortalEmail(e.target.value)}
+                        placeholder="Resident's email address"
+                        type="email"
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                      />
+                      {portalError && <p className="text-xs text-red-500">{portalError}</p>}
+                      <button onClick={handleEnablePortal} disabled={portalSaving}
+                        className="w-full py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
+                        {portalSaving ? 'Setting up...' : 'Send Welcome Email'}
+                      </button>
+                    </div>
+                  )}
+
+                  {portalSuccess && <p className="text-xs text-green-600 font-medium">{portalSuccess}</p>}
+                </div>
+              )}
 
               {/* Resident directory visibility */}
               <div className={`flex items-start gap-3 p-4 rounded-xl border transition-all ${readOnly ? 'cursor-default' : 'cursor-pointer'} ${form.show_in_directory ? 'bg-green-50 border-green-200' : 'bg-slate-50 border-slate-200'}`}

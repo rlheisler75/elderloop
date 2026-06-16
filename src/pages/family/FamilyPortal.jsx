@@ -77,8 +77,8 @@ const UPDATE_ICONS = {
   photo:       { icon: Camera,         bg: 'bg-pink-50',   color: 'text-pink-500' },
 }
 
-// DEPARTMENTS is now fetched dynamically from org settings
-const DEPARTMENTS = [] // fallback — overridden by org.messaging_departments
+// Departments are fetched dynamically from org settings (organization.messaging_departments),
+// falling back to DEPARTMENTS_DEFAULT below if not configured.
 const DEPARTMENTS_DEFAULT = [
   { key: 'nursing',        label: 'Nursing' },
   { key: 'dietary',        label: 'Dietary' },
@@ -229,9 +229,11 @@ function MaintenanceModal({ resident, orgId, profile, onClose, onSubmitted }) {
 
 // ── New Message Modal ─────────────────────────────────────────
 function NewMessageModal({ resident, orgId, profile, onClose, onSent }) {
+  const { organization } = useAuth()
   const [form, setForm] = useState({ department: 'front_desk', subject: '', body: '' })
   const [sending, setSending] = useState(false)
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+  const depts = organization?.messaging_departments?.length ? organization.messaging_departments : DEPARTMENTS_DEFAULT
 
   const handleSend = async () => {
     if (!form.body.trim()) return
@@ -268,7 +270,7 @@ function NewMessageModal({ resident, orgId, profile, onClose, onSent }) {
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Send To</label>
             <select value={form.department} onChange={e => set('department', e.target.value)}
               className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-              {(organization?.messaging_departments || DEPARTMENTS).map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
+              {depts.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
             </select>
           </div>
           <div>
@@ -1123,7 +1125,9 @@ export default function FamilyPortal() {
                       <p className="text-sm mt-1">Check back for this week's schedule.</p>
                     </div>
                   ) : activities.map(a => {
-                    const isToday = a.start_date === new Date().toISOString().split('T')[0]
+                    const _now = new Date()
+                    const todayLocal = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`
+                    const isToday = a.start_date === todayLocal
                     return (
                       <div key={a.id} className={`bg-white rounded-2xl border shadow-sm p-4 ${isToday ? 'border-brand-200' : 'border-slate-100'}`}>
                         <div className="flex items-start gap-3">
