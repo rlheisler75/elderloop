@@ -157,28 +157,37 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
 
   const handleEnablePortal = async () => {
     if (!portalEmail.trim()) { setPortalError('Email address is required'); return }
-    setPortalSaving(true); setPortalError('')
-    const { data: { session } } = await supabase.auth.getSession()
-    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/enable-resident-portal`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'enable', email: portalEmail.trim(), resident_id: resident.id, organization_id: organization.id })
-    })
-    const result = await res.json()
+    setPortalSaving(true); setPortalError(''); setPortalSuccess('')
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const fnUrl = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/+$/, '') + '/functions/v1/enable-resident-portal'
+      const res = await fetch(fnUrl, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'enable', email: portalEmail.trim().toLowerCase(), resident_id: resident.id, organization_id: organization.id })
+      })
+      const result = await res.json()
+      if (!result.success) {
+        setPortalError(typeof result.error === 'string' ? result.error : `Error: ${res.status} — ${JSON.stringify(result)}`)
+        setPortalSaving(false); return
+      }
+      setLinkedEmail(portalEmail.trim().toLowerCase())
+      setShowPortalForm(false)
+      setPortalEmail('')
+      setPortalSuccess('Portal access enabled — welcome email sent!')
+      setTimeout(() => setPortalSuccess(''), 5000)
+    } catch (err) {
+      setPortalError(`Request failed: ${err.message}`)
+    }
     setPortalSaving(false)
-    if (!result.success) { setPortalError(result.error); return }
-    setLinkedEmail(portalEmail.trim())
-    setShowPortalForm(false)
-    setPortalEmail('')
-    setPortalSuccess('Portal access enabled — welcome email sent!')
-    setTimeout(() => setPortalSuccess(''), 4000)
   }
 
   const handleRemovePortal = async () => {
     if (!confirm('Remove portal access for this resident? They will no longer be able to log in.')) return
     setPortalSaving(true)
     const { data: { session } } = await supabase.auth.getSession()
-    await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/enable-resident-portal`, {
+    const fnUrl2 = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/+$/, '') + '/functions/v1/enable-resident-portal'
+    await fetch(fnUrl2, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'disable', resident_id: resident.id })
@@ -679,7 +688,7 @@ export default function ResidentDirectory() {
   async function fetchResidents() {
     setLoading(true)
     const { data } = await supabase.from('residents')
-      .select('*, resident_emergency_contacts(id, name, is_primary, phone, relationship)')
+      .select('*, profiles(email), resident_emergency_contacts(id, name, is_primary, phone, relationship)')
       .eq('organization_id', organization.id)
       .eq('is_active', true)
       .order('last_name').order('first_name')
