@@ -688,7 +688,7 @@ export default function ResidentDirectory() {
   async function fetchResidents() {
     setLoading(true)
     const { data } = await supabase.from('residents')
-      .select('*, profiles(email), resident_emergency_contacts(id, name, is_primary, phone, relationship)')
+      .select('*, resident_emergency_contacts(id, name, is_primary, phone, relationship)')
       .eq('organization_id', organization.id)
       .eq('is_active', true)
       .order('last_name').order('first_name')
