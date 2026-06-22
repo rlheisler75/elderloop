@@ -12,56 +12,64 @@ const PLANS = [
   {
     key:     'starter',
     name:    'Starter',
-    price:   199,
-    period:  '/mo',
-    desc:    'Great for smaller communities',
-    priceId: import.meta.env.VITE_STRIPE_PRICE_STARTER,
+    price:   0,
+    period:  'Free forever',
+    desc:    'Get started at no cost — core modules included.',
+    priceId: null, // Free plan — no Stripe checkout
     color:   'border-slate-200',
     badge:   null,
     features: [
-      'Up to 75 residents',
-      'Communication & Signage',
-      'Activities Calendar',
-      'Maintenance Module',
+      'Up to 50 residents & 10 staff',
       'Resident Directory',
-      'Email support',
+      'Staff Management & Staff Directory',
+      'Communication (no SMS)',
+      'Family Messaging',
+      'Community support',
     ],
   },
   {
-    key:     'community',
-    name:    'Community',
-    price:   349,
+    key:     'essential',
+    name:    'Essential',
+    price:   299,
     period:  '/mo',
-    desc:    'Everything to run a full operation',
-    priceId: import.meta.env.VITE_STRIPE_PRICE_COMMUNITY,
+    desc:    'Starter plus clinical and programming modules, no limits.',
+    priceId: import.meta.env.VITE_STRIPE_PRICE_ESSENTIAL,
+    color:   'border-slate-200',
+    badge:   null,
+    features: [
+      'Everything in Starter — no limits',
+      'SMS messaging unlocked',
+      'Chapel',
+      'Activities & Event Calendar',
+      'Incident Reports',
+      'Nursing Notes & Vitals',
+      'Priority email support',
+    ],
+  },
+  {
+    key:     'professional',
+    name:    'Professional',
+    price:   999,
+    period:  '/mo',
+    desc:    'The full platform — every module, every feature.',
+    priceId: import.meta.env.VITE_STRIPE_PRICE_PROFESSIONAL,
     color:   'border-brand-500',
     badge:   'Most Popular',
     features: [
-      'Unlimited residents',
-      'All modules included',
-      'GPS time clock & security rounds',
-      'Dietary & cycle menus',
-      'Marketing & lead pipeline',
-      'Property management',
-      'Priority support + onboarding',
-    ],
-  },
-  {
-    key:     'enterprise',
-    name:    'Enterprise',
-    price:   null,
-    period:  '',
-    desc:    'Multi-location operators',
-    priceId: null,
-    color:   'border-slate-200',
-    badge:   null,
-    features: [
-      'Multiple communities',
-      'Centralized admin dashboard',
-      'Custom module configuration',
-      'Dedicated account manager',
-      'SLA guarantee',
-      'API access',
+      'Everything in Essential — no limits',
+      'Dietary & Cycle Menus',
+      'Maintenance & Work Orders',
+      'Housekeeping & Scheduling',
+      'Transportation',
+      'Central Supply',
+      'Security & Guard Rounds',
+      'Surveys & Analytics',
+      'Property Management',
+      'Marketing & Lead Pipeline',
+      'Time Clock, IT & Meter Readings',
+      'Resident Portal',
+      'Every new module — included automatically',
+      'Dedicated onboarding & phone support',
     ],
   },
 ]
@@ -113,6 +121,11 @@ export default function BillingTab() {
   }
 
   const handleCheckout = async (plan) => {
+    // Free plan — no Stripe, just show a message (self-serve signup handles this at /login)
+    if (plan.key === 'starter') {
+      setMessage({ type: 'info', text: 'Starter is free — no payment required. Your account is already on the Starter plan.' })
+      return
+    }
     if (!plan.priceId) {
       setMessage({ type: 'info', text: 'Contact us at hello@elderloop.xyz for Enterprise pricing.' })
       return
@@ -235,7 +248,7 @@ export default function BillingTab() {
             <h2 className="text-lg font-semibold text-slate-800" style={{ fontFamily: '"Playfair Display", serif' }}>
               Choose a Plan
             </h2>
-            <p className="text-sm text-slate-500 mt-1">All plans include a 14-day free trial. No credit card required to start.</p>
+            <p className="text-sm text-slate-500 mt-1">Starter is free forever. Essential and Professional billed monthly — cancel any time.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -284,7 +297,9 @@ export default function BillingTab() {
                   }`}>
                   {actionLoading === `checkout-${plan.key}`
                     ? 'Loading…'
-                    : plan.price ? 'Start Free Trial' : 'Contact Sales'}
+                    : plan.key === 'starter'
+                      ? 'Free — Get Started'
+                      : 'Subscribe Now'}
                 </button>
               </div>
             ))}
@@ -297,7 +312,7 @@ export default function BillingTab() {
         <div className="mb-8">
           <h2 className="text-base font-semibold text-slate-700 mb-4">Change Plan</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {PLANS.filter(p => p.key !== 'enterprise').map(plan => {
+            {PLANS.filter(p => p.key !== 'starter' || org?.plan !== 'starter').map(plan => {
               const isCurrent = plan.key === org?.plan
               return (
                 <div key={plan.key}
