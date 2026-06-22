@@ -31,30 +31,72 @@ const MODULES = [
 const PLANS = [
   {
     name: 'Starter',
-    price: '$199',
+    price: 'Free',
+    period: 'forever',
+    desc: 'Get started at no cost — everything you need to run the basics.',
+    badge: null,
+    features: [
+      'Up to 50 residents & 10 staff',
+      'Resident Directory',
+      'Staff Management & Staff Directory',
+      'Communication (announcements & signage)',
+      'Family Messaging',
+      'Community support',
+    ],
+    note: 'SMS messaging requires Essential or higher.',
+    cta: 'Start Free',
+    ctaLink: '/login',
+    highlight: false,
+  },
+  {
+    name: 'Essential',
+    price: '$299',
     period: '/mo',
-    desc: 'Great for smaller communities',
-    features: ['Up to 75 residents', 'Communication & Signage', 'Activities Calendar', 'Maintenance Module', 'Resident Portal', 'Email support'],
+    desc: 'Everything in Starter plus clinical and programming modules.',
+    badge: null,
+    features: [
+      'Everything in Starter — no limits',
+      'SMS messaging unlocked',
+      'Chapel',
+      'Activities & Event Calendar',
+      'Incident Reports',
+      'Nursing Notes & Vitals',
+      'Priority email support',
+    ],
+    note: null,
     cta: 'Get Started',
+    ctaLink: '/early-access',
     highlight: false,
   },
   {
-    name: 'Community',
-    price: '$349',
+    name: 'Professional',
+    price: '$999',
     period: '/mo',
-    desc: 'Everything to run a full operation',
-    features: ['Unlimited residents', 'All 17 modules included', 'GPS security rounds + time clock', 'Dietary & cycle menus', 'IT asset tracking', 'Priority support + onboarding'],
-    cta: 'Start Free Trial',
+    desc: 'The full platform — every module, every feature, every update.',
+    badge: 'Most Popular',
+    features: [
+      'Everything in Essential — no limits',
+      'Dietary & Cycle Menus',
+      'Maintenance & Work Orders',
+      'Housekeeping',
+      'Scheduling',
+      'Transportation',
+      'Central Supply',
+      'Security & Guard Rounds',
+      'Surveys & Analytics',
+      'Property Management',
+      'Marketing & Leads',
+      'Time Clock',
+      'IT & Technology',
+      'Meter Readings',
+      'Resident Portal',
+      'Every new module we build — included',
+      'Dedicated onboarding & phone support',
+    ],
+    note: null,
+    cta: 'Get Started',
+    ctaLink: '/early-access',
     highlight: true,
-  },
-  {
-    name: 'Enterprise',
-    price: 'Custom',
-    period: '',
-    desc: 'Multi-location operators',
-    features: ['Multiple communities', 'Centralized admin dashboard', 'Custom module configuration', 'Dedicated account manager', 'SLA guarantee', 'API access'],
-    cta: 'Contact Sales',
-    highlight: false,
   },
 ]
 
@@ -344,7 +386,7 @@ export default function LandingPage() {
               className="text-slate-900 mb-4">
               Transparent pricing
             </h2>
-            <p className="text-slate-500 text-lg">No setup fees. No per-module charges. Cancel any time.</p>
+            <p className="text-slate-500 text-lg">No setup fees. No contracts. Start free and grow when you're ready.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
             {PLANS.map(plan => (
@@ -352,14 +394,14 @@ export default function LandingPage() {
                 className={`rounded-3xl p-8 flex flex-col ${plan.highlight
                   ? 'bg-brand-950 ring-4 ring-brand-500/30 shadow-2xl shadow-brand-900/30 scale-105'
                   : 'bg-white border border-slate-200'}`}>
-                {plan.highlight && (
-                  <div className="text-xs font-bold text-brand-400 uppercase tracking-widest mb-3">Most Popular</div>
+                {plan.badge && (
+                  <div className="text-xs font-bold text-brand-400 uppercase tracking-widest mb-3">{plan.badge}</div>
                 )}
                 <h3 style={{ fontFamily: '"Playfair Display", serif' }}
                   className={`text-xl font-bold mb-2 ${plan.highlight ? 'text-white' : 'text-slate-800'}`}>
                   {plan.name}
                 </h3>
-                <div className="flex items-end gap-1 mb-2">
+                <div className="flex items-end gap-1.5 mb-2">
                   <span style={{ fontFamily: '"Playfair Display", serif' }}
                     className={`text-4xl font-bold ${plan.highlight ? 'text-white' : 'text-slate-900'}`}>
                     {plan.price}
@@ -367,7 +409,7 @@ export default function LandingPage() {
                   {plan.period && <span className={`text-sm mb-1.5 ${plan.highlight ? 'text-white/50' : 'text-slate-400'}`}>{plan.period}</span>}
                 </div>
                 <p className={`text-sm mb-6 ${plan.highlight ? 'text-white/60' : 'text-slate-500'}`}>{plan.desc}</p>
-                <div className="flex-1 space-y-3 mb-8">
+                <div className="flex-1 space-y-3 mb-4">
                   {plan.features.map(f => (
                     <div key={f} className="flex items-start gap-2.5">
                       <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${plan.highlight ? 'bg-brand-500' : 'bg-brand-100'}`}>
@@ -377,16 +419,22 @@ export default function LandingPage() {
                     </div>
                   ))}
                 </div>
-                <button onClick={() => navigate('/login')}
+                {plan.note && (
+                  <p className={`text-xs mb-6 italic ${plan.highlight ? 'text-white/40' : 'text-slate-400'}`}>{plan.note}</p>
+                )}
+                {!plan.note && <div className="mb-6" />}
+                <button onClick={() => navigate(plan.ctaLink)}
                   className={`w-full py-3 rounded-xl font-semibold text-sm transition-all ${plan.highlight
                     ? 'bg-brand-500 hover:bg-brand-400 text-white shadow-lg shadow-brand-900/30'
-                    : 'bg-slate-900 hover:bg-slate-700 text-white'}`}>
+                    : plan.price === 'Free'
+                      ? 'bg-white border-2 border-slate-200 hover:border-brand-400 text-slate-800 hover:text-brand-700'
+                      : 'bg-slate-900 hover:bg-slate-700 text-white'}`}>
                   {plan.cta}
                 </button>
               </div>
             ))}
           </div>
-          <p className="text-center text-slate-400 text-sm mt-8">14-day free trial on all plans. Credit card required — cancel any time.</p>
+          <p className="text-center text-slate-400 text-sm mt-8">Starter is free forever — no credit card required. Essential and Professional plans billed monthly, cancel any time.</p>
         </div>
       </section>
 
