@@ -168,12 +168,15 @@ function mapSubStatusToBilling(status) {
 }
 
 function getPlanFromPriceId(priceId) {
-  // Map your Stripe Price IDs to plan names
-  // Update these after you create products in Stripe
+  // Map Stripe Price IDs to plan keys
+  // Server-side env vars (no VITE_ prefix) set in Vercel for both
+  // STRIPE_PRICE_ESSENTIAL and STRIPE_PRICE_PROFESSIONAL
   const map = {
-    [process.env.STRIPE_PRICE_STARTER]:   'starter',
-    [process.env.STRIPE_PRICE_COMMUNITY]: 'community',
-    [process.env.STRIPE_PRICE_ENTERPRISE]:'enterprise',
+    [process.env.STRIPE_PRICE_ESSENTIAL]:    'essential',
+    [process.env.STRIPE_PRICE_PROFESSIONAL]: 'professional',
+    // Legacy — keep these so old subscriptions don't break
+    [process.env.STRIPE_PRICE_STARTER]:      'starter',
+    [process.env.STRIPE_PRICE_COMMUNITY]:    'professional', // map old community → professional
   }
-  return map[priceId] || 'community'
+  return map[priceId] || 'essential'
 }
