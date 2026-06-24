@@ -682,6 +682,7 @@ export default function ResidentDirectory() {
   const [filterCare, setFilterCare] = useState('all')
   const [selected, setSelected]     = useState(null)
   const [showDetail, setShowDetail] = useState(false)
+  const [limitHit, setLimitHit]     = useState(false)
 
   useEffect(() => { if (organization) fetchResidents() }, [organization])
 
@@ -697,7 +698,13 @@ export default function ResidentDirectory() {
   }
 
   const handleOpen   = (r) => { setSelected(r); setShowDetail(true) }
-  const handleNew    = () => { setSelected(null); setShowDetail(true) }
+  const handleNew    = () => {
+    const limit = organization?.resident_limit
+    if (limit !== null && limit !== undefined && residents.length >= limit) {
+      setLimitHit(true); return
+    }
+    setSelected(null); setShowDetail(true)
+  }
   const handleSave   = () => { setShowDetail(false); setSelected(null); fetchResidents() }
   const handleDelete = async (id) => {
     if (!confirm('Deactivate this resident? They will be removed from the directory but their records will be retained.')) return
@@ -850,6 +857,31 @@ export default function ResidentDirectory() {
               </div>
             )
           })}
+        </div>
+      )}
+
+      {limitHit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center">
+            <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <AlertTriangle size={24} className="text-amber-600" />
+            </div>
+            <h2 className="font-display font-bold text-slate-800 text-lg mb-2">Resident Limit Reached</h2>
+            <p className="text-slate-500 text-sm mb-1">
+              Your <strong>Starter</strong> plan is limited to <strong>{organization?.resident_limit} residents</strong>.
+            </p>
+            <p className="text-slate-500 text-sm mb-6">Upgrade to Essential or Professional to add unlimited residents.</p>
+            <div className="flex flex-col gap-2">
+              <button onClick={() => { setLimitHit(false); window.location.href = '/app/admin?tab=billing' }}
+                className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl transition-colors">
+                View Upgrade Options
+              </button>
+              <button onClick={() => setLimitHit(false)}
+                className="w-full py-2 text-slate-500 hover:text-slate-700 text-sm transition-colors">
+                Cancel
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

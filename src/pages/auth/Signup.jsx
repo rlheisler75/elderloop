@@ -1,401 +1,319 @@
-import { useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import { Check, ArrowRight, Eye, EyeOff } from 'lucide-react'
+import { Check, Eye, EyeOff, Heart, ArrowRight, Loader2 } from 'lucide-react'
 
+// ── Plan definitions ────────────────────────────────────────────
 const PLANS = [
   {
-    key:     'starter',
-    name:    'Starter',
-    price:   '$199',
-    period:  '/mo',
-    desc:    'Up to 75 residents',
-    highlight: false,
-    features: ['Communication & Signage','Activities Calendar','Chapel','Resident Directory','Maintenance','Dietary','Housekeeping','Family Portal','Surveys'],
+    key:   'starter',
+    name:  'Starter',
+    price: 'Free',
+    desc:  'Core modules to get started',
+    color: 'border-slate-200',
+    features: ['Resident Directory', 'Staff Management', 'Communication', 'Family Messaging'],
+    note: '50 residents · 10 staff',
   },
   {
-    key:     'community',
-    name:    'Community',
-    price:   '$349',
-    period:  '/mo',
-    desc:    'Unlimited residents, all modules',
-    highlight: true,
-    features: ['Everything in Starter','Nursing & Clinical','Marketing & Leads','Property Management','GPS Security Rounds','Staff Scheduling','Time Clock','IT Ticketing','+ more'],
+    key:   'essential',
+    name:  'Essential',
+    price: '$299/mo',
+    desc:  'Starter + clinical and programming',
+    color: 'border-brand-300',
+    features: ['Everything in Starter — no limits', 'SMS messaging', 'Chapel', 'Activities', 'Incident Reports', 'Nursing Notes'],
+    note: null,
+  },
+  {
+    key:   'professional',
+    name:  'Professional',
+    price: '$999/mo',
+    desc:  'The full platform — every module',
+    color: 'border-brand-500',
+    badge: 'Most Popular',
+    features: ['Everything in Essential', 'Dietary & Maintenance', 'Scheduling & Housekeeping', 'Central Supply', 'Property Management', '+ every new module we build'],
+    note: null,
   },
 ]
 
-function slugify(str) {
-  return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-}
-
 export default function Signup() {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const defaultPlan = searchParams.get('plan') || 'community'
+  const [params] = useSearchParams()
+  const repCode = params.get('rep') || ''
+  const planParam = params.get('plan') || 'starter'
 
-  const [step, setStep]       = useState(1) // 1 = plan, 2 = account info
-  const [plan, setPlan]       = useState(defaultPlan)
-  const [showPass, setShowPass] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError]     = useState('')
-
-  const [form, setForm] = useState({
-    orgName:   '',
-    firstName: '',
-    lastName:  '',
-    email:     '',
-    password:  '',
-    phone:     '',
-    city:      '',
-    state:     'MO',
+  const [step, setStep]   = useState(1) // 1 = plan select, 2 = details
+  const [plan, setPlan]   = useState(PLANS.find(p => p.key === planParam) || PLANS[0])
+  const [form, setForm]   = useState({
+    first_name: '', last_name: '', email: '',
+    password: '', community_name: '',
   })
-
+  const [showPw,   setShowPw]   = useState(false)
+  const [loading,  setLoading]  = useState(false)
+  const [error,    setError]    = useState('')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
-  const handleSignup = async () => {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+
+  const handleSignup = async (e) => {
+    e.preventDefault()
     setError('')
-    if (!form.orgName || !form.firstName || !form.lastName || !form.email || !form.password) {
-      setError('Please fill in all required fields.')
-      return
-    }
-    if (form.password.length < 8) {
-      setError('Password must be at least 8 characters.')
-      return
-    }
+
+    // Basic validation
+    if (!form.first_name.trim() || !form.last_name.trim())
+      return setError('Please enter your first and last name.')
+    if (!form.email.trim())
+      return setError('Please enter your email address.')
+    if (!form.password || form.password.length < 8)
+      return setError('Password must be at least 8 characters.')
+    if (!form.community_name.trim())
+      return setError('Please enter your community name.')
 
     setLoading(true)
 
     try {
-      // 1. Create Supabase auth user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email:    form.email,
-        password: form.password,
-        options: {
-          data: {
-            first_name: form.firstName,
-            last_name:  form.lastName,
-          }
-        }
+      // 1. Create org + user via edge function
+      const res = await fetch(`${supabaseUrl}/functions/v1/create-org`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email:          form.email.trim().toLowerCase(),
+          password:       form.password,
+          first_name:     form.first_name.trim(),
+          last_name:      form.last_name.trim(),
+          community_name: form.community_name.trim(),
+          plan:           plan.key,
+          rep_code:       repCode || null,
+        }),
       })
+      const result = await res.json()
 
-      if (authError) throw authError
-      const userId = authData.user?.id
-      if (!userId) throw new Error('User creation failed.')
-
-      // 2. Create organization
-      const slug = slugify(form.orgName) + '-' + Math.random().toString(36).slice(2, 6)
-      const { data: org, error: orgError } = await supabase
-        .from('organizations')
-        .insert({
-          name:          form.orgName,
-          slug,
-          city:          form.city  || null,
-          state:         form.state || null,
-          phone:         form.phone || null,
-          contact_name:  `${form.firstName} ${form.lastName}`,
-          contact_email: form.email,
-          plan,
-          billing_status: 'inactive',
-          is_active:      true,
-        })
-        .select()
-        .single()
-
-      if (orgError) throw orgError
-
-      // 3. Update profile with org + role (profile created by trigger on auth signup)
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          organization_id: org.id,
-          role:            'org_admin',
-          first_name:      form.firstName,
-          last_name:       form.lastName,
-          phone:           form.phone || null,
-        })
-        .eq('id', userId)
-
-      if (profileError) throw profileError
-
-      // 4. Enable default modules for the plan
-      const STARTER_MODULES = [
-        'communication','activities','chapel','directory',
-        'work_orders','dietary','housekeeping','family','surveys'
-      ]
-      const COMMUNITY_MODULES = [
-        ...STARTER_MODULES,
-        'nursing','incidents','staff','scheduling','timeclock',
-        'transportation','meters','security','it','marketing','property_management'
-      ]
-      const modules = plan === 'starter' ? STARTER_MODULES : COMMUNITY_MODULES
-
-      await supabase.from('organization_modules').insert(
-        modules.map(key => ({ organization_id: org.id, module_key: key, is_enabled: true }))
-      )
-
-      // 5. Kick off Stripe checkout
-      const priceId = plan === 'starter'
-        ? import.meta.env.VITE_STRIPE_PRICE_STARTER
-        : import.meta.env.VITE_STRIPE_PRICE_COMMUNITY
-
-      if (priceId) {
-        const res = await fetch('/api/create-checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            organizationId: org.id,
-            priceId,
-            orgName:      form.orgName,
-            contactEmail: form.email,
-          }),
-        })
-        const { url, error: stripeError } = await res.json()
-        if (stripeError) throw new Error(stripeError)
-        if (url) { window.location.href = url; return }
+      if (!result.success) {
+        setError(result.error || 'Something went wrong. Please try again.')
+        setLoading(false)
+        return
       }
 
-      // Fallback if no Stripe price configured
+      // 2. Sign in the newly created user
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email:    form.email.trim().toLowerCase(),
+        password: form.password,
+      })
+      if (signInError) {
+        // Account created but sign-in failed — send to login
+        navigate('/login?welcome=1')
+        return
+      }
+
+      // 3. If paid plan, redirect to Stripe Checkout
+      if (plan.key !== 'starter') {
+        const { data: { session } } = await supabase.auth.getSession()
+        const checkoutRes = await fetch(`${supabaseUrl}/functions/v1/create-checkout`, {
+          method:  'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type':  'application/json',
+          },
+          body: JSON.stringify({ plan: plan.key }),
+        })
+        const checkoutResult = await checkoutRes.json()
+
+        if (checkoutResult.checkout_url) {
+          window.location.href = checkoutResult.checkout_url
+          return
+        }
+        // If checkout creation failed, still land in app — billing can be sorted later
+      }
+
+      // 4. Starter or checkout failed — land in app
       navigate('/app/dashboard')
 
     } catch (err) {
-      console.error('Signup error:', err)
-      setError(err.message || 'Something went wrong. Please try again.')
-    } finally {
+      setError('Network error — please check your connection and try again.')
       setLoading(false)
     }
   }
 
-  const inputCls = 'w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white'
-
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col" style={{ fontFamily: '"Source Sans 3", system-ui, sans-serif' }}>
-      <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet" />
-
-      {/* Nav */}
-      <nav className="bg-white border-b border-slate-100 px-6 py-4">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <button onClick={() => navigate('/')} className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm" style={{ fontFamily: '"Playfair Display", serif' }}>EL</span>
-            </div>
-            <div className="flex flex-col leading-tight">
-              <span className="font-semibold text-slate-800" style={{ fontFamily: '"Playfair Display", serif' }}>ElderLoop</span>
-              <span className="text-xs text-slate-400">by Loopware Solutions</span>
-            </div>
-          </button>
-          <button onClick={() => navigate('/login')} className="text-sm text-slate-500 hover:text-slate-700 transition-colors">
-            Already have an account? <span className="text-brand-600 font-medium">Sign in</span>
-          </button>
-        </div>
-      </nav>
-
-      <div className="flex-1 flex items-start justify-center px-4 py-12">
-        <div className="w-full max-w-5xl">
-
-          {/* Step indicator */}
-          <div className="flex items-center justify-center gap-3 mb-10">
-            {['Choose Plan', 'Create Account'].map((label, i) => {
-              const num = i + 1
-              const active = step === num
-              const done   = step > num
-              return (
-                <div key={label} className="flex items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
-                      done   ? 'bg-green-500 text-white' :
-                      active ? 'bg-brand-600 text-white' :
-                               'bg-slate-200 text-slate-400'
-                    }`}>
-                      {done ? <Check size={14} /> : num}
-                    </div>
-                    <span className={`text-sm font-medium ${active ? 'text-slate-800' : 'text-slate-400'}`}>{label}</span>
-                  </div>
-                  {i < 1 && <div className={`w-12 h-px ${step > 1 ? 'bg-green-400' : 'bg-slate-200'}`} />}
-                </div>
-              )
-            })}
+    <div className="min-h-screen bg-gradient-to-br from-brand-950 via-[#0a1628] to-slate-950 flex flex-col">
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-5">
+        <Link to="/" className="flex items-center gap-2.5 group">
+          <div className="w-8 h-8 bg-brand-600 rounded-xl flex items-center justify-center">
+            <Heart size={16} className="text-white fill-white" />
           </div>
+          <span className="text-white font-semibold text-lg" style={{ fontFamily: '"Playfair Display", serif' }}>
+            ElderLoop
+          </span>
+        </Link>
+        <p className="text-white/40 text-sm">
+          Already have an account?{' '}
+          <Link to="/login" className="text-brand-400 hover:text-brand-300 font-medium">Sign in</Link>
+        </p>
+      </div>
 
-          {/* ── Step 1: Plan Selection ── */}
+      <div className="flex-1 flex items-center justify-center px-4 py-8">
+        <div className="w-full max-w-2xl">
+
+          {/* Step 1 — Plan selection */}
           {step === 1 && (
             <div>
-              <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold text-slate-900 mb-2" style={{ fontFamily: '"Playfair Display", serif' }}>
-                  Choose your plan
-                </h1>
-                <p className="text-slate-500">14-day free trial. Credit card required. Cancel any time.</p>
-              </div>
+              <h1 className="text-white text-3xl font-bold text-center mb-2"
+                style={{ fontFamily: '"Playfair Display", serif' }}>
+                Choose your plan
+              </h1>
+              <p className="text-white/50 text-center mb-8">You can upgrade any time from inside the app.</p>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto mb-8">
+              <div className="grid gap-4">
                 {PLANS.map(p => (
-                  <button key={p.key} onClick={() => setPlan(p.key)}
-                    className={`text-left rounded-3xl p-8 border-2 transition-all ${
-                      plan === p.key
-                        ? p.highlight
-                          ? 'border-brand-500 bg-brand-950 shadow-2xl shadow-brand-900/30'
-                          : 'border-brand-500 bg-white shadow-lg'
-                        : 'border-slate-200 bg-white hover:border-slate-300'
+                  <button key={p.key} onClick={() => setPlan(p)}
+                    className={`w-full text-left p-5 rounded-2xl border-2 transition-all ${
+                      plan.key === p.key
+                        ? 'border-brand-500 bg-brand-900/40'
+                        : 'border-white/10 bg-white/5 hover:border-white/20'
                     }`}>
-                    {p.highlight && (
-                      <div className="text-xs font-bold text-brand-400 uppercase tracking-widest mb-3">Most Popular</div>
-                    )}
-                    <div className="flex items-start justify-between mb-1">
-                      <h3 className={`text-xl font-bold ${p.highlight && plan === p.key ? 'text-white' : 'text-slate-800'}`}
-                        style={{ fontFamily: '"Playfair Display", serif' }}>
-                        {p.name}
-                      </h3>
-                      {plan === p.key && (
-                        <div className="w-6 h-6 bg-brand-500 rounded-full flex items-center justify-center flex-shrink-0">
-                          <Check size={13} className="text-white" />
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-white font-semibold">{p.name}</span>
+                          {p.badge && (
+                            <span className="text-xs px-2 py-0.5 bg-brand-600 text-white rounded-full font-medium">
+                              {p.badge}
+                            </span>
+                          )}
                         </div>
-                      )}
+                        <p className="text-white/50 text-sm mb-3">{p.desc}</p>
+                        <div className="flex flex-wrap gap-x-4 gap-y-1">
+                          {p.features.map(f => (
+                            <div key={f} className="flex items-center gap-1.5">
+                              <Check size={11} className="text-brand-400 flex-shrink-0" />
+                              <span className="text-white/60 text-xs">{f}</span>
+                            </div>
+                          ))}
+                        </div>
+                        {p.note && <p className="text-white/30 text-xs mt-2">{p.note}</p>}
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <div className="text-white font-bold text-lg">{p.price}</div>
+                        <div className={`w-5 h-5 rounded-full border-2 mt-2 ml-auto flex items-center justify-center transition-all ${
+                          plan.key === p.key ? 'border-brand-500 bg-brand-500' : 'border-white/20'
+                        }`}>
+                          {plan.key === p.key && <Check size={11} className="text-white" />}
+                        </div>
+                      </div>
                     </div>
-                    <div className="mb-1">
-                      <span className={`text-3xl font-bold ${p.highlight && plan === p.key ? 'text-white' : 'text-slate-900'}`}
-                        style={{ fontFamily: '"Playfair Display", serif' }}>
-                        {p.price}
-                      </span>
-                      <span className={`text-sm ${p.highlight && plan === p.key ? 'text-white/50' : 'text-slate-400'}`}>{p.period}</span>
-                    </div>
-                    <p className={`text-sm mb-5 ${p.highlight && plan === p.key ? 'text-white/60' : 'text-slate-500'}`}>{p.desc}</p>
-                    <ul className="space-y-2">
-                      {p.features.map(f => (
-                        <li key={f} className="flex items-center gap-2 text-sm">
-                          <Check size={13} className="text-brand-400 flex-shrink-0" />
-                          <span className={p.highlight && plan === p.key ? 'text-white/75' : 'text-slate-600'}>{f}</span>
-                        </li>
-                      ))}
-                    </ul>
                   </button>
                 ))}
               </div>
 
-              <div className="text-center">
-                <button onClick={() => setStep(2)}
-                  className="inline-flex items-center gap-2 px-10 py-4 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-2xl transition-colors shadow-lg shadow-brand-900/20 text-base">
-                  Continue with {PLANS.find(p2 => p2.key === plan)?.name} <ArrowRight size={18} />
-                </button>
-              </div>
+              <button onClick={() => setStep(2)}
+                className="w-full mt-6 py-4 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg">
+                Continue with {plan.name}
+                <ArrowRight size={18} />
+              </button>
+
+              {repCode && (
+                <p className="text-center text-white/30 text-xs mt-4">
+                  Referred by: <span className="text-brand-400 font-mono">{repCode}</span>
+                </p>
+              )}
             </div>
           )}
 
-          {/* ── Step 2: Account Info ── */}
+          {/* Step 2 — Account details */}
           {step === 2 && (
-            <div className="max-w-xl mx-auto">
-              <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold text-slate-900 mb-2" style={{ fontFamily: '"Playfair Display", serif' }}>
-                  Create your account
-                </h1>
-                <p className="text-slate-500">
-                  Setting up <span className="font-semibold text-brand-600 capitalize">{plan}</span> plan · {plan === 'starter' ? '$199' : '$349'}/mo
-                </p>
+            <div className="bg-white/5 border border-white/10 backdrop-blur-sm rounded-3xl p-8">
+              <button onClick={() => setStep(1)} className="text-white/40 hover:text-white/70 text-sm mb-6 flex items-center gap-1 transition-colors">
+                ← Change plan
+              </button>
+
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-white font-bold text-xl" style={{ fontFamily: '"Playfair Display", serif' }}>
+                    Create your account
+                  </h2>
+                  <p className="text-white/40 text-sm mt-0.5">Setting up: <span className="text-brand-400">{plan.name}</span> plan</p>
+                </div>
               </div>
 
-              <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8">
-                {error && (
-                  <div className="mb-5 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
-                    {error}
-                  </div>
-                )}
+              {error && (
+                <div className="mb-5 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
+                  {error}
+                </div>
+              )}
 
-                <div className="space-y-4">
-                  {/* Org name */}
+              <form onSubmit={handleSignup} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                      Community / Organization Name <span className="text-red-400">*</span>
+                    <label className="block text-xs font-semibold text-white/40 uppercase tracking-wider mb-1.5">
+                      First Name *
                     </label>
-                    <input className={inputCls} value={form.orgName}
-                      onChange={e => set('orgName', e.target.value)}
-                      placeholder="Sunrise Gardens Senior Living" />
+                    <input value={form.first_name} onChange={e => set('first_name', e.target.value)}
+                      placeholder="Jane" autoFocus
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/20 text-sm focus:outline-none focus:border-brand-500/50 transition-all" />
                   </div>
-
-                  {/* Name */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">First Name <span className="text-red-400">*</span></label>
-                      <input className={inputCls} value={form.firstName}
-                        onChange={e => set('firstName', e.target.value)} placeholder="Jane" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">Last Name <span className="text-red-400">*</span></label>
-                      <input className={inputCls} value={form.lastName}
-                        onChange={e => set('lastName', e.target.value)} placeholder="Smith" />
-                    </div>
-                  </div>
-
-                  {/* Email */}
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                      Email Address <span className="text-red-400">*</span>
+                    <label className="block text-xs font-semibold text-white/40 uppercase tracking-wider mb-1.5">
+                      Last Name *
                     </label>
-                    <input className={inputCls} type="email" value={form.email}
-                      onChange={e => set('email', e.target.value)}
-                      placeholder="jane@yourcommunit.com" />
-                  </div>
-
-                  {/* Password */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                      Password <span className="text-red-400">*</span>
-                    </label>
-                    <div className="relative">
-                      <input className={inputCls + ' pr-11'} type={showPass ? 'text' : 'password'}
-                        value={form.password} onChange={e => set('password', e.target.value)}
-                        placeholder="Min. 8 characters" />
-                      <button type="button" onClick={() => setShowPass(s => !s)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                        {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Phone + Location */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">Phone</label>
-                      <input className={inputCls} value={form.phone}
-                        onChange={e => set('phone', e.target.value)} placeholder="417-555-0100" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">City</label>
-                      <input className={inputCls} value={form.city}
-                        onChange={e => set('city', e.target.value)} placeholder="Springfield" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">State</label>
-                    <select className={inputCls} value={form.state} onChange={e => set('state', e.target.value)}>
-                      {['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'].map(s => (
-                        <option key={s} value={s}>{s}</option>
-                      ))}
-                    </select>
+                    <input value={form.last_name} onChange={e => set('last_name', e.target.value)}
+                      placeholder="Smith"
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/20 text-sm focus:outline-none focus:border-brand-500/50 transition-all" />
                   </div>
                 </div>
 
-                {/* Terms */}
-                <p className="text-xs text-slate-400 mt-5 leading-relaxed">
+                <div>
+                  <label className="block text-xs font-semibold text-white/40 uppercase tracking-wider mb-1.5">
+                    Community / Organization Name *
+                  </label>
+                  <input value={form.community_name} onChange={e => set('community_name', e.target.value)}
+                    placeholder="Sunrise Gardens Senior Living"
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/20 text-sm focus:outline-none focus:border-brand-500/50 transition-all" />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-white/40 uppercase tracking-wider mb-1.5">
+                    Work Email *
+                  </label>
+                  <input type="email" value={form.email} onChange={e => set('email', e.target.value)}
+                    placeholder="jane@community.com"
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/20 text-sm focus:outline-none focus:border-brand-500/50 transition-all" />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-white/40 uppercase tracking-wider mb-1.5">
+                    Password *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPw ? 'text' : 'password'}
+                      value={form.password}
+                      onChange={e => set('password', e.target.value)}
+                      placeholder="At least 8 characters"
+                      className="w-full px-4 py-3 pr-12 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/20 text-sm focus:outline-none focus:border-brand-500/50 transition-all" />
+                    <button type="button" onClick={() => setShowPw(v => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors">
+                      {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+
+                <button type="submit" disabled={loading}
+                  className="w-full py-4 bg-brand-600 hover:bg-brand-500 disabled:bg-brand-800 text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2 text-base shadow-lg">
+                  {loading ? (
+                    <><Loader2 size={18} className="animate-spin" /> Setting up your account...</>
+                  ) : plan.key === 'starter' ? (
+                    <>Create Free Account <ArrowRight size={18} /></>
+                  ) : (
+                    <>Continue to Payment <ArrowRight size={18} /></>
+                  )}
+                </button>
+
+                <p className="text-center text-white/25 text-xs">
                   By creating an account you agree to our Terms of Service and Privacy Policy.
-                  Your 14-day free trial begins today — you won't be charged until the trial ends.
                 </p>
-
-                <div className="flex gap-3 mt-6">
-                  <button onClick={() => setStep(1)}
-                    className="px-5 py-3 border border-slate-200 text-slate-600 rounded-xl text-sm font-medium hover:bg-slate-50 transition-colors">
-                    Back
-                  </button>
-                  <button onClick={handleSignup} disabled={loading}
-                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl transition-colors disabled:opacity-50 text-sm">
-                    {loading
-                      ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Creating account…</>
-                      : <>Create Account & Continue to Payment <ArrowRight size={16} /></>
-                    }
-                  </button>
-                </div>
-              </div>
+              </form>
             </div>
           )}
-
         </div>
       </div>
     </div>

@@ -622,6 +622,7 @@ export default function StaffManagement() {
   const [showDetail, setShowDetail] = useState(false)
   const [certAlerts, setCertAlerts] = useState([])
   const [showAddStaff, setShowAddStaff] = useState(false)
+  const [limitHit, setLimitHit]           = useState(false)
 
   useEffect(() => { if (organization) fetchAll() }, [organization])
 
@@ -824,6 +825,31 @@ export default function StaffManagement() {
           certTypes={certTypes}
           onClose={() => { setShowDetail(false); setSelectedStaff(null) }}
           onSave={() => { setShowDetail(false); setSelectedStaff(null); fetchAll() }} />
+      )}
+
+      {limitHit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center">
+            <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <AlertTriangle size={24} className="text-amber-600" />
+            </div>
+            <h2 className="font-display font-bold text-slate-800 text-lg mb-2">Staff Limit Reached</h2>
+            <p className="text-slate-500 text-sm mb-1">
+              Your <strong>Starter</strong> plan is limited to <strong>{organization?.staff_limit} staff members</strong>.
+            </p>
+            <p className="text-slate-500 text-sm mb-6">Upgrade to Essential or Professional for unlimited staff accounts.</p>
+            <div className="flex flex-col gap-2">
+              <button onClick={() => { setLimitHit(false); window.location.href = '/app/admin?tab=billing' }}
+                className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl transition-colors">
+                View Upgrade Options
+              </button>
+              <button onClick={() => setLimitHit(false)}
+                className="w-full py-2 text-slate-500 hover:text-slate-700 text-sm transition-colors">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {showAddStaff && (
