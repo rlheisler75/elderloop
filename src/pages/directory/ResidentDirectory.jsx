@@ -5,7 +5,7 @@ import {
   Plus, X, Edit2, Trash2, Search, Printer, Phone,
   Mail, MapPin, User, Heart, Stethoscope, Calendar,
   ChevronRight, Upload, Camera, Shield, Building2,
-  AlertTriangle, Check, Wifi, WifiOff
+  AlertTriangle, Check, Wifi, WifiOff, Users
 } from 'lucide-react'
 
 const CARE_LEVELS = [
@@ -194,6 +194,61 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
     })
     setPortalSaving(false)
     setLinkedEmail('')
+  }
+
+  // ── Family access state ──────────────────────────────────────
+  const [familyLinks,    setFamilyLinks]    = useState([])
+  const [showFamilyForm, setShowFamilyForm] = useState(false)
+  const [familyForm,     setFamilyForm]     = useState({ email: '', first_name: '', last_name: '', relationship: '', is_primary: false, can_view_medical: true, can_view_dietary: true, can_view_activities: true })
+  const [familySaving,   setFamilySaving]   = useState(false)
+  const [familyError,    setFamilyError]    = useState('')
+  const [familySuccess,  setFamilySuccess]  = useState('')
+  const setFf = (k, v) => setFamilyForm(f => ({ ...f, [k]: v }))
+
+  useEffect(() => {
+    if (resident?.id) fetchFamilyLinks()
+  }, [resident?.id])
+
+  async function fetchFamilyLinks() {
+    const { data } = await supabase
+      .from('family_resident_links')
+      .select('id, relationship, is_primary, can_view_medical, can_view_dietary, can_view_activities, profiles:family_user_id(id, first_name, last_name, email)')
+      .eq('resident_id', resident.id)
+    setFamilyLinks(data || [])
+  }
+
+  const handleAddFamily = async () => {
+    if (!familyForm.email.trim() || !familyForm.first_name.trim()) { setFamilyError('Email and first name are required.'); return }
+    setFamilySaving(true); setFamilyError('')
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const fnUrl = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/+$/, '') + '/functions/v1/enable-family-portal'
+      const res = await fetch(fnUrl, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'enable', resident_id: resident.id, organization_id: organization.id, ...familyForm, email: familyForm.email.trim().toLowerCase() })
+      })
+      const result = await res.json()
+      if (!result.success) { setFamilyError(typeof result.error === 'string' ? result.error : 'Failed to add family access.'); setFamilySaving(false); return }
+      setFamilySuccess(result.existing_account ? 'Family member linked — they already had an account.' : 'Family member added — welcome email sent!')
+      setFamilyForm({ email: '', first_name: '', last_name: '', relationship: '', is_primary: false, can_view_medical: true, can_view_dietary: true, can_view_activities: true })
+      setShowFamilyForm(false)
+      fetchFamilyLinks()
+      setTimeout(() => setFamilySuccess(''), 5000)
+    } catch (err) { setFamilyError('Request failed: ' + err.message) }
+    setFamilySaving(false)
+  }
+
+  const handleRemoveFamily = async (linkId) => {
+    if (!confirm("Remove this family member's access to this resident?")) return
+    const { data: { session } } = await supabase.auth.getSession()
+    const fnUrl = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/+$/, '') + '/functions/v1/enable-family-portal'
+    await fetch(fnUrl, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'remove', link_id: linkId })
+    })
+    fetchFamilyLinks()
   }
 
   const [form, setForm] = useState({
@@ -512,6 +567,99 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
                   )}
 
                   {portalSuccess && <p className="text-xs text-green-600 font-medium">{portalSuccess}</p>}
+                </div>
+              )}
+
+              {/* Family Portal Access */}
+              {!isNew && (
+                <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Users size={15} className="text-slate-400" />
+                      <span className="text-sm font-medium text-slate-700">Family Portal Access</span>
+                    </div>
+                    {canEdit && (
+                      <button onClick={() => setShowFamilyForm(v => !v)}
+                        className="text-xs text-brand-600 hover:text-brand-800 font-medium transition-colors">
+                        {showFamilyForm ? 'Cancel' : '+ Add Family Member'}
+                      </button>
+                    )}
+                  </div>
+
+                  {familyLinks.length === 0 && !showFamilyForm && (
+                    <p className="text-xs text-slate-400">No family members have portal access yet.</p>
+                  )}
+
+                  {familyLinks.length > 0 && (
+                    <div className="space-y-2">
+                      {familyLinks.map(link => {
+                        const p = link.profiles
+                        return (
+                          <div key={link.id} className="flex items-center justify-between py-1.5 px-2 bg-white rounded-lg border border-slate-100">
+                            <div>
+                              <div className="text-xs font-medium text-slate-700">
+                                {p?.first_name} {p?.last_name}
+                                {link.is_primary && <span className="ml-1.5 text-[10px] text-brand-600 font-semibold">PRIMARY</span>}
+                              </div>
+                              <div className="text-xs text-slate-400">{p?.email}{link.relationship ? ` · ${link.relationship}` : ''}</div>
+                            </div>
+                            {canEdit && (
+                              <button onClick={() => handleRemoveFamily(link.id)}
+                                className="text-xs text-red-400 hover:text-red-600 transition-colors ml-2">Remove</button>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  {showFamilyForm && canEdit && (
+                    <div className="pt-2 space-y-2 border-t border-slate-200">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-xs text-slate-500 mb-1">First Name *</label>
+                          <input value={familyForm.first_name} onChange={e => setFf('first_name', e.target.value)}
+                            placeholder="Jane" className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-slate-500 mb-1">Last Name</label>
+                          <input value={familyForm.last_name} onChange={e => setFf('last_name', e.target.value)}
+                            placeholder="Smith" className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-slate-500 mb-1">Email *</label>
+                        <input type="email" value={familyForm.email} onChange={e => setFf('email', e.target.value)}
+                          placeholder="jane@email.com" className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-slate-500 mb-1">Relationship</label>
+                        <input value={familyForm.relationship} onChange={e => setFf('relationship', e.target.value)}
+                          placeholder="e.g. Daughter, Son, Spouse" className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <label className="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+                          <input type="checkbox" checked={familyForm.is_primary} onChange={e => setFf('is_primary', e.target.checked)} className="accent-brand-600" />
+                          Primary contact
+                        </label>
+                        <label className="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+                          <input type="checkbox" checked={familyForm.can_view_medical} onChange={e => setFf('can_view_medical', e.target.checked)} className="accent-brand-600" />
+                          Medical info
+                        </label>
+                        <label className="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+                          <input type="checkbox" checked={familyForm.can_view_dietary} onChange={e => setFf('can_view_dietary', e.target.checked)} className="accent-brand-600" />
+                          Dietary
+                        </label>
+                      </div>
+                      {familyError && <p className="text-xs text-red-500">{familyError}</p>}
+                      <button onClick={handleAddFamily} disabled={familySaving}
+                        className="w-full py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-xs font-semibold rounded-lg transition-colors">
+                        {familySaving ? 'Setting up...' : 'Send Family Portal Invite'}
+                      </button>
+                    </div>
+                  )}
+
+                  {familySuccess && <p className="text-xs text-green-600 font-medium">{familySuccess}</p>}
                 </div>
               )}
 
