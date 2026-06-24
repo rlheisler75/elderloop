@@ -45,7 +45,7 @@ const PLANS = [
     ],
     note: 'SMS messaging requires Essential or higher.',
     cta: 'Start Free',
-    ctaLink: '/login',
+    ctaLink: '/signup?plan=starter',
     highlight: false,
   },
   {
@@ -65,7 +65,7 @@ const PLANS = [
     ],
     note: null,
     cta: 'Get Started',
-    ctaLink: '/early-access',
+    ctaLink: '/signup?plan=essential',
     highlight: false,
   },
   {
@@ -95,7 +95,7 @@ const PLANS = [
     ],
     note: null,
     cta: 'Get Started',
-    ctaLink: '/early-access',
+    ctaLink: '/signup?plan=professional',
     highlight: true,
   },
 ]
@@ -157,7 +157,7 @@ export default function LandingPage() {
               className={`px-4 py-2 text-sm font-medium transition-colors ${scrolled ? 'text-slate-600 hover:text-brand-600' : 'text-white/80 hover:text-white'}`}>
               Sign In
             </button>
-           <button onClick={() => navigate('/early-access')}
+           <button onClick={() => navigate('/signup')}
               className="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm">
               Request Demo
             </button>
@@ -173,7 +173,7 @@ export default function LandingPage() {
                 className="block text-slate-700 font-medium py-1.5 text-sm">{item}</a>
             ))}
              <div className="flex flex-col gap-2 mt-2">
-              <button onClick={() => navigate('/early-access')}
+              <button onClick={() => navigate('/signup')}
                 className="w-full py-3 bg-brand-600 text-white font-semibold rounded-xl text-sm">
                 Request Demo
               </button>
@@ -524,7 +524,7 @@ export default function LandingPage() {
             Join communities like Sunrise Gardens. We'll have your team set up and running within a day.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button onClick={() => navigate('/early-access')}
+            <button onClick={() => navigate('/signup')}
               className="group flex items-center gap-2 px-8 py-4 bg-brand-500 hover:bg-brand-400 text-white font-semibold rounded-2xl text-base transition-all shadow-xl shadow-brand-900/50">
               Request Early Access <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
             </button>
