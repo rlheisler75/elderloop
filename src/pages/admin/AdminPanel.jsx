@@ -36,7 +36,10 @@ const BILLING_STATUSES = [
   { key: 'cancelled', label: 'Cancelled', color: 'bg-slate-100 text-slate-500 border-slate-200' },
 ]
 
-const getBilling = (key) => BILLING_STATUSES.find(b => b.key === key) || BILLING_STATUSES[0]
+const getBilling = (key, plan) => {
+  if (key === 'pilot' && plan === 'starter') return { label: 'Free', color: 'bg-green-100 text-green-700 border-green-200' }
+  return BILLING_STATUSES.find(b => b.key === key) || BILLING_STATUSES[0]
+}
 
 // ── Create User Modal ──────────────────────────────────────────
 function CreateUserModal({ orgId, orgName, onClose, onSave }) {
@@ -796,8 +799,8 @@ export default function AdminPanel() {
                 <p className="text-slate-400 text-sm mt-0.5">{[selectedOrg.city, selectedOrg.state].filter(Boolean).join(', ')}</p>
               </div>
               <div className="flex items-center gap-2">
-                <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${getBilling(selectedOrg.billing_status).color}`}>
-                  {getBilling(selectedOrg.billing_status).label}
+                <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${getBilling(selectedOrg.billing_status, selectedOrg.plan).color}`}>
+                  {getBilling(selectedOrg.billing_status, selectedOrg.plan).label}
                 </span>
                 <button onClick={() => { setEditingOrg(selectedOrg); setShowOrgSettings(true) }}
                   className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600 rounded-lg text-sm font-medium transition-colors">

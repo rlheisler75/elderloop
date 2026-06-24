@@ -2,7 +2,6 @@ import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
-
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -10,8 +9,7 @@ const supabase = createClient(
 
 export const config = { api: { bodyParser: false } }
 
-// ── Plan config ────────────────────────────────────────────────
-const PLAN_MODULES = {
+const PLAN_MODULE_KEYS = {
   starter:      ['directory', 'staff', 'communication', 'family'],
   essential:    ['directory', 'staff', 'communication', 'family', 'chapel', 'activities', 'incidents', 'nursing'],
   professional: null, // null = all modules
@@ -53,26 +51,22 @@ export default async function handler(req, res) {
         const session = event.data.object
         const orgId = session.metadata?.organization_id
         if (!orgId) break
-
         const subscription = await stripe.subscriptions.retrieve(session.subscription)
         const priceId = subscription.items.data[0]?.price?.id
         const plan = getPlanFromPriceId(priceId)
-
         await supabase.from('organizations').update({
-          stripe_customer_id:      session.customer,
-          stripe_subscription_id:  subscription.id,
-          stripe_price_id:         priceId,
-          subscription_status:     subscription.status,
-          billing_status:          subscription.status === 'trialing' ? 'trialing' : 'active',
-          current_period_start:    new Date(subscription.current_period_start * 1000).toISOString(),
-          current_period_end:      new Date(subscription.current_period_end   * 1000).toISOString(),
-          trial_end:               subscription.trial_end
-            ? new Date(subscription.trial_end * 1000).toISOString() : null,
+          stripe_customer_id:     session.customer,
+          stripe_subscription_id: subscription.id,
+          stripe_price_id:        priceId,
+          subscription_status:    subscription.status,
+          billing_status:         subscription.status === 'trialing' ? 'trialing' : 'active',
+          current_period_start:   new Date(subscription.current_period_start * 1000).toISOString(),
+          current_period_end:     new Date(subscription.current_period_end   * 1000).toISOString(),
+          trial_end:              subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
           plan,
-          plan_price:              (subscription.items.data[0]?.price?.unit_amount / 100) || null,
+          plan_price:             (subscription.items.data[0]?.price?.unit_amount / 100) || null,
           ...PLAN_LIMITS[plan],
         }).eq('id', orgId)
-
         await enableModulesForPlan(orgId, plan)
         break
       }
@@ -81,24 +75,20 @@ export default async function handler(req, res) {
         const sub = event.data.object
         const orgId = sub.metadata?.organization_id || await getOrgIdFromCustomer(sub.customer)
         if (!orgId) break
-
         const priceId = sub.items.data[0]?.price?.id
         const plan = getPlanFromPriceId(priceId)
-
         await supabase.from('organizations').update({
           stripe_price_id:      priceId,
           subscription_status:  sub.status,
           billing_status:       mapSubStatusToBilling(sub.status),
           current_period_start: new Date(sub.current_period_start * 1000).toISOString(),
           current_period_end:   new Date(sub.current_period_end   * 1000).toISOString(),
-          trial_end:            sub.trial_end
-            ? new Date(sub.trial_end * 1000).toISOString() : null,
+          trial_end:            sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
           cancel_at_period_end: sub.cancel_at_period_end,
           plan,
           plan_price:           (sub.items.data[0]?.price?.unit_amount / 100) || null,
           ...PLAN_LIMITS[plan],
         }).eq('id', orgId)
-
         await enableModulesForPlan(orgId, plan)
         break
       }
@@ -107,8 +97,6 @@ export default async function handler(req, res) {
         const sub = event.data.object
         const orgId = sub.metadata?.organization_id || await getOrgIdFromCustomer(sub.customer)
         if (!orgId) break
-
-        // Downgrade to starter — disable paid modules
         await supabase.from('organizations').update({
           subscription_status:    'canceled',
           billing_status:         'canceled',
@@ -117,7 +105,6 @@ export default async function handler(req, res) {
           plan:                   'starter',
           ...PLAN_LIMITS['starter'],
         }).eq('id', orgId)
-
         await enableModulesForPlan(orgId, 'starter')
         break
       }
@@ -126,10 +113,7 @@ export default async function handler(req, res) {
         const invoice = event.data.object
         const orgId = await getOrgIdFromCustomer(invoice.customer)
         if (!orgId) break
-        await supabase.from('organizations').update({
-          subscription_status: 'past_due',
-          billing_status:      'past_due',
-        }).eq('id', orgId)
+        await supabase.from('organizations').update({ subscription_status: 'past_due', billing_status: 'past_due' }).eq('id', orgId)
         break
       }
 
@@ -138,15 +122,11 @@ export default async function handler(req, res) {
         if (invoice.billing_reason === 'subscription_create') break
         const orgId = await getOrgIdFromCustomer(invoice.customer)
         if (!orgId) break
-        await supabase.from('organizations').update({
-          subscription_status: 'active',
-          billing_status:      'active',
-        }).eq('id', orgId)
+        await supabase.from('organizations').update({ subscription_status: 'active', billing_status: 'active' }).eq('id', orgId)
         break
       }
 
-      default:
-        break
+      default: break
     }
 
     return res.status(200).json({ received: true })
@@ -162,46 +142,38 @@ async function enableModulesForPlan(orgId, plan) {
   try {
     let moduleKeys
 
-    if (plan === 'professional' || !PLAN_MODULES[plan]) {
-      // Enable ALL modules
-      const { data: allModules } = await supabase.from('modules').select('id, key').eq('is_active', true)
-      moduleKeys = (allModules || []).map(m => ({ id: m.id, key: m.key }))
+    if (plan === 'professional' || !PLAN_MODULE_KEYS[plan]) {
+      // Get all active module keys
+      const { data: allModules } = await supabase.from('modules').select('key').eq('is_active', true)
+      moduleKeys = (allModules || []).map(m => m.key)
     } else {
-      const keys = PLAN_MODULES[plan]
-      const { data: modules } = await supabase.from('modules').select('id, key').in('key', keys)
-      moduleKeys = modules || []
+      moduleKeys = PLAN_MODULE_KEYS[plan]
     }
 
-    if (!moduleKeys.length) return
+    if (!moduleKeys?.length) return
 
-    // Upsert — enable new modules, don't touch ones already on
+    // Upsert modules using module_key (not module_id)
     await supabase.from('organization_modules').upsert(
-      moduleKeys.map(m => ({
-        organization_id: orgId,
-        module_id:       m.id,
-        is_enabled:      true,
-      })),
-      { onConflict: 'organization_id,module_id' }
+      moduleKeys.map(key => ({ organization_id: orgId, module_key: key, is_enabled: true })),
+      { onConflict: 'organization_id,module_key' }
     )
 
-    // If downgrading (e.g. subscription canceled → starter),
-    // disable modules not in the new plan
+    // Disable modules not in the new plan (for downgrades)
     if (plan !== 'professional') {
-      const allowedKeys = PLAN_MODULES[plan] || []
       const { data: allOrgModules } = await supabase
         .from('organization_modules')
-        .select('module_id, modules(key)')
+        .select('module_key')
         .eq('organization_id', orgId)
 
       const toDisable = (allOrgModules || [])
-        .filter(m => !allowedKeys.includes(m.modules?.key))
-        .map(m => m.module_id)
+        .map(m => m.module_key)
+        .filter(key => !moduleKeys.includes(key))
 
       if (toDisable.length) {
         await supabase.from('organization_modules')
           .update({ is_enabled: false })
           .eq('organization_id', orgId)
-          .in('module_id', toDisable)
+          .in('module_key', toDisable)
       }
     }
   } catch (err) {
@@ -216,10 +188,7 @@ async function getOrgIdFromCustomer(customerId) {
 }
 
 function mapSubStatusToBilling(status) {
-  const map = {
-    active: 'active', trialing: 'trialing', past_due: 'past_due',
-    canceled: 'canceled', unpaid: 'unpaid', paused: 'paused',
-  }
+  const map = { active: 'active', trialing: 'trialing', past_due: 'past_due', canceled: 'canceled', unpaid: 'unpaid', paused: 'paused' }
   return map[status] || 'inactive'
 }
 
@@ -227,7 +196,6 @@ function getPlanFromPriceId(priceId) {
   const map = {
     [process.env.STRIPE_PRICE_ESSENTIAL]:    'essential',
     [process.env.STRIPE_PRICE_PROFESSIONAL]: 'professional',
-    // Legacy
     [process.env.STRIPE_PRICE_STARTER]:      'starter',
     [process.env.STRIPE_PRICE_COMMUNITY]:    'professional',
   }
