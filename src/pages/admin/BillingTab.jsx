@@ -121,30 +121,36 @@ export default function BillingTab() {
   }
 
   const handleCheckout = async (plan) => {
-    // Free plan — no Stripe, just show a message (self-serve signup handles this at /login)
     if (plan.key === 'starter') {
-      setMessage({ type: 'info', text: 'Starter is free — no payment required. Your account is already on the Starter plan.' })
+      setMessage({ type: 'info', text: 'Starter is free — no payment required.' })
       return
     }
     if (!plan.priceId) {
-      setMessage({ type: 'info', text: 'Contact us at hello@elderloop.xyz for Enterprise pricing.' })
+      setMessage({ type: 'error', text: 'Pricing not configured. Please contact support.' })
       return
     }
     setActionLoading(`checkout-${plan.key}`)
     try {
-      const res = await fetch('/api/create-checkout', {
+      const { data: { session } } = await supabase.auth.getSession()
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const res = await fetch(`${supabaseUrl}/functions/v1/create-checkout`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          organizationId: profile.organization_id,
-          priceId: plan.priceId,
-          orgName: organization?.name,
-          contactEmail: org?.contact_email,
-        }),
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ plan: plan.key }),
       })
       const data = await res.json()
-      if (data.url) window.location.href = data.url
-      else setMessage({ type: 'error', text: data.error || 'Failed to start checkout.' })
+      if (!data.success) {
+        setMessage({ type: 'error', text: data.error || 'Failed to start checkout.' })
+      } else if (data.upgraded) {
+        // Prorated upgrade — already done, reload billing info
+        setMessage({ type: 'success', text: `Upgraded to ${plan.name}! Your account has been updated.` })
+        fetchOrg()
+      } else if (data.checkout_url) {
+        window.location.href = data.checkout_url
+      }
     } catch (err) {
       setMessage({ type: 'error', text: 'Something went wrong. Please try again.' })
     }
@@ -321,11 +327,28 @@ export default function BillingTab() {
                     <span className="font-medium text-slate-800">{plan.name}</span>
                     {isCurrent && <span className="text-xs text-brand-600 font-semibold">Current</span>}
                   </div>
-                  <p className="text-lg font-bold text-slate-700">${plan.price}<span className="text-xs font-normal text-slate-400">/mo</span></p>
+                  <p className="text-lg font-bold text-slate-700">
+                    {plan.price === 0 ? 'Free' : `$${plan.price}`}
+                    {plan.price > 0 && <span className="text-xs font-normal text-slate-400">/mo</span>}
+                  </p>
                   {!isCurrent && (
-                    <button onClick={handlePortal} disabled={!!actionLoading}
-                      className="mt-3 w-full py-1.5 text-xs font-medium bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">
-                      Switch via Portal
+                    <button
+                      onClick={() => {
+                        const isProfessional = org?.plan === 'professional'
+                        const isUpgrade = plan.key === 'professional' && org?.plan === 'essential'
+                        if (isUpgrade) {
+                          handleCheckout(plan) // prorated via edge function
+                        } else {
+                          handlePortal() // downgrade/cancel via Stripe portal
+                        }
+                      }}
+                      disabled={!!actionLoading}
+                      className="mt-3 w-full py-1.5 text-xs font-medium bg-slate-100 hover:bg-slate-200 disabled:opacity-50 rounded-lg transition-colors">
+                      {actionLoading === `checkout-${plan.key}`
+                        ? 'Processing...'
+                        : plan.key === 'professional' && org?.plan === 'essential'
+                          ? 'Upgrade — Prorated'
+                          : 'Manage via Portal'}
                     </button>
                   )}
                 </div>
@@ -333,7 +356,7 @@ export default function BillingTab() {
             })}
           </div>
           <p className="text-xs text-slate-400 mt-3">
-            Plan changes and cancellations are handled through the Stripe billing portal.
+            Upgrading from Essential to Professional is prorated — you only pay for the remaining days in your billing cycle. Cancellations and downgrades are managed through the Stripe billing portal.
           </p>
         </div>
       )}

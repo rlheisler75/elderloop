@@ -20,14 +20,17 @@ const BILLING_LABELS = {
 }
 
 const PLAN_LABELS = {
-  starter:    '$199/mo',
-  community:  '$349/mo',
-  enterprise: 'Custom',
-  pilot:      'Free Pilot',
+  starter:      'Starter — Free',
+  essential:    'Essential — $299',
+  professional: 'Professional — $999',
+  // Legacy
+  community:    'Professional — $999',
+  enterprise:   'Custom',
+  pilot:        'Free Pilot',
 }
 
 function AddOrgModal({ onClose, onSave }) {
-  const [form, setForm] = useState({ name: '', slug: '', city: '', state: '', contact_name: '', contact_email: '', plan: 'community', billing_status: 'pilot', billing_note: '' })
+  const [form, setForm] = useState({ name: '', slug: '', city: '', state: '', contact_name: '', contact_email: '', plan: 'starter', billing_status: 'pilot', billing_note: '', rep_code: '' })
   const [saving, setSaving] = useState(false)
   const [error, setError]   = useState('')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
@@ -45,6 +48,7 @@ function AddOrgModal({ onClose, onSave }) {
       plan: form.plan,
       billing_status: form.billing_status,
       billing_note: form.billing_note || null,
+      rep_code: form.rep_code?.trim().toUpperCase() || null,
       is_active: true,
     }).select().single()
     if (err) { setError(err.message); setSaving(false); return }
@@ -103,10 +107,10 @@ function AddOrgModal({ onClose, onSave }) {
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Plan</label>
               <select value={form.plan} onChange={e => set('plan', e.target.value)}
                 className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-                <option value="pilot">Free Pilot</option>
-                <option value="starter">Starter $199/mo</option>
-                <option value="community">Community $349/mo</option>
-                <option value="enterprise">Enterprise Custom</option>
+                <option value="starter">Starter — Free</option>
+                <option value="essential">Essential — $299/mo</option>
+                <option value="professional">Professional — $999/mo</option>
+                <option value="pilot">Pilot (manual)</option>
               </select>
             </div>
             <div>
@@ -120,7 +124,13 @@ function AddOrgModal({ onClose, onSave }) {
                 <option value="cancelled">Cancelled</option>
               </select>
             </div>
-            <div className="col-span-2">
+            <div>
+              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Rep Code</label>
+              <input value={form.rep_code} onChange={e => set('rep_code', e.target.value.toUpperCase())}
+                className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                placeholder="e.g. BRIAN" />
+            </div>
+            <div>
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Notes</label>
               <input value={form.billing_note} onChange={e => set('billing_note', e.target.value)}
                 className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
@@ -472,7 +482,7 @@ export default function SuperAdminDashboard() {
       pilot_orgs:   orgData.filter(o => o.billing_status === 'pilot').length,
       total_users:  profileData?.length || 0,
       mrr:          orgData.filter(o => o.billing_status === 'active').reduce((a, o) => {
-        const prices = { starter: 199, community: 349 }
+        const prices = { essential: 299, professional: 999, community: 999 }
         return a + (prices[o.plan] || 0)
       }, 0),
     })
@@ -697,6 +707,12 @@ export default function SuperAdminDashboard() {
                             <td className="px-5 py-4">
                               <div className="text-white text-sm font-medium">{org.user_count}</div>
                               <div className="text-slate-600 text-xs">{org.staff_count} staff / {org.resident_count} res</div>
+                            </td>
+                            <td className="px-5 py-4">
+                              {org.rep_code
+                                ? <span className="text-xs px-2 py-1 bg-brand-900/50 text-brand-400 border border-brand-700 rounded-full font-mono">{org.rep_code}</span>
+                                : <span className="text-slate-700 text-xs">—</span>
+                              }
                             </td>
                             <td className="px-5 py-4">
                               <div className="flex items-center gap-2">
