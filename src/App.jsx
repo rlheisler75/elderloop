@@ -51,7 +51,6 @@ import EarlyAccess   from './pages/landing/EarlyAccess'
 import SurveyPublic  from './pages/surveys/SurveyPublic'
 import Terms            from './pages/landing/Terms'
 import Privacy          from './pages/landing/Privacy'
-import SocialServices   from './pages/social/SocialServices'
 
 // Upgrade wall
 import UpgradeWall from './components/ui/UpgradeWall'
