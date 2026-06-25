@@ -74,10 +74,19 @@ function GrievanceModal({ residents, staff, orgId, grievance, canWrite, onClose,
     const _now = new Date()
     const payload = {
       ...form,
-      organization_id: orgId,
-      resident_id:     form.resident_id || null,
-      assigned_to:     form.assigned_to || null,
-      updated_at:      _now.toISOString(),
+      organization_id:          orgId,
+      resident_id:              form.resident_id           || null,
+      assigned_to:              form.assigned_to           || null,
+      resolved_by:              form.resolved_by           || null,
+      resolved_at:              form.resolved_at           || null,
+      regulatory_report_date:   form.regulatory_report_date || null,
+      regulatory_agency:        form.regulatory_agency     || null,
+      complainant_name:         form.complainant_name      || null,
+      complainant_phone:        form.complainant_phone     || null,
+      complainant_relationship: form.complainant_relationship || null,
+      resolution:               form.resolution            || null,
+      investigation_notes:      form.investigation_notes   || null,
+      updated_at:               _now.toISOString(),
     }
     let err
     if (isNew) {
