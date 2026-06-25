@@ -505,9 +505,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-    
-//
-// REPLACE THE ENTIRE FINAL CTA SECTION with this:
       {/* ── Early Access CTA ── */}
       <section className="py-24 bg-brand-950">
         <div className="max-w-3xl mx-auto px-6 text-center">
