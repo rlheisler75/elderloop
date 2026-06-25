@@ -6,7 +6,7 @@ import MoodTracker      from './MoodTracker'
 import Grievances       from './Grievances'
 import CareConferences  from './CareConferences'
 import SocialDashboard  from './SocialDashboard'
-
+ 
 const TABS = [
   { key: 'profiles',     label: 'Social Profiles',   icon: FileText,     desc: 'Psycho-social history & advance directives' },
   { key: 'mood',         label: 'Mood & Behavior',   icon: Heart,        desc: 'Daily mood tracking & behavioral logs' },
