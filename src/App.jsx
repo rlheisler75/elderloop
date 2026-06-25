@@ -48,6 +48,8 @@ import FamilyPortal  from './pages/family/FamilyPortal'
 import ResidentPortal from './pages/resident/ResidentPortal'
 import EarlyAccess   from './pages/landing/EarlyAccess'
 import SurveyPublic  from './pages/surveys/SurveyPublic'
+import Terms         from './pages/landing/Terms'
+import Privacy       from './pages/landing/Privacy'
 
 // Upgrade wall
 import UpgradeWall from './components/ui/UpgradeWall'
@@ -178,6 +180,8 @@ export default function App() {
         <Route path="/signage"        element={<Signage />} />
         <Route path="/early-access"   element={<EarlyAccess />} />
         <Route path="/survey/:token"  element={<SurveyPublic />} />
+        <Route path="/terms"           element={<Terms />} />
+        <Route path="/privacy"         element={<Privacy />} />
         <Route path="/resident"       element={user ? <ResidentPortal /> : <Navigate to="/login" replace />} />
         <Route path="/family-portal"  element={user ? <FamilyPortal />  : <Navigate to="/login" replace />} />
 

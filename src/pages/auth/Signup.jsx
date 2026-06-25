@@ -309,7 +309,10 @@ export default function Signup() {
                 </button>
 
                 <p className="text-center text-white/25 text-xs">
-                  By creating an account you agree to our Terms of Service and Privacy Policy.
+                  By creating an account you agree to our{' '}
+                  <a href="/terms" target="_blank" rel="noreferrer" className="text-white/40 hover:text-white/70 underline transition-colors">Terms of Service</a>
+                  {' '}and{' '}
+                  <a href="/privacy" target="_blank" rel="noreferrer" className="text-white/40 hover:text-white/70 underline transition-colors">Privacy Policy</a>.
                 </p>
               </form>
             </div>

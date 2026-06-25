@@ -188,12 +188,17 @@ export default function Login() {
               </button>
             </form>
 
-            <div className="mt-5 pt-5 border-t border-slate-100 text-center">
+            <div className="mt-5 pt-5 border-t border-slate-100 text-center space-y-2">
               <p className="text-sm text-slate-500">
                 Don't have an account?{' '}
                 <a href="/signup" className="text-brand-600 hover:text-brand-700 font-medium transition-colors">
                   Sign up free →
                 </a>
+              </p>
+              <p className="text-xs text-slate-400">
+                <a href="/terms" className="hover:text-slate-600 underline transition-colors">Terms of Service</a>
+                {' · '}
+                <a href="/privacy" className="hover:text-slate-600 underline transition-colors">Privacy Policy</a>
               </p>
             </div>
           </div>
