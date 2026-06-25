@@ -113,28 +113,19 @@ function TrendDots({ weeks }) {
 
 export default function SocialDashboard() {
   const { profile, organization } = useAuth()
+  const isDirector = DIRECTOR_ROLES.includes(profile?.role)
 
-  // Access guard
-  if (!DIRECTOR_ROLES.includes(profile?.role)) {
-    return (
-      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-8 text-center">
-        <Shield size={32} className="text-amber-500 mx-auto mb-3" />
-        <h3 className="font-display font-bold text-slate-800 mb-1">Director Access Required</h3>
-        <p className="text-slate-500 text-sm">This dashboard is restricted to Social Services Directors and Administrators.</p>
-      </div>
-    )
-  }
-
-  const [loading,     setLoading]     = useState(true)
-  const [refreshing,  setRefreshing]  = useState(false)
-  const [compliance,  setCompliance]  = useState(null)
-  const [caseload,    setCaseload]    = useState([])
-  const [moodData,    setMoodData]    = useState([])
+  // Hooks must all be declared before any conditional return
+  const [loading,       setLoading]       = useState(true)
+  const [refreshing,    setRefreshing]    = useState(false)
+  const [compliance,    setCompliance]    = useState(null)
+  const [caseload,      setCaseload]      = useState([])
+  const [moodData,      setMoodData]      = useState([])
   const [grievanceData, setGrievanceData] = useState([])
   const [concernTrend,  setConcernTrend]  = useState([])
   const [triggerData,   setTriggerData]   = useState([])
 
-  useEffect(() => { fetchAll() }, [])
+  useEffect(() => { if (isDirector) fetchAll() }, [isDirector])
 
   async function fetchAll(isRefresh = false) {
     if (isRefresh) setRefreshing(true); else setLoading(true)
@@ -279,6 +270,17 @@ export default function SocialDashboard() {
       .slice(0, 8)
       .map(([word, count]) => ({ word, count }))
     setTriggerData(sorted)
+  }
+
+  // Access guard — rendered conditionally (not as early return) to respect Rules of Hooks
+  if (!isDirector) {
+    return (
+      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-8 text-center">
+        <Shield size={32} className="text-amber-500 mx-auto mb-3" />
+        <h3 className="font-display font-bold text-slate-800 mb-1">Director Access Required</h3>
+        <p className="text-slate-500 text-sm">This dashboard is restricted to Social Services Directors and Administrators.</p>
+      </div>
+    )
   }
 
   if (loading) {
