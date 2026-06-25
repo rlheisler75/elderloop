@@ -30,6 +30,7 @@ const IT             = lazy(() => import('./pages/it/ITTickets'))
 const Marketing      = lazy(() => import('./pages/marketing/Marketing'))
 const Meters         = lazy(() => import('./pages/meters/MeterReadings'))
 const Nursing        = lazy(() => import('./pages/nursing/NursingNotes'))
+const SocialServices = lazy(() => import('./pages/social/SocialServices'))
 const PropertyMgmt   = lazy(() => import('./pages/property/PropertyManagement'))
 const Security       = lazy(() => import('./pages/security/Security'))
 const Staff          = lazy(() => import('./pages/staff/StaffManagement'))
@@ -48,8 +49,9 @@ import FamilyPortal  from './pages/family/FamilyPortal'
 import ResidentPortal from './pages/resident/ResidentPortal'
 import EarlyAccess   from './pages/landing/EarlyAccess'
 import SurveyPublic  from './pages/surveys/SurveyPublic'
-import Terms         from './pages/landing/Terms'
-import Privacy       from './pages/landing/Privacy'
+import Terms            from './pages/landing/Terms'
+import Privacy          from './pages/landing/Privacy'
+import SocialServices   from './pages/social/SocialServices'
 
 // Upgrade wall
 import UpgradeWall from './components/ui/UpgradeWall'
@@ -221,6 +223,8 @@ export default function App() {
           {/* Community+ modules */}
           <Route path="nursing"
             element={<ProtectedRoute requireModule="nursing"><Lazy><Nursing /></Lazy></ProtectedRoute>} />
+          <Route path="social"
+            element={<ProtectedRoute requireModule="social_services"><Lazy><SocialServices /></Lazy></ProtectedRoute>} />
           <Route path="incidents"
             element={<ProtectedRoute requireModule="incidents"><Lazy><Incidents /></Lazy></ProtectedRoute>} />
           <Route path="staff"

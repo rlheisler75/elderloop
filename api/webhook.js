@@ -12,7 +12,7 @@ export const config = { api: { bodyParser: false } }
 const PLAN_MODULE_KEYS = {
   starter:      ['directory', 'staff', 'communication', 'family'],
   essential:    ['directory', 'staff', 'communication', 'family', 'chapel', 'activities', 'incidents', 'nursing'],
-  professional: null, // null = all modules
+  professional: null, // null = all modules — social_services included
 }
 
 const PLAN_LIMITS = {

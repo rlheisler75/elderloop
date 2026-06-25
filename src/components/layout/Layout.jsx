@@ -27,6 +27,7 @@ const ALL_NAV = [
   { to: '/app/directory-staff',     label: 'Staff Directory',  icon: BookUser,        module: 'staff' },
   { to: '/app/scheduling',          label: 'Scheduling',       icon: CalendarCheck,   module: 'staff' },
   { to: '/app/nursing',             label: 'Nursing Notes',    icon: Stethoscope,     module: 'nursing' },
+  { to: '/app/social',              label: 'Social Services',  icon: HeartHandshake,  module: 'social_services' },
   { to: '/app/family',              label: 'Family Messaging', icon: HeartHandshake,  module: 'family' },
   { to: '/app/surveys',             label: 'Surveys',          icon: ClipboardList,   module: 'surveys' },
   { to: '/app/incidents',           label: 'Incident Reports', icon: AlertTriangle,   module: 'incidents' },
