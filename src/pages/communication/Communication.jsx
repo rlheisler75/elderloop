@@ -425,7 +425,7 @@ export default function Communication() {
       )}
 
       {/* ── Broadcast tab ── */}
-      {activeTab === 'broadcast' && <BroadcastPanel />}
+      {activeTab === 'broadcast' && <BroadcastPanel isStarter={organization?.plan === 'starter'} />}
 
       {/* ── Announcements tab (original content, fully intact) ── */}
       {activeTab === 'announcements' && (

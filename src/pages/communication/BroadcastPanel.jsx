@@ -66,7 +66,7 @@ function StatCard({ icon: Icon, label, value, sub, color }) {
   )
 }
 
-export default function BroadcastPanel() {
+export default function BroadcastPanel({ isStarter = false }) {
   const { profile, organization } = useAuth()
 
   const canSend = CAN_SEND_ROLES.includes(profile?.role)
@@ -307,6 +307,7 @@ export default function BroadcastPanel() {
       {showCompose && (
         <ComposeModal
           prefill={typeof showCompose === 'object' ? showCompose : null}
+          isStarter={isStarter}
           onClose={() => setShowCompose(false)}
           onSent={() => { setShowCompose(false); fetchMessages() }}
         />
