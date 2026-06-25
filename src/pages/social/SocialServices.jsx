@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
-import { Heart, ClipboardList, AlertTriangle, Users, FileText } from 'lucide-react'
+import { Heart, ClipboardList, AlertTriangle, Users, FileText, BarChart3 } from 'lucide-react'
 import SocialProfile    from './SocialProfile'
 import MoodTracker      from './MoodTracker'
 import Grievances       from './Grievances'
 import CareConferences  from './CareConferences'
 import SocialDashboard  from './SocialDashboard'
- 
+
 const TABS = [
   { key: 'profiles',     label: 'Social Profiles',   icon: FileText,     desc: 'Psycho-social history & advance directives' },
   { key: 'mood',         label: 'Mood & Behavior',   icon: Heart,        desc: 'Daily mood tracking & behavioral logs' },
