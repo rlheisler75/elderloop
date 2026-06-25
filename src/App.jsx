@@ -30,7 +30,9 @@ const IT             = lazy(() => import('./pages/it/ITTickets'))
 const Marketing      = lazy(() => import('./pages/marketing/Marketing'))
 const Meters         = lazy(() => import('./pages/meters/MeterReadings'))
 const Nursing        = lazy(() => import('./pages/nursing/NursingNotes'))
-const SocialServices = lazy(() => import('./pages/social/SocialServices'))
+const SocialServices    = lazy(() => import('./pages/social/SocialServices'))
+const ForgotPassword   = lazy(() => import('./pages/auth/ForgotPassword'))
+const ResetPassword    = lazy(() => import('./pages/auth/ResetPassword'))
 const PropertyMgmt   = lazy(() => import('./pages/property/PropertyManagement'))
 const Security       = lazy(() => import('./pages/security/Security'))
 const Staff          = lazy(() => import('./pages/staff/StaffManagement'))
@@ -187,8 +189,10 @@ export default function App() {
         <Route path="/family-portal"  element={user ? <FamilyPortal />  : <Navigate to="/login" replace />} />
 
         {/* ── Auth ── */}
-        <Route path="/login"  element={user ? <Navigate to="/app/dashboard" replace /> : <Login />} />
-        <Route path="/signup" element={user ? <Navigate to="/app/dashboard" replace /> : <Signup />} />
+        <Route path="/login"           element={user ? <Navigate to="/app/dashboard" replace /> : <Login />} />
+        <Route path="/signup"          element={user ? <Navigate to="/app/dashboard" replace /> : <Signup />} />
+        <Route path="/forgot-password" element={<Lazy><ForgotPassword /></Lazy>} />
+        <Route path="/reset-password"  element={<Lazy><ResetPassword /></Lazy>} />
 
         {/* ── Protected app shell ── */}
         <Route path="/app" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
