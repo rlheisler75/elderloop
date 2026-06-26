@@ -169,18 +169,14 @@ export default function Layout() {
             <div className="w-7 h-7 rounded-full bg-brand-700 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
               {profile?.first_name?.[0]?.toUpperCase() ?? '?'}
             </div>
-            <div className="flex-1 min-w-0">
+            <button
+              onClick={() => setShowProfile(true)}
+              className="flex-1 min-w-0 text-left hover:opacity-80 transition-opacity"
+              title="My Account"
+            >
               <div className="text-white text-xs font-medium truncate">{profile?.first_name} {profile?.last_name}</div>
               <div className="text-brand-400 text-xs capitalize">{profile?.role?.replace('_', ' ')}</div>
-            </div>
-            <button
-                onClick={() => setShowProfile(true)}
-                className="flex-1 min-w-0 text-left hover:opacity-80 transition-opacity"
-                title="My Account"
-              >
-                <div className="text-white text-xs font-medium truncate">{profile?.first_name} {profile?.last_name}</div>
-                <div className="text-brand-400 text-xs capitalize">{profile?.role?.replace('_', ' ')}</div>
-              </button>
+            </button>
             <button onClick={handleSignOut} className="text-brand-400 hover:text-red-400 transition-colors" title="Sign out">
               <LogOut size={16} />
             </button>
