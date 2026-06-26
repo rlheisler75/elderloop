@@ -10,8 +10,8 @@ import {
 import { useState, useEffect, useRef } from 'react'
 import { Bell } from 'lucide-react'
 import { ShoppingBag } from 'lucide-react'
-import UserProfileModal from '../components/UserProfileModal'
-import OnboardingModal from '../components/OnboardingModal'
+import UserProfileModal from '../UserProfileModal'
+import OnboardingModal from '../OnboardingModal'
 
 const ALL_NAV = [
   { to: '/app/dashboard',           label: 'Dashboard',        icon: LayoutDashboard, module: null },
