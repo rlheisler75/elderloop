@@ -10,6 +10,8 @@ import {
 import { useState, useEffect, useRef } from 'react'
 import { Bell } from 'lucide-react'
 import { ShoppingBag } from 'lucide-react'
+import UserProfileModal from '../components/UserProfileModal'
+import OnboardingModal from '../components/OnboardingModal'
 
 const ALL_NAV = [
   { to: '/app/dashboard',           label: 'Dashboard',        icon: LayoutDashboard, module: null },
@@ -41,9 +43,24 @@ const ALL_NAV = [
 export default function Layout() {
   const { profile, organization, hasModule, isOrgAdmin, isSuperAdmin, signOut } = useAuth()
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [notifs, setNotifs]       = useState([])
-  const [showNotifs, setShowNotifs] = useState(false)
+  const [notifs, setNotifs]           = useState([])
+  const [showNotifs, setShowNotifs]   = useState(false)
+  const [showProfile, setShowProfile] = useState(false)
   const notifRef = useRef(null)
+
+  // Onboarding: show once per org for org_admin/ceo
+  const onboardingKey = organization?.id ? `onboarding_complete_${organization.id}` : null
+  const [showOnboarding, setShowOnboarding] = useState(false)
+  useEffect(() => {
+    if (!onboardingKey) return
+    const done = localStorage.getItem(onboardingKey)
+    const isAdmin = profile?.role && ['org_admin', 'ceo'].includes(profile.role)
+    if (!done && isAdmin) setShowOnboarding(true)
+  }, [onboardingKey, profile?.role])
+  const handleCloseOnboarding = () => {
+    if (onboardingKey) localStorage.setItem(onboardingKey, 'true')
+    setShowOnboarding(false)
+  }
 
   const unread = notifs.filter(n => !n.is_read).length
 
@@ -156,7 +173,15 @@ export default function Layout() {
               <div className="text-white text-xs font-medium truncate">{profile?.first_name} {profile?.last_name}</div>
               <div className="text-brand-400 text-xs capitalize">{profile?.role?.replace('_', ' ')}</div>
             </div>
-            <button onClick={handleSignOut} className="text-brand-400 hover:text-red-400 transition-colors">
+            <button
+                onClick={() => setShowProfile(true)}
+                className="flex-1 min-w-0 text-left hover:opacity-80 transition-opacity"
+                title="My Account"
+              >
+                <div className="text-white text-xs font-medium truncate">{profile?.first_name} {profile?.last_name}</div>
+                <div className="text-brand-400 text-xs capitalize">{profile?.role?.replace('_', ' ')}</div>
+              </button>
+            <button onClick={handleSignOut} className="text-brand-400 hover:text-red-400 transition-colors" title="Sign out">
               <LogOut size={16} />
             </button>
           </div>
@@ -247,5 +272,8 @@ export default function Layout() {
         <main className="flex-1 overflow-y-auto p-6"><Outlet /></main>
       </div>
     </div>
+
+    {showProfile    && <UserProfileModal onClose={() => setShowProfile(false)} />}
+    {showOnboarding && <OnboardingModal  onClose={handleCloseOnboarding} />}
   )
 }
