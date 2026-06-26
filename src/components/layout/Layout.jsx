@@ -87,6 +87,7 @@ export default function Layout() {
   const visibleNav = ALL_NAV.filter(item => !item.module || hasModule(item.module))
 
   return (
+    <>
     <div className="flex h-screen bg-slate-50">
       {sidebarOpen && <div className="fixed inset-0 z-20 bg-black/50 lg:hidden" onClick={() => setSidebarOpen(false)} />}
 
@@ -254,6 +255,6 @@ export default function Layout() {
           onClose={() => setShowPushModal(false)}
         />
       )}
-    </div>
+    </>
   )
 }
