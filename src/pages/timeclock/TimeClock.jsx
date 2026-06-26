@@ -521,7 +521,7 @@ function GeofenceMap({ lat, lng, radius, mapRef, circleRef, leafletMapRef, onCha
 }
 
 export default function TimeClock() {
-  const { profile, organization, isOrgAdmin } = useAuth()
+  const { profile, organization } = useAuth()
   const [tab, setTab] = useState('clock')
   const [punches, setPunches] = useState([])
   const [allPunches, setAllPunches] = useState([])
@@ -534,7 +534,7 @@ export default function TimeClock() {
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState(null)
   const [geofenceForm, setGeofenceForm] = useState(null)
-  const admin = isOrgAdmin()
+  const admin = ['org_admin','ceo','super_admin'].includes(profile?.role)
   const orgId = organization?.id
   // Map refs for geofence settings
   const mapRef        = useRef(null)
