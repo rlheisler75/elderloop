@@ -77,6 +77,9 @@ export default function Login() {
       setLoading(false)
     } else {
       await logLoginSuccess()
+      if (!sessionStorage.getItem('push_permission_asked')) {
+        sessionStorage.setItem('show_push_modal', '1')
+      }
     }
   }
 
@@ -91,6 +94,10 @@ export default function Login() {
       setLoading(false)
     } else {
       await logLoginSuccess()
+      // Signal to show push permission modal on first login of session
+      if (!sessionStorage.getItem('push_permission_asked')) {
+        sessionStorage.setItem('show_push_modal', '1')
+      }
     }
   }
 
@@ -107,6 +114,9 @@ export default function Login() {
           setLoading(false)
         } else {
           await logLoginSuccess()
+          if (!sessionStorage.getItem('push_permission_asked')) {
+            sessionStorage.setItem('show_push_modal', '1')
+          }
         }
       })
   }
