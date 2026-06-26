@@ -1,5 +1,6 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import PushPermissionModal from '../modals/PushPermissionModal'
 import {
   LayoutDashboard, Wrench, MessageSquare, UtensilsCrossed, SprayCan,
   Settings, LogOut, Menu, X, ChevronRight, Megaphone, Home, Church,
@@ -43,6 +44,7 @@ export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [notifs, setNotifs]       = useState([])
   const [showNotifs, setShowNotifs] = useState(false)
+  const [showPushModal, setShowPushModal] = useState(false)
   const notifRef = useRef(null)
 
   const unread = notifs.filter(n => !n.is_read).length
@@ -81,6 +83,16 @@ export default function Layout() {
     setShowNotifs(v => !v)
     if (!showNotifs) markAllRead()
   }
+  // Show push permission modal once per session after login
+  useEffect(() => {
+    if (profile?.id && sessionStorage.getItem('show_push_modal') === '1') {
+      sessionStorage.removeItem('show_push_modal')
+      sessionStorage.setItem('push_permission_asked', '1')
+      const t = setTimeout(() => setShowPushModal(true), 2000)
+      return () => clearTimeout(t)
+    }
+  }, [profile?.id])
+
   const navigate = useNavigate()
   const handleSignOut = async () => { await signOut(); navigate('/login') }
 
