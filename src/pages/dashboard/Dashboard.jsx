@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
-import PushPermissionModal from '../modals/PushPermissionModal'
+import PushPermissionModal from '../../components/modals/PushPermissionModal'
 import {
   MessageSquare, Wrench, UtensilsCrossed, SprayCan,
   Car, CalendarDays, AlertTriangle, BookUser, Gauge,

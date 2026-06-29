@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Bell, BellOff, X, Smartphone } from 'lucide-react'
-import { usePushNotifications } from '../hooks/usePushNotifications'
+import { usePushNotifications } from '../../hooks/usePushNotifications'
 
 export default function PushPermissionModal({ profileId, onClose }) {
   const { supported, loading, subscribe } = usePushNotifications(profileId)
