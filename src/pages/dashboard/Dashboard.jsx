@@ -245,6 +245,7 @@ export default function Dashboard() {
   if (data.urgentSecReports > 0) alerts.push({ icon: Shield,   color: 'text-red-700',    bg: 'bg-red-100',    label: `${data.urgentSecReports} urgent security report${data.urgentSecReports > 1 ? 's' : ''}`, to: '/app/security' })
 
   return (
+    <>
     <div className="max-w-7xl mx-auto space-y-6">
       <div className="flex items-start justify-between">
         <div>
@@ -483,5 +484,6 @@ export default function Dashboard() {
           onClose={() => setShowPushModal(false)}
         />
       )}
+    </>
   )
 }
