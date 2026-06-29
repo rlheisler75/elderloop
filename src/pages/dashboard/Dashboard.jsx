@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import PushPermissionModal from '../modals/PushPermissionModal'
 import {
   MessageSquare, Wrench, UtensilsCrossed, SprayCan,
   Car, CalendarDays, AlertTriangle, BookUser, Gauge,
@@ -71,15 +72,19 @@ const timeAgo = (ts) => {
   return `${Math.floor(hrs / 24)}d ago`
 }
 
-const today = () => new Date().toISOString().split('T')[0]
+const today = () => {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+}
 
 // ── Main Dashboard ─────────────────────────────────────────────
 export default function Dashboard() {
   const { profile, organization, hasModule } = useAuth()
   const navigate = useNavigate()
-  const [data, setData]     = useState({})
-  const [feed, setFeed]     = useState([])
-  const [loading, setLoading] = useState(true)
+  const [data, setData]       = useState({})
+  const [feed, setFeed]       = useState([])
+  const [loading, setLoading]   = useState(true)
+  const [showPushModal, setShowPushModal] = useState(false)
 
   const greeting = () => {
     const h = new Date().getHours()
@@ -87,6 +92,16 @@ export default function Dashboard() {
     if (h < 17) return 'Good afternoon'
     return 'Good evening'
   }
+
+  // Show push permission modal once per session after login
+  useEffect(() => {
+    if (sessionStorage.getItem('show_push_modal') === '1') {
+      sessionStorage.removeItem('show_push_modal')
+      sessionStorage.setItem('push_permission_asked', '1')
+      const t = setTimeout(() => setShowPushModal(true), 2000)
+      return () => clearTimeout(t)
+    }
+  }, [])
 
   useEffect(() => { if (organization) fetchAll() }, [organization])
 
@@ -169,7 +184,6 @@ export default function Dashboard() {
     const secReports    = secReportsRes.data || []
     const meters        = meterRes.data || []
 
-    // Expand recurring activities for today
     const todayActs = activities.filter(a => {
       if (a.start_date === todayStr) return true
       if (a.recur_type === 'none') return false
@@ -178,9 +192,7 @@ export default function Dashboard() {
       const todayD = new Date(todayStr + 'T00:00:00')
       if (todayD < start || todayD > end) return false
       if (a.recur_type === 'daily') return true
-      if (a.recur_type === 'weekly') {
-        return start.getDay() === todayD.getDay()
-      }
+      if (a.recur_type === 'weekly') return start.getDay() === todayD.getDay()
       if (a.recur_type === 'biweekly') {
         const diff = Math.floor((todayD - start) / (7 * 24 * 60 * 60 * 1000))
         return diff % 2 === 0 && start.getDay() === todayD.getDay()
@@ -201,20 +213,16 @@ export default function Dashboard() {
       ilPending:     ilRequests.filter(r => r.status === 'pending').length,
       totalResidents: residents.length,
       recentAnnouncements: announcements.slice(0, 3),
-      // Security
       todayRounds:     secRounds.length,
       openSecReports:  secReports.filter(r => r.status === 'open').length,
       urgentSecReports:secReports.filter(r => r.priority === 'urgent').length,
-      // Meters
       meterCount: meters.length,
-      // Arrays for rendering
       workOrders,
       incidents,
       tripsList: todayTrips,
       todayActs,
     })
 
-    // Build activity feed from recent items
     const feedItems = []
     workOrders.slice(0, 3).forEach(w => feedItems.push({ type: 'wo', icon: Wrench, color: 'bg-brand-500', title: w.title, sub: `Maintenance · ${w.status.replace('_',' ')}`, ts: w.created_at }))
     announcements.slice(0, 2).forEach(a => feedItems.push({ type: 'ann', icon: Bell, color: 'bg-purple-500', title: a.title, sub: `Announcement · ${a.category}`, ts: a.created_at }))
@@ -238,7 +246,6 @@ export default function Dashboard() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      {/* Welcome */}
       <div className="flex items-start justify-between">
         <div>
           <h1 className="font-display text-2xl font-semibold text-slate-800">
@@ -257,7 +264,6 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Alerts */}
       {alerts.length > 0 && (
         <div className="bg-white rounded-2xl border border-red-100 shadow-sm p-4">
           <div className="flex items-center gap-2 mb-3">
@@ -272,7 +278,6 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Stats grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {hasModule('work_orders') && (
           <StatCard icon={Wrench} label="Open Maintenance" value={data.openWO}
@@ -325,10 +330,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Today's schedule */}
         <div className="lg:col-span-2 space-y-4">
-
-          {/* Today's trips */}
           {hasModule('transportation') && data.tripsList?.length > 0 && (
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
               <div className="flex items-center justify-between mb-4">
@@ -360,7 +362,6 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Today's activities */}
           {hasModule('activities') && data.todayActs?.length > 0 && (
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
               <div className="flex items-center justify-between mb-4">
@@ -389,7 +390,6 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Open maintenance */}
           {hasModule('work_orders') && data.workOrders?.length > 0 && (
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
               <div className="flex items-center justify-between mb-4">
@@ -415,9 +415,7 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Right column */}
         <div className="space-y-4">
-          {/* Recent announcements */}
           {hasModule('communication') && data.recentAnnouncements?.length > 0 && (
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
               <div className="flex items-center justify-between mb-4">
@@ -439,7 +437,6 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Activity feed */}
           {feed.length > 0 && (
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
               <h2 className="font-display font-semibold text-slate-800 flex items-center gap-2 mb-3">
@@ -454,7 +451,6 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Quick links */}
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
             <h2 className="font-display font-semibold text-slate-800 mb-3">Quick Links</h2>
             <div className="space-y-1">
@@ -480,5 +476,12 @@ export default function Dashboard() {
         </div>
       </div>
     </div>
+
+      {showPushModal && (
+        <PushPermissionModal
+          profileId={profile?.id}
+          onClose={() => setShowPushModal(false)}
+        />
+      )}
   )
 }
