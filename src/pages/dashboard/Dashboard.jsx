@@ -93,15 +93,22 @@ export default function Dashboard() {
     return 'Good evening'
   }
 
-  // Show push permission modal once per session after login
+  // Show push permission modal if:
+  // 1. Push is supported in this browser
+  // 2. User hasn't granted or denied yet (permission is 'default')
+  // 3. User hasn't dismissed this session
   useEffect(() => {
-    if (sessionStorage.getItem('show_push_modal') === '1') {
-      sessionStorage.removeItem('show_push_modal')
-      sessionStorage.setItem('push_permission_asked', '1')
-      const t = setTimeout(() => setShowPushModal(true), 2000)
-      return () => clearTimeout(t)
+    if (!profile?.id) return
+    const dismissed = sessionStorage.getItem('push_modal_dismissed')
+    if (dismissed) return
+    // Only show if browser supports push and hasn't been asked yet
+    if ('Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window) {
+      if (Notification.permission === 'default') {
+        const t = setTimeout(() => setShowPushModal(true), 3000)
+        return () => clearTimeout(t)
+      }
     }
-  }, [])
+  }, [profile?.id])
 
   useEffect(() => { if (organization) fetchAll() }, [organization])
 
@@ -481,7 +488,7 @@ export default function Dashboard() {
       {showPushModal && (
         <PushPermissionModal
           profileId={profile?.id}
-          onClose={() => setShowPushModal(false)}
+          onClose={() => { setShowPushModal(false); sessionStorage.setItem('push_modal_dismissed', '1') }}
         />
       )}
     </>
