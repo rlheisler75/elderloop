@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import LeadsTab from './LeadsTab'   // adjust path if file is in same folder
+import LeadsTab from './LeadsTab'
+import RepTracker from './RepTracker'
 import { useAuth } from '../../context/AuthContext'
 import {
   Building2, Users, Shield, Plus, Settings, CheckCircle2,
@@ -535,6 +536,7 @@ export default function SuperAdminDashboard() {
             { key: 'organizations',  icon: Building2,     label: 'Organizations' },
             { key: 'leads',          icon: Users,         label: 'Leads' },
             { key: 'surveys',        icon: ClipboardList, label: 'Platform Surveys' },
+            { key: 'reps',           icon: TrendingUp,    label: 'Rep Tracking' },
             { key: 'activity',       icon: Activity,      label: 'Platform Activity' },
           ].map(item => {
             const Icon = item.icon
@@ -592,7 +594,7 @@ export default function SuperAdminDashboard() {
         <div className="px-8 py-6 border-b border-slate-800 flex items-center justify-between">
           <div>
             <h1 style={{ fontFamily: '"Playfair Display", serif' }} className="text-2xl font-bold text-white">
-              {activeTab === 'overview' ? 'Platform Overview' : activeTab === 'organizations' ? 'Organizations' : 'Platform Activity'}
+              {activeTab === 'overview' ? 'Platform Overview' : activeTab === 'organizations' ? 'Organizations' : activeTab === 'reps' ? 'Rep Tracking' : 'Platform Activity'}
             </h1>
             <p className="text-slate-500 text-sm mt-0.5">
               {new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' })}
@@ -781,6 +783,19 @@ export default function SuperAdminDashboard() {
                   )
                 })}
               </div>
+              {/* ── REP TRACKING TAB ── */}
+            {activeTab === 'reps' && (
+              <div>
+                <div className="mb-6">
+                  <h2 style={{ fontFamily: '"Playfair Display", serif' }} className="text-xl font-semibold text-white">
+                    Rep Tracking
+                  </h2>
+                  <p className="text-slate-500 text-sm mt-0.5">Signups attributed to sales reps by code</p>
+                </div>
+                <RepTracker />
+              </div>
+            )}
+
                {/* ── PLATFORM LEADS TAB ── */}
             {activeTab === 'leads' && (
                 <div>
