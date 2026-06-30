@@ -465,8 +465,9 @@ export default function LandingPage() {
             <div className="space-y-4">
               <div className="bg-white rounded-2xl border border-slate-200 p-6">
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 bg-brand-600 rounded-2xl flex items-center justify-center text-white font-bold"
-                    style={{ fontFamily: '"Playfair Display", serif' }}>EL</div>
+                  <div className="w-12 h-12 bg-brand-600 rounded-2xl overflow-hidden flex-shrink-0">
+                    <img src="/icon-192.png" alt="ElderLoop" className="w-full h-full object-cover" />
+                  </div>
                   <div>
                     <div className="font-semibold text-slate-800">Sunrise Gardens Senior Living</div>
                     <div className="text-xs text-slate-400">Founding Community · Springfield, MO</div>
