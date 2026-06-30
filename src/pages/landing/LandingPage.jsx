@@ -132,8 +132,8 @@ export default function LandingPage() {
       <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/96 backdrop-blur shadow-sm border-b border-slate-100' : 'bg-transparent'}`}>
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-bold text-sm" style={{ fontFamily: '"Playfair Display", serif' }}>EL</span>
+            <div className="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+              <img src="/icon-192.png" alt="ElderLoop" className="w-full h-full object-cover" />
             </div>
             <div className="flex flex-col leading-tight">
               <span className="font-semibold text-lg leading-none" style={{ fontFamily: '"Playfair Display", serif', color: scrolled ? '#1e293b' : 'white' }}>
@@ -551,8 +551,8 @@ export default function LandingPage() {
       <footer className="bg-slate-950 py-10 border-t border-slate-800">
         <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 bg-brand-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xs">EL</span>
+            <div className="w-7 h-7 bg-brand-600 rounded-lg flex items-center justify-center overflow-hidden">
+              <img src="/icon-192.png" alt="ElderLoop" className="w-full h-full object-cover" />
             </div>
             <div className="flex flex-col leading-tight">
               <span className="text-white font-semibold leading-none" style={{ fontFamily: '"Playfair Display", serif' }}>ElderLoop</span>
