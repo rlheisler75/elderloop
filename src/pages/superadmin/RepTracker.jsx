@@ -147,7 +147,7 @@ function NewRepCodeModal({ existingCodes, onClose, onCreated }) {
                 onChange={e => setCode(e.target.value.toUpperCase())}
                 placeholder="e.g. SMITH25"
                 maxLength={10}
-                className="flex-1 px-3 py-2 border border-slate-200 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="flex-1 px-3 py-2 border border-slate-200 rounded-xl text-sm font-mono text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
               <button onClick={generate}
                 className="px-3 py-2 border border-slate-200 rounded-xl text-xs text-slate-600 hover:border-brand-300 hover:text-brand-600 transition-colors">
                 Generate
@@ -159,13 +159,13 @@ function NewRepCodeModal({ existingCodes, onClose, onCreated }) {
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Rep Name</label>
             <input value={name} onChange={e => setName(e.target.value)}
               placeholder="Full name of rep"
-              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Rep Email</label>
             <input value={email} onChange={e => setEmail(e.target.value)}
               placeholder="rep@example.com" type="email"
-              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
         </div>
         <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
@@ -207,7 +207,7 @@ function AssignRepModal({ org, repCodes, onClose, onSaved }) {
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Rep Code</label>
             <select value={code} onChange={e => setCode(e.target.value)}
-              className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+              className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
               <option value="">— No rep (direct) —</option>
               {repCodes.map(r => <option key={r} value={r}>{r}</option>)}
             </select>
