@@ -68,6 +68,7 @@ export default async function handler(req, res) {
           ...PLAN_LIMITS[plan],
         }).eq('id', orgId)
         await enableModulesForPlan(orgId, plan)
+        await redeemPromoCodeIfUsed(session.id)
         break
       }
 
@@ -178,6 +179,23 @@ async function enableModulesForPlan(orgId, plan) {
     }
   } catch (err) {
     console.error('enableModulesForPlan error:', err.message)
+  }
+}
+
+// If the checkout session redeemed a rep promotion code, credit the redemption
+async function redeemPromoCodeIfUsed(sessionId) {
+  try {
+    const fullSession = await stripe.checkout.sessions.retrieve(sessionId, {
+      expand: ['discounts.promotion_code'],
+    })
+    const promo = fullSession.discounts?.[0]?.promotion_code
+    const code = typeof promo === 'string'
+      ? (await stripe.promotionCodes.retrieve(promo)).code
+      : promo?.code
+    if (!code) return
+    await supabase.rpc('increment_promo_redemption', { p_code: code })
+  } catch (err) {
+    console.error('redeemPromoCodeIfUsed error:', err.message)
   }
 }
 

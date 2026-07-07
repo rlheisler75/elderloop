@@ -43,6 +43,7 @@ const TimeClock      = lazy(() => import('./pages/timeclock/TimeClock'))
 const Transportation = lazy(() => import('./pages/transportation/Transportation'))
 const CEODashboard   = lazy(() => import('./pages/ceo/CEODashboard'))
 const SuperAdmin     = lazy(() => import('./pages/superadmin/SuperAdminDashboard'))
+const RepPortal      = lazy(() => import('./pages/rep/RepPortal'))
 
 // Public TV & role-specific portals (outside the staff Layout)
 import TV            from './pages/tv/TV'
@@ -146,7 +147,7 @@ function SuspendedWall() {
 // ── App ───────────────────────────────────────────────────────
 
 export default function App() {
-  const { user, loading, profile } = useAuth()
+  const { user, loading, profile, isSuperAdmin } = useAuth()
 
   if (loading) return (
     <div className="flex h-screen items-center justify-center bg-brand-950">
@@ -173,6 +174,15 @@ export default function App() {
     )
   }
 
+  if (user && profile?.role === 'sales_rep') {
+    return (
+      <Routes>
+        <Route path="/rep" element={<Lazy><RepPortal /></Lazy>} />
+        <Route path="*" element={<Navigate to="/rep" replace />} />
+      </Routes>
+    )
+  }
+
   return (
     <>
       <Routes>
@@ -187,6 +197,7 @@ export default function App() {
         <Route path="/privacy"         element={<Privacy />} />
         <Route path="/resident"       element={user ? <ResidentPortal /> : <Navigate to="/login" replace />} />
         <Route path="/family-portal"  element={user ? <FamilyPortal />  : <Navigate to="/login" replace />} />
+        <Route path="/rep"            element={!user ? <Navigate to="/login" replace /> : isSuperAdmin ? <Lazy><RepPortal /></Lazy> : <Navigate to="/app/dashboard" replace />} />
 
         {/* ── Auth ── */}
         <Route path="/login"           element={user ? <Navigate to="/app/dashboard" replace /> : <Login />} />

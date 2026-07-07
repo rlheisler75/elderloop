@@ -39,6 +39,7 @@ export default function Signup() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const repCode = params.get('rep') || ''
+  const promoCode = params.get('promo') || ''
   const planParam = params.get('plan') || 'starter'
 
   const [step, setStep]   = useState(1) // 1 = plan select, 2 = details
@@ -83,6 +84,7 @@ export default function Signup() {
           community_name: form.community_name.trim(),
           plan:           plan.key,
           rep_code:       repCode || null,
+          promo_code:     promoCode || null,
         }),
       })
       const result = await res.json()
@@ -113,7 +115,7 @@ export default function Signup() {
             'Authorization': `Bearer ${session.access_token}`,
             'Content-Type':  'application/json',
           },
-          body: JSON.stringify({ plan: plan.key }),
+          body: JSON.stringify({ plan: plan.key, promo_code: promoCode || null }),
         })
         const checkoutResult = await checkoutRes.json()
 
@@ -214,6 +216,11 @@ export default function Signup() {
               {repCode && (
                 <p className="text-center text-white/30 text-xs mt-4">
                   Referred by: <span className="text-brand-400 font-mono">{repCode}</span>
+                </p>
+              )}
+              {promoCode && (
+                <p className="text-center text-white/30 text-xs mt-1">
+                  Promo code applied: <span className="text-brand-400 font-mono">{promoCode}</span>
                 </p>
               )}
             </div>
