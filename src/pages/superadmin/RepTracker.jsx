@@ -36,7 +36,7 @@ function CopyButton({ text }) {
 }
 
 // ── Rep Row (expandable) ──────────────────────────────────────
-function RepRow({ repCode, orgs, onOrgRepChange }) {
+function RepRow({ repCode, orgs, onOrgRepChange, repMeta = {} }) {
   const [open, setOpen] = useState(false)
   const mrr = orgs.reduce((s, o) => s + (PLAN_MRR[o.plan] || 0), 0)
   const latest = orgs.reduce((a, b) => new Date(a.created_at) > new Date(b.created_at) ? a : b, orgs[0])
@@ -50,7 +50,12 @@ function RepRow({ repCode, orgs, onOrgRepChange }) {
         <td className="px-5 py-3">
           <div className="flex items-center gap-2">
             {open ? <ChevronDown size={14} className="text-slate-400" /> : <ChevronRight size={14} className="text-slate-400" />}
-            <span className="font-mono font-bold text-slate-800 text-sm">{repCode}</span>
+            <div>
+              <span className="font-mono font-bold text-slate-800 text-sm">{repCode}</span>
+              {repMeta[repCode]?.name && (
+                <div className="text-xs text-slate-500">{repMeta[repCode].name}</div>
+              )}
+            </div>
             <CopyButton text={`https://elderloop.xyz/signup?rep=${repCode}`} />
           </div>
         </td>
@@ -147,7 +152,7 @@ function NewRepCodeModal({ existingCodes, onClose, onCreated }) {
                 onChange={e => setCode(e.target.value.toUpperCase())}
                 placeholder="e.g. SMITH25"
                 maxLength={10}
-                className="flex-1 px-3 py-2 border border-slate-200 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="flex-1 px-3 py-2 border border-slate-200 rounded-xl text-sm font-mono text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
               <button onClick={generate}
                 className="px-3 py-2 border border-slate-200 rounded-xl text-xs text-slate-600 hover:border-brand-300 hover:text-brand-600 transition-colors">
                 Generate
@@ -159,13 +164,13 @@ function NewRepCodeModal({ existingCodes, onClose, onCreated }) {
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Rep Name</label>
             <input value={name} onChange={e => setName(e.target.value)}
               placeholder="Full name of rep"
-              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Rep Email</label>
             <input value={email} onChange={e => setEmail(e.target.value)}
               placeholder="rep@example.com" type="email"
-              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
         </div>
         <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
@@ -207,7 +212,7 @@ function AssignRepModal({ org, repCodes, onClose, onSaved }) {
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Rep Code</label>
             <select value={code} onChange={e => setCode(e.target.value)}
-              className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+              className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
               <option value="">— No rep (direct) —</option>
               {repCodes.map(r => <option key={r} value={r}>{r}</option>)}
             </select>
@@ -229,7 +234,8 @@ function AssignRepModal({ org, repCodes, onClose, onSaved }) {
 // ── Main Component ────────────────────────────────────────────
 export default function RepTracker() {
   const [orgs,       setOrgs]       = useState([])
-  const [repCodes,   setRepCodes]   = useState([]) // manually created rep codes
+  const [repMeta,    setRepMeta]    = useState({}) // { CODE: { name, email } }
+  const [repCodes,   setRepCodes]   = useState([])
   const [loading,    setLoading]    = useState(true)
   const [showNew,    setShowNew]    = useState(false)
   const [assigning,  setAssigning]  = useState(null) // org being assigned
@@ -239,13 +245,23 @@ export default function RepTracker() {
 
   async function fetchAll() {
     setLoading(true)
-    const { data } = await supabase.from('organizations')
-      .select('id, name, plan, billing_status, rep_code, is_active, created_at, contact_name, contact_email, city, state')
-      .order('created_at', { ascending: false })
+    const [{ data }, { data: repsData }] = await Promise.all([
+      supabase.from('organizations')
+        .select('id, name, plan, billing_status, rep_code, is_active, created_at, contact_name, contact_email, city, state')
+        .order('created_at', { ascending: false }),
+      supabase.from('rep_codes').select('code, name, email').eq('is_active', true)
+    ])
     setOrgs(data || [])
 
-    // Derive unique rep codes from actual org data
-    const codes = [...new Set((data || []).map(o => o.rep_code).filter(Boolean))].sort()
+    // Build meta lookup { CODE: { name, email } }
+    const meta = {}
+    ;(repsData || []).forEach(r => { meta[r.code] = { name: r.name, email: r.email } })
+    setRepMeta(meta)
+
+    // Derive unique codes — from rep_codes table + any orgs with codes not in table
+    const tableCodes = (repsData || []).map(r => r.code)
+    const orgCodes   = (data || []).map(o => o.rep_code).filter(Boolean)
+    const codes = [...new Set([...tableCodes, ...orgCodes])].sort()
     setRepCodes(codes)
     setLoading(false)
   }
@@ -266,7 +282,13 @@ export default function RepTracker() {
   const repMRR   = orgs.filter(o => o.rep_code).reduce((s, o) => s + (PLAN_MRR[o.plan] || 0), 0)
   const repCount = Object.keys(grouped).length
 
-  const handleNewRepCreated = ({ code }) => {
+  const handleNewRepCreated = async ({ code, name, email }) => {
+    // Save to rep_codes table for persistence
+    await supabase.from('rep_codes').upsert(
+      { code, name: name || null, email: email || null },
+      { onConflict: 'code' }
+    )
+    setRepMeta(prev => ({ ...prev, [code]: { name, email } }))
     setRepCodes(prev => [...new Set([...prev, code])].sort())
   }
 
@@ -321,7 +343,12 @@ export default function RepTracker() {
           <div className="space-y-2">
             {repCodes.map(code => (
               <div key={code} className="flex items-center gap-3 p-2.5 bg-slate-50 rounded-xl">
-                <span className="font-mono font-bold text-slate-700 text-sm w-24 flex-shrink-0">{code}</span>
+                <div className="w-32 flex-shrink-0">
+                  <div className="font-mono font-bold text-slate-700 text-sm">{code}</div>
+                  {repMeta[code]?.name && (
+                    <div className="text-xs text-slate-400 truncate">{repMeta[code].name}</div>
+                  )}
+                </div>
                 <span className="text-xs text-slate-400 flex-1 truncate">
                   elderloop.xyz/signup?rep={code}
                 </span>
@@ -359,6 +386,7 @@ export default function RepTracker() {
                     repCode={code}
                     orgs={repOrgs}
                     onOrgRepChange={setAssigning}
+                    repMeta={repMeta}
                   />
                 ))}
             </tbody>
