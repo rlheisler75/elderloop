@@ -8,7 +8,7 @@ import {
   CheckCircle2, AlertCircle, Activity, Send,
   ThumbsUp, ThumbsDown, Save, Home, Radio,
   Maximize, Star, Sun, Coffee, Soup, Cookie,
-  MapPin, Heart
+  MapPin
 } from 'lucide-react'
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -510,8 +510,8 @@ export default function ResidentPortal() {
       <div className="bg-white border-b border-slate-100 sticky top-0 z-40">
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-brand-600 rounded-lg flex items-center justify-center">
-              <Heart size={14} className="text-white fill-white" />
+            <div className="w-7 h-7 bg-brand-600 rounded-lg flex items-center justify-center overflow-hidden">
+              <img src="/icon-192.png" alt="ElderLoop" className="w-full h-full object-cover" />
             </div>
             <span className="font-semibold text-slate-800" style={{ fontFamily: '"Playfair Display", serif' }}>ElderLoop</span>
           </div>

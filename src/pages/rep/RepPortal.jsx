@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
 import {
   Building2, DollarSign, Megaphone, FileText, Tag,
-  LogOut, Heart
+  LogOut
 } from 'lucide-react'
 import AccountsTab from './tabs/AccountsTab'
 import CommissionsTab from './tabs/CommissionsTab'
@@ -40,8 +40,8 @@ export default function RepPortal() {
       <div className="bg-brand-950 border-b border-brand-900">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-brand-600 rounded-xl flex items-center justify-center">
-              <Heart size={16} className="text-white fill-white" />
+            <div className="w-8 h-8 bg-brand-600 rounded-xl flex items-center justify-center overflow-hidden">
+              <img src="/icon-192.png" alt="ElderLoop" className="w-full h-full object-cover" />
             </div>
             <div>
               <div className="text-white font-semibold" style={{ fontFamily: '"Playfair Display", serif' }}>ElderLoop</div>

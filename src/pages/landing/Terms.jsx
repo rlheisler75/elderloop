@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import { Heart } from 'lucide-react'
 
 const EFFECTIVE_DATE = 'June 25, 2026'
 const COMPANY = 'Loopware Solutions LLC'
@@ -42,8 +41,8 @@ export default function Terms() {
       <div className="bg-brand-950 py-4 px-6">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-brand-600 rounded-lg flex items-center justify-center">
-              <Heart size={13} className="text-white fill-white" />
+            <div className="w-7 h-7 bg-brand-600 rounded-lg flex items-center justify-center overflow-hidden">
+              <img src="/icon-192.png" alt="ElderLoop" className="w-full h-full object-cover" />
             </div>
             <span className="text-white font-semibold" style={{ fontFamily: '"Playfair Display", serif' }}>ElderLoop</span>
           </Link>

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import { Heart, ArrowLeft, Loader2, CheckCircle } from 'lucide-react'
+import { ArrowLeft, Loader2, CheckCircle } from 'lucide-react'
 
 export default function ForgotPassword() {
   const [email,     setEmail]     = useState('')
@@ -32,8 +32,8 @@ export default function ForgotPassword() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Heart size={22} className="text-white fill-white" />
+          <div className="w-12 h-12 bg-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-4 overflow-hidden">
+            <img src="/icon-192.png" alt="ElderLoop" className="w-full h-full object-cover" />
           </div>
           <h1 className="font-display text-3xl font-semibold text-white">ElderLoop</h1>
           <p className="text-brand-400 mt-1 text-sm">Password Reset</p>

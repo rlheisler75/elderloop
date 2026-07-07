@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import { Check, Eye, EyeOff, Heart, ArrowRight, Loader2 } from 'lucide-react'
+import { Check, Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react'
 
 // ── Plan definitions ────────────────────────────────────────────
 const PLANS = [
@@ -140,8 +140,8 @@ export default function Signup() {
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-5">
         <Link to="/" className="flex items-center gap-2.5 group">
-          <div className="w-8 h-8 bg-brand-600 rounded-xl flex items-center justify-center">
-            <Heart size={16} className="text-white fill-white" />
+          <div className="w-8 h-8 bg-brand-600 rounded-xl flex items-center justify-center overflow-hidden">
+            <img src="/icon-192.png" alt="ElderLoop" className="w-full h-full object-cover" />
           </div>
           <span className="text-white font-semibold text-lg" style={{ fontFamily: '"Playfair Display", serif' }}>
             ElderLoop

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import { Heart, Eye, EyeOff, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
+import { Eye, EyeOff, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
 
 export default function ResetPassword() {
   const navigate = useNavigate()
@@ -85,8 +85,8 @@ export default function ResetPassword() {
       <div className="min-h-screen bg-brand-950 flex items-center justify-center px-4">
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
-            <div className="w-12 h-12 bg-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Heart size={22} className="text-white fill-white" />
+            <div className="w-12 h-12 bg-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-4 overflow-hidden">
+              <img src="/icon-192.png" alt="ElderLoop" className="w-full h-full object-cover" />
             </div>
             <h1 className="font-display text-3xl font-semibold text-white">ElderLoop</h1>
           </div>
@@ -116,8 +116,8 @@ export default function ResetPassword() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Heart size={22} className="text-white fill-white" />
+          <div className="w-12 h-12 bg-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-4 overflow-hidden">
+            <img src="/icon-192.png" alt="ElderLoop" className="w-full h-full object-cover" />
           </div>
           <h1 className="font-display text-3xl font-semibold text-white">ElderLoop</h1>
           <p className="text-brand-400 mt-1 text-sm">Set New Password</p>
