@@ -67,7 +67,7 @@ export default async function handler(req, res) {
 
     // ── Create Stripe Promotion Code ──────────────────────────
     const promoCodeParams = {
-      coupon: coupon.id,
+      promotion: { type: 'coupon', coupon: coupon.id },
       code,
       ...(max_redemptions ? { max_redemptions } : {}),
       ...(expires_at ? { expires_at: Math.floor(new Date(expires_at).getTime() / 1000) } : {}),
