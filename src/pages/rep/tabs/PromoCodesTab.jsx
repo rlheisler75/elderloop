@@ -41,7 +41,8 @@ function NewPromoCodeModal({ onClose, onCreated }) {
       })
       const result = await res.json()
       if (!res.ok || !result.success) {
-        setError(result.error || 'Failed to create promo code.')
+        const detail = [result.type, result.param && `param: ${result.param}`].filter(Boolean).join(', ')
+        setError((result.error || 'Failed to create promo code.') + (detail ? ` (${detail})` : ''))
         setSaving(false)
         return
       }

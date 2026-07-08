@@ -57,7 +57,13 @@ export default async function handler(req, res) {
         : { amount_off: Math.round(discount_value * 100), currency: 'usd' }),
       name: `Rep code ${code}`,
     }
-    const coupon = await stripe.coupons.create(couponParams)
+    let coupon
+    try {
+      coupon = await stripe.coupons.create(couponParams)
+    } catch (err) {
+      console.error('Coupon creation failed:', { params: couponParams, err })
+      return res.status(500).json({ error: `[coupon] ${err.message}`, param: err.param, type: err.type })
+    }
 
     // ── Create Stripe Promotion Code ──────────────────────────
     const promoCodeParams = {
@@ -66,7 +72,14 @@ export default async function handler(req, res) {
       ...(max_redemptions ? { max_redemptions } : {}),
       ...(expires_at ? { expires_at: Math.floor(new Date(expires_at).getTime() / 1000) } : {}),
     }
-    const promotionCode = await stripe.promotionCodes.create(promoCodeParams)
+    let promotionCode
+    try {
+      promotionCode = await stripe.promotionCodes.create(promoCodeParams)
+    } catch (err) {
+      console.error('Promotion code creation failed:', { params: promoCodeParams, err })
+      await stripe.coupons.del(coupon.id).catch(() => {})
+      return res.status(500).json({ error: `[promotion_code] ${err.message}`, param: err.param, type: err.type })
+    }
 
     // ── Store in Supabase (service role — RLS scopes writes by rep_id) ──
     const { data: row, error: insertError } = await supabase
