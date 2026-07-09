@@ -5,8 +5,10 @@ import {
   Plus, X, Edit2, Trash2, Search, Zap, Droplets,
   Flame, Thermometer, Gauge, ChevronRight, Settings,
   TrendingUp, TrendingDown, Minus, Calendar, Building2,
-  Check, AlertCircle, Download
+  Check, AlertCircle, Download, ScanLine, Printer
 } from 'lucide-react'
+import BarcodeScanner from '../supply/BarcodeScanner'
+import MeterBarcodeLabels from './MeterBarcodeLabels'
 
 // ── Helpers ───────────────────────────────────────────────────
 const ICON_MAP = {
@@ -468,6 +470,9 @@ export default function MeterReadings() {
   const [showAddMeter, setShowAddMeter]             = useState(false)
   const [readingMeter, setReadingMeter]             = useState(null)
   const [historyMeter, setHistoryMeter]             = useState(null)
+  const [showScanner, setShowScanner]               = useState(false)
+  const [showBarcodeLabels, setShowBarcodeLabels]   = useState(false)
+  const [scanError, setScanError]                   = useState('')
 
   useEffect(() => { if (organization) fetchAll() }, [organization])
 
@@ -508,6 +513,18 @@ export default function MeterReadings() {
     fetchAll()
   }
 
+  const handleScan = (code) => {
+    setShowScanner(false)
+    const meter = meters.find(m => m.meter_number === code)
+    if (!meter) {
+      setScanError(`No meter found with number "${code}"`)
+      return
+    }
+    setScanError('')
+    setActiveTab(meter.utility_type_id)
+    setReadingMeter(meter)
+  }
+
   const activeType  = utilityTypes.find(t => t.id === activeTab)
   const typeMeters  = meters.filter(m => {
     const matchType   = m.utility_type_id === activeTab
@@ -537,12 +554,27 @@ export default function MeterReadings() {
             className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
             <Settings size={15} /> Utility Types
           </button>
+          <button onClick={() => setShowBarcodeLabels(true)}
+            className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
+            <Printer size={15} /> Print Barcodes
+          </button>
+          <button onClick={() => { setScanError(''); setShowScanner(true) }}
+            className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
+            <ScanLine size={15} /> Scan Meter
+          </button>
           <button onClick={() => setShowAddMeter(true)}
             className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
             <Plus size={15} /> Add Meter
           </button>
         </div>
       </div>
+
+      {scanError && (
+        <div className="mb-4 flex items-center gap-2 px-4 py-2.5 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+          <AlertCircle size={15} /> {scanError}
+          <button onClick={() => setScanError('')} className="ml-auto text-red-400 hover:text-red-600"><X size={14} /></button>
+        </div>
+      )}
 
       {/* Utility type tabs */}
       {utilityTypes.length > 0 ? (
@@ -712,6 +744,12 @@ export default function MeterReadings() {
           meter={historyMeter}
           utilityType={utilityTypes.find(t => t.id === historyMeter.utility_type_id)}
           onClose={() => setHistoryMeter(null)} />
+      )}
+      {showScanner && (
+        <BarcodeScanner title="Scan Meter Barcode" onScan={handleScan} onClose={() => setShowScanner(false)} />
+      )}
+      {showBarcodeLabels && (
+        <MeterBarcodeLabels onClose={() => setShowBarcodeLabels(false)} />
       )}
     </div>
   )

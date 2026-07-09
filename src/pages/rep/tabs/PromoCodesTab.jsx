@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { supabase } from '../lib/supabaseClient' // adjust to your actual client path
+import { supabase } from '../../../lib/supabase'
 
 const PLAN_OPTIONS = [
   { value: '', label: 'Any' },
@@ -90,7 +90,7 @@ export default function PromoCodesTab() {
       }
 
       const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-rep-promo-code`,
+        '/api/rep/create-promo-code',
         {
           method: 'POST',
           headers: {
