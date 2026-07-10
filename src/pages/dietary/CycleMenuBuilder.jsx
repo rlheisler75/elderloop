@@ -27,8 +27,6 @@ const DIET_TYPES = [
   { key: 'low_sodium',   label: 'Low Sodium' },
   { key: 'low_fat',      label: 'Low Fat' },
   { key: 'gluten_free',  label: 'Gluten Free' },
-  { key: 'kosher',       label: 'Kosher' },
-  { key: 'halal',        label: 'Halal' },
 ]
 
 const CONSISTENCY_LEVELS = [

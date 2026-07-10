@@ -22,6 +22,7 @@ const ALL_ROLES = [
   { key: 'dietary',     label: 'Dietary',     desc: 'Dietary module access' },
   { key: 'housekeeping',label: 'Housekeeping',desc: 'Housekeeping module access' },
   { key: 'nursing',     label: 'Nursing',     desc: 'Clinical access' },
+  { key: 'social_services', label: 'Social Services', desc: 'Social Services module access' },
   { key: 'staff',       label: 'Staff',       desc: 'General staff — module access assigned separately' },
   { key: 'resident',    label: 'Resident',    desc: 'Resident portal access' },
   { key: 'family',      label: 'Family',      desc: 'Family portal access' },
