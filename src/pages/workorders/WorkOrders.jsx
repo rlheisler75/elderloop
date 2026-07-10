@@ -36,6 +36,9 @@ import WorkOrderAssets from './WorkOrderAssets'
 import PMSchedules from './PMSchedules'
 import MaintenanceSettings from './MaintenanceSettings'
 import LocationPicker from '../../components/ui/LocationPicker'
+import BroadcastPanel from '../communication/BroadcastPanel'
+
+const MAINTENANCE_COMMS_ROLES = ['super_admin', 'org_admin', 'ceo', 'supervisor', 'manager', 'maintenance']
 
 const STATUSES = [
   { key: 'open',             label: 'Open',             color: 'bg-blue-50 text-blue-700 border-blue-200',     dot: 'bg-blue-500' },
@@ -1017,6 +1020,7 @@ export default function WorkOrders() {
           { key: 'assets',      label: 'Assets',      icon: Package },
           { key: 'pm',          label: 'Preventive Maintenance', icon: RefreshCw },
           { key: 'compliance',  label: 'Life Safety',  icon: ShieldCheck },
+          { key: 'communication', label: 'Communication', icon: MessageSquare },
           { key: 'settings',    label: 'Settings',     icon: Settings },
         ].map(v => {
           const Icon = v.icon
@@ -1032,6 +1036,15 @@ export default function WorkOrders() {
       {mainView === 'assets'     && <WorkOrderAssets   orgId={organization?.id} profile={profile} />}
       {mainView === 'pm'         && <PMSchedules        orgId={organization?.id} profile={profile} />}
       {mainView === 'compliance' && <CompliancePanel    orgId={organization?.id} profile={profile} />}
+      {mainView === 'communication' && (
+        <BroadcastPanel
+          isStarter={organization?.plan === 'starter'}
+          restrictToDepartment="maintenance"
+          canSendRoles={MAINTENANCE_COMMS_ROLES}
+          title="Maintenance Communication"
+          subtitle="Internal messages to the maintenance department — not visible to other departments"
+        />
+      )}
       {mainView === 'settings'   && <MaintenanceSettings orgId={organization?.id} profile={profile} />}
 
       {/* Work Orders view */}

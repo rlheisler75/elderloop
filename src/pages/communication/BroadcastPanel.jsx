@@ -31,6 +31,11 @@ const AUDIENCE_LABELS = {
 
 const CAN_SEND_ROLES = ['super_admin', 'org_admin', 'ceo', 'manager', 'supervisor']
 
+// department_scope tags every message sent through a department-restricted
+// composer (see restrictToDepartment below), independent of audience_type —
+// this keeps a department's own message log self-contained even for
+// individual-recipient sends, which don't otherwise carry a department.
+
 function ChannelBadge({ channels }) {
   return (
     <div className="flex gap-1">
@@ -66,10 +71,11 @@ function StatCard({ icon: Icon, label, value, sub, color }) {
   )
 }
 
-export default function BroadcastPanel({ isStarter = false }) {
+export default function BroadcastPanel({ isStarter = false, restrictToDepartment, canSendRoles, title, subtitle }) {
   const { profile, organization } = useAuth()
 
-  const canSend = CAN_SEND_ROLES.includes(profile?.role)
+  const sendRoles = canSendRoles || CAN_SEND_ROLES
+  const canSend = sendRoles.includes(profile?.role)
 
   const [messages, setMessages]           = useState([])
   const [loading, setLoading]             = useState(true)
@@ -88,10 +94,13 @@ export default function BroadcastPanel({ isStarter = false }) {
     if (!organization?.id) return
     setLoading(true)
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('broadcast_messages')
       .select('*, sender:profiles!sender_id(first_name, last_name)')
       .eq('org_id', organization.id)
+    if (restrictToDepartment) query = query.eq('department_scope', restrictToDepartment)
+
+    const { data, error } = await query
       .order('sent_at', { ascending: false })
       .limit(100)
 
@@ -131,8 +140,8 @@ export default function BroadcastPanel({ isStarter = false }) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-slate-800">Broadcast Messaging</h2>
-          <p className="text-slate-400 text-sm mt-0.5">Send email, push, and SMS to residents, family, and staff</p>
+          <h2 className="text-lg font-semibold text-slate-800">{title || 'Broadcast Messaging'}</h2>
+          <p className="text-slate-400 text-sm mt-0.5">{subtitle || 'Send email, push, and SMS to residents, family, and staff'}</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={fetchMessages}
@@ -161,7 +170,7 @@ export default function BroadcastPanel({ isStarter = false }) {
       </div>
 
       {/* Quick Send */}
-      {canSend && (
+      {canSend && !restrictToDepartment && (
         <div className="bg-white rounded-2xl border border-slate-100 p-5">
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Quick Send</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -308,6 +317,7 @@ export default function BroadcastPanel({ isStarter = false }) {
         <ComposeModal
           prefill={typeof showCompose === 'object' ? showCompose : null}
           isStarter={isStarter}
+          restrictToDepartment={restrictToDepartment}
           onClose={() => setShowCompose(false)}
           onSent={() => { setShowCompose(false); fetchMessages() }}
         />

@@ -10,7 +10,9 @@ import {
 } from 'lucide-react'
 
 // ── Constants ─────────────────────────────────────────────────
-const DEPARTMENTS = [
+// Fallback only — orgs manage their real department list in Admin Panel > Settings
+// (organizations.departments). See getOrgDepartments().
+const FALLBACK_DEPARTMENTS = [
   { key: 'nursing',        label: 'Nursing' },
   { key: 'maintenance',    label: 'Maintenance' },
   { key: 'dietary',        label: 'Dietary' },
@@ -21,6 +23,9 @@ const DEPARTMENTS = [
   { key: 'security',       label: 'Security' },
   { key: 'other',          label: 'Other' },
 ]
+
+const getOrgDepartments = (organization) =>
+  organization?.departments?.length ? organization.departments : FALLBACK_DEPARTMENTS
 
 const STAFF_STATUSES = [
   { key: 'active',     label: 'Active',     color: 'bg-green-100 text-green-700' },
@@ -35,7 +40,6 @@ const CERT_STATUS_COLOR = {
   expired:         'text-red-600 bg-red-50 border-red-200',
 }
 
-const getDept   = (key) => DEPARTMENTS.find(d => d.key === key) || { label: key || 'Unknown' }
 const getStatus = (key) => STAFF_STATUSES.find(s => s.key === key) || STAFF_STATUSES[0]
 
 const daysUntil = (date) => {
@@ -212,6 +216,7 @@ function CertModal({ cert, staffId, orgId, certTypes, onClose, onSave }) {
 // ── Staff Detail Modal ─────────────────────────────────────────
 function StaffDetail({ staff, certTypes, onClose, onSave }) {
   const { profile, organization } = useAuth()
+  const departments = getOrgDepartments(organization)
   const isNew = !staff
   const [tab, setTab]     = useState('info')
   const [form, setForm]   = useState({
@@ -326,7 +331,7 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
                   <select value={form.department} onChange={e => set('department', e.target.value)}
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                     <option value="">Select department</option>
-                    {DEPARTMENTS.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
+                    {departments.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
                   </select>
                 </div>
                 <div>
@@ -477,7 +482,7 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
 }
 
 // ── Create Staff Modal ─────────────────────────────────────────
-function CreateStaffModal({ orgId, onClose, onSave }) {
+function CreateStaffModal({ orgId, departments, onClose, onSave }) {
   const [form, setForm] = useState({
     first_name: '', last_name: '', email: '', password: '',
     job_title: '', department: '', phone: '', role: 'staff',
@@ -569,7 +574,7 @@ function CreateStaffModal({ orgId, onClose, onSave }) {
               <select value={form.department} onChange={e => set('department', e.target.value)}
                 className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
                 <option value="">Select...</option>
-                {DEPARTMENTS.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
+                {departments.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
               </select>
             </div>
           </div>
@@ -611,6 +616,8 @@ function CreateStaffModal({ orgId, onClose, onSave }) {
 // ── Main Staff Management Page ─────────────────────────────────
 export default function StaffManagement() {
   const { profile, organization, isOrgAdmin } = useAuth()
+  const departments = getOrgDepartments(organization)
+  const getDept = (key) => departments.find(d => d.key === key) || { label: key || 'Unknown' }
   const [searchParams, setSearchParams] = useSearchParams()
   const [staff, setStaff]           = useState([])
   const [certTypes, setCertTypes]   = useState([])
@@ -748,7 +755,7 @@ export default function StaffManagement() {
         <select value={filterDept} onChange={e => setFilterDept(e.target.value)}
           className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
           <option value="all">All Departments</option>
-          {DEPARTMENTS.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
+          {departments.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
         </select>
         <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
           className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
@@ -855,6 +862,7 @@ export default function StaffManagement() {
       {showAddStaff && (
         <CreateStaffModal
           orgId={organization.id}
+          departments={departments}
           onClose={() => setShowAddStaff(false)}
           onSave={() => { setShowAddStaff(false); fetchAll() }} />
       )}

@@ -15,12 +15,17 @@ const CATEGORIES = [
   { key: 'health',    label: 'Health',    icon: Activity,        color: 'bg-purple-50 text-purple-600 border-purple-200' },
 ]
 
-const DEPARTMENTS = [
-  { key: 'nursing',     label: 'Nursing',     icon: Stethoscope },
-  { key: 'maintenance', label: 'Maintenance', icon: Wrench },
-  { key: 'dietary',     label: 'Dietary',     icon: UtensilsCrossed },
-  { key: 'housekeeping',label: 'Housekeeping',icon: SprayCan },
+// Fallback only — orgs manage their real department list in Admin Panel > Settings
+// (organizations.departments). Icons are cosmetic and only exist for a few common
+// department keys; anything else falls back to a generic icon.
+const FALLBACK_DEPARTMENTS = [
+  { key: 'nursing',     label: 'Nursing' },
+  { key: 'maintenance', label: 'Maintenance' },
+  { key: 'dietary',     label: 'Dietary' },
+  { key: 'housekeeping',label: 'Housekeeping' },
 ]
+const DEPT_ICONS = { nursing: Stethoscope, maintenance: Wrench, dietary: UtensilsCrossed, housekeeping: SprayCan }
+const getDeptIcon = (key) => DEPT_ICONS[key] || Building2
 
 const SYSTEM_TEMPLATES = [
   { name: 'Meal Ready',        subject: 'Dining room is now open',         body: 'The dining room is now open and serving. Please make your way to the dining area at your convenience.', category: 'meal' },
@@ -37,16 +42,23 @@ const ROLE_LABELS = {
   nursing: 'Nursing', staff: 'Staff', family: 'Family',
 }
 
-export default function ComposeModal({ onClose, onSent, prefill = null }) {
+// restrictToDepartment: pass a department key (e.g. 'maintenance') to lock this
+// composer to that department only — audience becomes "everyone in dept" or
+// "individuals within dept", used for department-internal communication pieces
+// (see MaintenanceCommunication tab in the Maintenance module).
+export default function ComposeModal({ onClose, onSent, prefill = null, restrictToDepartment }) {
   const { profile, organization } = useAuth()
+
+  const departments = organization?.departments?.length ? organization.departments : FALLBACK_DEPARTMENTS
+  const restrictedDept = restrictToDepartment ? departments.find(d => d.key === restrictToDepartment) : null
 
   const [form, setForm] = useState({
     subject:       prefill?.subject  || '',
     body:          prefill?.body     || '',
     category:      prefill?.category || 'general',
     channels:      ['push'],
-    audience_type: 'all',
-    audience_dept: '',
+    audience_type: restrictToDepartment ? 'department' : 'all',
+    audience_dept: restrictToDepartment || '',
   })
 
   const setField = (k, v) => setForm(f => ({ ...f, [k]: v }))
@@ -68,13 +80,24 @@ export default function ComposeModal({ onClose, onSent, prefill = null }) {
 
   async function loadPeople() {
     // Staff + family come from profiles (they have auth accounts)
-    const { data: profileData } = await supabase
+    let profileQuery = supabase
       .from('profiles')
-      .select('id, first_name, last_name, role, email, cell_phone, phone')
+      .select('id, first_name, last_name, role, email, cell_phone, phone, department')
       .eq('organization_id', organization.id)
       .eq('is_active', true)
       .not('role', 'in', '(super_admin,resident)')
       .order('last_name')
+    if (restrictToDepartment) profileQuery = profileQuery.eq('department', restrictToDepartment)
+
+    const { data: profileData } = await profileQuery
+
+    if (profileData) {
+      setFamilyList(restrictToDepartment ? [] : profileData.filter(p => p.role === 'family'))
+      setStaffList(profileData.filter(p => p.role !== 'family'))
+    }
+
+    // Department-restricted composer is staff-internal only — no residents needed
+    if (restrictToDepartment) return
 
     // Residents are in a separate table
     const { data: resData } = await supabase
@@ -84,10 +107,6 @@ export default function ComposeModal({ onClose, onSent, prefill = null }) {
       .eq('is_active', true)
       .order('last_name')
 
-    if (profileData) {
-      setFamilyList(profileData.filter(p => p.role === 'family'))
-      setStaffList(profileData.filter(p => p.role !== 'family'))
-    }
     if (resData) {
       setResidentList(resData.map(r => ({ ...r, _table: 'residents' })))
     }
@@ -182,6 +201,7 @@ export default function ComposeModal({ onClose, onSent, prefill = null }) {
           audience_ids:  form.audience_type === 'individual'
             ? selectedPeople.map(p => p.id)
             : null,
+          department_scope: restrictToDepartment || null,
           status: 'sending',
         })
         .select()
@@ -203,14 +223,19 @@ export default function ComposeModal({ onClose, onSent, prefill = null }) {
     }
   }
 
-  const audienceOptions = [
-    { key: 'all',           label: 'Everyone',      icon: Users,     desc: `${audienceCounts.all} total` },
-    { key: 'all_staff',     label: 'All Staff',     icon: Building2, desc: `${audienceCounts.all_staff} members` },
-    { key: 'all_residents', label: 'All Residents', icon: Users,     desc: `${audienceCounts.all_residents} residents` },
-    { key: 'all_family',    label: 'All Family',    icon: Heart,     desc: `${audienceCounts.all_family} contacts` },
-    { key: 'department',    label: 'Department',    icon: Building2, desc: 'One department' },
-    { key: 'individual',    label: 'Individuals',   icon: User,      desc: 'Pick specific people' },
-  ]
+  const audienceOptions = restrictToDepartment
+    ? [
+        { key: 'department', label: `Everyone in ${restrictedDept?.label || restrictToDepartment}`, icon: Building2, desc: `${staffList.length} members` },
+        { key: 'individual',  label: 'Specific People', icon: User, desc: `Pick ${restrictedDept?.label || restrictToDepartment} staff` },
+      ]
+    : [
+        { key: 'all',           label: 'Everyone',      icon: Users,     desc: `${audienceCounts.all} total` },
+        { key: 'all_staff',     label: 'All Staff',     icon: Building2, desc: `${audienceCounts.all_staff} members` },
+        { key: 'all_residents', label: 'All Residents', icon: Users,     desc: `${audienceCounts.all_residents} residents` },
+        { key: 'all_family',    label: 'All Family',    icon: Heart,     desc: `${audienceCounts.all_family} contacts` },
+        { key: 'department',    label: 'Department',    icon: Building2, desc: 'One department' },
+        { key: 'individual',    label: 'Individuals',   icon: User,      desc: 'Pick specific people' },
+      ]
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
@@ -325,11 +350,11 @@ export default function ComposeModal({ onClose, onSent, prefill = null }) {
               })}
             </div>
 
-            {/* Department picker */}
-            {form.audience_type === 'department' && (
+            {/* Department picker — hidden when locked to a single department */}
+            {form.audience_type === 'department' && !restrictToDepartment && (
               <div className="mt-3 grid grid-cols-2 gap-2">
-                {DEPARTMENTS.map(d => {
-                  const Icon = d.icon
+                {departments.map(d => {
+                  const Icon = getDeptIcon(d.key)
                   return (
                     <button key={d.key} onClick={() => setField('audience_dept', d.key)}
                       className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border-2 text-sm transition-all
