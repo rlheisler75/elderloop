@@ -9,7 +9,7 @@ import {
 } from 'lucide-react'
 
 // ── Constants ──────────────────────────────────────────────────
-// Fallback list — overridden by organization.scheduling_departments
+// Fallback list — overridden by organization.departments (Admin Panel > Lists & Pick Lists > Departments)
 const DEPARTMENTS_DEFAULT = [
   { key: 'nursing',        label: 'Nursing' },
   { key: 'dietary',        label: 'Dietary' },
@@ -67,7 +67,7 @@ const shiftsOverlap = (s1, s2) => {
 // ── Shift Template Manager ─────────────────────────────────────
 function TemplateManager({ orgId, templates, onRefresh, onClose }) {
   const { organization } = useAuth()
-  const DEPTS = organization?.scheduling_departments?.length ? organization.scheduling_departments : DEPARTMENTS_DEFAULT
+  const DEPTS = organization?.departments?.length ? organization.departments : DEPARTMENTS_DEFAULT
   const [adding, setAdding] = useState(false)
   const [form, setForm]     = useState({ name:'', department:'', start_time:'', end_time:'', color:'#0c90e1' })
   const [saving, setSaving] = useState(false)
@@ -155,7 +155,7 @@ function TemplateManager({ orgId, templates, onRefresh, onClose }) {
 // ── Schedule Shift Modal ───────────────────────────────────────
 function ShiftModal({ shift, date, orgId, staff, templates, existingShifts, onClose, onSave }) {
   const { profile, organization } = useAuth()
-  const DEPTS = organization?.scheduling_departments?.length ? organization.scheduling_departments : DEPARTMENTS_DEFAULT
+  const DEPTS = organization?.departments?.length ? organization.departments : DEPARTMENTS_DEFAULT
   const isNew = !shift
   const [form, setForm] = useState({
     staff_id:      shift?.staff_id    || '',
@@ -387,7 +387,7 @@ function ShiftModal({ shift, date, orgId, staff, templates, existingShifts, onCl
 // ── Day Drill-Down Modal ───────────────────────────────────────
 function DayDetail({ date, shifts, staff, orgId, isMgr, onClose, onRefresh }) {
   const { profile, organization } = useAuth()
-  const DEPTS = organization?.scheduling_departments?.length ? organization.scheduling_departments : DEPARTMENTS_DEFAULT
+  const DEPTS = organization?.departments?.length ? organization.departments : DEPARTMENTS_DEFAULT
   const [showCallOff, setShowCallOff] = useState(null)
   const [callOffReason, setCallOffReason] = useState('')
   const [showSwapRequest, setShowSwapRequest] = useState(null)
@@ -776,7 +776,7 @@ function SwapPanel({ orgId, profile, staff, shifts, isMgr, onRefresh }) {
 // ── Main Scheduling Page ───────────────────────────────────────
 export default function Scheduling() {
   const { profile, organization } = useAuth()
-  const DEPTS = organization?.scheduling_departments?.length ? organization.scheduling_departments : DEPARTMENTS_DEFAULT
+  const DEPTS = organization?.departments?.length ? organization.departments : DEPARTMENTS_DEFAULT
   const [shifts, setShifts]       = useState([])
   const [staff, setStaff]         = useState([])
   const [templates, setTemplates] = useState([])
