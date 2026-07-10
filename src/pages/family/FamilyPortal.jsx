@@ -77,16 +77,19 @@ const UPDATE_ICONS = {
   photo:       { icon: Camera,         bg: 'bg-pink-50',   color: 'text-pink-500' },
 }
 
-// Departments are fetched dynamically from org settings (organization.messaging_departments),
-// falling back to DEPARTMENTS_DEFAULT below if not configured.
+// Departments are fetched dynamically from org settings (organization.departments,
+// managed in Admin Panel > Lists & Pick Lists > Departments), falling back to
+// DEPARTMENTS_DEFAULT below if not configured.
 const DEPARTMENTS_DEFAULT = [
   { key: 'nursing',        label: 'Nursing' },
-  { key: 'dietary',        label: 'Dietary' },
-  { key: 'activities',     label: 'Activities' },
   { key: 'maintenance',    label: 'Maintenance' },
-  { key: 'social_work',    label: 'Social Work' },
+  { key: 'dietary',        label: 'Dietary' },
+  { key: 'housekeeping',   label: 'Housekeeping' },
+  { key: 'transportation', label: 'Transportation' },
   { key: 'administration', label: 'Administration' },
-  { key: 'front_desk',     label: 'Front Desk' },
+  { key: 'activities',     label: 'Activities' },
+  { key: 'security',       label: 'Security' },
+  { key: 'other',          label: 'Other' },
 ]
 
 // ── Maintenance Request Modal ─────────────────────────────────
@@ -230,10 +233,10 @@ function MaintenanceModal({ resident, orgId, profile, onClose, onSubmitted }) {
 // ── New Message Modal ─────────────────────────────────────────
 function NewMessageModal({ resident, orgId, profile, onClose, onSent }) {
   const { organization } = useAuth()
-  const [form, setForm] = useState({ department: 'front_desk', subject: '', body: '' })
+  const [form, setForm] = useState({ department: 'administration', subject: '', body: '' })
   const [sending, setSending] = useState(false)
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
-  const depts = organization?.messaging_departments?.length ? organization.messaging_departments : DEPARTMENTS_DEFAULT
+  const depts = organization?.departments?.length ? organization.departments : DEPARTMENTS_DEFAULT
 
   const handleSend = async () => {
     if (!form.body.trim()) return
@@ -306,7 +309,7 @@ function ThreadView({ thread, profile, onReply, onBack }) {
   const [sending, setSending] = useState(false)
   const bottomRef = useRef(null)
   const first = thread[0]
-  const _depts = threadOrg?.messaging_departments?.length ? threadOrg.messaging_departments : DEPARTMENTS_DEFAULT
+  const _depts = threadOrg?.departments?.length ? threadOrg.departments : DEPARTMENTS_DEFAULT
   const dept  = _depts.find(d => d.key === first?.to_department)
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [thread.length])

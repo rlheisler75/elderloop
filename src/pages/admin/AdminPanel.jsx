@@ -323,14 +323,6 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
     phone:   org.phone   || '',
     website: org.website || '',
   })
-  const [msgDepts, setMsgDepts] = useState(
-    org.messaging_departments || [
-      {key:'nursing',label:'Nursing'},{key:'dietary',label:'Dietary'},
-      {key:'activities',label:'Activities'},{key:'administration',label:'Administration'},
-      {key:'social_work',label:'Social Work'},{key:'maintenance',label:'Maintenance'},
-      {key:'front_desk',label:'Front Desk'},
-    ]
-  )
   const [enabledModules, setEnabledModules] = useState(
     modules.filter(m => m.is_enabled !== false).map(m => m.module_key)
   )
@@ -361,7 +353,6 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
       name: form.name, address: form.address, city: form.city,
       state: form.state, zip: form.zip, phone: form.phone,
       website: form.website, logo_url: logoUrl || null,
-      messaging_departments: msgDepts,
       updated_at: new Date().toISOString()
     }).eq('id', org.id)
 
@@ -450,28 +441,6 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
                 </button>
               ))}
             </div>
-          </div>
-
-          {/* ── Family Messaging Departments ── */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-              Family Messaging Departments
-            </label>
-            <p className="text-xs text-slate-400 mb-2">Departments families can send messages to from the Family Portal.</p>
-            <div className="space-y-1.5 mb-2">
-              {msgDepts.map((d, idx) => (
-                <div key={idx} className="flex items-center gap-2">
-                  <input value={d.label} onChange={e => setMsgDepts(ds => ds.map((x,i) => i===idx ? {...x, label: e.target.value, key: e.target.value.toLowerCase().replace(/\s+/g,'_')} : x))}
-                    className="flex-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
-                  <button onClick={() => setMsgDepts(ds => ds.filter((_,i) => i!==idx))}
-                    className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg"><X size={14} /></button>
-                </div>
-              ))}
-            </div>
-            <button onClick={() => setMsgDepts(ds => [...ds, {key:'new_dept',label:'New Department'}])}
-              className="flex items-center gap-1.5 text-xs text-brand-600 hover:text-brand-800 font-medium">
-              + Add Department
-            </button>
           </div>
 
         </div>

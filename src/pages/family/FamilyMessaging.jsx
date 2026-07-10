@@ -165,11 +165,11 @@ export default function FamilyMessaging() {
   // Supervisors/managers get edit (reply + post updates) by default for family
   // messaging; org admins can grant/restrict per-user via Admin Panel > Module Access
   const canEditMessaging = canEdit('family', ['supervisor','manager'])
-  const DEPTS = organization?.messaging_departments?.length ? organization.messaging_departments : [
-    {key:'nursing',label:'Nursing'},{key:'dietary',label:'Dietary'},
-    {key:'activities',label:'Activities'},{key:'administration',label:'Administration'},
-    {key:'social_work',label:'Social Work'},{key:'maintenance',label:'Maintenance'},
-    {key:'front_desk',label:'Front Desk'},
+  const DEPTS = organization?.departments?.length ? organization.departments : [
+    {key:'nursing',label:'Nursing'},{key:'maintenance',label:'Maintenance'},
+    {key:'dietary',label:'Dietary'},{key:'housekeeping',label:'Housekeeping'},
+    {key:'transportation',label:'Transportation'},{key:'administration',label:'Administration'},
+    {key:'activities',label:'Activities'},{key:'security',label:'Security'},{key:'other',label:'Other'},
   ]
   const fileRef = useRef()
   const [threads, setThreads]       = useState([])
