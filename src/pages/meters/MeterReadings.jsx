@@ -274,9 +274,16 @@ function AddReadingModal({ meter, lastReading, utilityType, onClose, onSave }) {
   )
 }
 
-// ── Add Meter Modal ────────────────────────────────────────────
-function AddMeterModal({ orgId, utilityTypes, residents, onClose, onSave }) {
-  const [form, setForm] = useState({ utility_type_id: utilityTypes[0]?.id || '', resident_name: '', unit: '', building: '', meter_number: '' })
+// ── Add / Edit Meter Modal ──────────────────────────────────────
+function AddMeterModal({ orgId, utilityTypes, residents, meter, onClose, onSave }) {
+  const isEditing = !!meter
+  const [form, setForm] = useState({
+    utility_type_id: meter?.utility_type_id || utilityTypes[0]?.id || '',
+    resident_name:   meter?.resident_name || '',
+    unit:             meter?.unit || '',
+    building:         meter?.building || '',
+    meter_number:     meter?.meter_number || '',
+  })
   const [saving, setSaving] = useState(false)
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
@@ -284,16 +291,19 @@ function AddMeterModal({ orgId, utilityTypes, residents, onClose, onSave }) {
     if (!form.utility_type_id || !form.unit.trim()) { return }
     setSaving(true)
     const selectedResident = residents.find(r => `${r.first_name} ${r.last_name}` === form.resident_name)
-    await supabase.from('meters').insert({
-      organization_id: orgId,
+    const payload = {
       utility_type_id: form.utility_type_id,
       resident_id:   selectedResident?.id || null,
       resident_name: form.resident_name || null,
       unit:          form.unit.trim(),
       building:      form.building || null,
       meter_number:  form.meter_number || null,
-      is_active:     true,
-    })
+    }
+    if (isEditing) {
+      await supabase.from('meters').update(payload).eq('id', meter.id)
+    } else {
+      await supabase.from('meters').insert({ organization_id: orgId, is_active: true, ...payload })
+    }
     setSaving(false)
     onSave()
   }
@@ -302,7 +312,7 @@ function AddMeterModal({ orgId, utilityTypes, residents, onClose, onSave }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <h2 className="font-display font-semibold text-slate-800">Add Meter</h2>
+          <h2 className="font-display font-semibold text-slate-800">{isEditing ? 'Edit Meter' : 'Add Meter'}</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
         </div>
         <div className="px-6 py-5 space-y-4">
@@ -358,7 +368,7 @@ function AddMeterModal({ orgId, utilityTypes, residents, onClose, onSave }) {
           <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
           <button onClick={handleSave} disabled={saving || !form.utility_type_id || !form.unit}
             className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
-            {saving ? 'Adding...' : 'Add Meter'}
+            {saving ? 'Saving...' : isEditing ? 'Save Changes' : 'Add Meter'}
           </button>
         </div>
       </div>
@@ -470,6 +480,7 @@ export default function MeterReadings() {
   const [showAddMeter, setShowAddMeter]             = useState(false)
   const [readingMeter, setReadingMeter]             = useState(null)
   const [historyMeter, setHistoryMeter]             = useState(null)
+  const [editingMeter, setEditingMeter]             = useState(null)
   const [showScanner, setShowScanner]               = useState(false)
   const [showBarcodeLabels, setShowBarcodeLabels]   = useState(false)
   const [scanError, setScanError]                   = useState('')
@@ -656,6 +667,10 @@ export default function MeterReadings() {
                               className="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 transition-colors" title="View history">
                               <TrendingUp size={13} />
                             </button>
+                            <button onClick={() => setEditingMeter(meter)}
+                              className="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 transition-colors" title="Edit meter">
+                              <Edit2 size={13} />
+                            </button>
                             <button onClick={() => handleDeleteMeter(meter.id)}
                               className="p-1.5 text-slate-300 hover:text-red-500 rounded-lg transition-colors">
                               <Trash2 size={13} />
@@ -744,6 +759,11 @@ export default function MeterReadings() {
           meter={historyMeter}
           utilityType={utilityTypes.find(t => t.id === historyMeter.utility_type_id)}
           onClose={() => setHistoryMeter(null)} />
+      )}
+      {editingMeter && (
+        <AddMeterModal
+          orgId={organization.id} utilityTypes={utilityTypes} residents={residents} meter={editingMeter}
+          onClose={() => setEditingMeter(null)} onSave={() => { setEditingMeter(null); fetchAll() }} />
       )}
       {showScanner && (
         <BarcodeScanner title="Scan Meter Barcode" onScan={handleScan} onClose={() => setShowScanner(false)} />
