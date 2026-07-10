@@ -9,7 +9,9 @@ import {
 } from 'lucide-react'
 
 // ── Constants ─────────────────────────────────────────────────
-const DEPARTMENTS = [
+// Fallback only — orgs manage their real department list in Admin Panel >
+// Lists & Pick Lists > Departments (organizations.departments).
+const FALLBACK_DEPARTMENTS = [
   { key: 'nursing',        label: 'Nursing' },
   { key: 'maintenance',    label: 'Maintenance' },
   { key: 'dietary',        label: 'Dietary' },
@@ -20,6 +22,9 @@ const DEPARTMENTS = [
   { key: 'security',       label: 'Security' },
   { key: 'other',          label: 'Other' },
 ]
+
+const getOrgDepartments = (organization) =>
+  organization?.departments?.length ? organization.departments : FALLBACK_DEPARTMENTS
 
 const ROLE_LABELS = {
   super_admin:  { label: 'Super Admin',  color: 'bg-purple-100 text-purple-700' },
@@ -37,14 +42,13 @@ const ROLE_LABELS = {
 const isPrivileged = (role) =>
   ['org_admin','ceo','super_admin','supervisor','manager'].includes(role)
 
-const getDept = (key) => DEPARTMENTS.find(d => d.key === key)?.label || key || '—'
 const getRoleCfg = (role) => ROLE_LABELS[role] || { label: role, color: 'bg-slate-100 text-slate-500' }
 
 const initials = (first, last) =>
   `${first?.[0] || ''}${last?.[0] || ''}`.toUpperCase() || '?'
 
 // ── Edit Profile Modal ─────────────────────────────────────────
-function EditProfileModal({ staffMember, isSelf, canEditAll, onClose, onSaved }) {
+function EditProfileModal({ staffMember, isSelf, canEditAll, departments, onClose, onSaved }) {
   const [form, setForm] = useState({
     job_title:       staffMember.job_title       || '',
     department:      staffMember.department      || '',
@@ -110,7 +114,7 @@ function EditProfileModal({ staffMember, isSelf, canEditAll, onClose, onSaved })
                   <select value={form.department} onChange={e => set('department', e.target.value)}
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                     <option value="">Select department</option>
-                    {DEPARTMENTS.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
+                    {departments.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
                   </select>
                 </div>
               </div>
@@ -200,9 +204,10 @@ function EditProfileModal({ staffMember, isSelf, canEditAll, onClose, onSaved })
 }
 
 // ── Staff Card ─────────────────────────────────────────────────
-function StaffCard({ member, canSeeAll, isSelf, canEdit, onEdit, onViewProfile }) {
+function StaffCard({ member, canSeeAll, isSelf, canEdit, departments, onEdit, onViewProfile }) {
   const [expanded, setExpanded] = useState(false)
   const roleCfg = getRoleCfg(member.role)
+  const getDept = (key) => departments.find(d => d.key === key)?.label || key || '—'
 
   return (
     <div className={`bg-white rounded-2xl border shadow-sm hover:shadow-md transition-all overflow-hidden ${!member.directory_public && !canSeeAll ? 'opacity-50' : ''} ${isSelf ? 'border-brand-300 ring-2 ring-brand-100' : 'border-slate-100'}`}>
@@ -304,6 +309,8 @@ function StaffCard({ member, canSeeAll, isSelf, canEdit, onEdit, onViewProfile }
 // ── Main Staff Directory ───────────────────────────────────────
 export default function StaffDirectory() {
   const { profile, organization } = useAuth()
+  const departments = getOrgDepartments(organization)
+  const getDept = (key) => departments.find(d => d.key === key)?.label || key || '—'
   const navigate = useNavigate()
   const [staff, setStaff]           = useState([])
   const [loading, setLoading]       = useState(true)
@@ -409,7 +416,7 @@ export default function StaffDirectory() {
         <select value={filterDept} onChange={e => setFilterDept(e.target.value)}
           className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
           <option value="all">All Departments</option>
-          {DEPARTMENTS.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
+          {departments.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
         </select>
       </div>
 
@@ -441,6 +448,7 @@ export default function StaffDirectory() {
                       canSeeAll={canSeeAll}
                       isSelf={member.id === profile.id}
                       canEdit={canEditMember(member)}
+                      departments={departments}
                       onEdit={handleEdit}
                       onViewProfile={(id) => navigate(`/app/staff-management?staffId=${id}`)}
                     />
@@ -458,6 +466,7 @@ export default function StaffDirectory() {
           staffMember={editMember}
           isSelf={editMember.id === profile.id}
           canEditAll={canEditOthers}
+          departments={departments}
           onClose={() => setEditMember(null)}
           onSaved={() => { setEditMember(null); fetchStaff() }}
         />
