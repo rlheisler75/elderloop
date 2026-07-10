@@ -10,19 +10,21 @@ const PRIORITIES = [
   { key: 'low',    label: 'Low',    color: 'text-slate-500',  desc: 'Routine, can wait' },
 ]
 
+// Must match the wo_category Postgres enum exactly (see work_orders.category)
 const WO_CATEGORIES = [
-  { key: 'plumbing',     label: 'Plumbing' },
-  { key: 'electrical',   label: 'Electrical' },
-  { key: 'hvac',         label: 'HVAC' },
-  { key: 'structural',   label: 'Structural' },
-  { key: 'safety',       label: 'Safety' },
-  { key: 'cleaning',     label: 'Cleaning' },
-  { key: 'equipment',    label: 'Equipment' },
-  { key: 'grounds',      label: 'Grounds' },
-  { key: 'it_telecom',   label: 'IT / Telecom' },
-  { key: 'inspection',   label: 'Inspection' },
-  { key: 'pest_control', label: 'Pest Control' },
-  { key: 'other',        label: 'Other' },
+  { key: 'plumbing',      label: 'Plumbing' },
+  { key: 'electrical',    label: 'Electrical' },
+  { key: 'hvac',          label: 'HVAC' },
+  { key: 'appliance',     label: 'Appliance' },
+  { key: 'carpentry',     label: 'Carpentry' },
+  { key: 'painting',      label: 'Painting' },
+  { key: 'cleaning',      label: 'Cleaning' },
+  { key: 'grounds',       label: 'Grounds' },
+  { key: 'safety',        label: 'Safety' },
+  { key: 'inspection',    label: 'Inspection' },
+  { key: 'filter_change', label: 'Filter Change' },
+  { key: 'pest_control',  label: 'Pest Control' },
+  { key: 'other',         label: 'Other' },
 ]
 
 export default function MaintenanceSettings({ orgId, profile }) {

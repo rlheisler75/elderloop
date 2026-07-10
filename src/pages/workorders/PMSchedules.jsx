@@ -14,9 +14,11 @@ const FREQ_OPTIONS = [
   { key: 'custom',    label: 'Custom',    days: null},
 ]
 
+// Must match the wo_category Postgres enum exactly (see work_orders.category) —
+// this schedule's category gets copied verbatim into a work order on generate.
 const WO_CATEGORIES = [
-  'plumbing','electrical','hvac','structural','safety','cleaning',
-  'equipment','grounds','it_telecom','inspection','pest_control','other'
+  'plumbing','electrical','hvac','appliance','carpentry','painting','cleaning',
+  'grounds','safety','inspection','filter_change','pest_control','other'
 ]
 
 const fmt = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) : '—'
@@ -26,7 +28,7 @@ function PMModal({ schedule, assets, staff, orgId, profile, onClose, onSaved }) 
   const [form, setForm] = useState({
     title:          schedule?.title          || '',
     description:    schedule?.description    || '',
-    category:       schedule?.category       || 'equipment',
+    category:       schedule?.category       || 'other',
     asset_id:       schedule?.asset_id       || '',
     frequency_type: schedule?.frequency_type || 'monthly',
     frequency_days: schedule?.frequency_days || 30,
@@ -205,7 +207,7 @@ export default function PMSchedules({ orgId: orgIdProp, profile: profileProp }) 
       organization_id: orgId,
       title:           `[PM] ${schedule.title}`,
       description:     schedule.description || `Preventive maintenance task: ${schedule.title}`,
-      category:        schedule.category || 'equipment',
+      category:        schedule.category || 'other',
       priority:        'normal',
       status:          'open',
       asset_id:        schedule.asset_id || null,
