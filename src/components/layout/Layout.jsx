@@ -5,37 +5,69 @@ import {
   Settings, LogOut, Menu, X, ChevronRight, Megaphone, Home, Church,
   CalendarDays, BookUser, Car, Gauge, Shield, UserCheck, CalendarCheck,
   Stethoscope, HeartHandshake, ClipboardList, AlertTriangle, Clock,
-  Monitor, TrendingUp
+  Monitor, TrendingUp, Heart, Users
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { Bell } from 'lucide-react'
 import { ShoppingBag } from 'lucide-react'
 
-const ALL_NAV = [
-  { to: '/app/dashboard',           label: 'Dashboard',        icon: LayoutDashboard, module: null },
-  { to: '/app/communication',       label: 'Communication',    icon: MessageSquare,   module: 'communication' },
-  { to: '/app/chapel',              label: 'Chapel',           icon: Church,          module: 'chapel' },
-  { to: '/app/activities',          label: 'Activities',       icon: CalendarDays,    module: 'activities' },
-  { to: '/app/directory',           label: 'Residents',        icon: BookUser,        module: 'directory' },
-  { to: '/app/maintenance',         label: 'Maintenance',      icon: Wrench,          module: 'work_orders' },
-  { to: '/app/dietary',             label: 'Dietary',          icon: UtensilsCrossed, module: 'dietary' },
-  { to: '/app/housekeeping',        label: 'Housekeeping',     icon: SprayCan,        module: 'housekeeping' },
-  { to: '/app/transportation',      label: 'Transportation',   icon: Car,             module: 'transportation' },
-  { to: '/app/meters',              label: 'Meter Readings',   icon: Gauge,           module: 'meters' },
-  { to: '/app/security',            label: 'Security',         icon: Shield,          module: 'security' },
-  { to: '/app/staff',               label: 'Staff',            icon: UserCheck,       module: 'staff' },
-  { to: '/app/directory-staff',     label: 'Staff Directory',  icon: BookUser,        module: 'staff' },
-  { to: '/app/scheduling',          label: 'Scheduling',       icon: CalendarCheck,   module: 'staff' },
-  { to: '/app/nursing',             label: 'Nursing Notes',    icon: Stethoscope,     module: 'nursing' },
-  { to: '/app/social',              label: 'Social Services',  icon: HeartHandshake,  module: 'social_services' },
-  { to: '/app/family',              label: 'Family Messaging', icon: HeartHandshake,  module: 'family' },
-  { to: '/app/surveys',             label: 'Surveys',          icon: ClipboardList,   module: 'surveys' },
-  { to: '/app/incidents',           label: 'Incident Reports', icon: AlertTriangle,   module: 'incidents' },
-  { to: '/app/timeclock',           label: 'Time Clock',       icon: Clock,           module: 'timeclock' },
-  { to: '/app/it',                  label: 'IT & Technology',  icon: Monitor,         module: 'it' },
-  { to: '/app/marketing',           label: 'Marketing',        icon: Megaphone,       module: 'marketing' },
-  { to: '/app/property-management', label: 'Property Mgmt',    icon: Home,            module: 'property_management' },
-  { to: '/app/central-supply',          label: 'Central Supply',   icon: ShoppingBag,     module: 'central_supply' },
+// Grouped + ordered sidebar nav. A group with no visible items (module access,
+// see visibleGroups below) is skipped entirely — no empty headers.
+const NAV_GROUPS = [
+  {
+    label: null, // top-level essentials, no header
+    items: [
+      { to: '/app/dashboard',     label: 'Dashboard',     icon: LayoutDashboard, module: null },
+      { to: '/app/communication', label: 'Communication', icon: MessageSquare,   module: 'communication' },
+    ],
+  },
+  {
+    label: 'Residents & Care',
+    items: [
+      { to: '/app/directory', label: 'Residents',         icon: BookUser,       module: 'directory' },
+      { to: '/app/nursing',   label: 'Nursing Notes',     icon: Stethoscope,    module: 'nursing' },
+      { to: '/app/social',    label: 'Social Services',   icon: HeartHandshake, module: 'social_services' },
+      { to: '/app/family',    label: 'Family Messaging',  icon: Heart,          module: 'family' },
+      { to: '/app/incidents', label: 'Incident Reports',  icon: AlertTriangle,  module: 'incidents' },
+      { to: '/app/surveys',   label: 'Surveys',           icon: ClipboardList,  module: 'surveys' },
+    ],
+  },
+  {
+    label: 'Community & Programs',
+    items: [
+      { to: '/app/activities', label: 'Activities', icon: CalendarDays, module: 'activities' },
+      { to: '/app/chapel',     label: 'Chapel',      icon: Church,      module: 'chapel' },
+      { to: '/app/marketing',  label: 'Marketing',   icon: Megaphone,   module: 'marketing' },
+    ],
+  },
+  {
+    label: 'Facilities & Operations',
+    items: [
+      { to: '/app/maintenance',         label: 'Maintenance',    icon: Wrench,          module: 'work_orders' },
+      { to: '/app/housekeeping',        label: 'Housekeeping',   icon: SprayCan,        module: 'housekeeping' },
+      { to: '/app/property-management', label: 'Property Mgmt', icon: Home,            module: 'property_management' },
+      { to: '/app/meters',              label: 'Meter Readings', icon: Gauge,           module: 'meters' },
+      { to: '/app/central-supply',      label: 'Central Supply', icon: ShoppingBag,     module: 'central_supply' },
+      { to: '/app/transportation',      label: 'Transportation', icon: Car,             module: 'transportation' },
+      { to: '/app/security',            label: 'Security',       icon: Shield,          module: 'security' },
+      { to: '/app/dietary',             label: 'Dietary',        icon: UtensilsCrossed, module: 'dietary' },
+    ],
+  },
+  {
+    label: 'Staff & HR',
+    items: [
+      { to: '/app/staff',           label: 'Staff',           icon: UserCheck,     module: 'staff' },
+      { to: '/app/directory-staff', label: 'Staff Directory', icon: Users,         module: 'staff' },
+      { to: '/app/scheduling',      label: 'Scheduling',      icon: CalendarCheck, module: 'staff' },
+      { to: '/app/timeclock',       label: 'Time Clock',      icon: Clock,         module: 'timeclock' },
+    ],
+  },
+  {
+    label: 'IT',
+    items: [
+      { to: '/app/it', label: 'IT & Technology', icon: Monitor, module: 'it' },
+    ],
+  },
 ]
 
 export default function Layout() {
@@ -84,7 +116,9 @@ export default function Layout() {
   const navigate = useNavigate()
   const handleSignOut = async () => { await signOut(); navigate('/login') }
 
-  const visibleNav = ALL_NAV.filter(item => !item.module || hasModule(item.module))
+  const visibleGroups = NAV_GROUPS
+    .map(group => ({ ...group, items: group.items.filter(item => !item.module || hasModule(item.module)) }))
+    .filter(group => group.items.length > 0)
 
   return (
     <div className="flex h-screen bg-slate-50">
@@ -110,15 +144,26 @@ export default function Layout() {
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-          {visibleNav.map(({ to, label, icon: Icon }) => (
-            <NavLink key={to} to={to}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group ${isActive ? 'bg-brand-700 text-white' : 'text-brand-300 hover:bg-brand-800 hover:text-white'}`}>
-              <Icon size={18} />
-              <span className="flex-1">{label}</span>
-              <ChevronRight size={14} className="opacity-0 group-hover:opacity-50 transition-opacity" />
-            </NavLink>
+        <nav className="flex-1 px-3 py-4 overflow-y-auto">
+          {visibleGroups.map((group, gi) => (
+            <div key={group.label || 'top'} className={gi > 0 ? 'mt-4' : ''}>
+              {group.label && (
+                <div className="px-3 pb-1.5 text-[10px] font-semibold text-brand-500 uppercase tracking-wider">
+                  {group.label}
+                </div>
+              )}
+              <div className="space-y-0.5">
+                {group.items.map(({ to, label, icon: Icon }) => (
+                  <NavLink key={to} to={to}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group ${isActive ? 'bg-brand-700 text-white' : 'text-brand-300 hover:bg-brand-800 hover:text-white'}`}>
+                    <Icon size={18} />
+                    <span className="flex-1">{label}</span>
+                    <ChevronRight size={14} className="opacity-0 group-hover:opacity-50 transition-opacity" />
+                  </NavLink>
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
 
