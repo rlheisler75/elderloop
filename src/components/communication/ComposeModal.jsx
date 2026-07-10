@@ -27,6 +27,19 @@ const FALLBACK_DEPARTMENTS = [
 const DEPT_ICONS = { nursing: Stethoscope, maintenance: Wrench, dietary: UtensilsCrossed, housekeeping: SprayCan }
 const getDeptIcon = (key) => DEPT_ICONS[key] || Building2
 
+// Templates for department-restricted composers (see restrictToDepartment below).
+// Keyed by department — falls back to no templates for a department without one defined.
+const DEPARTMENT_TEMPLATES = {
+  maintenance: [
+    { name: 'Equipment Down',      subject: 'Equipment out of service',       body: 'The following equipment is currently out of service: [describe]. Please avoid use until further notice.', category: 'urgent' },
+    { name: 'Safety Alert',        subject: '⚠️ Safety Alert',                body: 'Please be aware of the following safety issue and take appropriate precautions.',                          category: 'urgent' },
+    { name: 'Shift Coverage',      subject: 'Shift coverage needed',           body: "We need coverage for an upcoming shift. Please let your supervisor know if you're available.",           category: 'reminder' },
+    { name: 'Schedule Change',     subject: 'Maintenance schedule change',     body: 'There has been a change to the maintenance schedule. Please review the updated details.',                  category: 'reminder' },
+    { name: 'PM Task Due',         subject: 'Preventive maintenance due',      body: 'A preventive maintenance task is due soon. Please check the PM schedule for details.',                     category: 'reminder' },
+    { name: 'Team Meeting',        subject: 'Maintenance team meeting',        body: 'A maintenance team meeting has been scheduled. Please plan to attend.',                                   category: 'general' },
+  ],
+}
+
 const SYSTEM_TEMPLATES = [
   { name: 'Meal Ready',        subject: 'Dining room is now open',         body: 'The dining room is now open and serving. Please make your way to the dining area at your convenience.', category: 'meal' },
   { name: 'Activity Starting', subject: 'Activity starting in 30 minutes', body: 'A community activity is starting in 30 minutes. We hope to see you there!',                           category: 'activity' },
@@ -223,6 +236,10 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
     }
   }
 
+  const templates = restrictToDepartment
+    ? (DEPARTMENT_TEMPLATES[restrictToDepartment] || [])
+    : SYSTEM_TEMPLATES
+
   const audienceOptions = restrictToDepartment
     ? [
         { key: 'department', label: `Everyone in ${restrictedDept?.label || restrictToDepartment}`, icon: Building2, desc: `${staffList.length} members` },
@@ -250,10 +267,12 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
             <h2 className="font-semibold text-slate-800">New Message</h2>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => setShowTemplates(s => !s)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 hover:text-brand-600 border border-slate-200 hover:border-brand-300 rounded-lg transition-colors">
-              Templates {showTemplates ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-            </button>
+            {templates.length > 0 && (
+              <button onClick={() => setShowTemplates(s => !s)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 hover:text-brand-600 border border-slate-200 hover:border-brand-300 rounded-lg transition-colors">
+                Templates {showTemplates ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
+            )}
             <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100">
               <X size={18} />
             </button>
@@ -261,11 +280,11 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
         </div>
 
         {/* Templates dropdown */}
-        {showTemplates && (
+        {showTemplates && templates.length > 0 && (
           <div className="px-6 py-3 bg-slate-50 border-b border-slate-100 flex-shrink-0">
             <p className="text-xs font-medium text-slate-500 mb-2 uppercase tracking-wide">Quick Templates</p>
             <div className="grid grid-cols-3 gap-2">
-              {SYSTEM_TEMPLATES.map(t => (
+              {templates.map(t => (
                 <button key={t.name} onClick={() => applyTemplate(t)}
                   className="text-left px-3 py-2 bg-white rounded-xl border border-slate-200 hover:border-brand-300 hover:bg-brand-50 transition-colors text-xs">
                   <div className="font-medium text-slate-700">{t.name}</div>

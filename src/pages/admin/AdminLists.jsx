@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabase'
 import {
   Plus, X, Edit2, Trash2, Check, Car, Home, ClipboardList,
   Users, Gauge, Shield, Heart, Award, Link, MapPin, Mail,
-  Phone, AlertTriangle, Upload, Monitor, Tag
+  Phone, AlertTriangle, Upload, Monitor, Tag, Building2
 } from 'lucide-react'
 import ResidentImport from './ResidentImport'
 
@@ -269,6 +269,7 @@ export default function AdminLists({ orgId }) {
   const [utilityTypes, setUtilityTypes] = useState([])
   const [certTypes, setCertTypes]   = useState([])
   const [checkpoints, setCheckpoints] = useState([])
+  const [departments, setDepartments] = useState([])
   // IT org dropdowns
   const [itCategories, setItCategories]     = useState([])
   const [itAssetTypes, setItAssetTypes]     = useState([])
@@ -280,7 +281,7 @@ export default function AdminLists({ orgId }) {
 
   async function fetchAll() {
     setLoading(true)
-    const [v, r, a, c, u, ct, cp, dd] = await Promise.all([
+    const [v, r, a, c, u, ct, cp, dd, org] = await Promise.all([
       supabase.from('vehicles').select('*').eq('organization_id', orgId).order('name'),
       supabase.from('residents').select('*').eq('organization_id', orgId).eq('is_active', true).order('last_name'),
       supabase.from('inspection_areas').select('*').eq('organization_id', orgId).eq('is_active', true).order('sort_order'),
@@ -290,6 +291,7 @@ export default function AdminLists({ orgId }) {
       supabase.from('security_checkpoints').select('*').eq('organization_id', orgId).eq('is_active', true).order('name'),
       supabase.from('org_dropdown_items').select('*').eq('organization_id', orgId).eq('is_active', true)
         .in('list_type', ['it_category','asset_type','asset_location']).order('sort_order'),
+      supabase.from('organizations').select('departments').eq('id', orgId).single(),
     ])
     setVehicles(v.data || [])
     setResidents(r.data || [])
@@ -302,6 +304,7 @@ export default function AdminLists({ orgId }) {
     setItCategories(drops.filter(d => d.list_type === 'it_category'))
     setItAssetTypes(drops.filter(d => d.list_type === 'asset_type'))
     setItAssetLocations(drops.filter(d => d.list_type === 'asset_location'))
+    setDepartments(org.data?.departments || [])
     setLoading(false)
   }
 
@@ -356,10 +359,35 @@ export default function AdminLists({ orgId }) {
   const itType = dropdownCrud('asset_type', setItAssetTypes)
   const itLoc  = dropdownCrud('asset_location', setItAssetLocations)
 
+  // Departments live as a jsonb array on organizations.departments (no separate table)
+  const dept = {
+    add: async (vals) => {
+      const label = vals.label?.trim()
+      if (!label) return
+      const updated = [...departments, { key: label.toLowerCase().replace(/\s+/g, '_'), label }]
+      await supabase.from('organizations').update({ departments: updated }).eq('id', orgId)
+      setDepartments(updated)
+    },
+    update: async (id, vals) => {
+      const label = vals.label?.trim()
+      if (!label) return
+      const updated = departments.map(d => d.key === id ? { key: label.toLowerCase().replace(/\s+/g, '_'), label } : d)
+      await supabase.from('organizations').update({ departments: updated }).eq('id', orgId)
+      setDepartments(updated)
+    },
+    del: async (id) => {
+      if (!confirm('Remove this department? Staff already assigned to it keep the value, but it will no longer appear in pickers.')) return
+      const updated = departments.filter(d => d.key !== id)
+      await supabase.from('organizations').update({ departments: updated }).eq('id', orgId)
+      setDepartments(updated)
+    },
+  }
+
   const sections = [
     { key: 'vehicles',       label: 'Vehicles',            icon: Car,           count: vehicles.length },
     { key: 'residents',      label: 'Residents',            icon: Users,         count: residents.length },
     { key: 'family',         label: 'Family Links',         icon: Heart,         count: null },
+    { key: 'departments',    label: 'Departments',          icon: Building2,     count: departments.length },
     { key: 'utilities',      label: 'Utility Types',        icon: Gauge,         count: utilityTypes.length },
     { key: 'checkpoints',    label: 'Security Checkpoints', icon: MapPin,        count: checkpoints.length },
     { key: 'certs',          label: 'Certification Types',  icon: Award,         count: certTypes.length },
@@ -466,6 +494,30 @@ export default function AdminLists({ orgId }) {
 
           {/* FAMILY LINKS */}
           {section === 'family' && <FamilyLinks orgId={orgId} />}
+
+          {/* DEPARTMENTS */}
+          {section === 'departments' && (
+            <div>
+              <div className="mb-4">
+                <h3 className="font-display font-semibold text-slate-800">Departments</h3>
+                <p className="text-slate-400 text-xs mt-0.5">Used for staff profiles/filtering and internal department broadcast messages (e.g. Maintenance Communication).</p>
+              </div>
+              <EditableList
+                items={departments.map(d => ({ id: d.key, label: d.label }))}
+                onAdd={dept.add} onUpdate={dept.update} onDelete={dept.del}
+                addPlaceholder="Add department (e.g. Maintenance)"
+                columns={[{ key: 'label', label: 'Department name' }]}
+                renderRow={item => (
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-brand-100 flex items-center justify-center flex-shrink-0">
+                      <Building2 size={15} className="text-brand-600" />
+                    </div>
+                    <span className="text-sm font-medium text-slate-800">{item.label}</span>
+                  </div>
+                )}
+              />
+            </div>
+          )}
 
           {/* UTILITY TYPES */}
           {section === 'utilities' && (
