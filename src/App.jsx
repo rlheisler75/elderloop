@@ -42,6 +42,7 @@ const Surveys        = lazy(() => import('./pages/surveys/Surveys'))
 const TimeClock      = lazy(() => import('./pages/timeclock/TimeClock'))
 const Transportation = lazy(() => import('./pages/transportation/Transportation'))
 const CEODashboard   = lazy(() => import('./pages/ceo/CEODashboard'))
+const UserSettings   = lazy(() => import('./pages/settings/UserSettings'))
 const SuperAdmin     = lazy(() => import('./pages/superadmin/SuperAdminDashboard'))
 const RepPortal      = lazy(() => import('./pages/rep/RepPortal'))
 
@@ -210,6 +211,7 @@ export default function App() {
           <Route index element={<Navigate to="/app/dashboard" replace />} />
 
           <Route path="dashboard"  element={<Dashboard />} />
+          <Route path="settings"   element={<Lazy><UserSettings /></Lazy>} />
           <Route path="admin"      element={<AdminRoute><AdminPanel /></AdminRoute>} />
           <Route path="ceo"        element={<Lazy><CEODashboard /></Lazy>} />
           <Route path="superadmin" element={<SuperAdminRoute><Lazy><SuperAdmin /></Lazy></SuperAdminRoute>} />

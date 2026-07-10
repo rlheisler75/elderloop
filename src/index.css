@@ -2,6 +2,74 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Accent color presets (Settings page). Default (blue) lives on :root;
+   selecting another preset stamps data-accent on <html> (see AuthContext). */
+:root {
+  --brand-50:  240 247 255;
+  --brand-100: 224 239 254;
+  --brand-200: 186 224 253;
+  --brand-300: 124 200 251;
+  --brand-400: 54 170 245;
+  --brand-500: 12 144 225;
+  --brand-600: 0 114 191;
+  --brand-700: 1 90 154;
+  --brand-800: 6 77 128;
+  --brand-900: 10 64 107;
+  --brand-950: 7 42 73;
+}
+[data-accent="green"] {
+  --brand-50:  244 247 244;
+  --brand-100: 227 235 227;
+  --brand-200: 199 216 200;
+  --brand-300: 157 189 160;
+  --brand-400: 109 157 114;
+  --brand-500: 76 127 82;
+  --brand-600: 58 101 63;
+  --brand-700: 47 81 52;
+  --brand-800: 39 66 43;
+  --brand-900: 33 55 36;
+  --brand-950: 23 40 25;
+}
+[data-accent="purple"] {
+  --brand-50:  246 240 251;
+  --brand-100: 237 224 247;
+  --brand-200: 214 189 238;
+  --brand-300: 185 143 223;
+  --brand-400: 154 95 207;
+  --brand-500: 125 63 184;
+  --brand-600: 100 46 151;
+  --brand-700: 79 36 120;
+  --brand-800: 63 29 97;
+  --brand-900: 51 25 80;
+  --brand-950: 31 15 51;
+}
+[data-accent="rose"] {
+  --brand-50:  253 242 244;
+  --brand-100: 252 228 232;
+  --brand-200: 248 194 203;
+  --brand-300: 240 145 159;
+  --brand-400: 227 92 115;
+  --brand-500: 204 51 85;
+  --brand-600: 168 36 66;
+  --brand-700: 133 29 54;
+  --brand-800: 107 28 48;
+  --brand-900: 90 26 42;
+  --brand-950: 51 13 23;
+}
+[data-accent="slate"] {
+  --brand-50:  248 250 252;
+  --brand-100: 241 245 249;
+  --brand-200: 226 232 240;
+  --brand-300: 203 213 225;
+  --brand-400: 148 163 184;
+  --brand-500: 100 116 139;
+  --brand-600: 71 85 105;
+  --brand-700: 51 65 85;
+  --brand-800: 30 41 59;
+  --brand-900: 15 23 42;
+  --brand-950: 2 6 23;
+}
+
 @layer base {
   body {
     @apply font-body bg-slate-50 text-slate-800 antialiased;

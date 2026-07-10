@@ -34,6 +34,13 @@ export function AuthProvider({ children }) {
     return () => subscription.unsubscribe()
   }, [])
 
+  // Apply the user's chosen accent color app-wide (see src/index.css —
+  // Tailwind's brand.* palette reads from these CSS vars). Defaults to the
+  // original blue via :root when no profile/preference is set yet.
+  useEffect(() => {
+    document.documentElement.dataset.accent = profile?.accent_color || 'blue'
+  }, [profile?.accent_color])
+
   async function fetchProfile(userId) {
     setLoading(true)
     try {
@@ -140,11 +147,17 @@ export function AuthProvider({ children }) {
     setOrgModules(data?.filter(m => m.is_enabled !== false).map(m => m.module_key) || [])
   }
 
+  const refreshProfile = async () => {
+    if (!user?.id) return
+    const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+    if (data) setProfile(data)
+  }
+
   return (
       <AuthContext.Provider value={{
       user, profile, organization, orgModules, userPerms,
       loading, suspended, hasModule, canEdit, accessibleModules,
-      isOrgAdmin, isSuperAdmin, isCEO, signOut, refreshModules
+      isOrgAdmin, isSuperAdmin, isCEO, signOut, refreshModules, refreshProfile
     }}>
       {children}
 
