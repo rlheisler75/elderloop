@@ -1,5 +1,9 @@
 export default {
   content: ['./index.html', './src/**/*.{js,jsx}'],
+  // Toggled via a `dark` class on <html>, driven by profile.theme_mode
+  // (see AuthContext.jsx) rather than the OS-level media query, since this
+  // is a per-user Settings preference.
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {

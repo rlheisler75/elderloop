@@ -41,6 +41,12 @@ export function AuthProvider({ children }) {
     document.documentElement.dataset.accent = profile?.accent_color || 'blue'
   }, [profile?.accent_color])
 
+  // Light/dark mode — a per-user Settings preference (not OS-level), so it's
+  // driven by profile.theme_mode via Tailwind's `darkMode: 'class'`.
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', profile?.theme_mode === 'dark')
+  }, [profile?.theme_mode])
+
   async function fetchProfile(userId) {
     setLoading(true)
     try {

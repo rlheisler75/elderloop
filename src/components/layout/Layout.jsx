@@ -121,7 +121,7 @@ export default function Layout() {
     .filter(group => group.items.length > 0)
 
   return (
-    <div className="flex h-screen bg-slate-50">
+    <div className="flex h-screen bg-slate-50 dark:bg-slate-950">
       {sidebarOpen && <div className="fixed inset-0 z-20 bg-black/50 lg:hidden" onClick={() => setSidebarOpen(false)} />}
 
       <aside className={`fixed inset-y-0 left-0 z-30 w-64 bg-brand-950 flex flex-col transform transition-transform duration-200 lg:translate-x-0 lg:static lg:z-auto ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
@@ -216,28 +216,28 @@ export default function Layout() {
 
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <div className="lg:hidden flex items-center gap-3 px-4 py-3 bg-white border-b border-slate-200">
-          <button onClick={() => setSidebarOpen(true)} className="text-slate-500 hover:text-slate-700"><Menu size={22} /></button>
-          <span className="font-display font-semibold text-brand-800 flex-1">ElderLoop</span>
+        <div className="lg:hidden flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+          <button onClick={() => setSidebarOpen(true)} className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"><Menu size={22} /></button>
+          <span className="font-display font-semibold text-brand-800 dark:text-brand-400 flex-1">ElderLoop</span>
           <div ref={notifRef} className="relative lg:hidden">
-            <button onClick={handleOpenNotifs} className="relative p-2 text-slate-400 hover:text-slate-700 rounded-lg">
+            <button onClick={handleOpenNotifs} className="relative p-2 text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg">
               <Bell size={18} />
               {unread > 0 && <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">{unread > 9 ? '9+' : unread}</span>}
             </button>
             {showNotifs && (
-              <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 overflow-hidden">
-                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-                  <span className="font-semibold text-slate-800 text-sm">Notifications</span>
+              <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 z-50 overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                  <span className="font-semibold text-slate-800 dark:text-slate-100 text-sm">Notifications</span>
                 </div>
-                <div className="max-h-80 overflow-y-auto divide-y divide-slate-50">
+                <div className="max-h-80 overflow-y-auto divide-y divide-slate-50 dark:divide-slate-800">
                   {notifs.length === 0 ? (
                     <div className="px-4 py-8 text-center text-slate-400 text-sm">No notifications yet</div>
                   ) : notifs.map(n => {
                     const msg = n.broadcast_messages
                     return (
-                      <div key={n.id} className={`px-4 py-3 ${n.is_read ? '' : 'bg-brand-50'}`}>
-                        <p className="text-sm font-medium text-slate-800 truncate">{n.title || msg?.subject}</p>
-                        <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{n.body || msg?.body}</p>
+                      <div key={n.id} className={`px-4 py-3 ${n.is_read ? '' : 'bg-brand-50 dark:bg-brand-950/30'}`}>
+                        <p className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">{n.title || msg?.subject}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">{n.body || msg?.body}</p>
                       </div>
                     )
                   })}
@@ -247,10 +247,10 @@ export default function Layout() {
           </div>
         </div>
         {/* Desktop top bar */}
-        <div className="hidden lg:flex items-center justify-end px-6 py-3 bg-white border-b border-slate-100">
+        <div className="hidden lg:flex items-center justify-end px-6 py-3 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
           <div ref={notifRef} className="relative">
             <button onClick={handleOpenNotifs}
-              className="relative p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
+              className="relative p-2 text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
               <Bell size={18} />
               {unread > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
@@ -259,12 +259,12 @@ export default function Layout() {
               )}
             </button>
             {showNotifs && (
-              <div className="absolute right-0 top-full mt-2 w-96 bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 overflow-hidden">
-                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-                  <span className="font-semibold text-slate-800 text-sm">Notifications</span>
+              <div className="absolute right-0 top-full mt-2 w-96 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 z-50 overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                  <span className="font-semibold text-slate-800 dark:text-slate-100 text-sm">Notifications</span>
                   {unread === 0 && <span className="text-xs text-slate-400">All caught up</span>}
                 </div>
-                <div className="max-h-96 overflow-y-auto divide-y divide-slate-50">
+                <div className="max-h-96 overflow-y-auto divide-y divide-slate-50 dark:divide-slate-800">
                   {notifs.length === 0 ? (
                     <div className="px-4 py-8 text-center text-slate-400 text-sm">No notifications yet</div>
                   ) : notifs.map(n => {
@@ -278,12 +278,12 @@ export default function Layout() {
                       return `${Math.floor(diff/1440)}d ago`
                     })()
                     return (
-                      <div key={n.id} className={`px-4 py-3 ${n.is_read ? '' : 'bg-brand-50'}`}>
+                      <div key={n.id} className={`px-4 py-3 ${n.is_read ? '' : 'bg-brand-50 dark:bg-brand-950/30'}`}>
                         <div className="flex items-start gap-2">
                           {!n.is_read && <div className="w-2 h-2 rounded-full bg-brand-500 mt-1.5 flex-shrink-0" />}
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-slate-800 truncate">{n.title || msg?.subject}</p>
-                            <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{n.body || msg?.body}</p>
+                            <p className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">{n.title || msg?.subject}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">{n.body || msg?.body}</p>
                             <p className="text-xs text-slate-400 mt-1">{ago}</p>
                           </div>
                         </div>

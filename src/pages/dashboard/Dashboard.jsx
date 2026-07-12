@@ -15,15 +15,15 @@ function StatCard({ icon: Icon, label, value, sub, color, bg, to, alert }) {
   const navigate = useNavigate()
   return (
     <button onClick={() => to && navigate(to)}
-      className={`${bg} rounded-2xl p-5 text-left hover:shadow-md transition-all group border-2 ${alert ? 'border-red-300 animate-pulse' : 'border-transparent'}`}>
+      className={`${bg} dark:bg-slate-900 rounded-2xl p-5 text-left hover:shadow-md transition-all group border-2 ${alert ? 'border-red-300 dark:border-red-800 animate-pulse' : 'border-transparent dark:border-slate-800'}`}>
       <div className="flex items-start justify-between mb-3">
-        <div className={`p-2 rounded-xl ${bg === 'bg-white' ? 'bg-slate-100' : 'bg-white/40'}`}>
+        <div className={`p-2 rounded-xl ${bg === 'bg-white' ? 'bg-slate-100 dark:bg-slate-800' : 'bg-white/40 dark:bg-slate-800'}`}>
           <Icon size={18} className={color} />
         </div>
-        {to && <ArrowRight size={14} className="text-slate-300 group-hover:text-slate-500 group-hover:translate-x-0.5 transition-all mt-1" />}
+        {to && <ArrowRight size={14} className="text-slate-300 dark:text-slate-600 group-hover:text-slate-500 dark:group-hover:text-slate-400 group-hover:translate-x-0.5 transition-all mt-1" />}
       </div>
       <div className={`text-3xl font-display font-bold ${color}`}>{value}</div>
-      <div className="text-slate-600 text-xs font-medium mt-1">{label}</div>
+      <div className="text-slate-600 dark:text-slate-300 text-xs font-medium mt-1">{label}</div>
       {sub && <div className="text-slate-400 text-xs mt-0.5">{sub}</div>}
     </button>
   )
@@ -34,11 +34,11 @@ function AlertRow({ icon: Icon, color, bg, label, count, to }) {
   const navigate = useNavigate()
   return (
     <button onClick={() => navigate(to)}
-      className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors group text-left">
+      className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group text-left">
       <div className={`w-8 h-8 rounded-lg ${bg} flex items-center justify-center flex-shrink-0`}>
         <Icon size={15} className={color} />
       </div>
-      <span className="flex-1 text-sm text-slate-700">{label}</span>
+      <span className="flex-1 text-sm text-slate-700 dark:text-slate-300">{label}</span>
       <span className={`text-xs font-bold px-2 py-1 rounded-full ${bg} ${color}`}>{count}</span>
       <ArrowRight size={13} className="text-slate-300 group-hover:text-slate-500 transition-colors" />
     </button>
@@ -48,12 +48,12 @@ function AlertRow({ icon: Icon, color, bg, label, count, to }) {
 // ── Activity Feed Item ─────────────────────────────────────────
 function FeedItem({ icon: Icon, color, title, sub, time }) {
   return (
-    <div className="flex items-start gap-3 py-2.5 border-b border-slate-50 last:border-0">
+    <div className="flex items-start gap-3 py-2.5 border-b border-slate-50 dark:border-slate-800 last:border-0">
       <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 ${color}`}>
         <Icon size={13} className="text-white" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm text-slate-700 font-medium leading-snug">{title}</p>
+        <p className="text-sm text-slate-700 dark:text-slate-300 font-medium leading-snug">{title}</p>
         {sub && <p className="text-xs text-slate-400 mt-0.5 truncate">{sub}</p>}
       </div>
       <span className="text-xs text-slate-300 flex-shrink-0 mt-0.5">{time}</span>
@@ -256,7 +256,7 @@ export default function Dashboard() {
     <div className="max-w-7xl mx-auto space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-slate-800">
+          <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">
             {greeting()}, {profile?.first_name} 👋
           </h1>
           <p className="text-slate-500 text-sm mt-1">
@@ -273,10 +273,10 @@ export default function Dashboard() {
       </div>
 
       {alerts.length > 0 && (
-        <div className="bg-white rounded-2xl border border-red-100 shadow-sm p-4">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-red-100 dark:border-red-900/50 shadow-sm p-4">
           <div className="flex items-center gap-2 mb-3">
             <Activity size={15} className="text-red-500" />
-            <span className="text-sm font-semibold text-slate-700">Needs Attention</span>
+            <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">Needs Attention</span>
           </div>
           <div className="space-y-1">
             {alerts.map((a, i) => (
@@ -340,9 +340,9 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
           {hasModule('transportation') && data.tripsList?.length > 0 && (
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="font-display font-semibold text-slate-800 flex items-center gap-2">
+                <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                   <Car size={16} className="text-green-600" /> Today's Trips
                 </h2>
                 <button onClick={() => navigate('/app/transportation')} className="text-xs text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1">
@@ -351,17 +351,17 @@ export default function Dashboard() {
               </div>
               <div className="space-y-2">
                 {data.tripsList.map(t => (
-                  <div key={t.id} className="flex items-center gap-3 p-2.5 rounded-xl border border-slate-100">
+                  <div key={t.id} className="flex items-center gap-3 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
                     <div className="w-12 text-center flex-shrink-0">
-                      <div className="text-xs font-bold text-slate-700">{t.pickup_time ? t.pickup_time.slice(0,5) : '—'}</div>
+                      <div className="text-xs font-bold text-slate-700 dark:text-slate-300">{t.pickup_time ? t.pickup_time.slice(0,5) : '—'}</div>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-slate-800 truncate">{t.resident_name}</div>
+                      <div className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">{t.resident_name}</div>
                     </div>
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${
-                      t.status === 'completed' ? 'bg-green-100 text-green-700' :
+                      t.status === 'completed' ? 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400' :
                       t.status === 'in_progress' ? 'bg-brand-100 text-brand-700' :
-                      'bg-slate-100 text-slate-600'}`}>
+                      'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`}>
                       {t.status.replace('_',' ')}
                     </span>
                   </div>
@@ -371,9 +371,9 @@ export default function Dashboard() {
           )}
 
           {hasModule('activities') && data.todayActs?.length > 0 && (
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="font-display font-semibold text-slate-800 flex items-center gap-2">
+                <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                   <CalendarDays size={16} className="text-purple-600" /> Today's Activities
                 </h2>
                 <button onClick={() => navigate('/app/activities')} className="text-xs text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1">
@@ -382,10 +382,10 @@ export default function Dashboard() {
               </div>
               <div className="space-y-2">
                 {data.todayActs.slice(0, 5).map((a, i) => (
-                  <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl border border-slate-100">
+                  <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
                     <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: a.color || '#0c90e1' }} />
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-slate-800 truncate">{a.title}</div>
+                      <div className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">{a.title}</div>
                     </div>
                     {a.start_time && (
                       <span className="text-xs text-slate-400 flex-shrink-0">
@@ -399,9 +399,9 @@ export default function Dashboard() {
           )}
 
           {hasModule('work_orders') && data.workOrders?.length > 0 && (
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="font-display font-semibold text-slate-800 flex items-center gap-2">
+                <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                   <Wrench size={16} className="text-brand-600" /> Open Maintenance
                 </h2>
                 <button onClick={() => navigate('/app/maintenance')} className="text-xs text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1">
@@ -410,10 +410,10 @@ export default function Dashboard() {
               </div>
               <div className="space-y-2">
                 {data.workOrders.slice(0, 5).map(w => (
-                  <div key={w.id} className="flex items-center gap-3 p-2.5 rounded-xl border border-slate-100">
+                  <div key={w.id} className="flex items-center gap-3 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
                     <div className={`w-2 h-2 rounded-full flex-shrink-0 ${w.priority === 'urgent' ? 'bg-red-500' : w.priority === 'high' ? 'bg-orange-400' : 'bg-slate-300'}`} />
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-slate-800 truncate">{w.title}</div>
+                      <div className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">{w.title}</div>
                     </div>
                     <span className="text-xs text-slate-400 capitalize flex-shrink-0">{w.status.replace('_',' ')}</span>
                   </div>
@@ -425,9 +425,9 @@ export default function Dashboard() {
 
         <div className="space-y-4">
           {hasModule('communication') && data.recentAnnouncements?.length > 0 && (
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="font-display font-semibold text-slate-800 flex items-center gap-2">
+                <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                   <Bell size={15} className="text-purple-600" /> Announcements
                 </h2>
                 <button onClick={() => navigate('/app/communication')} className="text-xs text-brand-600 font-medium flex items-center gap-1">
@@ -437,7 +437,7 @@ export default function Dashboard() {
               <div className="space-y-3">
                 {data.recentAnnouncements.map(a => (
                   <div key={a.id} className="text-sm">
-                    <div className="font-medium text-slate-800 leading-snug">{a.title}</div>
+                    <div className="font-medium text-slate-800 dark:text-slate-100 leading-snug">{a.title}</div>
                     <div className="text-xs text-slate-400 mt-0.5 capitalize">{a.category?.replace('_',' ')}</div>
                   </div>
                 ))}
@@ -446,8 +446,8 @@ export default function Dashboard() {
           )}
 
           {feed.length > 0 && (
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-              <h2 className="font-display font-semibold text-slate-800 flex items-center gap-2 mb-3">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5">
+              <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2 mb-3">
                 <Activity size={15} className="text-brand-600" /> Recent Activity
               </h2>
               <div>
@@ -459,8 +459,8 @@ export default function Dashboard() {
             </div>
           )}
 
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-            <h2 className="font-display font-semibold text-slate-800 mb-3">Quick Links</h2>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5">
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 mb-3">Quick Links</h2>
             <div className="space-y-1">
               {[
                 hasModule('communication')  && { label: 'Post Announcement',    to: '/app/communication',  icon: MessageSquare, color: 'text-purple-600' },
@@ -472,10 +472,10 @@ export default function Dashboard() {
                 const Icon = link.icon
                 return (
                   <button key={i} onClick={() => navigate(link.to)}
-                    className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-50 transition-colors group text-left">
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group text-left">
                     <Icon size={15} className={link.color} />
-                    <span className="text-sm text-slate-600 group-hover:text-slate-800 transition-colors">{link.label}</span>
-                    <ArrowRight size={12} className="ml-auto text-slate-300 group-hover:text-slate-400 transition-colors" />
+                    <span className="text-sm text-slate-600 dark:text-slate-300 group-hover:text-slate-800 dark:group-hover:text-slate-100 transition-colors">{link.label}</span>
+                    <ArrowRight size={12} className="ml-auto text-slate-300 dark:text-slate-600 group-hover:text-slate-400 transition-colors" />
                   </button>
                 )
               })}
