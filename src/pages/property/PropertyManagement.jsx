@@ -12,20 +12,20 @@ import {
 // ── Constants ────────────────────────────────────────────────
 
 const UNIT_STATUSES = [
-  { key: 'available',     label: 'Available',     color: 'bg-green-100 text-green-700 border-green-200' },
-  { key: 'occupied',      label: 'Occupied',      color: 'bg-blue-100 text-blue-700 border-blue-200' },
-  { key: 'notice_given',  label: 'Notice Given',  color: 'bg-amber-100 text-amber-700 border-amber-200' },
-  { key: 'on_hold',       label: 'On Hold',       color: 'bg-purple-100 text-purple-700 border-purple-200' },
-  { key: 'maintenance',   label: 'Maintenance',   color: 'bg-orange-100 text-orange-700 border-orange-200' },
-  { key: 'offline',       label: 'Offline',       color: 'bg-slate-100 text-slate-500 border-slate-200' },
+  { key: 'available',     label: 'Available',     color: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-950/50 dark:text-green-400 dark:border-green-900' },
+  { key: 'occupied',      label: 'Occupied',      color: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-900' },
+  { key: 'notice_given',  label: 'Notice Given',  color: 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-900' },
+  { key: 'on_hold',       label: 'On Hold',       color: 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-950/50 dark:text-purple-400 dark:border-purple-900' },
+  { key: 'maintenance',   label: 'Maintenance',   color: 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950/50 dark:text-orange-400 dark:border-orange-900' },
+  { key: 'offline',       label: 'Offline',       color: 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700' },
 ]
 
 const LEASE_STATUSES = [
-  { key: 'draft',            label: 'Draft',            color: 'bg-slate-100 text-slate-600 border-slate-200' },
-  { key: 'active',           label: 'Active',           color: 'bg-green-100 text-green-700 border-green-200' },
-  { key: 'pending_renewal',  label: 'Pending Renewal',  color: 'bg-amber-100 text-amber-700 border-amber-200' },
-  { key: 'expired',          label: 'Expired',          color: 'bg-orange-100 text-orange-700 border-orange-200' },
-  { key: 'terminated',       label: 'Terminated',       color: 'bg-red-100 text-red-700 border-red-200' },
+  { key: 'draft',            label: 'Draft',            color: 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700' },
+  { key: 'active',           label: 'Active',           color: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-950/50 dark:text-green-400 dark:border-green-900' },
+  { key: 'pending_renewal',  label: 'Pending Renewal',  color: 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-900' },
+  { key: 'expired',          label: 'Expired',          color: 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950/50 dark:text-orange-400 dark:border-orange-900' },
+  { key: 'terminated',       label: 'Terminated',       color: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-950/50 dark:text-red-400 dark:border-red-900' },
 ]
 
 const NOTICE_TYPES = [
@@ -43,12 +43,12 @@ const NOTICE_TYPES = [
 ]
 
 const NOTICE_STATUSES = [
-  { key: 'draft',       label: 'Draft',       color: 'bg-slate-100 text-slate-500' },
-  { key: 'issued',      label: 'Issued',      color: 'bg-blue-100 text-blue-700' },
-  { key: 'delivered',   label: 'Delivered',   color: 'bg-purple-100 text-purple-700' },
-  { key: 'acknowledged',label: 'Acknowledged',color: 'bg-indigo-100 text-indigo-700' },
-  { key: 'resolved',    label: 'Resolved',    color: 'bg-green-100 text-green-700' },
-  { key: 'escalated',   label: 'Escalated',   color: 'bg-red-100 text-red-700' },
+  { key: 'draft',       label: 'Draft',       color: 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400' },
+  { key: 'issued',      label: 'Issued',      color: 'bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-400' },
+  { key: 'delivered',   label: 'Delivered',   color: 'bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-400' },
+  { key: 'acknowledged',label: 'Acknowledged',color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-400' },
+  { key: 'resolved',    label: 'Resolved',    color: 'bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-400' },
+  { key: 'escalated',   label: 'Escalated',   color: 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-400' },
 ]
 
 const ENTRY_TYPES = [
@@ -89,12 +89,12 @@ function Badge({ color, children }) {
 
 function StatCard({ icon: Icon, label, value, sub, color = 'text-brand-600' }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5">
       <div className="flex items-center justify-between mb-3">
         <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">{label}</span>
         <Icon size={16} className={color} />
       </div>
-      <div className="text-2xl font-bold text-slate-800" style={{ fontFamily: '"Playfair Display", serif' }}>{value}</div>
+      <div className="text-2xl font-bold text-slate-800 dark:text-slate-100" style={{ fontFamily: '"Playfair Display", serif' }}>{value}</div>
       {sub && <div className="text-xs text-slate-400 mt-1">{sub}</div>}
     </div>
   )
@@ -104,10 +104,10 @@ function Modal({ title, onClose, children, wide, extraWide }) {
   const maxW = extraWide ? 'max-w-5xl' : wide ? 'max-w-3xl' : 'max-w-lg'
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-      <div className={`bg-white rounded-2xl shadow-2xl w-full ${maxW} max-h-[90vh] flex flex-col`}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
-          <h2 className="font-semibold text-slate-800" style={{ fontFamily: '"Playfair Display", serif' }}>{title}</h2>
-          <button onClick={onClose} className="p-1 hover:bg-slate-100 rounded-lg transition-colors">
+      <div className={`bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full ${maxW} max-h-[90vh] flex flex-col`}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+          <h2 className="font-semibold text-slate-800 dark:text-slate-100" style={{ fontFamily: '"Playfair Display", serif' }}>{title}</h2>
+          <button onClick={onClose} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
             <X size={18} className="text-slate-400" />
           </button>
         </div>
@@ -120,7 +120,7 @@ function Modal({ title, onClose, children, wide, extraWide }) {
 function Field({ label, required, children, span }) {
   return (
     <div className={span === 2 ? 'col-span-2' : ''}>
-      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
         {label}{required && <span className="text-red-400 ml-0.5">*</span>}
       </label>
       {children}
@@ -131,7 +131,7 @@ function Field({ label, required, children, span }) {
 function SaveCancel({ onSave, onClose, saving, label = 'Save' }) {
   return (
     <div className="flex justify-end gap-3 mt-6">
-      <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">Cancel</button>
+      <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors">Cancel</button>
       <button onClick={onSave} disabled={saving}
         className="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-50">
         {saving ? 'Saving…' : label}
@@ -140,7 +140,7 @@ function SaveCancel({ onSave, onClose, saving, label = 'Save' }) {
   )
 }
 
-const inputCls  = 'w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent'
+const inputCls  = 'w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100'
 const selectCls = inputCls
 
 // ── Unit Form ─────────────────────────────────────────────────
@@ -210,11 +210,11 @@ function UnitForm({ unit, orgId, onSave, onClose }) {
           <input className={inputCls} type="number" value={form.market_rent} onChange={e=>set('market_rent',e.target.value)} placeholder="$0.00" />
         </Field>
         <div className="col-span-2">
-          <label className="block text-sm font-medium text-slate-700 mb-2">Amenities</label>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Amenities</label>
           <div className="flex flex-wrap gap-2">
             {checks.map(c=>(
               <button key={c.k} type="button" onClick={()=>set(c.k,!form[c.k])}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${form[c.k]?'bg-brand-600 text-white border-brand-600':'bg-white text-slate-600 border-slate-200 hover:border-brand-300'}`}>
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${form[c.k]?'bg-brand-600 text-white border-brand-600':'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-brand-300'}`}>
                 {c.l}
               </button>
             ))}
@@ -378,11 +378,11 @@ function LeaseForm({ lease, units, tenants, orgId, onSave, onClose }) {
           <input className={inputCls} type="number" value={form.pet_monthly_fee} onChange={e=>set('pet_monthly_fee',e.target.value)} />
         </Field>
         <div className="col-span-2">
-          <label className="block text-sm font-medium text-slate-700 mb-2">Tenant Pays Utilities</label>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Tenant Pays Utilities</label>
           <div className="flex flex-wrap gap-2">
             {utilChecks.map(c=>(
               <button key={c.k} type="button" onClick={()=>set(c.k,!form[c.k])}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${form[c.k]?'bg-brand-600 text-white border-brand-600':'bg-white text-slate-600 border-slate-200'}`}>
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${form[c.k]?'bg-brand-600 text-white border-brand-600':'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'}`}>
                 {c.l}
               </button>
             ))}
@@ -453,9 +453,9 @@ function LedgerModal({ lease, onClose }) {
 
   return (
     <Modal title={`Rent Ledger — ${lease.lease_number || 'Lease'}`} onClose={onClose} extraWide>
-      <div className={`mb-5 p-4 rounded-xl border ${currentBalance > 0 ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'}`}>
+      <div className={`mb-5 p-4 rounded-xl border ${currentBalance > 0 ? 'bg-red-50 border-red-200 dark:bg-red-950/30 dark:border-red-900' : 'bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-900'}`}>
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-slate-600">Current Balance</span>
+          <span className="text-sm font-medium text-slate-600 dark:text-slate-300">Current Balance</span>
           <span className={`text-2xl font-bold ${currentBalance > 0 ? 'text-red-600' : 'text-green-600'}`} style={{ fontFamily: '"Playfair Display", serif' }}>
             {currentBalance >= 0 ? fmtMoney(currentBalance) + ' owed' : fmtMoney(Math.abs(currentBalance)) + ' credit'}
           </span>
@@ -463,7 +463,7 @@ function LedgerModal({ lease, onClose }) {
       </div>
 
       {/* Quick entry form */}
-      <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-5">
+      <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 mb-5">
         <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Post Entry</p>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Type">
@@ -500,10 +500,10 @@ function LedgerModal({ lease, onClose }) {
       </div>
 
       {/* Ledger table */}
-      <div className="bg-white border border-slate-100 rounded-xl overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-100">
+            <tr className="bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800">
               <th className="text-left px-4 py-2.5 font-medium text-slate-500 text-xs">Date</th>
               <th className="text-left px-4 py-2.5 font-medium text-slate-500 text-xs">Type</th>
               <th className="text-left px-4 py-2.5 font-medium text-slate-500 text-xs">Description</th>
@@ -520,13 +520,13 @@ function LedgerModal({ lease, onClose }) {
               const et = ENTRY_TYPES.find(t=>t.key===e.entry_type)
               const isDebit = et?.dir === 1
               return (
-                <tr key={e.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                <tr key={e.id} className="border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                   <td className="px-4 py-2.5 text-slate-500 text-xs whitespace-nowrap">{fmtDate(e.payment_date || e.created_at?.slice(0,10))}</td>
                   <td className="px-4 py-2.5">
-                    <span className={`text-xs font-medium ${et?.color || 'text-slate-600'}`}>{et?.label || fmt(e.entry_type)}</span>
+                    <span className={`text-xs font-medium ${et?.color || 'text-slate-600 dark:text-slate-300'}`}>{et?.label || fmt(e.entry_type)}</span>
                   </td>
-                  <td className="px-4 py-2.5 text-slate-600 text-xs max-w-xs truncate">{e.description || '—'}</td>
-                  <td className={`px-4 py-2.5 text-right font-medium text-sm ${et?.color || 'text-slate-600'}`}>
+                  <td className="px-4 py-2.5 text-slate-600 dark:text-slate-300 text-xs max-w-xs truncate">{e.description || '—'}</td>
+                  <td className={`px-4 py-2.5 text-right font-medium text-sm ${et?.color || 'text-slate-600 dark:text-slate-300'}`}>
                     {isDebit ? '+' : '-'}{fmtMoney(Math.abs(e.amount))}
                   </td>
                   <td className={`px-4 py-2.5 text-right text-sm font-semibold ${e.runningBalance > 0 ? 'text-red-600' : 'text-green-600'}`}>
@@ -708,12 +708,12 @@ function WalkthroughForm({ units, leases, tenants, orgId, onSave, onClose }) {
         </Field>
         <div className="flex items-center gap-2 pt-6">
           <input type="checkbox" id="tp" checked={form.tenant_present} onChange={e=>set('tenant_present',e.target.checked)} className="rounded" />
-          <label htmlFor="tp" className="text-sm text-slate-700">Tenant present</label>
+          <label htmlFor="tp" className="text-sm text-slate-700 dark:text-slate-300">Tenant present</label>
         </div>
       </div>
 
       <div className="mb-4">
-        <p className="text-sm font-medium text-slate-700 mb-2">Room-by-Room Checklist</p>
+        <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Room-by-Room Checklist</p>
         <div className="space-y-4">
           {rooms.map(room => (
             <div key={room}>
@@ -722,17 +722,17 @@ function WalkthroughForm({ units, leases, tenants, orgId, onSave, onClose }) {
                 {items.filter(i=>i.room===room).map((it,idx) => {
                   const realIdx = items.indexOf(it)
                   return (
-                    <div key={realIdx} className="grid grid-cols-4 gap-2 items-center bg-slate-50 rounded-xl p-2.5">
-                      <span className="text-sm text-slate-700 col-span-1">{it.item}</span>
-                      <select className="text-xs border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-400"
+                    <div key={realIdx} className="grid grid-cols-4 gap-2 items-center bg-slate-50 dark:bg-slate-800 rounded-xl p-2.5">
+                      <span className="text-sm text-slate-700 dark:text-slate-300 col-span-1">{it.item}</span>
+                      <select className="text-xs border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-400 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
                         value={it.condition} onChange={e=>setItem(realIdx,'condition',e.target.value)}>
                         {CONDITIONS.map(c=><option key={c} value={c}>{fmt(c)}</option>)}
                         <option value="damaged">Damaged</option>
                         <option value="missing">Missing</option>
                       </select>
-                      <input className="text-xs border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-400"
+                      <input className="text-xs border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-400 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
                         value={it.notes} onChange={e=>setItem(realIdx,'notes',e.target.value)} placeholder="Notes…" />
-                      <input type="number" className="text-xs border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-400"
+                      <input type="number" className="text-xs border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-400 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
                         value={it.charge_amount} onChange={e=>setItem(realIdx,'charge_amount',e.target.value)} placeholder="$charge" />
                     </div>
                   )
@@ -818,7 +818,7 @@ function KeysTab({ orgId, units, leases, tenants, staff }) {
       </div>
 
       {showForm && (
-        <div className="mb-4 p-4 bg-slate-50 border border-slate-200 rounded-xl">
+        <div className="mb-4 p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl">
           <div className="grid grid-cols-3 gap-3">
             <Field label="Unit" required>
               <select className={selectCls} value={form.unit_id} onChange={e=>set('unit_id',e.target.value)}>
@@ -852,15 +852,15 @@ function KeysTab({ orgId, units, leases, tenants, staff }) {
               className="px-4 py-2 bg-brand-600 text-white rounded-xl text-sm font-medium disabled:opacity-50">
               {saving?'Saving…':'Issue Key'}
             </button>
-            <button onClick={()=>setShowForm(false)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-xl">Cancel</button>
+            <button onClick={()=>setShowForm(false)} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl">Cancel</button>
           </div>
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-100">
+            <tr className="bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800">
               <th className="text-left px-4 py-3 font-medium text-slate-500 text-xs">Unit</th>
               <th className="text-left px-4 py-3 font-medium text-slate-500 text-xs">Tenant</th>
               <th className="text-left px-4 py-3 font-medium text-slate-500 text-xs">Type</th>
@@ -875,9 +875,9 @@ function KeysTab({ orgId, units, leases, tenants, staff }) {
             {keys.map(k=>{
               const isOut = !k.returned_date && !k.lost
               return (
-                <tr key={k.id} className="border-b border-slate-50 hover:bg-slate-50/50">
-                  <td className="px-4 py-3 font-medium text-slate-800">{k.unit?.unit_number}</td>
-                  <td className="px-4 py-3 text-slate-600 text-sm">{k.tenant?`${k.tenant.first_name} ${k.tenant.last_name}`:'—'}</td>
+                <tr key={k.id} className="border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
+                  <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-100">{k.unit?.unit_number}</td>
+                  <td className="px-4 py-3 text-slate-600 dark:text-slate-300 text-sm">{k.tenant?`${k.tenant.first_name} ${k.tenant.last_name}`:'—'}</td>
                   <td className="px-4 py-3 text-slate-500 text-xs">{fmt(k.key_type)}</td>
                   <td className="px-4 py-3 text-slate-500 text-xs font-mono">{k.key_identifier||'—'}</td>
                   <td className="px-4 py-3 text-slate-400 text-xs">{fmtDate(k.issued_date)}</td>
@@ -1020,7 +1020,7 @@ export default function PropertyManagement() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-slate-800">Property Management</h1>
+          <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Property Management</h1>
           <p className="text-slate-500 text-sm mt-0.5">Independent living units, leases, rent, and notices</p>
         </div>
       </div>
@@ -1034,12 +1034,12 @@ export default function PropertyManagement() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-slate-100 p-1 rounded-xl w-fit flex-wrap">
+      <div className="flex gap-1 mb-6 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit flex-wrap">
         {TABS.map(t => {
           const Icon = t.icon
           return (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab===t.key?'bg-white text-brand-700 shadow-sm':'text-slate-500 hover:text-slate-700'}`}>
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab===t.key?'bg-white dark:bg-slate-900 text-brand-700 shadow-sm':'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
               <Icon size={15} />{t.label}
             </button>
           )
@@ -1059,10 +1059,10 @@ export default function PropertyManagement() {
             <div className="flex flex-wrap items-center gap-3 mb-5">
               <div className="relative flex-1 min-w-48">
                 <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input className="pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm w-full focus:outline-none focus:ring-2 focus:ring-brand-500"
+                <input className="pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm w-full focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
                   placeholder="Search units…" value={unitSearch} onChange={e=>setUnitSearch(e.target.value)} />
               </div>
-              <select className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              <select className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
                 value={unitStatusFilter} onChange={e=>setUnitStatusFilter(e.target.value)}>
                 <option value="all">All Statuses</option>
                 {UNIT_STATUSES.map(s=><option key={s.key} value={s.key}>{s.label}</option>)}
@@ -1078,11 +1078,11 @@ export default function PropertyManagement() {
                 const st = getUnitStatus(unit.status)
                 const activeLease = leases.find(l=>l.unit_id===unit.id && l.status==='active')
                 return (
-                  <div key={unit.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-all">
+                  <div key={unit.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5 hover:shadow-md transition-all">
                     <div className="flex items-start justify-between mb-3">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-slate-800 text-lg" style={{ fontFamily: '"Playfair Display", serif' }}>
+                          <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-lg" style={{ fontFamily: '"Playfair Display", serif' }}>
                             Unit {unit.unit_number}
                           </h3>
                           {unit.building && <span className="text-xs text-slate-400">Bldg {unit.building}</span>}
@@ -1091,38 +1091,38 @@ export default function PropertyManagement() {
                       </div>
                       <div className="flex gap-1">
                         <button onClick={()=>{setEditUnit(unit);setShowUnitForm(true)}}
-                          className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors text-slate-400">
+                          className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-400">
                           <Edit2 size={14} />
                         </button>
                         <button onClick={()=>deleteUnit(unit.id)}
-                          className="p-1.5 hover:bg-red-50 hover:text-red-500 rounded-lg transition-colors text-slate-400">
+                          className="p-1.5 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-500 rounded-lg transition-colors text-slate-400">
                           <Trash2 size={14} />
                         </button>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-3 gap-2 text-center mb-3">
-                      <div className="bg-slate-50 rounded-xl p-2">
+                      <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-2">
                         <p className="text-xs text-slate-400">Type</p>
-                        <p className="text-xs font-medium text-slate-700 mt-0.5">{fmt(unit.unit_type)}</p>
+                        <p className="text-xs font-medium text-slate-700 dark:text-slate-300 mt-0.5">{fmt(unit.unit_type)}</p>
                       </div>
-                      <div className="bg-slate-50 rounded-xl p-2">
+                      <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-2">
                         <p className="text-xs text-slate-400">Rent</p>
-                        <p className="text-xs font-medium text-slate-700 mt-0.5">{unit.market_rent ? `$${Number(unit.market_rent).toLocaleString()}` : '—'}</p>
+                        <p className="text-xs font-medium text-slate-700 dark:text-slate-300 mt-0.5">{unit.market_rent ? `$${Number(unit.market_rent).toLocaleString()}` : '—'}</p>
                       </div>
-                      <div className="bg-slate-50 rounded-xl p-2">
+                      <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-2">
                         <p className="text-xs text-slate-400">Size</p>
-                        <p className="text-xs font-medium text-slate-700 mt-0.5">{unit.square_feet ? `${unit.square_feet} sf` : '—'}</p>
+                        <p className="text-xs font-medium text-slate-700 dark:text-slate-300 mt-0.5">{unit.square_feet ? `${unit.square_feet} sf` : '—'}</p>
                       </div>
                     </div>
 
                     {activeLease && (
-                      <div className="flex items-center gap-2 p-2 bg-blue-50 rounded-xl">
+                      <div className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-950/30 rounded-xl">
                         <User size={12} className="text-blue-500 flex-shrink-0" />
-                        <span className="text-xs text-blue-700 font-medium">
+                        <span className="text-xs text-blue-700 dark:text-blue-400 font-medium">
                           {activeLease.tenant?.first_name} {activeLease.tenant?.last_name} · {activeLease.lease_number}
                         </span>
-                        <button onClick={()=>setLedgerLease(activeLease)} className="ml-auto p-1 hover:bg-blue-100 rounded-lg transition-colors" title="View Ledger">
+                        <button onClick={()=>setLedgerLease(activeLease)} className="ml-auto p-1 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg transition-colors" title="View Ledger">
                           <DollarSign size={11} className="text-blue-600" />
                         </button>
                       </div>
@@ -1146,7 +1146,7 @@ export default function PropertyManagement() {
             <div className="flex items-center gap-3 mb-5">
               <div className="relative flex-1 max-w-sm">
                 <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input className="pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm w-full focus:outline-none focus:ring-2 focus:ring-brand-500"
+                <input className="pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm w-full focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
                   placeholder="Search tenants…" value={tenantSearch} onChange={e=>setTenantSearch(e.target.value)} />
               </div>
               <button onClick={()=>{setEditTenant(null);setShowTenantForm(true)}}
@@ -1154,10 +1154,10 @@ export default function PropertyManagement() {
                 <Plus size={15} /> Add Tenant
               </button>
             </div>
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-100">
+                  <tr className="bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800">
                     <th className="text-left px-4 py-3 font-medium text-slate-500 text-xs">Name</th>
                     <th className="text-left px-4 py-3 font-medium text-slate-500 text-xs hidden md:table-cell">Contact</th>
                     <th className="text-left px-4 py-3 font-medium text-slate-500 text-xs hidden lg:table-cell">Emergency Contact</th>
@@ -1169,11 +1169,11 @@ export default function PropertyManagement() {
                   {filteredTenants.length === 0 && <tr><td colSpan={5} className="text-center py-12 text-slate-400 text-sm">No tenants found.</td></tr>}
                   {filteredTenants.map(t => {
                     const activeLease = leases.find(l=>l.primary_tenant_id===t.id && l.status==='active')
-                    const bgColor = {passed:'bg-green-100 text-green-700',failed:'bg-red-100 text-red-700',pending:'bg-amber-100 text-amber-700',waived:'bg-slate-100 text-slate-500'}
+                    const bgColor = {passed:'bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-400',failed:'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-400',pending:'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400',waived:'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}
                     return (
-                      <tr key={t.id} className="border-b border-slate-50 hover:bg-slate-50/50">
+                      <tr key={t.id} className="border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
                         <td className="px-4 py-3">
-                          <p className="font-medium text-slate-800">{t.first_name} {t.last_name}</p>
+                          <p className="font-medium text-slate-800 dark:text-slate-100">{t.first_name} {t.last_name}</p>
                           {activeLease && <p className="text-xs text-brand-600 mt-0.5">{activeLease.lease_number} · Unit {activeLease.unit?.unit_number}</p>}
                         </td>
                         <td className="px-4 py-3 hidden md:table-cell text-slate-500 text-xs">
@@ -1181,19 +1181,19 @@ export default function PropertyManagement() {
                           {t.phone && <p>{t.phone}</p>}
                         </td>
                         <td className="px-4 py-3 hidden lg:table-cell text-slate-500 text-xs">
-                          {t.emergency_contact_name ? <><p className="font-medium text-slate-700">{t.emergency_contact_name}</p><p>{t.emergency_contact_phone}</p></> : '—'}
+                          {t.emergency_contact_name ? <><p className="font-medium text-slate-700 dark:text-slate-300">{t.emergency_contact_name}</p><p>{t.emergency_contact_phone}</p></> : '—'}
                         </td>
                         <td className="px-4 py-3">
                           {t.background_check_status
-                            ? <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${bgColor[t.background_check_status] || 'bg-slate-100 text-slate-500'}`}>{fmt(t.background_check_status)}</span>
+                            ? <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${bgColor[t.background_check_status] || 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}`}>{fmt(t.background_check_status)}</span>
                             : <span className="text-xs text-slate-300">—</span>}
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex gap-1">
                             <button onClick={()=>{setEditTenant(t);setShowTenantForm(true)}}
-                              className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors text-slate-400"><Edit2 size={14}/></button>
+                              className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-400"><Edit2 size={14}/></button>
                             <button onClick={()=>deleteTenant(t.id)}
-                              className="p-1.5 hover:bg-red-50 hover:text-red-500 rounded-lg transition-colors text-slate-400"><Trash2 size={14}/></button>
+                              className="p-1.5 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-500 rounded-lg transition-colors text-slate-400"><Trash2 size={14}/></button>
                           </div>
                         </td>
                       </tr>
@@ -1211,10 +1211,10 @@ export default function PropertyManagement() {
             <div className="flex flex-wrap items-center gap-3 mb-5">
               <div className="relative flex-1 min-w-48">
                 <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input className="pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm w-full focus:outline-none focus:ring-2 focus:ring-brand-500"
+                <input className="pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm w-full focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
                   placeholder="Search leases…" value={leaseSearch} onChange={e=>setLeaseSearch(e.target.value)} />
               </div>
-              <select className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              <select className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
                 value={leaseStatusFilter} onChange={e=>setLeaseStatusFilter(e.target.value)}>
                 <option value="all">All</option>
                 {LEASE_STATUSES.map(s=><option key={s.key} value={s.key}>{s.label}</option>)}
@@ -1224,10 +1224,10 @@ export default function PropertyManagement() {
                 <Plus size={15}/> New Lease
               </button>
             </div>
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-100">
+                  <tr className="bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800">
                     <th className="text-left px-4 py-3 font-medium text-slate-500 text-xs">Lease #</th>
                     <th className="text-left px-4 py-3 font-medium text-slate-500 text-xs">Tenant</th>
                     <th className="text-left px-4 py-3 font-medium text-slate-500 text-xs">Unit</th>
@@ -1243,12 +1243,12 @@ export default function PropertyManagement() {
                   {filteredLeases.map(l=>{
                     const st = getLeaseStatus(l.status)
                     return (
-                      <tr key={l.id} className="border-b border-slate-50 hover:bg-slate-50/50">
-                        <td className="px-4 py-3 font-mono text-xs font-medium text-slate-700">{l.lease_number}</td>
-                        <td className="px-4 py-3 font-medium text-slate-800">{l.tenant?.first_name} {l.tenant?.last_name}</td>
-                        <td className="px-4 py-3 text-slate-600">{l.unit?.unit_number}{l.unit?.building?` (${l.unit.building})`:''}</td>
+                      <tr key={l.id} className="border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
+                        <td className="px-4 py-3 font-mono text-xs font-medium text-slate-700 dark:text-slate-300">{l.lease_number}</td>
+                        <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-100">{l.tenant?.first_name} {l.tenant?.last_name}</td>
+                        <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{l.unit?.unit_number}{l.unit?.building?` (${l.unit.building})`:''}</td>
                         <td className="px-4 py-3 text-slate-500 text-xs hidden lg:table-cell">{fmt(l.lease_type)}</td>
-                        <td className="px-4 py-3 font-semibold text-slate-700">{fmtMoney(l.monthly_rent)}<span className="font-normal text-slate-400 text-xs">/mo</span></td>
+                        <td className="px-4 py-3 font-semibold text-slate-700 dark:text-slate-300">{fmtMoney(l.monthly_rent)}<span className="font-normal text-slate-400 text-xs">/mo</span></td>
                         <td className="px-4 py-3"><Badge color={st.color}>{st.label}</Badge></td>
                         <td className="px-4 py-3 text-slate-400 text-xs hidden lg:table-cell">
                           {fmtDate(l.start_date)} — {l.end_date ? fmtDate(l.end_date) : 'M-to-M'}
@@ -1256,11 +1256,11 @@ export default function PropertyManagement() {
                         <td className="px-4 py-3">
                           <div className="flex gap-1">
                             <button onClick={()=>setLedgerLease(l)} title="Rent Ledger"
-                              className="p-1.5 hover:bg-green-50 hover:text-green-600 rounded-lg transition-colors text-slate-300">
+                              className="p-1.5 hover:bg-green-50 dark:hover:bg-green-950/30 hover:text-green-600 rounded-lg transition-colors text-slate-300">
                               <DollarSign size={14}/>
                             </button>
                             <button onClick={()=>{setEditLease(l);setShowLeaseForm(true)}}
-                              className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors text-slate-400"><Edit2 size={14}/></button>
+                              className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-400"><Edit2 size={14}/></button>
                           </div>
                         </td>
                       </tr>
@@ -1295,19 +1295,19 @@ export default function PropertyManagement() {
                 </div>
               )}
               {walkthroughs.map(wt=>(
-                <div key={wt.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                <div key={wt.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-brand-600 uppercase tracking-wide">{fmt(wt.walkthrough_type)}</span>
                     <span className="text-xs text-slate-400">{fmtDate(wt.completed_date?.slice(0,10))}</span>
                   </div>
-                  <h3 className="font-semibold text-slate-800">Unit {wt.unit?.unit_number}</h3>
+                  <h3 className="font-semibold text-slate-800 dark:text-slate-100">Unit {wt.unit?.unit_number}</h3>
                   <div className="flex items-center gap-2 mt-2">
                     {wt.overall_condition && (
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                        wt.overall_condition==='excellent'?'bg-green-100 text-green-700':
-                        wt.overall_condition==='good'?'bg-blue-100 text-blue-700':
-                        wt.overall_condition==='fair'?'bg-amber-100 text-amber-700':
-                        'bg-red-100 text-red-700'}`}>
+                        wt.overall_condition==='excellent'?'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400':
+                        wt.overall_condition==='good'?'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400':
+                        wt.overall_condition==='fair'?'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400':
+                        'bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-400'}`}>
                         {fmt(wt.overall_condition)}
                       </span>
                     )}
@@ -1333,10 +1333,10 @@ export default function PropertyManagement() {
                 <Plus size={15}/> Issue Notice
               </button>
             </div>
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-100">
+                  <tr className="bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800">
                     <th className="text-left px-4 py-3 font-medium text-slate-500 text-xs">Type</th>
                     <th className="text-left px-4 py-3 font-medium text-slate-500 text-xs">Tenant</th>
                     <th className="text-left px-4 py-3 font-medium text-slate-500 text-xs hidden md:table-cell">Unit</th>
@@ -1354,13 +1354,13 @@ export default function PropertyManagement() {
                     const ns = getNoticeStatus(n.status)
                     const isOpen = !['resolved','withdrawn'].includes(n.status)
                     return (
-                      <tr key={n.id} className={`border-b border-slate-50 hover:bg-slate-50/50 ${isOpen && n.status==='escalated'?'bg-red-50/30':''}`}>
+                      <tr key={n.id} className={`border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 ${isOpen && n.status==='escalated'?'bg-red-50/30 dark:bg-red-950/20':''}`}>
                         <td className="px-4 py-3">
-                          <span className={`text-xs font-semibold ${isOpen?'text-slate-800':'text-slate-400'}`}>{nt?.label || fmt(n.notice_type)}</span>
+                          <span className={`text-xs font-semibold ${isOpen?'text-slate-800 dark:text-slate-100':'text-slate-400'}`}>{nt?.label || fmt(n.notice_type)}</span>
                         </td>
-                        <td className="px-4 py-3 font-medium text-slate-700">{n.tenant?.first_name} {n.tenant?.last_name}</td>
+                        <td className="px-4 py-3 font-medium text-slate-700 dark:text-slate-300">{n.tenant?.first_name} {n.tenant?.last_name}</td>
                         <td className="px-4 py-3 text-slate-500 hidden md:table-cell">{n.unit?.unit_number}</td>
-                        <td className="px-4 py-3 text-slate-700 font-medium hidden lg:table-cell">{n.amount_owed ? fmtMoney(n.amount_owed) : '—'}</td>
+                        <td className="px-4 py-3 text-slate-700 dark:text-slate-300 font-medium hidden lg:table-cell">{n.amount_owed ? fmtMoney(n.amount_owed) : '—'}</td>
                         <td className="px-4 py-3">
                           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${ns.color}`}>{ns.label}</span>
                         </td>
@@ -1375,9 +1375,9 @@ export default function PropertyManagement() {
                         <td className="px-4 py-3">
                           <div className="flex gap-1">
                             <button onClick={()=>{setEditNotice(n);setShowNoticeForm(true)}}
-                              className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors text-slate-400"><Edit2 size={14}/></button>
+                              className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-400"><Edit2 size={14}/></button>
                             <button onClick={()=>deleteNotice(n.id)}
-                              className="p-1.5 hover:bg-red-50 hover:text-red-500 rounded-lg transition-colors text-slate-400"><Trash2 size={14}/></button>
+                              className="p-1.5 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-500 rounded-lg transition-colors text-slate-400"><Trash2 size={14}/></button>
                           </div>
                         </td>
                       </tr>

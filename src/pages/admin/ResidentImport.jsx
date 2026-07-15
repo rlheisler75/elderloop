@@ -270,11 +270,11 @@ export default function ResidentImport({ orgId, onImported, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div>
-            <h2 className="font-display font-semibold text-slate-800">Import Residents</h2>
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Import Residents</h2>
             <p className="text-xs text-slate-400 mt-0.5">
               {step === 'upload'  && 'Upload a CSV or Excel file'}
               {step === 'map'    && `${rawRows.length} rows found — map your columns`}
@@ -282,11 +282,11 @@ export default function ResidentImport({ orgId, onImported, onClose }) {
               {step === 'done'   && 'Import complete'}
             </p>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"><X size={20} /></button>
         </div>
 
         {/* Step indicator */}
-        <div className="flex items-center gap-0 px-6 py-3 border-b border-slate-100 flex-shrink-0">
+        <div className="flex items-center gap-0 px-6 py-3 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           {['Upload', 'Map Columns', 'Preview', 'Done'].map((s, i) => {
             const stepKeys = ['upload','map','preview','done']
             const isActive = stepKeys[i] === step
@@ -294,12 +294,12 @@ export default function ResidentImport({ orgId, onImported, onClose }) {
             return (
               <div key={s} className="flex items-center flex-1">
                 <div className={`flex items-center gap-2 text-xs font-semibold ${isActive ? 'text-brand-600' : isDone ? 'text-green-600' : 'text-slate-400'}`}>
-                  <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${isActive ? 'bg-brand-600 text-white' : isDone ? 'bg-green-500 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                  <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${isActive ? 'bg-brand-600 text-white' : isDone ? 'bg-green-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
                     {isDone ? <Check size={11} /> : i + 1}
                   </div>
                   <span className="hidden sm:block">{s}</span>
                 </div>
-                {i < 3 && <div className="flex-1 h-px bg-slate-200 mx-2" />}
+                {i < 3 && <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700 mx-2" />}
               </div>
             )
           })}
@@ -315,9 +315,9 @@ export default function ResidentImport({ orgId, onImported, onClose }) {
                 onDrop={handleDrop}
                 onDragOver={e => e.preventDefault()}
                 onClick={() => fileRef.current.click()}
-                className="border-2 border-dashed border-slate-200 rounded-2xl p-10 text-center cursor-pointer hover:border-brand-400 hover:bg-brand-50 transition-all group">
+                className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-10 text-center cursor-pointer hover:border-brand-400 hover:bg-brand-50 dark:hover:bg-brand-950/20 transition-all group">
                 <FileSpreadsheet size={40} className="text-slate-300 group-hover:text-brand-500 mx-auto mb-4 transition-colors" />
-                <p className="font-semibold text-slate-700 group-hover:text-brand-700 transition-colors">Drop your file here or click to browse</p>
+                <p className="font-semibold text-slate-700 dark:text-slate-300 group-hover:text-brand-700 transition-colors">Drop your file here or click to browse</p>
                 <p className="text-sm text-slate-400 mt-1">CSV or Excel (.xlsx, .xls) — up to 5,000 residents</p>
                 <input ref={fileRef} type="file" accept=".csv,.xlsx,.xls" className="hidden"
                   onChange={e => {
@@ -329,14 +329,14 @@ export default function ResidentImport({ orgId, onImported, onClose }) {
               </div>
 
               {/* EMR placeholder */}
-              <div className="border border-slate-100 rounded-2xl p-5 bg-slate-50">
-                <h3 className="font-semibold text-slate-700 text-sm mb-3 flex items-center gap-2">
+              <div className="border border-slate-100 dark:border-slate-800 rounded-2xl p-5 bg-slate-50 dark:bg-slate-800">
+                <h3 className="font-semibold text-slate-700 dark:text-slate-300 text-sm mb-3 flex items-center gap-2">
                   <Users size={15} className="text-brand-600" /> Import from EMR
                 </h3>
                 <div className="grid grid-cols-3 gap-2">
                   {['PointClickCare','MatrixCare','Yardi'].map(emr => (
                     <button key={emr} disabled
-                      className="px-3 py-2.5 border border-slate-200 rounded-xl text-xs font-medium text-slate-400 bg-white cursor-not-allowed flex items-center justify-center gap-1.5">
+                      className="px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-400 bg-white dark:bg-slate-900 cursor-not-allowed flex items-center justify-center gap-1.5">
                       {emr} <span className="text-xs text-slate-300">(coming soon)</span>
                     </button>
                   ))}
@@ -345,12 +345,12 @@ export default function ResidentImport({ orgId, onImported, onClose }) {
               </div>
 
               {/* Template download */}
-              <div className="flex items-center justify-between p-4 bg-brand-50 border border-brand-100 rounded-2xl">
+              <div className="flex items-center justify-between p-4 bg-brand-50 dark:bg-brand-950/30 border border-brand-100 dark:border-brand-900 rounded-2xl">
                 <div className="flex items-start gap-3">
                   <Info size={15} className="text-brand-600 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-brand-800">Need a template?</p>
-                    <p className="text-xs text-brand-600 mt-0.5">Download our CSV template with all supported columns and an example row.</p>
+                    <p className="text-sm font-medium text-brand-800 dark:text-brand-300">Need a template?</p>
+                    <p className="text-xs text-brand-600 dark:text-brand-400 mt-0.5">Download our CSV template with all supported columns and an example row.</p>
                   </div>
                 </div>
                 <button onClick={downloadTemplate}
@@ -364,16 +364,16 @@ export default function ResidentImport({ orgId, onImported, onClose }) {
           {/* ── STEP 2: MAP COLUMNS ── */}
           {step === 'map' && (
             <div className="space-y-5">
-              <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-100 rounded-xl text-sm text-blue-800">
+              <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-950/50 border border-blue-100 dark:border-blue-900 rounded-xl text-sm text-blue-800 dark:text-blue-300">
                 <Info size={14} className="flex-shrink-0 mt-0.5 text-blue-600" />
                 <span>We auto-detected your column mapping below. Review and adjust if needed, then click <strong>Build Preview</strong>.</span>
               </div>
 
               <div className="space-y-2">
                 {RESIDENT_FIELDS.map(field => (
-                  <div key={field.key} className="flex items-center gap-4 p-3 rounded-xl border border-slate-100 hover:border-brand-200 transition-all">
+                  <div key={field.key} className="flex items-center gap-4 p-3 rounded-xl border border-slate-100 dark:border-slate-800 hover:border-brand-200 transition-all">
                     <div className="w-36 flex-shrink-0">
-                      <div className="text-sm font-medium text-slate-700 flex items-center gap-1">
+                      <div className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1">
                         {field.label}
                         {field.required && <span className="text-red-500 text-xs">*</span>}
                       </div>
@@ -382,7 +382,7 @@ export default function ResidentImport({ orgId, onImported, onClose }) {
                     <ChevronRight size={14} className="text-slate-300 flex-shrink-0" />
                     <select value={mapping[field.key] || ''}
                       onChange={e => setMapping(m => ({ ...m, [field.key]: e.target.value || undefined }))}
-                      className={`flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 ${mapping[field.key] ? 'border-green-300 bg-green-50' : 'border-slate-200'}`}>
+                      className={`flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:text-slate-100 ${mapping[field.key] ? 'border-green-300 dark:border-green-800 bg-green-50 dark:bg-green-950/50' : 'border-slate-200 dark:border-slate-700'}`}>
                       <option value="">— Not mapped —</option>
                       {headers.map(h => <option key={h} value={h}>{h}</option>)}
                     </select>
@@ -408,25 +408,25 @@ export default function ResidentImport({ orgId, onImported, onClose }) {
           {step === 'preview' && (
             <div className="space-y-4">
               {errors.length > 0 && (
-                <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
-                  <div className="font-semibold text-amber-800 text-sm mb-2 flex items-center gap-2">
+                <div className="p-4 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900 rounded-xl">
+                  <div className="font-semibold text-amber-800 dark:text-amber-300 text-sm mb-2 flex items-center gap-2">
                     <AlertTriangle size={14} /> {errors.length} row{errors.length > 1 ? 's' : ''} have issues (will be skipped)
                   </div>
                   <div className="space-y-1 max-h-24 overflow-y-auto">
                     {errors.map((e, i) => (
-                      <div key={i} className="text-xs text-amber-700">Row {e.row}: {e.msg}</div>
+                      <div key={i} className="text-xs text-amber-700 dark:text-amber-400">Row {e.row}: {e.msg}</div>
                     ))}
                   </div>
                 </div>
               )}
 
               {/* Duplicate handling */}
-              <div className="flex items-center gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl">
-                <div className="text-sm font-medium text-slate-700 flex-shrink-0">Duplicate residents:</div>
+              <div className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl">
+                <div className="text-sm font-medium text-slate-700 dark:text-slate-300 flex-shrink-0">Duplicate residents:</div>
                 <div className="flex gap-2">
                   {[{ key: 'skip', label: 'Skip (keep existing)' }, { key: 'update', label: 'Update existing' }].map(opt => (
                     <button key={opt.key} onClick={() => setDuplicateMode(opt.key)}
-                      className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${duplicateMode === opt.key ? 'bg-brand-600 border-brand-600 text-white' : 'border-slate-200 text-slate-600 hover:border-slate-300'}`}>
+                      className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${duplicateMode === opt.key ? 'bg-brand-600 border-brand-600 text-white' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600'}`}>
                       {opt.label}
                     </button>
                   ))}
@@ -434,22 +434,22 @@ export default function ResidentImport({ orgId, onImported, onClose }) {
               </div>
 
               {/* Preview table */}
-              <div className="border border-slate-100 rounded-xl overflow-hidden">
-                <div className="bg-slate-50 px-4 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wide grid grid-cols-5 gap-2">
+              <div className="border border-slate-100 dark:border-slate-800 rounded-xl overflow-hidden">
+                <div className="bg-slate-50 dark:bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wide grid grid-cols-5 gap-2">
                   <span>First Name</span><span>Last Name</span><span>Room</span><span>Care Level</span><span>DOB</span>
                 </div>
                 <div className="max-h-64 overflow-y-auto">
                   {preview.slice(0, 100).map((r, i) => (
-                    <div key={i} className="px-4 py-2.5 grid grid-cols-5 gap-2 text-sm border-t border-slate-50 hover:bg-slate-50">
-                      <span className="font-medium text-slate-800 truncate">{r.first_name}</span>
-                      <span className="text-slate-700 truncate">{r.last_name}</span>
+                    <div key={i} className="px-4 py-2.5 grid grid-cols-5 gap-2 text-sm border-t border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800">
+                      <span className="font-medium text-slate-800 dark:text-slate-100 truncate">{r.first_name}</span>
+                      <span className="text-slate-700 dark:text-slate-300 truncate">{r.last_name}</span>
                       <span className="text-slate-500">{r.room || '—'}</span>
                       <span className="text-slate-500 capitalize">{r.care_level?.replace('_',' ') || '—'}</span>
                       <span className="text-slate-500">{r.date_of_birth || '—'}</span>
                     </div>
                   ))}
                   {preview.length > 100 && (
-                    <div className="px-4 py-2 text-xs text-slate-400 border-t border-slate-50">
+                    <div className="px-4 py-2 text-xs text-slate-400 border-t border-slate-50 dark:border-slate-800">
                       + {preview.length - 100} more rows (all will be imported)
                     </div>
                   )}
@@ -457,7 +457,7 @@ export default function ResidentImport({ orgId, onImported, onClose }) {
               </div>
 
               <div className="flex items-center justify-between pt-2">
-                <button onClick={() => setStep('map')} className="text-sm text-slate-500 hover:text-slate-700">← Back to mapping</button>
+                <button onClick={() => setStep('map')} className="text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">← Back to mapping</button>
                 <button onClick={handleImport} disabled={importing || preview.length === 0}
                   className="flex items-center gap-2 px-6 py-2.5 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
                   {importing ? <><RefreshCw size={15} className="animate-spin" /> Importing...</> : <><Upload size={15} /> Import {preview.length} Residents</>}
@@ -469,16 +469,16 @@ export default function ResidentImport({ orgId, onImported, onClose }) {
           {/* ── STEP 4: DONE ── */}
           {step === 'done' && results && (
             <div className="text-center py-6">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
+              <div className="w-16 h-16 bg-green-100 dark:bg-green-950/50 rounded-full flex items-center justify-center mx-auto mb-5">
                 <Check size={32} className="text-green-600" />
               </div>
-              <h3 className="font-display font-bold text-slate-800 text-xl mb-2">Import Complete</h3>
+              <h3 className="font-display font-bold text-slate-800 dark:text-slate-100 text-xl mb-2">Import Complete</h3>
 
               <div className="grid grid-cols-3 gap-3 max-w-sm mx-auto mt-5 mb-5">
                 {[
-                  { label: 'Imported',  value: results.imported, color: 'text-green-600', bg: 'bg-green-50' },
-                  { label: 'Skipped',   value: results.skipped,  color: 'text-amber-600', bg: 'bg-amber-50' },
-                  { label: 'Errors',    value: results.errored,  color: results.errored > 0 ? 'text-red-600' : 'text-slate-400', bg: results.errored > 0 ? 'bg-red-50' : 'bg-slate-100' },
+                  { label: 'Imported',  value: results.imported, color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-950/50' },
+                  { label: 'Skipped',   value: results.skipped,  color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/50' },
+                  { label: 'Errors',    value: results.errored,  color: results.errored > 0 ? 'text-red-600' : 'text-slate-400', bg: results.errored > 0 ? 'bg-red-50 dark:bg-red-950/50' : 'bg-slate-100 dark:bg-slate-800' },
                 ].map(s => (
                   <div key={s.label} className={`${s.bg} rounded-2xl p-4`}>
                     <div className={`text-3xl font-display font-bold ${s.color}`}>{s.value}</div>
@@ -488,10 +488,10 @@ export default function ResidentImport({ orgId, onImported, onClose }) {
               </div>
 
               {results.importErrors.length > 0 && (
-                <div className="text-left bg-red-50 border border-red-200 rounded-xl p-4 mb-4 max-h-32 overflow-y-auto">
-                  <p className="text-xs font-semibold text-red-700 mb-2">Import errors:</p>
+                <div className="text-left bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-xl p-4 mb-4 max-h-32 overflow-y-auto">
+                  <p className="text-xs font-semibold text-red-700 dark:text-red-400 mb-2">Import errors:</p>
                   {results.importErrors.map((e, i) => (
-                    <p key={i} className="text-xs text-red-600">{e.name}: {e.error}</p>
+                    <p key={i} className="text-xs text-red-600 dark:text-red-400">{e.name}: {e.error}</p>
                   ))}
                 </div>
               )}

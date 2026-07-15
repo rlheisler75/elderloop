@@ -8,10 +8,10 @@ import {
 
 const PLAN_MRR = { starter: 0, essential: 299, professional: 999, pilot: 0 }
 const PLAN_COLORS = {
-  starter:      'bg-slate-100 text-slate-600',
-  essential:    'bg-blue-100 text-blue-700',
-  professional: 'bg-purple-100 text-purple-700',
-  pilot:        'bg-amber-100 text-amber-700',
+  starter:      'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
+  essential:    'bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-400',
+  professional: 'bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-400',
+  pilot:        'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400',
 }
 
 const fmtDate = (ts) => ts
@@ -46,12 +46,12 @@ function RepRow({ repCode, orgs, onOrgRepChange, repMeta = {} }) {
     <>
       <tr
         onClick={() => setOpen(v => !v)}
-        className="hover:bg-slate-50 cursor-pointer border-b border-slate-100 transition-colors">
+        className="hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer border-b border-slate-100 dark:border-slate-800 transition-colors">
         <td className="px-5 py-3">
           <div className="flex items-center gap-2">
             {open ? <ChevronDown size={14} className="text-slate-400" /> : <ChevronRight size={14} className="text-slate-400" />}
             <div>
-              <span className="font-mono font-bold text-slate-800 text-sm">{repCode}</span>
+              <span className="font-mono font-bold text-slate-800 dark:text-slate-100 text-sm">{repCode}</span>
               {repMeta[repCode]?.name && (
                 <div className="text-xs text-slate-500">{repMeta[repCode].name}</div>
               )}
@@ -59,7 +59,7 @@ function RepRow({ repCode, orgs, onOrgRepChange, repMeta = {} }) {
             <CopyButton text={`https://elderloop.xyz/signup?rep=${repCode}`} />
           </div>
         </td>
-        <td className="px-5 py-3 text-sm text-slate-700 font-medium">{orgs.length}</td>
+        <td className="px-5 py-3 text-sm text-slate-700 dark:text-slate-300 font-medium">{orgs.length}</td>
         <td className="px-5 py-3 text-sm text-slate-500">{active}</td>
         <td className="px-5 py-3">
           {mrr > 0
@@ -81,9 +81,9 @@ function RepRow({ repCode, orgs, onOrgRepChange, repMeta = {} }) {
       </tr>
 
       {open && orgs.map(org => (
-        <tr key={org.id} className="bg-brand-50/40 border-b border-slate-50">
+        <tr key={org.id} className="bg-brand-50/40 dark:bg-brand-950/20 border-b border-slate-50 dark:border-slate-800">
           <td className="px-5 py-2.5 pl-12">
-            <div className="font-medium text-slate-800 text-sm">{org.name}</div>
+            <div className="font-medium text-slate-800 dark:text-slate-100 text-sm">{org.name}</div>
             {org.contact_email && <div className="text-xs text-slate-400">{org.contact_email}</div>}
           </td>
           <td className="px-5 py-2.5" colSpan={2}>
@@ -131,16 +131,16 @@ function NewRepCodeModal({ existingCodes, onClose, onCreated }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <h3 className="font-display font-bold text-slate-800">Create Rep Code</h3>
-          <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+          <h3 className="font-display font-bold text-slate-800 dark:text-slate-100">Create Rep Code</h3>
+          <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
             <X size={16} />
           </button>
         </div>
         <div className="px-6 py-5 space-y-4">
           {error && (
-            <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+            <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/50 px-3 py-2 rounded-lg">
               <AlertCircle size={14} /> {error}
             </div>
           )}
@@ -152,9 +152,9 @@ function NewRepCodeModal({ existingCodes, onClose, onCreated }) {
                 onChange={e => setCode(e.target.value.toUpperCase())}
                 placeholder="e.g. SMITH25"
                 maxLength={10}
-                className="flex-1 px-3 py-2 border border-slate-200 rounded-xl text-sm font-mono text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-mono text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500" />
               <button onClick={generate}
-                className="px-3 py-2 border border-slate-200 rounded-xl text-xs text-slate-600 hover:border-brand-300 hover:text-brand-600 transition-colors">
+                className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 transition-colors">
                 Generate
               </button>
             </div>
@@ -164,17 +164,17 @@ function NewRepCodeModal({ existingCodes, onClose, onCreated }) {
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Rep Name</label>
             <input value={name} onChange={e => setName(e.target.value)}
               placeholder="Full name of rep"
-              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Rep Email</label>
             <input value={email} onChange={e => setEmail(e.target.value)}
               placeholder="rep@example.com" type="email"
-              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600">Cancel</button>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300">Cancel</button>
           <button onClick={handleCreate}
             className="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl transition-colors">
             Create Code
@@ -202,24 +202,24 @@ function AssignRepModal({ org, repCodes, onClose, onSaved }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <h3 className="font-display font-bold text-slate-800">Assign Rep Code</h3>
-          <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"><X size={16} /></button>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-sm">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+          <h3 className="font-display font-bold text-slate-800 dark:text-slate-100">Assign Rep Code</h3>
+          <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"><X size={16} /></button>
         </div>
         <div className="px-6 py-5 space-y-4">
-          <p className="text-sm text-slate-600">Assigning rep code for <strong>{org.name}</strong></p>
+          <p className="text-sm text-slate-600 dark:text-slate-300">Assigning rep code for <strong>{org.name}</strong></p>
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Rep Code</label>
             <select value={code} onChange={e => setCode(e.target.value)}
-              className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+              className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500">
               <option value="">— No rep (direct) —</option>
               {repCodes.map(r => <option key={r} value={r}>{r}</option>)}
             </select>
           </div>
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600">Cancel</button>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300">Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="flex items-center gap-2 px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-semibold rounded-xl transition-colors">
             {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
@@ -309,7 +309,7 @@ export default function RepTracker() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="font-display font-bold text-slate-800 text-lg">Rep Tracking</h2>
+          <h2 className="font-display font-bold text-slate-800 dark:text-slate-100 text-lg">Rep Tracking</h2>
           <p className="text-xs text-slate-400 mt-0.5">Signups and MRR attributed to sales reps by code</p>
         </div>
         <button onClick={() => setShowNew(true)}
@@ -326,7 +326,7 @@ export default function RepTracker() {
           { label: 'Rep-Sourced',      value: orgs.filter(o => o.rep_code).length, icon: TrendingUp, color: 'text-green-600', bg: 'bg-green-50' },
           { label: 'Rep MRR',          value: fmtMRR(repMRR), icon: DollarSign,  color: 'text-amber-600',  bg: 'bg-amber-50'  },
         ].map(s => (
-          <div key={s.label} className={`${s.bg} rounded-2xl p-4`}>
+          <div key={s.label} className={`${s.bg} dark:bg-slate-900 rounded-2xl p-4`}>
             <div className="flex items-start justify-between mb-2">
               <s.icon size={16} className={s.color} />
             </div>
@@ -338,13 +338,13 @@ export default function RepTracker() {
 
       {/* Rep codes quick reference */}
       {repCodes.length > 0 && (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-          <h3 className="font-semibold text-slate-700 text-sm mb-3">Signup Links</h3>
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5">
+          <h3 className="font-semibold text-slate-700 dark:text-slate-300 text-sm mb-3">Signup Links</h3>
           <div className="space-y-2">
             {repCodes.map(code => (
-              <div key={code} className="flex items-center gap-3 p-2.5 bg-slate-50 rounded-xl">
+              <div key={code} className="flex items-center gap-3 p-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl">
                 <div className="w-32 flex-shrink-0">
-                  <div className="font-mono font-bold text-slate-700 text-sm">{code}</div>
+                  <div className="font-mono font-bold text-slate-700 dark:text-slate-300 text-sm">{code}</div>
                   {repMeta[code]?.name && (
                     <div className="text-xs text-slate-400 truncate">{repMeta[code].name}</div>
                   )}
@@ -353,7 +353,7 @@ export default function RepTracker() {
                   elderloop.xyz/signup?rep={code}
                 </span>
                 <button onClick={() => copySignupLink(code)}
-                  className="flex items-center gap-1.5 text-xs px-2.5 py-1 border border-slate-200 rounded-lg text-slate-600 hover:border-brand-300 hover:text-brand-600 transition-colors flex-shrink-0">
+                  className="flex items-center gap-1.5 text-xs px-2.5 py-1 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 transition-colors flex-shrink-0">
                   {copied === code ? <><Check size={11} className="text-green-500" /> Copied!</> : <><Copy size={11} /> Copy link</>}
                 </button>
               </div>
@@ -364,13 +364,13 @@ export default function RepTracker() {
 
       {/* Rep breakdown table */}
       {Object.keys(grouped).length > 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-100">
-            <h3 className="font-semibold text-slate-700 text-sm">Breakdown by Rep</h3>
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+            <h3 className="font-semibold text-slate-700 dark:text-slate-300 text-sm">Breakdown by Rep</h3>
             <p className="text-xs text-slate-400 mt-0.5">Click a rep row to expand their orgs</p>
           </div>
           <table className="w-full">
-            <thead className="bg-slate-50 border-b border-slate-100">
+            <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800">
               <tr>
                 {['Rep Code', 'Orgs', 'Active', 'MRR', 'Latest Signup', 'Plans'].map(h => (
                   <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{h}</th>
@@ -391,11 +391,11 @@ export default function RepTracker() {
                 ))}
             </tbody>
             {/* Totals row */}
-            <tfoot className="bg-slate-50 border-t-2 border-slate-200">
+            <tfoot className="bg-slate-50 dark:bg-slate-800 border-t-2 border-slate-200 dark:border-slate-700">
               <tr>
-                <td className="px-5 py-3 font-semibold text-slate-700 text-sm">Totals</td>
-                <td className="px-5 py-3 font-bold text-slate-800">{orgs.filter(o => o.rep_code).length}</td>
-                <td className="px-5 py-3 font-bold text-slate-800">{orgs.filter(o => o.rep_code && o.is_active).length}</td>
+                <td className="px-5 py-3 font-semibold text-slate-700 dark:text-slate-300 text-sm">Totals</td>
+                <td className="px-5 py-3 font-bold text-slate-800 dark:text-slate-100">{orgs.filter(o => o.rep_code).length}</td>
+                <td className="px-5 py-3 font-bold text-slate-800 dark:text-slate-100">{orgs.filter(o => o.rep_code && o.is_active).length}</td>
                 <td className="px-5 py-3 font-bold text-green-600">{fmtMRR(repMRR)}</td>
                 <td colSpan={2} />
               </tr>
@@ -403,7 +403,7 @@ export default function RepTracker() {
           </table>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm py-12 text-center text-slate-400">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm py-12 text-center text-slate-400">
           <TrendingUp size={32} className="mx-auto mb-3 opacity-30" />
           <p className="font-medium">No rep-sourced signups yet</p>
           <p className="text-sm mt-1">Create a rep code above and share the signup link</p>
@@ -411,38 +411,38 @@ export default function RepTracker() {
       )}
 
       {/* Unassigned orgs */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
           <div>
-            <h3 className="font-semibold text-slate-700 text-sm">Direct / Unassigned Orgs</h3>
+            <h3 className="font-semibold text-slate-700 dark:text-slate-300 text-sm">Direct / Unassigned Orgs</h3>
             <p className="text-xs text-slate-400 mt-0.5">Signed up without a rep code</p>
           </div>
-          <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full">{unassigned.length}</span>
+          <span className="text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-full">{unassigned.length}</span>
         </div>
         {unassigned.length === 0 ? (
           <div className="py-8 text-center text-slate-400 text-sm">All orgs are rep-attributed</div>
         ) : (
           <table className="w-full">
-            <thead className="bg-slate-50 border-b border-slate-100">
+            <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800">
               <tr>
                 {['Organization', 'Plan', 'MRR', 'Signed Up', 'Assign Rep'].map(h => (
                   <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
               {unassigned.map(org => (
-                <tr key={org.id} className="hover:bg-slate-50 transition-colors">
+                <tr key={org.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                   <td className="px-5 py-3">
-                    <div className="font-medium text-slate-800 text-sm">{org.name}</div>
+                    <div className="font-medium text-slate-800 dark:text-slate-100 text-sm">{org.name}</div>
                     {org.contact_email && <div className="text-xs text-slate-400">{org.contact_email}</div>}
                   </td>
                   <td className="px-5 py-3">
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${PLAN_COLORS[org.plan] || 'bg-slate-100 text-slate-500'}`}>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${PLAN_COLORS[org.plan] || 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
                       {org.plan}
                     </span>
                   </td>
-                  <td className="px-5 py-3 text-sm text-slate-600">{fmtMRR(PLAN_MRR[org.plan] || 0)}</td>
+                  <td className="px-5 py-3 text-sm text-slate-600 dark:text-slate-300">{fmtMRR(PLAN_MRR[org.plan] || 0)}</td>
                   <td className="px-5 py-3 text-xs text-slate-400">{fmtDate(org.created_at)}</td>
                   <td className="px-5 py-3">
                     {repCodes.length > 0 ? (

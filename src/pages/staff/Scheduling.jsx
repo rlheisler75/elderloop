@@ -84,10 +84,10 @@ function TemplateManager({ orgId, templates, onRefresh, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[85vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
-          <h2 className="font-display font-semibold text-slate-800">Shift Templates</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md max-h-[85vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Shift Templates</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><X size={20} /></button>
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
           {templates.map(t => (
@@ -106,10 +106,10 @@ function TemplateManager({ orgId, templates, onRefresh, onClose }) {
             <div className="p-4 bg-brand-50 border-2 border-brand-200 rounded-xl space-y-3">
               <div className="grid grid-cols-2 gap-2">
                 <input value={form.name} onChange={e => set('name', e.target.value)}
-                  className="col-span-2 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  className="col-span-2 px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                   placeholder="Shift name *" />
                 <select value={form.department} onChange={e => set('department', e.target.value)}
-                  className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                  className="px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                   <option value="">All departments</option>
                   {DEPTS.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
                 </select>
@@ -118,12 +118,12 @@ function TemplateManager({ orgId, templates, onRefresh, onClose }) {
                 <div>
                   <label className="block text-xs text-slate-400 mb-1">Start *</label>
                   <input type="time" value={form.start_time} onChange={e => set('start_time', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
                 </div>
                 <div>
                   <label className="block text-xs text-slate-400 mb-1">End *</label>
                   <input type="time" value={form.end_time} onChange={e => set('end_time', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
                 </div>
               </div>
               {form.start_time && form.end_time && (
@@ -144,7 +144,7 @@ function TemplateManager({ orgId, templates, onRefresh, onClose }) {
             </button>
           )}
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end flex-shrink-0">
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end flex-shrink-0">
           <button onClick={onClose} className="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg">Done</button>
         </div>
       </div>
@@ -266,10 +266,10 @@ function ShiftModal({ shift, date, orgId, staff, templates, existingShifts, onCl
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
-          <h2 className="font-display font-semibold text-slate-800">{isNew ? 'Schedule Shift' : 'Edit Shift'}</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">{isNew ? 'Schedule Shift' : 'Edit Shift'}</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><X size={20} /></button>
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
           {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
@@ -303,7 +303,7 @@ function ShiftModal({ shift, date, orgId, staff, templates, existingShifts, onCl
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Staff Member *</label>
             <select value={form.staff_id} onChange={e => set('staff_id', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
               <option value="">Select staff member</option>
               {staff.filter(s => !form.department || s.department === form.department || !s.department)
                 .map(s => <option key={s.id} value={s.id}>{s.first_name} {s.last_name}{s.job_title ? ` — ${s.job_title}` : ''}</option>)}
@@ -314,7 +314,7 @@ function ShiftModal({ shift, date, orgId, staff, templates, existingShifts, onCl
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Department</label>
               <select value={form.department} onChange={e => set('department', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                 <option value="">All</option>
                 {DEPTS.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
               </select>
@@ -322,17 +322,17 @@ function ShiftModal({ shift, date, orgId, staff, templates, existingShifts, onCl
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Date *</label>
               <input type="date" value={form.shift_date} onChange={e => set('shift_date', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Start Time *</label>
               <input type="time" value={form.start_time} onChange={e => set('start_time', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">End Time *</label>
               <input type="time" value={form.end_time} onChange={e => set('end_time', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
           </div>
 
@@ -360,7 +360,7 @@ function ShiftModal({ shift, date, orgId, staff, templates, existingShifts, onCl
                 <label className="block text-xs text-slate-400 mb-1">Repeat until</label>
                 <input type="date" value={form.recur_end_date} onChange={e => set('recur_end_date', e.target.value)}
                   min={form.shift_date}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white" />
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white" />
               </div>
             )}
           </div>
@@ -368,11 +368,11 @@ function ShiftModal({ shift, date, orgId, staff, templates, existingShifts, onCl
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Notes</label>
             <input value={form.notes} onChange={e => set('notes', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="Optional notes..." />
           </div>
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
           <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
@@ -420,13 +420,13 @@ function DayDetail({ date, shifts, staff, orgId, isMgr, onClose, onRefresh }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div>
-            <h2 className="font-display font-semibold text-slate-800">{dateLabel}</h2>
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">{dateLabel}</h2>
             <p className="text-xs text-slate-400 mt-0.5">{dateShifts.length} shift{dateShifts.length !== 1 ? 's' : ''} scheduled</p>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><X size={20} /></button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-5">
@@ -494,7 +494,7 @@ function DayDetail({ date, shifts, staff, orgId, isMgr, onClose, onRefresh }) {
           )}
         </div>
 
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end flex-shrink-0">
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end flex-shrink-0">
           <button onClick={onClose} className="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg">Close</button>
         </div>
       </div>
@@ -502,10 +502,10 @@ function DayDetail({ date, shifts, staff, orgId, isMgr, onClose, onRefresh }) {
       {/* Call-off dialog */}
       {showCallOff && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
-            <h3 className="font-display font-semibold text-slate-800 mb-4">Call Off Shift</h3>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-sm p-6">
+            <h3 className="font-display font-semibold text-slate-800 dark:text-slate-100 mb-4">Call Off Shift</h3>
             <textarea value={callOffReason} onChange={e => setCallOffReason(e.target.value)} rows={3}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none mb-4"
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none mb-4"
               placeholder="Reason for calling off (optional)..." />
             <div className="flex justify-end gap-3">
               <button onClick={() => setShowCallOff(null)} className="px-4 py-2 text-sm text-slate-600">Cancel</button>
@@ -604,7 +604,7 @@ function SwapPanel({ orgId, profile, staff, shifts, isMgr, onRefresh }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-display font-semibold text-slate-800 flex items-center gap-2">
+        <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2">
           <RefreshCw size={16} className="text-brand-600" />
           Shift Swaps
           {pendingCount > 0 && <span className="bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">{pendingCount}</span>}
@@ -705,13 +705,13 @@ function SwapPanel({ orgId, profile, staff, shifts, isMgr, onRefresh }) {
       {/* Swap request modal */}
       {showRequest && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
-            <h3 className="font-display font-semibold text-slate-800 mb-4">Request Shift Swap</h3>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <h3 className="font-display font-semibold text-slate-800 dark:text-slate-100 mb-4">Request Shift Swap</h3>
             <div className="space-y-3">
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">My Shift to Swap</label>
                 <select value={reqForm.shift_id} onChange={e => setReqForm(f => ({ ...f, shift_id: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                   <option value="">Select a shift</option>
                   {myShifts.map(s => (
                     <option key={s.id} value={s.id}>
@@ -729,7 +729,7 @@ function SwapPanel({ orgId, profile, staff, shifts, isMgr, onRefresh }) {
                   <div>
                     <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Swap With</label>
                     <select value={reqForm.target_id} onChange={e => setReqForm(f => ({ ...f, target_id: e.target.value, target_shift_id: '' }))}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                      className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                       <option value="">Select staff member</option>
                       {staff.filter(s => s.id !== profile.id).map(s => (
                         <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>
@@ -740,7 +740,7 @@ function SwapPanel({ orgId, profile, staff, shifts, isMgr, onRefresh }) {
                     <div>
                       <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Their Shift (optional)</label>
                       <select value={reqForm.target_shift_id} onChange={e => setReqForm(f => ({ ...f, target_shift_id: e.target.value }))}
-                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                         <option value="">No specific shift</option>
                         {shifts.filter(s => s.staff_id === reqForm.target_id && s.status === 'scheduled' && s.shift_date >= today())
                           .sort((a,b) => a.shift_date.localeCompare(b.shift_date))
@@ -757,7 +757,7 @@ function SwapPanel({ orgId, profile, staff, shifts, isMgr, onRefresh }) {
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Reason</label>
                 <input value={reqForm.reason} onChange={e => setReqForm(f => ({ ...f, reason: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                   placeholder="Why do you need to swap?" />
               </div>
             </div>
@@ -915,7 +915,7 @@ export default function Scheduling() {
               className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
               <ChevronLeft size={18} />
             </button>
-            <h2 className="font-display font-semibold text-slate-800 text-lg">{MONTHS[calMonth]} {calYear}</h2>
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 text-lg">{MONTHS[calMonth]} {calYear}</h2>
             <button onClick={() => { if (calMonth === 11) { setCalMonth(0); setCalYear(y => y+1) } else setCalMonth(m => m+1) }}
               className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
               <ChevronRight size={18} />
@@ -927,7 +927,7 @@ export default function Scheduling() {
           ) : (
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
               {/* Day headers */}
-              <div className="grid grid-cols-7 border-b border-slate-100">
+              <div className="grid grid-cols-7 border-b border-slate-100 dark:border-slate-800">
                 {DAYS.map(d => (
                   <div key={d} className="py-2 text-center text-xs font-semibold text-slate-400 uppercase tracking-wide">{d}</div>
                 ))}

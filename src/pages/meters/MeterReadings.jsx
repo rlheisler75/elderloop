@@ -62,22 +62,22 @@ function UtilityTypeManager({ orgId, types, onRefresh, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[85vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
-          <h2 className="font-display font-semibold text-slate-800">Utility Types</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md max-h-[85vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Utility Types</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"><X size={20} /></button>
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
           {types.map(t => {
             const Icon = getIcon(t.icon)
             return (
-              <div key={t.id} className="flex items-center gap-3 p-3 bg-white border border-slate-100 rounded-xl">
+              <div key={t.id} className="flex items-center gap-3 p-3 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
                   style={{ background: t.color + '22' }}>
                   <Icon size={18} style={{ color: t.color }} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium text-slate-800 text-sm">{t.name}</div>
+                  <div className="font-medium text-slate-800 dark:text-slate-100 text-sm">{t.name}</div>
                   <div className="text-xs text-slate-400">per {t.unit}</div>
                 </div>
                 <div className="flex items-center gap-1">
@@ -85,7 +85,7 @@ function UtilityTypeManager({ orgId, types, onRefresh, onClose }) {
                   <input
                     type="number" step="0.0001" defaultValue={t.rate_per_unit || ''}
                     onBlur={e => updateRate(t.id, e.target.value)}
-                    className="w-20 px-2 py-1 border border-slate-200 rounded-lg text-xs text-right focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-20 px-2 py-1 border border-slate-200 rounded-lg text-xs text-right focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
                     placeholder="0.0000" />
                   <span className="text-xs text-slate-400">/{t.unit}</span>
                 </div>
@@ -101,19 +101,19 @@ function UtilityTypeManager({ orgId, types, onRefresh, onClose }) {
             <div className="p-4 bg-brand-50 border-2 border-brand-200 rounded-xl space-y-3">
               <div className="grid grid-cols-2 gap-2">
                 <input value={form.name} onChange={e => set('name', e.target.value)}
-                  className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
                   placeholder="Utility name *" />
                 <input value={form.unit} onChange={e => set('unit', e.target.value)}
-                  className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
                   placeholder="Unit (kWh, Gal...) *" />
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <input type="number" step="0.0001" value={form.rate_per_unit} onChange={e => set('rate_per_unit', e.target.value)}
-                  className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
                   placeholder="Rate per unit ($)" />
                 <div className="flex gap-2">
                   <select value={form.icon} onChange={e => set('icon', e.target.value)}
-                    className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100">
                     <option value="zap">⚡ Electric</option>
                     <option value="droplets">💧 Water</option>
                     <option value="flame">🔥 Gas</option>
@@ -121,11 +121,11 @@ function UtilityTypeManager({ orgId, types, onRefresh, onClose }) {
                     <option value="gauge">📊 Other</option>
                   </select>
                   <input type="color" value={form.color} onChange={e => set('color', e.target.value)}
-                    className="w-10 h-10 rounded-lg border border-slate-200 cursor-pointer p-0.5" />
+                    className="w-10 h-10 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer p-0.5" />
                 </div>
               </div>
               <div className="flex justify-end gap-2">
-                <button onClick={() => setAdding(false)} className="px-3 py-1.5 text-sm text-slate-600 font-medium">Cancel</button>
+                <button onClick={() => setAdding(false)} className="px-3 py-1.5 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
                 <button onClick={handleAdd} disabled={saving}
                   className="px-4 py-1.5 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 disabled:bg-brand-300 transition-colors">
                   {saving ? 'Adding...' : 'Add'}
@@ -134,12 +134,12 @@ function UtilityTypeManager({ orgId, types, onRefresh, onClose }) {
             </div>
           ) : (
             <button onClick={() => setAdding(true)}
-              className="w-full py-3 border-2 border-dashed border-slate-200 rounded-xl text-sm text-slate-400 hover:border-brand-400 hover:text-brand-500 transition-colors flex items-center justify-center gap-2">
+              className="w-full py-3 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-400 hover:border-brand-400 hover:text-brand-500 transition-colors flex items-center justify-center gap-2">
               <Plus size={14} /> Add Utility Type
             </button>
           )}
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end flex-shrink-0">
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end flex-shrink-0">
           <button onClick={onClose} className="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg transition-colors">Done</button>
         </div>
       </div>
@@ -195,27 +195,27 @@ function AddReadingModal({ meter, lastReading, utilityType, onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center"
               style={{ background: (utilityType?.color || '#0c90e1') + '22' }}>
               <Icon size={18} style={{ color: utilityType?.color || '#0c90e1' }} />
             </div>
             <div>
-              <h2 className="font-display font-semibold text-slate-800">Enter Reading</h2>
+              <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Enter Reading</h2>
               <p className="text-xs text-slate-400">{meter.resident_name || 'Unknown'} · Unit {meter.unit || '—'}</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"><X size={20} /></button>
         </div>
         <div className="px-6 py-5 space-y-4">
           {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
 
           {prevValue != null && (
-            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl text-sm">
+            <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-sm">
               <span className="text-slate-500">Previous reading</span>
-              <span className="font-semibold text-slate-800">{fmtNum(prevValue, 0)} {utilityType?.unit}</span>
+              <span className="font-semibold text-slate-800 dark:text-slate-100">{fmtNum(prevValue, 0)} {utilityType?.unit}</span>
             </div>
           )}
 
@@ -223,7 +223,7 @@ function AddReadingModal({ meter, lastReading, utilityType, onClose, onSave }) {
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Current Reading *</label>
             <div className="flex items-center gap-2">
               <input type="number" step="0.01" value={form.reading_value} onChange={e => set('reading_value', e.target.value)}
-                className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-xl font-mono text-center focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-xl font-mono text-center focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
                 placeholder="0.00" autoFocus />
               <span className="text-slate-400 text-sm font-medium">{utilityType?.unit}</span>
             </div>
@@ -232,7 +232,7 @@ function AddReadingModal({ meter, lastReading, utilityType, onClose, onSave }) {
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Reading Date</label>
             <input type="date" value={form.reading_date} onChange={e => set('reading_date', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100" />
           </div>
 
           {/* Live usage preview */}
@@ -240,8 +240,8 @@ function AddReadingModal({ meter, lastReading, utilityType, onClose, onSave }) {
             <div className="p-4 rounded-xl border-2 space-y-2"
               style={{ borderColor: (utilityType?.color || '#0c90e1') + '44', background: (utilityType?.color || '#0c90e1') + '08' }}>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-600 font-medium">Usage this period</span>
-                <span className="font-bold text-slate-800">{fmtNum(usage, 2)} {utilityType?.unit}</span>
+                <span className="text-slate-600 dark:text-slate-300 font-medium">Usage this period</span>
+                <span className="font-bold text-slate-800 dark:text-slate-100">{fmtNum(usage, 2)} {utilityType?.unit}</span>
               </div>
               {cost != null && (
                 <div className="flex items-center justify-between text-sm">
@@ -258,12 +258,12 @@ function AddReadingModal({ meter, lastReading, utilityType, onClose, onSave }) {
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Notes</label>
             <input value={form.notes} onChange={e => set('notes', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
               placeholder="Optional notes about this reading" />
           </div>
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
             {saving ? 'Saving...' : 'Save Reading'}
@@ -310,10 +310,10 @@ function AddMeterModal({ orgId, utilityTypes, residents, meter, onClose, onSave 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <h2 className="font-display font-semibold text-slate-800">{isEditing ? 'Edit Meter' : 'Add Meter'}</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">{isEditing ? 'Edit Meter' : 'Add Meter'}</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"><X size={20} /></button>
         </div>
         <div className="px-6 py-5 space-y-4">
           <div>
@@ -323,7 +323,7 @@ function AddMeterModal({ orgId, utilityTypes, residents, meter, onClose, onSave 
                 const Icon = getIcon(t.icon)
                 return (
                   <button key={t.id} onClick={() => set('utility_type_id', t.id)}
-                    className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition-all ${form.utility_type_id === t.id ? 'ring-2 ring-offset-1 ring-brand-400 border-transparent' : 'border-slate-200 hover:border-slate-300'}`}
+                    className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition-all ${form.utility_type_id === t.id ? 'ring-2 ring-offset-1 ring-brand-400 border-transparent' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'}`}
                     style={form.utility_type_id === t.id ? { background: t.color + '22', color: t.color } : {}}>
                     <Icon size={16} style={{ color: t.color }} />
                     {t.name}
@@ -336,13 +336,13 @@ function AddMeterModal({ orgId, utilityTypes, residents, meter, onClose, onSave 
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Unit *</label>
               <input value={form.unit} onChange={e => set('unit', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
                 placeholder="e.g. 101, 204A" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Building</label>
               <input value={form.building} onChange={e => set('building', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
                 placeholder="Building name" />
             </div>
           </div>
@@ -350,7 +350,7 @@ function AddMeterModal({ orgId, utilityTypes, residents, meter, onClose, onSave 
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Resident</label>
               <input list="resident-list" value={form.resident_name} onChange={e => set('resident_name', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
                 placeholder="Search resident..." />
               <datalist id="resident-list">
                 {residents.map(r => <option key={r.id} value={`${r.first_name} ${r.last_name}`} />)}
@@ -359,13 +359,13 @@ function AddMeterModal({ orgId, utilityTypes, residents, meter, onClose, onSave 
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Meter Number</label>
               <input value={form.meter_number} onChange={e => set('meter_number', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
                 placeholder="Physical meter ID" />
             </div>
           </div>
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
           <button onClick={handleSave} disabled={saving || !form.utility_type_id || !form.unit}
             className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
             {saving ? 'Saving...' : isEditing ? 'Save Changes' : 'Add Meter'}
@@ -397,19 +397,19 @@ function MeterHistoryModal({ meter, utilityType, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center"
               style={{ background: (utilityType?.color || '#0c90e1') + '22' }}>
               <Icon size={18} style={{ color: utilityType?.color || '#0c90e1' }} />
             </div>
             <div>
-              <h2 className="font-display font-semibold text-slate-800">{meter.resident_name || 'Unit ' + meter.unit}</h2>
+              <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">{meter.resident_name || 'Unit ' + meter.unit}</h2>
               <p className="text-xs text-slate-400">{utilityType?.name} · Unit {meter.unit}{meter.meter_number ? ` · #${meter.meter_number}` : ''}</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"><X size={20} /></button>
         </div>
         <div className="flex-1 overflow-y-auto">
           {loading ? (
@@ -418,8 +418,8 @@ function MeterHistoryModal({ meter, utilityType, onClose }) {
             <div className="text-center py-10 text-slate-400 text-sm">No readings yet.</div>
           ) : (
             <table className="w-full">
-              <thead className="sticky top-0 bg-white">
-                <tr className="border-b border-slate-100 bg-slate-50">
+              <thead className="sticky top-0 bg-white dark:bg-slate-900">
+                <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Date</th>
                   <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">Reading</th>
                   <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">Usage</th>
@@ -431,15 +431,15 @@ function MeterHistoryModal({ meter, utilityType, onClose }) {
                 {readings.map((r, i) => {
                   const isHighest = i === 0
                   return (
-                    <tr key={r.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
-                      <td className="px-4 py-3 text-sm text-slate-700">
+                    <tr key={r.id} className="border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                      <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">
                         {new Date(r.reading_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         {r.notes && <div className="text-xs text-slate-400 italic">{r.notes}</div>}
                       </td>
-                      <td className="px-4 py-3 text-sm text-right font-mono text-slate-800">{fmtNum(r.reading_value, 2)}</td>
+                      <td className="px-4 py-3 text-sm text-right font-mono text-slate-800 dark:text-slate-100">{fmtNum(r.reading_value, 2)}</td>
                       <td className="px-4 py-3 text-sm text-right">
                         {r.usage != null ? (
-                          <span className="font-mono text-slate-700">{fmtNum(r.usage, 2)} <span className="text-slate-400 text-xs">{utilityType?.unit}</span></span>
+                          <span className="font-mono text-slate-700 dark:text-slate-300">{fmtNum(r.usage, 2)} <span className="text-slate-400 text-xs">{utilityType?.unit}</span></span>
                         ) : <span className="text-slate-300">—</span>}
                       </td>
                       <td className="px-4 py-3 text-sm text-right font-medium" style={{ color: utilityType?.color }}>
@@ -455,7 +455,7 @@ function MeterHistoryModal({ meter, utilityType, onClose }) {
             </table>
           )}
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end flex-shrink-0">
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end flex-shrink-0">
           <button onClick={onClose} className="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg transition-colors">Close</button>
         </div>
       </div>
@@ -557,20 +557,20 @@ export default function MeterReadings() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-slate-800">Meter Readings</h1>
+          <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Meter Readings</h1>
           <p className="text-slate-500 text-sm mt-0.5">Utility tracking and usage calculation</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setShowUtilityManager(true)}
-            className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
+            className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
             <Settings size={15} /> Utility Types
           </button>
           <button onClick={() => setShowBarcodeLabels(true)}
-            className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
+            className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
             <Printer size={15} /> Print Barcodes
           </button>
           <button onClick={() => { setScanError(''); setShowScanner(true) }}
-            className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
+            className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
             <ScanLine size={15} /> Scan Meter
           </button>
           <button onClick={() => setShowAddMeter(true)}
@@ -596,7 +596,7 @@ export default function MeterReadings() {
               const count = meters.filter(m => m.utility_type_id === t.id).length
               return (
                 <button key={t.id} onClick={() => setActiveTab(t.id)}
-                  className={`flex items-center gap-2 px-5 py-3 rounded-2xl border text-sm font-medium flex-shrink-0 transition-all ${activeTab === t.id ? 'ring-2 ring-offset-1 ring-brand-400 border-transparent' : 'border-slate-200 bg-white hover:border-slate-300'}`}
+                  className={`flex items-center gap-2 px-5 py-3 rounded-2xl border text-sm font-medium flex-shrink-0 transition-all ${activeTab === t.id ? 'ring-2 ring-offset-1 ring-brand-400 border-transparent' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-600'}`}
                   style={activeTab === t.id ? { background: t.color + '18', color: t.color, borderColor: t.color + '44' } : {}}>
                   <TIcon size={16} style={{ color: t.color }} />
                   {t.name}
@@ -619,9 +619,9 @@ export default function MeterReadings() {
                   { label: 'Total Usage', value: fmtNum(totalUsage, 1),       unit: activeType.unit },
                   { label: 'Est. Total',  value: fmtCost(totalCost || null),  unit: '' },
                 ].map(s => (
-                  <div key={s.label} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+                  <div key={s.label} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-4">
                     <div className="flex items-end gap-1">
-                      <span className={`text-2xl font-display font-bold ${s.alert ? 'text-amber-600' : 'text-slate-800'}`}>{s.value}</span>
+                      <span className={`text-2xl font-display font-bold ${s.alert ? 'text-amber-600' : 'text-slate-800 dark:text-slate-100'}`}>{s.value}</span>
                       {s.unit && <span className="text-xs text-slate-400 mb-1">{s.unit}</span>}
                     </div>
                     <div className="text-slate-400 text-xs mt-0.5">{s.label}</div>
@@ -634,7 +634,7 @@ export default function MeterReadings() {
                 <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input value={search} onChange={e => setSearch(e.target.value)}
                   placeholder="Search by resident, unit, or meter number..."
-                  className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                  className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100" />
               </div>
 
               {/* Meter cards */}
@@ -653,10 +653,10 @@ export default function MeterReadings() {
                     const hasReading = !!last
                     return (
                       <div key={meter.id}
-                        className={`bg-white rounded-2xl border shadow-sm p-4 hover:shadow-md transition-all ${!hasReading ? 'border-amber-200 bg-amber-50/30' : 'border-slate-100'}`}>
+                        className={`bg-white dark:bg-slate-900 rounded-2xl border shadow-sm p-4 hover:shadow-md transition-all ${!hasReading ? 'border-amber-200 dark:border-amber-900 bg-amber-50/30 dark:bg-amber-950/20' : 'border-slate-100 dark:border-slate-800'}`}>
                         <div className="flex items-start justify-between mb-3">
                           <div>
-                            <div className="font-semibold text-slate-800 text-sm">{meter.resident_name || '—'}</div>
+                            <div className="font-semibold text-slate-800 dark:text-slate-100 text-sm">{meter.resident_name || '—'}</div>
                             <div className="text-xs text-slate-400 mt-0.5">
                               {[meter.building, `Unit ${meter.unit}`].filter(Boolean).join(' · ')}
                               {meter.meter_number && <span className="ml-1 text-slate-300">#{meter.meter_number}</span>}
@@ -664,11 +664,11 @@ export default function MeterReadings() {
                           </div>
                           <div className="flex gap-1">
                             <button onClick={() => setHistoryMeter(meter)}
-                              className="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 transition-colors" title="View history">
+                              className="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-950/30 transition-colors" title="View history">
                               <TrendingUp size={13} />
                             </button>
                             <button onClick={() => setEditingMeter(meter)}
-                              className="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 transition-colors" title="Edit meter">
+                              className="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-950/30 transition-colors" title="Edit meter">
                               <Edit2 size={13} />
                             </button>
                             <button onClick={() => handleDeleteMeter(meter.id)}
@@ -682,12 +682,12 @@ export default function MeterReadings() {
                           <div className="space-y-1.5 mb-3">
                             <div className="flex items-center justify-between text-xs">
                               <span className="text-slate-500">Last reading</span>
-                              <span className="font-mono font-semibold text-slate-800">{fmtNum(last.reading_value, 2)} {activeType.unit}</span>
+                              <span className="font-mono font-semibold text-slate-800 dark:text-slate-100">{fmtNum(last.reading_value, 2)} {activeType.unit}</span>
                             </div>
                             {last.usage != null && (
                               <div className="flex items-center justify-between text-xs">
                                 <span className="text-slate-500">Usage</span>
-                                <span className="font-mono text-slate-600">{fmtNum(last.usage, 2)} {activeType.unit}</span>
+                                <span className="font-mono text-slate-600 dark:text-slate-300">{fmtNum(last.usage, 2)} {activeType.unit}</span>
                               </div>
                             )}
                             {last.estimated_cost != null && (
@@ -726,7 +726,7 @@ export default function MeterReadings() {
       ) : (
         <div className="text-center py-20 text-slate-400">
           <Gauge size={48} className="mx-auto mb-4 opacity-30" />
-          <p className="font-display text-xl text-slate-600">No utility types set up yet</p>
+          <p className="font-display text-xl text-slate-600 dark:text-slate-300">No utility types set up yet</p>
           <p className="text-sm mt-1 mb-6">Add the utilities you resell — electric, water, gas, or custom.</p>
           <button onClick={() => setShowUtilityManager(true)}
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl transition-colors">

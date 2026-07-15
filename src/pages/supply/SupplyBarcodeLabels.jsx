@@ -162,24 +162,24 @@ export default function SupplyBarcodeLabels({ onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[94vh] flex flex-col">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[94vh] flex flex-col">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div>
-            <h2 className="font-display font-semibold text-slate-800">Print Supply Labels</h2>
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Print Supply Labels</h2>
             <p className="text-xs text-slate-400 mt-0.5">{selected.size} item{selected.size !== 1 ? 's' : ''} selected · {printItems.length} label{printItems.length !== 1 ? 's' : ''} total</p>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"><X size={20} /></button>
         </div>
 
         <div className="flex flex-1 min-h-0">
           {/* Left — item selector */}
-          <div className="w-64 flex-shrink-0 border-r border-slate-100 flex flex-col">
-            <div className="p-3 border-b border-slate-100">
+          <div className="w-64 flex-shrink-0 border-r border-slate-100 dark:border-slate-800 flex flex-col">
+            <div className="p-3 border-b border-slate-100 dark:border-slate-800">
               <div className="relative mb-2">
                 <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search items..." className="w-full pl-8 pr-3 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search items..." className="w-full pl-8 pr-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500" />
               </div>
               <button onClick={toggleAll} className="flex items-center gap-1.5 text-xs text-brand-600 hover:text-brand-700 font-medium">
                 {selected.size === filtered.length ? <CheckSquare size={13} /> : <Square size={13} />}
@@ -190,12 +190,12 @@ export default function SupplyBarcodeLabels({ onClose }) {
               {loading ? <div className="p-4 text-xs text-slate-400">Loading...</div> :
                 filtered.map(item => (
                   <button key={item.id} onClick={() => toggleItem(item.id)}
-                    className={`w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-slate-50 border-b border-slate-50 transition-colors ${selected.has(item.id) ? 'bg-brand-50' : ''}`}>
-                    <div className={`w-4 h-4 rounded border-2 flex-shrink-0 flex items-center justify-center transition-all ${selected.has(item.id) ? 'bg-brand-600 border-brand-600' : 'border-slate-300'}`}>
+                    className={`w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-800 border-b border-slate-50 dark:border-slate-800 transition-colors ${selected.has(item.id) ? 'bg-brand-50 dark:bg-brand-950/30' : ''}`}>
+                    <div className={`w-4 h-4 rounded border-2 flex-shrink-0 flex items-center justify-center transition-all ${selected.has(item.id) ? 'bg-brand-600 border-brand-600' : 'border-slate-300 dark:border-slate-600'}`}>
                       {selected.has(item.id) && <svg width="8" height="8" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                     </div>
                     <div className="min-w-0">
-                      <div className="text-xs font-medium text-slate-700 truncate">{item.name}</div>
+                      <div className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">{item.name}</div>
                       <div className="text-xs text-slate-400">{item.category}</div>
                     </div>
                   </button>
@@ -207,22 +207,22 @@ export default function SupplyBarcodeLabels({ onClose }) {
           {/* Right — options + preview */}
           <div className="flex-1 flex flex-col min-w-0">
             {/* Options */}
-            <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-5 flex-wrap">
+            <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-5 flex-wrap">
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Label Size</label>
-                <select value={size} onChange={e => setSize(e.target.value)} className="px-2 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">Label Size</label>
+                <select value={size} onChange={e => setSize(e.target.value)} className="px-2 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                   {LABEL_SIZES.map(l => <option key={l.key} value={l.key}>{l.label}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Copies per Item</label>
+                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">Copies per Item</label>
                 <input type="number" min="1" max="10" value={copies} onChange={e => setCopies(Math.max(1, Math.min(10, Number(e.target.value))))}
-                  className="w-20 px-2 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 text-center" />
+                  className="w-20 px-2 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 text-center" />
               </div>
             </div>
 
-            {/* Preview */}
-            <div className="flex-1 overflow-auto p-5 bg-slate-50">
+            {/* Preview — chrome background darkens; the label cards themselves stay hardcoded white/light since they mirror the printed output */}
+            <div className="flex-1 overflow-auto p-5 bg-slate-50 dark:bg-slate-800">
               {generating ? (
                 <div className="flex items-center justify-center h-32 text-slate-400 text-sm">Generating QR codes...</div>
               ) : printItems.length === 0 ? (
@@ -247,12 +247,12 @@ export default function SupplyBarcodeLabels({ onClose }) {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between flex-shrink-0">
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between flex-shrink-0">
           <p className="text-xs text-slate-400">
             Labels print {s.cols} across · fits standard Avery label sheets
           </p>
           <div className="flex gap-3">
-            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium hover:bg-slate-50 rounded-lg">Cancel</button>
+            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg">Cancel</button>
             <button onClick={handlePrint} disabled={printItems.length === 0 || generating}
               className="flex items-center gap-2 px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-xl transition-colors shadow-sm">
               <Printer size={15} /> Print {printItems.length} Label{printItems.length !== 1 ? 's' : ''}

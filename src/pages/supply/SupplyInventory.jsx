@@ -34,10 +34,10 @@ function stockStatus(item) {
 }
 
 const STATUS_CONFIG = {
-  ok:       { label: 'In Stock',  color: 'bg-green-100 text-green-700',  icon: CheckCircle2,  dot: 'bg-green-500'  },
-  low:      { label: 'Low',       color: 'bg-amber-100 text-amber-700',  icon: AlertTriangle, dot: 'bg-amber-500'  },
-  critical: { label: 'Critical',  color: 'bg-red-100 text-red-700',      icon: AlertTriangle, dot: 'bg-red-500'    },
-  out:      { label: 'Out',       color: 'bg-slate-100 text-slate-500',  icon: XCircle,       dot: 'bg-slate-400'  },
+  ok:       { label: 'In Stock',  color: 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400',  icon: CheckCircle2,  dot: 'bg-green-500'  },
+  low:      { label: 'Low',       color: 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400',  icon: AlertTriangle, dot: 'bg-amber-500'  },
+  critical: { label: 'Critical',  color: 'bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-400',      icon: AlertTriangle, dot: 'bg-red-500'    },
+  out:      { label: 'Out',       color: 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400',  icon: XCircle,       dot: 'bg-slate-400'  },
 }
 
 const fmt$ = (v) => v != null && v !== '' ? `$${Number(v).toFixed(2)}` : '—'
@@ -111,36 +111,36 @@ function ItemModal({ item, vendors, orgId, profileId, canEdit, onClose, onSaved 
     { key: 'vendor',   label: 'Vendor' },
   ]
 
-  const inputCls = 'w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500'
-  const labelCls = 'block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5'
+  const inputCls = 'w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500'
+  const labelCls = 'block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5'
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div>
-            <h2 className="font-display font-semibold text-slate-800">
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">
               {isNew ? 'Add Supply Item' : 'Edit Item'}
             </h2>
             {!isNew && (
               <p className="text-xs text-slate-400 mt-0.5">{item.name}</p>
             )}
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
             <X size={20} />
           </button>
         </div>
 
         {/* Tab bar */}
-        <div className="flex border-b border-slate-100 px-6 flex-shrink-0">
+        <div className="flex border-b border-slate-100 dark:border-slate-800 px-6 flex-shrink-0">
           {MODAL_TABS.map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
               className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-all ${
                 tab === t.key
                   ? 'border-brand-600 text-brand-700'
-                  : 'border-transparent text-slate-500 hover:text-slate-700'
+                  : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
               }`}>
               {t.label}
             </button>
@@ -150,7 +150,7 @@ function ItemModal({ item, vendors, orgId, profileId, canEdit, onClose, onSaved 
         {/* Body */}
         <fieldset disabled={readOnly} className="flex-1 overflow-y-auto px-6 py-5 disabled:opacity-75">
           {error && (
-            <div className="mb-4 px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            <div className="mb-4 px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">
               {error}
             </div>
           )}
@@ -217,16 +217,16 @@ function ItemModal({ item, vendors, orgId, profileId, canEdit, onClose, onSaved 
                   <div key={flag.key}
                     onClick={() => !readOnly && set(flag.key, !form[flag.key])}
                     className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${readOnly ? 'cursor-default' : 'cursor-pointer'} ${
-                      form[flag.key] ? 'bg-brand-50 border-brand-200' : 'bg-slate-50 border-slate-200'
+                      form[flag.key] ? 'bg-brand-50 dark:bg-brand-950/30 border-brand-200 dark:border-brand-800' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
                     }`}>
                     <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                      form[flag.key] ? 'bg-brand-600 border-brand-600' : 'border-slate-300 bg-white'
+                      form[flag.key] ? 'bg-brand-600 border-brand-600' : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800'
                     }`}>
                       {form[flag.key] && <X size={10} className="text-white rotate-45" style={{ transform: 'rotate(0deg)' }} />}
                       {form[flag.key] && <svg width="10" height="10" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-slate-700">{flag.label}</div>
+                      <div className="text-sm font-medium text-slate-700 dark:text-slate-300">{flag.label}</div>
                       <div className="text-xs text-slate-400">{flag.desc}</div>
                     </div>
                   </div>
@@ -276,15 +276,15 @@ function ItemModal({ item, vendors, orgId, profileId, canEdit, onClose, onSaved 
                 </div>
               </div>
 
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  <span className="font-semibold text-slate-600">Par level</span> is the desired minimum stock.
+              <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700">
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  <span className="font-semibold text-slate-600 dark:text-slate-300">Par level</span> is the desired minimum stock.
                   Items below par show as <span className="font-semibold text-amber-600">Low</span>.
-                  Items at or below the <span className="font-semibold text-slate-600">reorder point</span> show as <span className="font-semibold text-red-600">Critical</span>.
+                  Items at or below the <span className="font-semibold text-slate-600 dark:text-slate-300">reorder point</span> show as <span className="font-semibold text-red-600">Critical</span>.
                 </p>
               </div>
 
-              <div className="border-t border-slate-100 pt-4">
+              <div className="border-t border-slate-100 dark:border-slate-800 pt-4">
                 <p className={labelCls}>Pricing</p>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
@@ -311,7 +311,7 @@ function ItemModal({ item, vendors, orgId, profileId, canEdit, onClose, onSaved 
               <div>
                 <label className={labelCls}>Preferred Vendor</label>
                 {vendors.length === 0 ? (
-                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-center text-sm text-slate-400">
+                  <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-center text-sm text-slate-400">
                     No vendors set up yet. Add vendors in the Vendors tab.
                   </div>
                 ) : (
@@ -329,17 +329,17 @@ function ItemModal({ item, vendors, orgId, profileId, canEdit, onClose, onSaved 
                 const v = vendors.find(vv => vv.id === form.preferred_vendor_id)
                 if (!v) return null
                 return (
-                  <div className="p-4 bg-brand-50 rounded-xl border border-brand-100 space-y-1.5 text-sm">
-                    {v.contact_name && <div className="flex gap-2"><span className="text-slate-400 w-28 flex-shrink-0">Contact</span><span className="text-slate-700">{v.contact_name}</span></div>}
-                    {v.phone        && <div className="flex gap-2"><span className="text-slate-400 w-28 flex-shrink-0">Phone</span><span className="text-slate-700">{v.phone}</span></div>}
-                    {v.email        && <div className="flex gap-2"><span className="text-slate-400 w-28 flex-shrink-0">Email</span><span className="text-slate-700">{v.email}</span></div>}
-                    {v.lead_time_days && <div className="flex gap-2"><span className="text-slate-400 w-28 flex-shrink-0">Lead time</span><span className="text-slate-700">{v.lead_time_days} day{v.lead_time_days !== 1 ? 's' : ''}</span></div>}
+                  <div className="p-4 bg-brand-50 dark:bg-brand-950/30 rounded-xl border border-brand-100 dark:border-brand-900 space-y-1.5 text-sm">
+                    {v.contact_name && <div className="flex gap-2"><span className="text-slate-400 w-28 flex-shrink-0">Contact</span><span className="text-slate-700 dark:text-slate-300">{v.contact_name}</span></div>}
+                    {v.phone        && <div className="flex gap-2"><span className="text-slate-400 w-28 flex-shrink-0">Phone</span><span className="text-slate-700 dark:text-slate-300">{v.phone}</span></div>}
+                    {v.email        && <div className="flex gap-2"><span className="text-slate-400 w-28 flex-shrink-0">Email</span><span className="text-slate-700 dark:text-slate-300">{v.email}</span></div>}
+                    {v.lead_time_days && <div className="flex gap-2"><span className="text-slate-400 w-28 flex-shrink-0">Lead time</span><span className="text-slate-700 dark:text-slate-300">{v.lead_time_days} day{v.lead_time_days !== 1 ? 's' : ''}</span></div>}
                   </div>
                 )
               })()}
 
-              <div className="pt-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <p className="text-xs text-slate-500">
+              <div className="pt-2 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   The preferred vendor will be pre-selected when creating stock purchase orders for this item.
                 </p>
               </div>
@@ -348,18 +348,18 @@ function ItemModal({ item, vendors, orgId, profileId, canEdit, onClose, onSaved 
         </fieldset>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between flex-shrink-0">
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between flex-shrink-0">
           <div>
             {!isNew && canEdit && (
               <button onClick={handleDelete}
-                className="flex items-center gap-1.5 px-3 py-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg text-sm transition-colors">
+                className="flex items-center gap-1.5 px-3 py-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-lg text-sm transition-colors">
                 <Trash2 size={14} /> Delete
               </button>
             )}
           </div>
           <div className="flex gap-3">
             <button onClick={onClose}
-              className="px-4 py-2 text-sm text-slate-600 font-medium hover:bg-slate-50 rounded-lg transition-colors">
+              className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors">
               {canEdit ? 'Cancel' : 'Close'}
             </button>
             {canEdit && (
@@ -386,12 +386,12 @@ function ItemRow({ item, onEdit, canEdit }) {
   return (
     <tr
       onClick={() => onEdit(item)}
-      className="hover:bg-slate-50 cursor-pointer transition-colors group border-b border-slate-100 last:border-0">
+      className="hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors group border-b border-slate-100 dark:border-slate-800 last:border-0">
       <td className="px-4 py-3">
         <div className="flex items-center gap-2.5">
           <div className={`w-2 h-2 rounded-full flex-shrink-0 ${cfg.dot}`} />
           <div>
-            <div className="text-sm font-medium text-slate-800 leading-tight">{item.name}</div>
+            <div className="text-sm font-medium text-slate-800 dark:text-slate-100 leading-tight">{item.name}</div>
             {item.location && (
               <div className="flex items-center gap-1 text-xs text-slate-400 mt-0.5">
                 <MapPin size={10} />
@@ -402,7 +402,7 @@ function ItemRow({ item, onEdit, canEdit }) {
         </div>
       </td>
       <td className="px-4 py-3">
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
           {item.category}
         </span>
       </td>
@@ -418,7 +418,7 @@ function ItemRow({ item, onEdit, canEdit }) {
             status === 'out'      ? 'text-slate-400' :
             status === 'critical' ? 'text-red-600'   :
             status === 'low'      ? 'text-amber-600'  :
-            'text-slate-800'
+            'text-slate-800 dark:text-slate-100'
           }`}>
             {qty % 1 === 0 ? qty : qty.toFixed(1)}
           </span>
@@ -429,7 +429,7 @@ function ItemRow({ item, onEdit, canEdit }) {
         </div>
         {/* Stock bar */}
         {par > 0 && (
-          <div className="w-20 h-1 bg-slate-100 rounded-full mt-1.5 overflow-hidden">
+          <div className="w-20 h-1 bg-slate-100 dark:bg-slate-800 rounded-full mt-1.5 overflow-hidden">
             <div
               className={`h-full rounded-full transition-all ${
                 status === 'out'      ? 'bg-slate-300'  :
@@ -442,7 +442,7 @@ function ItemRow({ item, onEdit, canEdit }) {
           </div>
         )}
       </td>
-      <td className="px-4 py-3 text-sm text-slate-600">{fmt$(item.cost_per_unit)}</td>
+      <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">{fmt$(item.cost_per_unit)}</td>
       <td className="px-4 py-3">
         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${cfg.color}`}>
           <StatusIcon size={10} />
@@ -452,10 +452,10 @@ function ItemRow({ item, onEdit, canEdit }) {
       <td className="px-4 py-3">
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           {item.is_resident_chargeable && (
-            <span className="text-xs px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded font-medium">Chargeable</span>
+            <span className="text-xs px-1.5 py-0.5 bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-400 rounded font-medium">Chargeable</span>
           )}
           <button onClick={e => { e.stopPropagation(); onEdit(item) }}
-            className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors"
+            className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/30 rounded-lg transition-colors"
             title={canEdit ? 'Edit item' : 'View item'}>
             {canEdit ? <Edit2 size={13} /> : <Eye size={13} />}
           </button>
@@ -554,14 +554,14 @@ export default function SupplyInventory() {
       {/* ── Summary cards ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         {[
-          { label: 'Total Items',   value: items.filter(i => i.is_active).length, sub: 'active in catalog', color: 'text-slate-800' },
+          { label: 'Total Items',   value: items.filter(i => i.is_active).length, sub: 'active in catalog', color: 'text-slate-800 dark:text-slate-100' },
           { label: 'Needs Attention', value: lowCount, sub: 'low, critical or out', color: lowCount > 0 ? 'text-red-600' : 'text-green-600' },
-          { label: 'Inventory Value', value: `$${totalValue.toFixed(2)}`, sub: 'at cost', color: 'text-slate-800' },
-          { label: 'Vendors', value: vendors.length, sub: 'active vendors', color: 'text-slate-800' },
+          { label: 'Inventory Value', value: `$${totalValue.toFixed(2)}`, sub: 'at cost', color: 'text-slate-800 dark:text-slate-100' },
+          { label: 'Vendors', value: vendors.length, sub: 'active vendors', color: 'text-slate-800 dark:text-slate-100' },
         ].map(card => (
-          <div key={card.label} className="bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3">
+          <div key={card.label} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm px-4 py-3">
             <div className={`text-2xl font-display font-bold ${card.color}`}>{card.value}</div>
-            <div className="text-xs text-slate-500 mt-0.5">{card.label}</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{card.label}</div>
             <div className="text-xs text-slate-300">{card.sub}</div>
           </div>
         ))}
@@ -576,7 +576,7 @@ export default function SupplyInventory() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search by name, barcode, SKU, location..."
-            className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white"
+            className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100"
           />
           {search && (
             <button onClick={() => setSearch('')}
@@ -598,7 +598,7 @@ export default function SupplyInventory() {
               className={`px-3 py-2 rounded-xl text-xs font-medium border transition-all whitespace-nowrap ${
                 statusFilter === f.key
                   ? f.warn ? 'bg-red-600 text-white border-red-600' : 'bg-brand-600 text-white border-brand-600'
-                  : f.warn && counts.critical > 0 ? 'border-red-200 text-red-600 hover:bg-red-50' : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                  : f.warn && counts.critical > 0 ? 'border-red-200 dark:border-red-900 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
               }`}>
               {f.label}
             </button>
@@ -609,7 +609,7 @@ export default function SupplyInventory() {
         <div className="flex gap-2">
           <button onClick={() => setShowInactive(!showInactive)}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border transition-all ${
-              showInactive ? 'bg-slate-700 text-white border-slate-700' : 'border-slate-200 text-slate-500 hover:bg-slate-50'
+              showInactive ? 'bg-slate-700 text-white border-slate-700' : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
             }`}>
             {showInactive ? <Eye size={13} /> : <EyeOff size={13} />}
             {showInactive ? 'Hiding inactive' : 'Show inactive'}
@@ -617,11 +617,11 @@ export default function SupplyInventory() {
           {canEditSupply && (
             <>
               <button onClick={() => setShowItemLabels(true)}
-                className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-medium transition-colors">
+                className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl text-xs font-medium transition-colors">
                 <Printer size={13} /> Item Labels
               </button>
               <button onClick={() => setShowResidentLabels(true)}
-                className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-medium transition-colors">
+                className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl text-xs font-medium transition-colors">
                 <Printer size={13} /> Resident IDs
               </button>
               <button onClick={handleNew}
@@ -641,7 +641,7 @@ export default function SupplyInventory() {
               className={`px-3 py-1 rounded-full text-xs font-medium transition-all border ${
                 catFilter === cat
                   ? 'bg-brand-600 text-white border-brand-600'
-                  : 'border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50'
+                  : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800'
               }`}>
               {cat === 'all' ? 'All categories' : cat}
             </button>
@@ -650,7 +650,7 @@ export default function SupplyInventory() {
       )}
 
       {/* ── Table ── */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
         {loading ? (
           <div className="text-center py-16 text-slate-400">
             <Package size={32} className="mx-auto mb-3 opacity-30" />
@@ -659,7 +659,7 @@ export default function SupplyInventory() {
         ) : filtered.length === 0 ? (
           <div className="text-center py-16 text-slate-400">
             <Package size={36} className="mx-auto mb-3 opacity-30" />
-            <p className="font-display text-lg text-slate-600">
+            <p className="font-display text-lg text-slate-600 dark:text-slate-300">
               {items.length === 0 ? 'No items yet' : 'No items match your filters'}
             </p>
             <p className="text-sm mt-1">
@@ -678,9 +678,9 @@ export default function SupplyInventory() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-slate-100 bg-slate-50">
+                <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                   {['Item', 'Category', 'Barcode', 'Stock', 'Cost', 'Status', ''].map(h => (
-                    <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                    <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
                       {h}
                     </th>
                   ))}
@@ -692,7 +692,7 @@ export default function SupplyInventory() {
                 ))}
               </tbody>
             </table>
-            <div className="px-4 py-2 border-t border-slate-100 text-xs text-slate-400">
+            <div className="px-4 py-2 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-400">
               {filtered.length} item{filtered.length !== 1 ? 's' : ''}
               {filtered.length !== items.length ? ` of ${items.length} total` : ' in catalog'}
             </div>

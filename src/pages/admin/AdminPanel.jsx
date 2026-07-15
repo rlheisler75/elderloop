@@ -31,14 +31,14 @@ const ALL_ROLES = [
 // ALL_MODULES is now fetched from the `modules` table — no longer hardcoded
 
 const BILLING_STATUSES = [
-  { key: 'pilot',     label: 'Pilot',     color: 'bg-blue-100 text-blue-700 border-blue-200' },
-  { key: 'active',    label: 'Active',    color: 'bg-green-100 text-green-700 border-green-200' },
-  { key: 'past_due',  label: 'Past Due',  color: 'bg-red-100 text-red-700 border-red-200' },
-  { key: 'cancelled', label: 'Cancelled', color: 'bg-slate-100 text-slate-500 border-slate-200' },
+  { key: 'pilot',     label: 'Pilot',     color: 'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-900' },
+  { key: 'active',    label: 'Active',    color: 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900' },
+  { key: 'past_due',  label: 'Past Due',  color: 'bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900' },
+  { key: 'cancelled', label: 'Cancelled', color: 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700' },
 ]
 
 const getBilling = (key, plan) => {
-  if (key === 'pilot' && plan === 'starter') return { label: 'Free', color: 'bg-green-100 text-green-700 border-green-200' }
+  if (key === 'pilot' && plan === 'starter') return { label: 'Free', color: 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900' }
   return BILLING_STATUSES.find(b => b.key === key) || BILLING_STATUSES[0]
 }
 
@@ -86,34 +86,34 @@ function CreateUserModal({ orgId, orgName, onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[92vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div>
-            <h2 className="font-display font-semibold text-slate-800">Create New User</h2>
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Create New User</h2>
             <p className="text-xs text-slate-400 mt-0.5">{orgName}</p>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+          <button onClick={onClose} className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"><X size={20} /></button>
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
-          {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+          {error && <div className="px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
 
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">First Name *</label>
               <input value={form.first_name} onChange={e => set('first_name', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Last Name</label>
               <input value={form.last_name} onChange={e => set('last_name', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Email *</label>
             <input type="email" value={form.email} onChange={e => set('email', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="staff@example.com" />
           </div>
 
@@ -121,9 +121,9 @@ function CreateUserModal({ orgId, orgName, onClose, onSave }) {
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Password *</label>
             <div className="relative">
               <input type={showPass ? 'text' : 'password'} value={form.password} onChange={e => set('password', e.target.value)}
-                className="w-full px-3 py-2 pr-10 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 pr-10 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="Min 8 characters" />
-              <button onClick={() => setShowPass(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+              <button onClick={() => setShowPass(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300">
                 {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
             </div>
@@ -134,7 +134,7 @@ function CreateUserModal({ orgId, orgName, onClose, onSave }) {
             <div className="grid grid-cols-2 gap-2">
               {ALL_ROLES.map(r => (
                 <button key={r.key} onClick={() => set('role', r.key)}
-                  className={`text-left px-3 py-2 rounded-lg border text-xs transition-all ${form.role === r.key ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 text-slate-600 hover:border-brand-300'}`}>
+                  className={`text-left px-3 py-2 rounded-lg border text-xs transition-all ${form.role === r.key ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300'}`}>
                   <div className="font-medium">{r.label}</div>
                   <div className={`mt-0.5 ${form.role === r.key ? 'text-brand-200' : 'text-slate-400'}`}>{r.desc}</div>
                 </button>
@@ -145,12 +145,12 @@ function CreateUserModal({ orgId, orgName, onClose, onSave }) {
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Phone</label>
             <input value={form.phone} onChange={e => set('phone', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="Optional" />
           </div>
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
             {saving ? 'Creating...' : 'Create User'}
@@ -199,18 +199,18 @@ function EditUserModal({ user, onClose, onSave }) {
     onSave()
   }
 
-  const inputCls = 'w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500'
+  const inputCls = 'w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500'
   const labelCls = 'block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5'
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div>
-            <h2 className="font-display font-semibold text-slate-800">Edit User</h2>
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Edit User</h2>
             <p className="text-xs text-slate-400 mt-0.5">{user.email}</p>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+          <button onClick={onClose} className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"><X size={20} /></button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
@@ -233,7 +233,7 @@ function EditUserModal({ user, onClose, onSave }) {
             <div className="grid grid-cols-3 gap-2">
               {ALL_ROLES.map(r => (
                 <button key={r.key} onClick={() => set('role', r.key)}
-                  className={`text-left px-3 py-2 rounded-lg border text-xs transition-all ${form.role === r.key ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 text-slate-600 hover:border-brand-300'}`}>
+                  className={`text-left px-3 py-2 rounded-lg border text-xs transition-all ${form.role === r.key ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300'}`}>
                   <div className="font-semibold">{r.label}</div>
                   <div className={`text-xs mt-0.5 ${form.role === r.key ? 'text-brand-100' : 'text-slate-400'}`}>{r.desc}</div>
                 </button>
@@ -288,18 +288,18 @@ function EditUserModal({ user, onClose, onSave }) {
           </div>
 
           {/* Active status */}
-          <label className="flex items-center gap-3 cursor-pointer p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
+          <label className="flex items-center gap-3 cursor-pointer p-3 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
             <input type="checkbox" checked={form.is_active} onChange={e => set('is_active', e.target.checked)}
               className="w-4 h-4 rounded text-brand-600" />
             <div>
-              <div className="text-sm font-medium text-slate-700">Active Account</div>
+              <div className="text-sm font-medium text-slate-700 dark:text-slate-300">Active Account</div>
               <div className="text-xs text-slate-400">Uncheck to disable login without deleting the account</div>
             </div>
           </label>
         </div>
 
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
             {saving ? 'Saving...' : 'Save Changes'}
@@ -374,17 +374,17 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
-          <h2 className="font-display font-semibold text-slate-800">Organization Settings</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Organization Settings</h2>
+          <button onClick={onClose} className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"><X size={20} /></button>
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
 
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Organization Name</label>
             <input value={form.name} onChange={e => set('name', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
 
           {/* Logo */}
@@ -393,20 +393,20 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
             <div className="flex items-center gap-4">
               {logoUrl ? (
                 <div className="relative">
-                  <img src={logoUrl} alt="Logo" className="w-16 h-16 rounded-xl object-contain bg-slate-100 p-1 border border-slate-200" />
+                  <img src={logoUrl} alt="Logo" className="w-16 h-16 rounded-xl object-contain bg-slate-100 dark:bg-slate-800 p-1 border border-slate-200 dark:border-slate-700" />
                   <button onClick={() => setLogoUrl('')}
                     className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full text-white flex items-center justify-center">
                     <X size={10} />
                   </button>
                 </div>
               ) : (
-                <div className="w-16 h-16 rounded-xl bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 text-xl font-bold">
+                <div className="w-16 h-16 rounded-xl bg-slate-100 dark:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center text-slate-400 text-xl font-bold">
                   {form.name?.[0] || '?'}
                 </div>
               )}
               <div>
                 <button onClick={() => fileRef.current.click()} disabled={uploading}
-                  className="flex items-center gap-2 px-3 py-2 border border-slate-200 rounded-lg text-xs font-medium text-slate-600 hover:border-brand-300 hover:text-brand-600 transition-colors disabled:opacity-50">
+                  className="flex items-center gap-2 px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 transition-colors disabled:opacity-50">
                   {uploading ? 'Uploading...' : logoUrl ? 'Replace Logo' : 'Upload Logo'}
                 </button>
                 <p className="text-xs text-slate-400 mt-1">PNG, JPG, SVG — square recommended</p>
@@ -419,12 +419,12 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Phone</label>
               <input value={form.phone} onChange={e => set('phone', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Website</label>
               <input value={form.website || ''} onChange={e => set('website', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="https://..." />
             </div>
           </div>
@@ -435,7 +435,7 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
             <div className="grid grid-cols-2 gap-2">
               {allModules.map(m => (
                 <button key={m.key} onClick={() => toggleModule(m.key)}
-                  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition-all ${enabledModules.includes(m.key) ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 text-slate-500 hover:border-brand-300'}`}>
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition-all ${enabledModules.includes(m.key) ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-brand-300'}`}>
                   {enabledModules.includes(m.key) ? <Check size={14} /> : <div className="w-3.5 h-3.5 rounded-sm border border-slate-300" />}
                   {m.label}
                 </button>
@@ -444,8 +444,8 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
           </div>
 
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
             {saving ? 'Saving...' : 'Save Settings'}
@@ -483,44 +483,44 @@ function NewOrgModal({ allModules, onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <h2 className="font-display font-semibold text-slate-800">Add New Organization</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Add New Organization</h2>
+          <button onClick={onClose} className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"><X size={20} /></button>
         </div>
         <div className="px-6 py-5 space-y-4">
-          {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+          {error && <div className="px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Organization Name *</label>
             <input value={form.name} onChange={e => set('name', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="e.g. Sunrise Senior Living" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">City</label>
               <input value={form.city} onChange={e => set('city', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">State</label>
               <input value={form.state} onChange={e => set('state', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="MO" />
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="MO" />
             </div>
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Contact Name</label>
             <input value={form.contact_name} onChange={e => set('contact_name', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="CEO / Administrator" />
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="CEO / Administrator" />
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Contact Email</label>
             <input type="email" value={form.contact_email} onChange={e => set('contact_email', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
             {saving ? 'Creating...' : 'Create Organization'}
@@ -611,26 +611,26 @@ export default function AdminPanel() {
     <div className="max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-slate-800">Admin Panel</h1>
+          <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Admin Panel</h1>
           <p className="text-slate-500 text-sm mt-0.5">
             {superAdmin ? 'Super Admin — Platform Management' : `${organization?.name} — Organization Admin`}
           </p>
         </div>
         {superAdmin && (
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-100 border border-purple-200 rounded-xl">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-100 dark:bg-purple-950/50 border border-purple-200 dark:border-purple-900 rounded-xl">
             <Shield size={14} className="text-purple-600" />
-            <span className="text-xs font-semibold text-purple-700">Super Admin</span>
+            <span className="text-xs font-semibold text-purple-700 dark:text-purple-400">Super Admin</span>
           </div>
         )}
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-slate-100 p-1 rounded-xl w-fit">
+      <div className="flex gap-1 mb-6 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit">
         {tabs.map(t => {
           const Icon = t.icon
           return (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === t.key ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === t.key ? 'bg-white dark:bg-slate-900 text-brand-700 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
               <Icon size={15} />{t.label}
             </button>
           )
@@ -647,7 +647,7 @@ export default function AdminPanel() {
               <div className="flex gap-2 flex-wrap">
                 {orgs.map(o => (
                   <button key={o.id} onClick={() => setSelectedOrg(o)}
-                    className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition-all ${selectedOrg?.id === o.id ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 text-slate-600 hover:border-brand-300'}`}>
+                    className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition-all ${selectedOrg?.id === o.id ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300'}`}>
                     {o.name}
                   </button>
                 ))}
@@ -659,7 +659,7 @@ export default function AdminPanel() {
             <div className="relative flex-1">
               <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search users..."
-                className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <button onClick={() => setShowCreateUser(true)}
               className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors flex-shrink-0">
@@ -667,10 +667,10 @@ export default function AdminPanel() {
             </button>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-slate-100 bg-slate-50">
+                <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Name</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Role</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Phone</th>
@@ -681,14 +681,14 @@ export default function AdminPanel() {
               </thead>
               <tbody>
                 {filteredUsers.map(u => (
-                  <tr key={u.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                  <tr key={u.id} className="border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 text-xs font-semibold flex-shrink-0">
                           {u.first_name?.[0]?.toUpperCase() || '?'}
                         </div>
                         <div>
-                          <div className="font-medium text-slate-800 text-sm">{u.first_name} {u.last_name}</div>
+                          <div className="font-medium text-slate-800 dark:text-slate-100 text-sm">{u.first_name} {u.last_name}</div>
                         </div>
                       </div>
                     </td>
@@ -732,10 +732,10 @@ export default function AdminPanel() {
       {tab === 'settings' && selectedOrg && (
         <div className="space-y-6">
           {/* Org card */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h2 className="font-display font-semibold text-slate-800 text-lg">{selectedOrg.name}</h2>
+                <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 text-lg">{selectedOrg.name}</h2>
                 <p className="text-slate-400 text-sm mt-0.5">{[selectedOrg.city, selectedOrg.state].filter(Boolean).join(', ')}</p>
               </div>
               <div className="flex items-center gap-2">
@@ -743,7 +743,7 @@ export default function AdminPanel() {
                   {getBilling(selectedOrg.billing_status, selectedOrg.plan).label}
                 </span>
                 <button onClick={() => { setEditingOrg(selectedOrg); setShowOrgSettings(true) }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600 rounded-lg text-sm font-medium transition-colors">
+                  className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 rounded-lg text-sm font-medium transition-colors">
                   <Edit2 size={13} /> Edit
                 </button>
               </div>
@@ -751,13 +751,13 @@ export default function AdminPanel() {
 
             <div className="grid grid-cols-2 gap-4 text-sm">
               {selectedOrg.phone && (
-                <div className="flex items-center gap-2 text-slate-600">
+                <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
                   <Phone size={14} className="text-slate-400 flex-shrink-0" />
                   {selectedOrg.phone}
                 </div>
               )}
               {selectedOrg.address && (
-                <div className="flex items-center gap-2 text-slate-600">
+                <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
                   <MapPin size={14} className="text-slate-400 flex-shrink-0" />
                   {selectedOrg.address}
                 </div>
@@ -765,20 +765,20 @@ export default function AdminPanel() {
             </div>
 
             {selectedOrg.billing_note && (
-              <div className="mt-4 px-3 py-2 bg-blue-50 border border-blue-100 rounded-lg text-xs text-blue-700">
+              <div className="mt-4 px-3 py-2 bg-blue-50 dark:bg-blue-950/50 border border-blue-100 dark:border-blue-900 rounded-lg text-xs text-blue-700 dark:text-blue-400">
                 {selectedOrg.billing_note}
               </div>
             )}
           </div>
 
           {/* Modules */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-            <h3 className="font-display font-semibold text-slate-800 mb-4">Active Modules</h3>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6">
+            <h3 className="font-display font-semibold text-slate-800 dark:text-slate-100 mb-4">Active Modules</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {allModules.map(m => {
                 const enabled = orgModules.find(om => om.module_key === m.key)?.is_enabled
                 return (
-                  <div key={m.key} className={`flex items-center gap-2 px-4 py-3 rounded-xl border text-sm font-medium ${enabled ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
+                  <div key={m.key} className={`flex items-center gap-2 px-4 py-3 rounded-xl border text-sm font-medium ${enabled ? 'bg-green-50 dark:bg-green-950/50 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'}`}>
                     {enabled ? <Check size={15} className="text-green-500" /> : <X size={15} className="text-slate-300" />}
                     {m.label}
                   </div>
@@ -795,7 +795,7 @@ export default function AdminPanel() {
               { label: 'Active Users',   value: users.filter(u => u.is_active !== false).length },
               { label: 'Modules Active', value: orgModules.filter(m => m.is_enabled).length },
             ].map(s => (
-              <div key={s.label} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 text-center">
+              <div key={s.label} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5 text-center">
                 <div className="font-display text-3xl font-bold text-brand-600">{s.value}</div>
                 <div className="text-slate-500 text-xs mt-1">{s.label}</div>
               </div>

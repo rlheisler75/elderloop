@@ -10,31 +10,31 @@ import {
 
 // ── Constants ─────────────────────────────────────────────────
 const INCIDENT_TYPES = [
-  { key: 'fall',             label: 'Fall',             color: 'bg-orange-100 text-orange-700 border-orange-200' },
-  { key: 'injury',           label: 'Injury',           color: 'bg-red-100 text-red-700 border-red-200' },
-  { key: 'medication_error', label: 'Medication Error', color: 'bg-purple-100 text-purple-700 border-purple-200' },
-  { key: 'behavioral',       label: 'Behavioral',       color: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
-  { key: 'property_damage',  label: 'Property Damage',  color: 'bg-blue-100 text-blue-700 border-blue-200' },
-  { key: 'elopement',        label: 'Elopement',        color: 'bg-red-100 text-red-800 border-red-300' },
-  { key: 'choking',          label: 'Choking',          color: 'bg-red-100 text-red-700 border-red-200' },
-  { key: 'skin_wound',       label: 'Skin / Wound',     color: 'bg-rose-100 text-rose-700 border-rose-200' },
-  { key: 'altercation',      label: 'Altercation',      color: 'bg-amber-100 text-amber-700 border-amber-200' },
-  { key: 'visitor_incident', label: 'Visitor Incident', color: 'bg-slate-100 text-slate-700 border-slate-200' },
-  { key: 'other',            label: 'Other',            color: 'bg-slate-100 text-slate-600 border-slate-200' },
+  { key: 'fall',             label: 'Fall',             color: 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950/50 dark:text-orange-400 dark:border-orange-800' },
+  { key: 'injury',           label: 'Injury',           color: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-950/50 dark:text-red-400 dark:border-red-800' },
+  { key: 'medication_error', label: 'Medication Error', color: 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-950/50 dark:text-purple-400 dark:border-purple-800' },
+  { key: 'behavioral',       label: 'Behavioral',       color: 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-950/50 dark:text-yellow-400 dark:border-yellow-800' },
+  { key: 'property_damage',  label: 'Property Damage',  color: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800' },
+  { key: 'elopement',        label: 'Elopement',        color: 'bg-red-100 text-red-800 border-red-300 dark:bg-red-950/50 dark:text-red-400 dark:border-red-800' },
+  { key: 'choking',          label: 'Choking',          color: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-950/50 dark:text-red-400 dark:border-red-800' },
+  { key: 'skin_wound',       label: 'Skin / Wound',     color: 'bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-950/50 dark:text-rose-400 dark:border-rose-800' },
+  { key: 'altercation',      label: 'Altercation',      color: 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800' },
+  { key: 'visitor_incident', label: 'Visitor Incident', color: 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700' },
+  { key: 'other',            label: 'Other',            color: 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700' },
 ]
 
 const SEVERITIES = [
-  { key: 'minor',    label: 'Minor',    color: 'bg-green-100 text-green-700 border-green-200' },
-  { key: 'moderate', label: 'Moderate', color: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
-  { key: 'serious',  label: 'Serious',  color: 'bg-orange-100 text-orange-700 border-orange-200' },
-  { key: 'critical', label: 'Critical', color: 'bg-red-100 text-red-700 border-red-200' },
+  { key: 'minor',    label: 'Minor',    color: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-950/50 dark:text-green-400 dark:border-green-800' },
+  { key: 'moderate', label: 'Moderate', color: 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-950/50 dark:text-yellow-400 dark:border-yellow-800' },
+  { key: 'serious',  label: 'Serious',  color: 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950/50 dark:text-orange-400 dark:border-orange-800' },
+  { key: 'critical', label: 'Critical', color: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-950/50 dark:text-red-400 dark:border-red-800' },
 ]
 
 const STATUSES = [
-  { key: 'draft',        label: 'Draft',        color: 'bg-slate-100 text-slate-600 border-slate-200',  dot: 'bg-slate-400' },
-  { key: 'submitted',    label: 'Submitted',    color: 'bg-blue-50 text-blue-700 border-blue-200',      dot: 'bg-blue-500' },
-  { key: 'under_review', label: 'Under Review', color: 'bg-amber-50 text-amber-700 border-amber-200',   dot: 'bg-amber-500' },
-  { key: 'closed',       label: 'Closed',       color: 'bg-green-50 text-green-700 border-green-200',   dot: 'bg-green-500' },
+  { key: 'draft',        label: 'Draft',        color: 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',  dot: 'bg-slate-400' },
+  { key: 'submitted',    label: 'Submitted',    color: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800',      dot: 'bg-blue-500' },
+  { key: 'under_review', label: 'Under Review', color: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800',   dot: 'bg-amber-500' },
+  { key: 'closed',       label: 'Closed',       color: 'bg-green-50 text-green-700 border-green-200 dark:bg-green-950/50 dark:text-green-400 dark:border-green-800',   dot: 'bg-green-500' },
 ]
 
 const getType     = (key) => INCIDENT_TYPES.find(t => t.key === key) || INCIDENT_TYPES[INCIDENT_TYPES.length - 1]
@@ -84,10 +84,10 @@ function PrintReport({ report, orgName, filerName, reviewerName, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
-          <h2 className="font-display font-semibold text-slate-800">Print Preview — Report #{report.report_number}</h2>
-          <button onClick={onClose}><X size={20} className="text-slate-400" /></button>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Print Preview — Report #{report.report_number}</h2>
+          <button onClick={onClose}><X size={20} className="text-slate-400 dark:text-slate-500" /></button>
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-4">
           <div ref={printRef}>
@@ -142,8 +142,8 @@ function PrintReport({ report, orgName, filerName, reviewerName, onClose }) {
             <div className="footer">This report is confidential. ElderLoop Incident Report System · {orgName}</div>
           </div>
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Close</button>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Close</button>
           <button onClick={handlePrint}
             className="flex items-center gap-2 px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg transition-colors">
             <Printer size={15} /> Print Report
@@ -195,11 +195,11 @@ function ResidentLookup({ residents, value, onChange, disabled, inputCls }) {
         className={inputCls}
       />
       {open && !disabled && search && (
-        <div className="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+        <div className="absolute z-50 mt-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg max-h-48 overflow-y-auto">
           {filtered.slice(0, 8).map(r => (
             <button key={r.id} onMouseDown={() => handleSelect(r)}
-              className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-50 border-b border-slate-50 last:border-0 text-left">
-              <span className="text-sm font-medium text-slate-800">{r.first_name} {r.last_name}</span>
+              className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 border-b border-slate-50 dark:border-slate-800 last:border-0 text-left">
+              <span className="text-sm font-medium text-slate-800 dark:text-slate-100">{r.first_name} {r.last_name}</span>
               {r.room && <span className="text-xs text-slate-400">Room {r.room}</span>}
             </button>
           ))}
@@ -271,28 +271,28 @@ function IncidentModal({ incident, canEdit, canReview, viewOnly, residents, onCl
     onSave()
   }
 
-  const inputCls = `w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 ${viewOnly && !canReview ? 'bg-slate-50 text-slate-500 cursor-default' : ''}`
+  const inputCls = `w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 ${viewOnly && !canReview ? 'bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 cursor-default' : ''}`
   const readOnly = viewOnly && !canReview
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div>
-            <h2 className="font-display font-semibold text-slate-800">
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">
               {isNew ? 'File Incident Report' : viewOnly ? `Report #${incident.report_number}` : `Edit Report #${incident.report_number}`}
             </h2>
             {viewOnly && !canEdit && (
-              <div className="flex items-center gap-1.5 mt-1 text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full w-fit">
+              <div className="flex items-center gap-1.5 mt-1 text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 rounded-full w-fit">
                 <Lock size={10} /> View only
               </div>
             )}
           </div>
-          <button onClick={onClose}><X size={20} className="text-slate-400" /></button>
+          <button onClick={onClose}><X size={20} className="text-slate-400 dark:text-slate-500" /></button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-          {error && <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">{error}</div>}
+          {error && <div className="px-4 py-3 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-xl text-red-700 dark:text-red-400 text-sm">{error}</div>}
 
           {/* Incident basics */}
           <div className="grid grid-cols-2 gap-4">
@@ -385,7 +385,7 @@ function IncidentModal({ incident, canEdit, canReview, viewOnly, residents, onCl
                 { key: 'was_supervisor_notified',  label: 'Supervisor Notified' },
               ].map(item => (
                 <label key={item.key} className={`flex items-center gap-2 p-2.5 border rounded-lg text-sm cursor-pointer transition-colors ${
-                  form[item.key] ? 'border-brand-300 bg-brand-50 text-brand-700' : 'border-slate-200 text-slate-600'
+                  form[item.key] ? 'border-brand-300 bg-brand-50 text-brand-700' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
                 } ${readOnly ? 'cursor-default opacity-70' : 'hover:border-brand-200'}`}>
                   <input type="checkbox" checked={form[item.key]}
                     disabled={readOnly}
@@ -426,10 +426,10 @@ function IncidentModal({ incident, canEdit, canReview, viewOnly, residents, onCl
 
           {/* ── Manager Review Section (manager+ only) ── */}
           {canReview && (
-            <div className="border-t-2 border-dashed border-amber-200 pt-4">
+            <div className="border-t-2 border-dashed border-amber-200 dark:border-amber-800 pt-4">
               <div className="flex items-center gap-2 mb-3">
                 <Shield size={14} className="text-amber-600" />
-                <span className="text-xs font-semibold text-amber-700 uppercase tracking-wide">Manager Review</span>
+                <span className="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wide">Manager Review</span>
               </div>
               <div className="space-y-3">
                 <div>
@@ -450,12 +450,12 @@ function IncidentModal({ incident, canEdit, canReview, viewOnly, residents, onCl
 
           {/* Supervisor sees review notes read-only if they exist */}
           {!canReview && !isNew && incident?.review_notes && (
-            <div className="border-t border-slate-100 pt-4">
+            <div className="border-t border-slate-100 dark:border-slate-800 pt-4">
               <div className="flex items-center gap-2 mb-2">
                 <Shield size={13} className="text-slate-400" />
                 <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Manager Review</span>
               </div>
-              <div className="p-3 bg-slate-50 rounded-xl text-sm text-slate-600">{incident.review_notes}</div>
+              <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-sm text-slate-600 dark:text-slate-300">{incident.review_notes}</div>
               {incident.reviewer && (
                 <div className="text-xs text-slate-400 mt-1.5">
                   Reviewed by {incident.reviewer.first_name} {incident.reviewer.last_name}
@@ -467,8 +467,8 @@ function IncidentModal({ incident, canEdit, canReview, viewOnly, residents, onCl
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-between items-center flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center flex-shrink-0">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">
             {viewOnly && !canEdit ? 'Close' : 'Cancel'}
           </button>
 
@@ -484,7 +484,7 @@ function IncidentModal({ incident, canEdit, canReview, viewOnly, residents, onCl
             <div className="flex gap-2">
               {(isNew || form.status === 'draft') && (
                 <button onClick={() => handleSave('draft')} disabled={saving}
-                  className="px-4 py-2 border border-slate-200 text-sm text-slate-600 font-medium rounded-lg hover:bg-slate-50 transition-colors">
+                  className="px-4 py-2 border border-slate-200 dark:border-slate-700 text-sm text-slate-600 dark:text-slate-300 font-medium rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                   {saving ? '...' : 'Save Draft'}
                 </button>
               )}
@@ -591,7 +591,7 @@ export default function IncidentReports() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-slate-800">Incident Reports</h1>
+          <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Incident Reports</h1>
           <p className="text-slate-500 text-sm mt-0.5">
             {canViewAll ? 'All facility incidents' : 'My filed reports'}
           </p>
@@ -613,7 +613,7 @@ export default function IncidentReports() {
             { label: 'Follow-Up Needed', value: stats.followUp,  color: 'text-amber-600', bg: 'bg-amber-50' },
             { label: 'Critical Open',    value: stats.critical,  color: 'text-red-600',   bg: 'bg-red-50' },
           ].map(s => (
-            <div key={s.label} className={`${s.bg} rounded-2xl p-4`}>
+            <div key={s.label} className={`${s.bg} dark:bg-slate-900 rounded-2xl p-4`}>
               <div className={`text-2xl font-bold font-display ${s.color}`}>{s.value}</div>
               <div className="text-xs text-slate-500 font-medium mt-0.5">{s.label}</div>
             </div>
@@ -623,7 +623,7 @@ export default function IncidentReports() {
 
       {/* Access level banner for staff */}
       {!canViewAll && (
-        <div className="flex items-center gap-2 mb-4 px-4 py-3 bg-blue-50 border border-blue-100 rounded-xl text-sm text-blue-700">
+        <div className="flex items-center gap-2 mb-4 px-4 py-3 bg-blue-50 dark:bg-blue-950/50 border border-blue-100 dark:border-blue-900 rounded-xl text-sm text-blue-700 dark:text-blue-400">
           <Shield size={14} />
           You can see your own reports. Supervisors and managers can see all facility reports.
         </div>
@@ -631,7 +631,7 @@ export default function IncidentReports() {
 
       {/* Supervisor read-only banner */}
       {canViewAll && !canEditAny && (
-        <div className="flex items-center gap-2 mb-4 px-4 py-3 bg-amber-50 border border-amber-100 rounded-xl text-sm text-amber-700">
+        <div className="flex items-center gap-2 mb-4 px-4 py-3 bg-amber-50 dark:bg-amber-950/50 border border-amber-100 dark:border-amber-900 rounded-xl text-sm text-amber-700 dark:text-amber-400">
           <Eye size={14} />
           You can view all reports and file new ones. Editing and reviewing requires Manager access.
         </div>
@@ -643,15 +643,15 @@ export default function IncidentReports() {
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Search resident, location, description..."
-            className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
         </div>
         <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-          className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none">
+          className="px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none">
           <option value="all">All Statuses</option>
           {STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
         </select>
         <select value={filterType} onChange={e => setFilterType(e.target.value)}
-          className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none">
+          className="px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none">
           <option value="all">All Types</option>
           {INCIDENT_TYPES.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
         </select>
@@ -680,7 +680,7 @@ export default function IncidentReports() {
 
             return (
               <button key={r.id} onClick={() => handleOpen(r)}
-                className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-4 text-left hover:border-brand-200 hover:shadow-md transition-all group">
+                className="w-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-4 flex items-center gap-4 text-left hover:border-brand-200 hover:shadow-md transition-all group">
                 {/* Severity color strip */}
                 <div className={`w-1 self-stretch rounded-full flex-shrink-0 ${
                   r.severity === 'critical' ? 'bg-red-500' :
@@ -695,7 +695,7 @@ export default function IncidentReports() {
                     {isOwn && <span className="text-xs text-brand-600 font-medium">My Report</span>}
                     {viewOnly && <span className="flex items-center gap-1 text-xs text-slate-400"><Lock size={9}/> View Only</span>}
                   </div>
-                  <div className="font-medium text-slate-800 text-sm truncate">
+                  <div className="font-medium text-slate-800 dark:text-slate-100 text-sm truncate">
                     {r.resident_name || 'No resident specified'} · {r.location || 'No location'}
                   </div>
                   <div className="text-xs text-slate-400 mt-0.5 flex items-center gap-2 flex-wrap">

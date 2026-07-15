@@ -73,92 +73,92 @@ function PMModal({ schedule, assets, staff, orgId, profile, onClose, onSaved }) 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
-          <h2 className="font-display font-semibold text-slate-800">{isNew ? 'New PM Schedule' : 'Edit PM Schedule'}</h2>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">{isNew ? 'New PM Schedule' : 'Edit PM Schedule'}</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
-          {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+          {error && <div className="px-4 py-2 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Task Title *</label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Task Title *</label>
             <input value={form.title} onChange={e => set('title', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="e.g. HVAC Filter Replacement" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Category</label>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Category</label>
               <select value={form.category} onChange={e => set('category', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 capitalize">
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 capitalize">
                 {WO_CATEGORIES.map(c => <option key={c} value={c} className="capitalize">{c.replace('_',' ')}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Linked Asset</label>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Linked Asset</label>
               <select value={form.asset_id} onChange={e => set('asset_id', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                 <option value="">No asset</option>
                 {assets.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
               </select>
             </div>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Frequency</label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">Frequency</label>
             <div className="flex gap-2 flex-wrap">
               {FREQ_OPTIONS.map(opt => (
                 <button key={opt.key} onClick={() => handleFreqChange(opt.key)}
-                  className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${form.frequency_type === opt.key ? 'bg-brand-600 border-brand-600 text-white' : 'border-slate-200 text-slate-600 hover:border-brand-300'}`}>
+                  className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${form.frequency_type === opt.key ? 'bg-brand-600 border-brand-600 text-white' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300'}`}>
                   {opt.label}
                 </button>
               ))}
             </div>
             {form.frequency_type === 'custom' && (
               <div className="mt-2 flex items-center gap-2">
-                <span className="text-xs text-slate-500">Every</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">Every</span>
                 <input type="number" value={form.frequency_days} onChange={e => set('frequency_days', e.target.value)}
-                  className="w-20 px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  className="w-20 px-3 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                   min="1" placeholder="30" />
-                <span className="text-xs text-slate-500">days</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">days</span>
               </div>
             )}
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Next Due *</label>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Next Due *</label>
               <input type="date" value={form.next_due} onChange={e => set('next_due', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Advance (days)</label>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Advance (days)</label>
               <input type="number" value={form.advance_days} onChange={e => set('advance_days', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="7" min="0" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Est. Hours</label>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Est. Hours</label>
               <input type="number" step="0.5" value={form.estimated_hours} onChange={e => set('estimated_hours', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="1.0" />
             </div>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Assign To</label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Assign To</label>
             <select value={form.assign_to} onChange={e => set('assign_to', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
               <option value="">Unassigned</option>
               {staff.map(s => <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Description</label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Description</label>
             <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={3}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
               placeholder="What needs to be done, special instructions..." />
           </div>
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
             {saving ? 'Saving...' : isNew ? 'Create Schedule' : 'Save Changes'}
@@ -251,7 +251,7 @@ export default function PMSchedules({ orgId: orgIdProp, profile: profileProp }) 
     <div>
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h2 className="font-display font-semibold text-slate-800">Preventive Maintenance</h2>
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Preventive Maintenance</h2>
           <p className="text-slate-400 text-xs mt-0.5">Recurring maintenance schedules with automatic work order generation</p>
         </div>
         <button onClick={() => { setEditSchedule(null); setShowModal(true) }}
@@ -261,7 +261,7 @@ export default function PMSchedules({ orgId: orgIdProp, profile: profileProp }) 
       </div>
 
       {generateError && (
-        <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm flex items-center justify-between">
+        <div className="mb-4 px-4 py-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-xl text-red-700 dark:text-red-400 text-sm flex items-center justify-between">
           <span>{generateError}</span>
           <button onClick={() => setGenerateError('')} className="ml-3 text-red-400 hover:text-red-600"><X size={14} /></button>
         </div>
@@ -273,9 +273,9 @@ export default function PMSchedules({ orgId: orgIdProp, profile: profileProp }) 
           { label: 'Overdue',         value: overdue,           color: overdue > 0 ? 'text-red-600' : 'text-slate-400', bg: overdue > 0 ? 'bg-red-50' : 'bg-slate-100' },
           { label: 'Due This Month',  value: dueSoon,           color: dueSoon > 0 ? 'text-amber-600' : 'text-slate-400', bg: dueSoon > 0 ? 'bg-amber-50' : 'bg-slate-100' },
         ].map(s => (
-          <div key={s.label} className={`${s.bg} rounded-2xl p-4`}>
+          <div key={s.label} className={`${s.bg} dark:bg-slate-900 rounded-2xl p-4 border border-white dark:border-slate-800`}>
             <div className={`text-3xl font-display font-bold ${s.color}`}>{s.value}</div>
-            <div className="text-slate-500 text-xs mt-1">{s.label}</div>
+            <div className="text-slate-500 dark:text-slate-400 text-xs mt-1">{s.label}</div>
           </div>
         ))}
       </div>
@@ -295,17 +295,17 @@ export default function PMSchedules({ orgId: orgIdProp, profile: profileProp }) 
             const freq      = FREQ_OPTIONS.find(f => f.key === s.frequency_type)
             return (
               <div key={s.id}
-                className={`bg-white rounded-2xl border shadow-sm p-4 hover:shadow-md transition-all ${isOverdue ? 'border-red-200' : isSoon ? 'border-amber-200' : 'border-slate-100'}`}>
+                className={`bg-white dark:bg-slate-900 rounded-2xl border shadow-sm p-4 hover:shadow-md transition-all ${isOverdue ? 'border-red-200 dark:border-red-900' : isSoon ? 'border-amber-200 dark:border-amber-900' : 'border-slate-100 dark:border-slate-800'}`}>
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className="font-semibold text-slate-800">{s.title}</span>
-                      {isOverdue && <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">Overdue</span>}
-                      {isSoon && !isOverdue && <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">Due Soon</span>}
-                      <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full capitalize">{freq?.label || s.frequency_type}</span>
+                      <span className="font-semibold text-slate-800 dark:text-slate-100">{s.title}</span>
+                      {isOverdue && <span className="text-xs bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-400 px-2 py-0.5 rounded-full font-medium">Overdue</span>}
+                      {isSoon && !isOverdue && <span className="text-xs bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400 px-2 py-0.5 rounded-full font-medium">Due Soon</span>}
+                      <span className="text-xs bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 px-2 py-0.5 rounded-full capitalize">{freq?.label || s.frequency_type}</span>
                     </div>
                     <div className="flex items-center gap-4 text-xs text-slate-400 flex-wrap">
-                      <span className="flex items-center gap-1"><Calendar size={11} /> Next due: <strong className={isOverdue ? 'text-red-600' : isSoon ? 'text-amber-600' : 'text-slate-700'}>{fmt(s.next_due)}</strong></span>
+                      <span className="flex items-center gap-1"><Calendar size={11} /> Next due: <strong className={isOverdue ? 'text-red-600' : isSoon ? 'text-amber-600' : 'text-slate-700 dark:text-slate-300'}>{fmt(s.next_due)}</strong></span>
                       {s.maintenance_assets && <span>🔧 {s.maintenance_assets.name}</span>}
                       {s.profiles && <span>👤 {s.profiles.first_name} {s.profiles.last_name}</span>}
                       {s.estimated_hours && <span>⏱ {s.estimated_hours}h</span>}

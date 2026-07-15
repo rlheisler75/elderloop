@@ -8,21 +8,21 @@ import {
 } from 'lucide-react'
 
 const ASSET_CATEGORIES = [
-  { key: 'hvac',       label: 'HVAC',             color: 'bg-blue-100 text-blue-700' },
-  { key: 'bed',        label: 'Bed / Furniture',  color: 'bg-green-100 text-green-700' },
-  { key: 'lift',       label: 'Patient Lift',     color: 'bg-purple-100 text-purple-700' },
-  { key: 'equipment',  label: 'Equipment',        color: 'bg-amber-100 text-amber-700' },
-  { key: 'electrical', label: 'Electrical',       color: 'bg-yellow-100 text-yellow-700' },
-  { key: 'plumbing',   label: 'Plumbing',         color: 'bg-cyan-100 text-cyan-700' },
-  { key: 'vehicle',    label: 'Vehicle',          color: 'bg-orange-100 text-orange-700' },
-  { key: 'room',       label: 'Room',             color: 'bg-slate-100 text-slate-600' },
-  { key: 'other',      label: 'Other',            color: 'bg-slate-100 text-slate-500' },
+  { key: 'hvac',       label: 'HVAC',             color: 'bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-400' },
+  { key: 'bed',        label: 'Bed / Furniture',  color: 'bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-400' },
+  { key: 'lift',       label: 'Patient Lift',     color: 'bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-400' },
+  { key: 'equipment',  label: 'Equipment',        color: 'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400' },
+  { key: 'electrical', label: 'Electrical',       color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-950/50 dark:text-yellow-400' },
+  { key: 'plumbing',   label: 'Plumbing',         color: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-950/50 dark:text-cyan-400' },
+  { key: 'vehicle',    label: 'Vehicle',          color: 'bg-orange-100 text-orange-700 dark:bg-orange-950/50 dark:text-orange-400' },
+  { key: 'room',       label: 'Room',             color: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300' },
+  { key: 'other',      label: 'Other',            color: 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400' },
 ]
 
 const ASSET_STATUSES = [
-  { key: 'active',          label: 'Active',          color: 'bg-green-100 text-green-700' },
-  { key: 'out_of_service',  label: 'Out of Service',  color: 'bg-red-100 text-red-700' },
-  { key: 'retired',         label: 'Retired',         color: 'bg-slate-100 text-slate-500' },
+  { key: 'active',          label: 'Active',          color: 'bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-400' },
+  { key: 'out_of_service',  label: 'Out of Service',  color: 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-400' },
+  { key: 'retired',         label: 'Retired',         color: 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400' },
 ]
 
 const fmt = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'
@@ -87,95 +87,95 @@ function AssetModal({ asset, orgId, profile, onClose, onSaved }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
-          <h2 className="font-display font-semibold text-slate-800">{isNew ? 'Add Asset' : 'Edit Asset'}</h2>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">{isNew ? 'Add Asset' : 'Edit Asset'}</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
-          {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+          {error && <div className="px-4 py-2 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Asset Name *</label>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Asset Name *</label>
               <input value={form.name} onChange={e => set('name', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="e.g. Main Building HVAC Unit" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Asset Number</label>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Asset Number</label>
               <input value={form.asset_number} onChange={e => set('asset_number', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="e.g. HVAC-001" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Category</label>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Category</label>
               <select value={form.category} onChange={e => set('category', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                 {ASSET_CATEGORIES.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Status</label>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Status</label>
               <select value={form.status} onChange={e => set('status', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                 {ASSET_STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Location</label>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Location</label>
               <input value={form.location} onChange={e => set('location', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="Room / Area" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Building</label>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Building</label>
               <input value={form.building} onChange={e => set('building', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="Building name or wing" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Manufacturer</label>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Manufacturer</label>
               <input value={form.manufacturer} onChange={e => set('manufacturer', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="e.g. Carrier, Hoyer" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Model</label>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Model</label>
               <input value={form.model} onChange={e => set('model', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="Model number" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Serial Number</label>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Serial Number</label>
               <input value={form.serial_number} onChange={e => set('serial_number', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="Serial number" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Purchase Date</label>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Purchase Date</label>
               <input type="date" value={form.purchase_date} onChange={e => set('purchase_date', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Warranty Expires</label>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Warranty Expires</label>
               <input type="date" value={form.warranty_expiry} onChange={e => set('warranty_expiry', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Last Service Date</label>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Last Service Date</label>
               <input type="date" value={form.last_service_date} onChange={e => set('last_service_date', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Next Service Due</label>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Next Service Due</label>
               <input type="date" value={form.next_service_date} onChange={e => set('next_service_date', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Notes</label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Notes</label>
             <textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows={2}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
               placeholder="Maintenance notes, special instructions..." />
           </div>
           {/* Photo */}
@@ -187,14 +187,14 @@ function AssetModal({ asset, orgId, profile, onClose, onSaved }) {
             </div>
           ) : (
             <button onClick={() => fileRef.current.click()} disabled={uploading}
-              className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-slate-200 rounded-xl text-sm text-slate-400 hover:border-brand-400 hover:text-brand-500 transition-colors">
+              className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-400 hover:border-brand-400 hover:text-brand-500 transition-colors">
               <Upload size={15} /> {uploading ? 'Uploading...' : 'Add Photo (optional)'}
             </button>
           )}
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
             {saving ? 'Saving...' : isNew ? 'Add Asset' : 'Save Changes'}
@@ -241,7 +241,7 @@ export default function WorkOrderAssets({ orgId, profile }) {
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h2 className="font-display font-semibold text-slate-800">Asset Registry</h2>
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Asset Registry</h2>
           <p className="text-slate-400 text-xs mt-0.5">Track equipment, HVAC, lifts, and facility assets</p>
         </div>
         <button onClick={() => { setEditAsset(null); setShowModal(true) }}
@@ -258,9 +258,9 @@ export default function WorkOrderAssets({ orgId, profile }) {
           { label: 'Due Within 30d',  value: dueSoon,       color: dueSoon > 0 ? 'text-amber-600' : 'text-slate-400', bg: dueSoon > 0 ? 'bg-amber-50' : 'bg-slate-100' },
           { label: 'Out of Service',  value: outOfSvc,      color: outOfSvc > 0 ? 'text-red-600' : 'text-slate-400', bg: outOfSvc > 0 ? 'bg-red-50' : 'bg-slate-100' },
         ].map(s => (
-          <div key={s.label} className={`${s.bg} rounded-2xl p-4 ${s.alert ? 'ring-2 ring-red-200' : ''}`}>
+          <div key={s.label} className={`${s.bg} dark:bg-slate-900 rounded-2xl p-4 border border-white dark:border-slate-800 ${s.alert ? 'ring-2 ring-red-200 dark:ring-red-900' : ''}`}>
             <div className={`text-3xl font-display font-bold ${s.color}`}>{s.value}</div>
-            <div className="text-slate-500 text-xs mt-1">{s.label}</div>
+            <div className="text-slate-500 dark:text-slate-400 text-xs mt-1">{s.label}</div>
           </div>
         ))}
       </div>
@@ -270,10 +270,10 @@ export default function WorkOrderAssets({ orgId, profile }) {
         <div className="relative flex-1 min-w-48">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search assets..."
-            className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            className="w-full pl-9 pr-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
         </div>
         <select value={filterCat} onChange={e => setFilterCat(e.target.value)}
-          className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none bg-white">
+          className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none bg-white dark:bg-slate-800 dark:text-slate-100">
           <option value="all">All Categories</option>
           {ASSET_CATEGORIES.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
         </select>
@@ -296,14 +296,14 @@ export default function WorkOrderAssets({ orgId, profile }) {
             const soon    = asset.next_service_date && asset.next_service_date >= todayStr && asset.next_service_date <= new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0]
             return (
               <div key={asset.id}
-                className={`bg-white rounded-2xl border shadow-sm p-4 hover:shadow-md transition-all ${overdue ? 'border-red-200' : soon ? 'border-amber-200' : 'border-slate-100'}`}>
+                className={`bg-white dark:bg-slate-900 rounded-2xl border shadow-sm p-4 hover:shadow-md transition-all ${overdue ? 'border-red-200 dark:border-red-900' : soon ? 'border-amber-200 dark:border-amber-900' : 'border-slate-100 dark:border-slate-800'}`}>
                 {/* Asset photo */}
                 {asset.photo_url && (
                   <img src={asset.photo_url} alt="" className="w-full h-28 object-cover rounded-xl mb-3" />
                 )}
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-slate-800 text-sm truncate">{asset.name}</div>
+                    <div className="font-semibold text-slate-800 dark:text-slate-100 text-sm truncate">{asset.name}</div>
                     {asset.asset_number && <div className="text-xs text-slate-400">{asset.asset_number}</div>}
                   </div>
                   <div className="flex gap-1 flex-shrink-0">
@@ -325,7 +325,7 @@ export default function WorkOrderAssets({ orgId, profile }) {
                 </div>
                 <div className="flex gap-2 mt-3">
                   <button onClick={() => { setEditAsset(asset); setShowModal(true) }}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-1.5 border border-slate-200 rounded-lg text-xs text-slate-600 hover:border-brand-300 hover:text-brand-600 transition-colors">
+                    className="flex-1 flex items-center justify-center gap-1.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 transition-colors">
                     <Edit2 size={11} /> Edit
                   </button>
                   <button onClick={async () => {

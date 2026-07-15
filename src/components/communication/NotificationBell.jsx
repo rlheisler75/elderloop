@@ -5,12 +5,12 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 
 const CATEGORY_ICONS = {
-  urgent:   { icon: AlertTriangle, color: 'text-red-500',    bg: 'bg-red-50' },
-  activity: { icon: Calendar,      color: 'text-blue-500',   bg: 'bg-blue-50' },
-  meal:     { icon: UtensilsCrossed, color: 'text-amber-500', bg: 'bg-amber-50' },
-  health:   { icon: Activity,      color: 'text-purple-500', bg: 'bg-purple-50' },
+  urgent:   { icon: AlertTriangle, color: 'text-red-500',    bg: 'bg-red-50 dark:bg-red-950/50' },
+  activity: { icon: Calendar,      color: 'text-blue-500',   bg: 'bg-blue-50 dark:bg-blue-950/50' },
+  meal:     { icon: UtensilsCrossed, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-950/50' },
+  health:   { icon: Activity,      color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-950/50' },
   general:  { icon: Megaphone,     color: 'text-brand-600',  bg: 'bg-brand-50' },
-  reminder: { icon: Bell,          color: 'text-slate-500',  bg: 'bg-slate-100' },
+  reminder: { icon: Bell,          color: 'text-slate-500',  bg: 'bg-slate-100 dark:bg-slate-800' },
 }
 
 function relativeTime(ts) {
@@ -109,14 +109,14 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-96 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-50">
+        <div className="absolute right-0 top-full mt-2 w-96 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden z-50">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-800">
             <div className="flex items-center gap-2">
               <Bell size={16} className="text-brand-600" />
-              <span className="font-semibold text-slate-800 text-sm">Notifications</span>
+              <span className="font-semibold text-slate-800 dark:text-slate-100 text-sm">Notifications</span>
               {unread > 0 && (
-                <span className="px-1.5 py-0.5 bg-red-100 text-red-600 text-xs font-semibold rounded-full">
+                <span className="px-1.5 py-0.5 bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400 text-xs font-semibold rounded-full">
                   {unread} new
                 </span>
               )}
@@ -147,8 +147,8 @@ export default function NotificationBell() {
                 return (
                   <div
                     key={n.id}
-                    className={`flex gap-3 px-4 py-3 border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer group
-                      ${!n.is_read ? 'bg-brand-50/40' : ''}`}
+                    className={`flex gap-3 px-4 py-3 border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer group
+                      ${!n.is_read ? 'bg-brand-50/40 dark:bg-brand-950/20' : ''}`}
                     onClick={() => !n.is_read && markRead(n.id)}
                   >
                     <div className={`w-9 h-9 rounded-xl ${cat.bg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
@@ -156,7 +156,7 @@ export default function NotificationBell() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <p className={`text-sm leading-snug ${!n.is_read ? 'font-semibold text-slate-800' : 'text-slate-700'}`}>
+                        <p className={`text-sm leading-snug ${!n.is_read ? 'font-semibold text-slate-800 dark:text-slate-100' : 'text-slate-700 dark:text-slate-300'}`}>
                           {n.title}
                         </p>
                         {!n.is_read && (

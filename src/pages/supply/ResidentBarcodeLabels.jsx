@@ -178,24 +178,24 @@ export default function ResidentBarcodeLabels({ onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[94vh] flex flex-col">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[94vh] flex flex-col">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div>
-            <h2 className="font-display font-semibold text-slate-800">Print Resident ID Labels</h2>
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Print Resident ID Labels</h2>
             <p className="text-xs text-slate-400 mt-0.5">{selected.size} resident{selected.size !== 1 ? 's' : ''} selected</p>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"><X size={20} /></button>
         </div>
 
         {/* No barcode warning */}
         {noBarcode.length > 0 && (
-          <div className="mx-6 mt-4 flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-xl text-sm">
+          <div className="mx-6 mt-4 flex items-start gap-3 p-3 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900 rounded-xl text-sm">
             <AlertCircle size={16} className="text-amber-600 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <span className="font-medium text-amber-800">{noBarcode.length} resident{noBarcode.length > 1 ? 's' : ''} don't have a barcode yet.</span>
-              <span className="text-amber-700"> QR codes will use their internal ID until a barcode is assigned.</span>
+              <span className="font-medium text-amber-800 dark:text-amber-400">{noBarcode.length} resident{noBarcode.length > 1 ? 's' : ''} don't have a barcode yet.</span>
+              <span className="text-amber-700 dark:text-amber-400"> QR codes will use their internal ID until a barcode is assigned.</span>
             </div>
             <button onClick={assignMissingBarcodes} disabled={assigning}
               className="flex-shrink-0 px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-50">
@@ -206,11 +206,11 @@ export default function ResidentBarcodeLabels({ onClose }) {
 
         <div className="flex flex-1 min-h-0 mt-4">
           {/* Left — resident selector */}
-          <div className="w-56 flex-shrink-0 border-r border-slate-100 flex flex-col">
-            <div className="p-3 border-b border-slate-100">
+          <div className="w-56 flex-shrink-0 border-r border-slate-100 dark:border-slate-800 flex flex-col">
+            <div className="p-3 border-b border-slate-100 dark:border-slate-800">
               <div className="relative mb-2">
                 <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search residents..." className="w-full pl-8 pr-3 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search residents..." className="w-full pl-8 pr-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500" />
               </div>
               <button onClick={toggleAll} className="flex items-center gap-1.5 text-xs text-brand-600 hover:text-brand-700 font-medium">
                 {selected.size === filtered.length ? <CheckSquare size={13} /> : <Square size={13} />}
@@ -221,12 +221,12 @@ export default function ResidentBarcodeLabels({ onClose }) {
               {loading ? <div className="p-4 text-xs text-slate-400">Loading...</div> :
                 filtered.map(r => (
                   <button key={r.id} onClick={() => toggleResident(r.id)}
-                    className={`w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-slate-50 border-b border-slate-50 transition-colors ${selected.has(r.id) ? 'bg-brand-50' : ''}`}>
-                    <div className={`w-4 h-4 rounded border-2 flex-shrink-0 flex items-center justify-center transition-all ${selected.has(r.id) ? 'bg-brand-600 border-brand-600' : 'border-slate-300'}`}>
+                    className={`w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-800 border-b border-slate-50 dark:border-slate-800 transition-colors ${selected.has(r.id) ? 'bg-brand-50 dark:bg-brand-950/30' : ''}`}>
+                    <div className={`w-4 h-4 rounded border-2 flex-shrink-0 flex items-center justify-center transition-all ${selected.has(r.id) ? 'bg-brand-600 border-brand-600' : 'border-slate-300 dark:border-slate-600'}`}>
                       {selected.has(r.id) && <svg width="8" height="8" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                     </div>
                     <div className="min-w-0">
-                      <div className="text-xs font-medium text-slate-700 truncate">{r.first_name} {r.last_name}</div>
+                      <div className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">{r.first_name} {r.last_name}</div>
                       <div className="flex items-center gap-1">
                         {r.room && <span className="text-xs text-slate-400">Room {r.room}</span>}
                         {!r.barcode && <span className="text-xs text-amber-500">No barcode</span>}
@@ -241,20 +241,20 @@ export default function ResidentBarcodeLabels({ onClose }) {
           {/* Right — options + preview */}
           <div className="flex-1 flex flex-col min-w-0">
             {/* Options */}
-            <div className="px-5 py-4 border-b border-slate-100">
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Label Size</label>
+            <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">Label Size</label>
               <div className="flex gap-2 flex-wrap">
                 {LABEL_SIZES.map(l => (
                   <button key={l.key} onClick={() => setSize(l.key)}
-                    className={`px-3 py-1.5 rounded-xl border text-xs font-medium transition-all ${size === l.key ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}>
+                    className={`px-3 py-1.5 rounded-xl border text-xs font-medium transition-all ${size === l.key ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
                     {l.label}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Preview */}
-            <div className="flex-1 overflow-auto p-5 bg-slate-50">
+            {/* Preview — chrome background darkens; the label cards themselves stay hardcoded white/light since they mirror the printed output */}
+            <div className="flex-1 overflow-auto p-5 bg-slate-50 dark:bg-slate-800">
               {generating ? (
                 <div className="flex items-center justify-center h-32 text-slate-400 text-sm">Generating QR codes...</div>
               ) : selectedResidents.length === 0 ? (
@@ -279,12 +279,12 @@ export default function ResidentBarcodeLabels({ onClose }) {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between flex-shrink-0">
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between flex-shrink-0">
           <p className="text-xs text-slate-400">
             Scan printed QR codes in Issue / Checkout to charge supplies to residents
           </p>
           <div className="flex gap-3">
-            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium hover:bg-slate-50 rounded-lg">Cancel</button>
+            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg">Cancel</button>
             <button onClick={handlePrint} disabled={selectedResidents.length === 0 || generating}
               className="flex items-center gap-2 px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-xl transition-colors shadow-sm">
               <Printer size={15} /> Print {selectedResidents.length} Label{selectedResidents.length !== 1 ? 's' : ''}

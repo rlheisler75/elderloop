@@ -25,18 +25,18 @@ const COMPLAINANT_TYPES = [
 ]
 
 const PRIORITIES = [
-  { key: 'routine',   label: 'Routine',   color: 'bg-slate-100 text-slate-600 border-slate-200'    },
-  { key: 'urgent',    label: 'Urgent',    color: 'bg-amber-100 text-amber-700 border-amber-200'    },
-  { key: 'immediate', label: 'Immediate', color: 'bg-red-100 text-red-700 border-red-200'          },
+  { key: 'routine',   label: 'Routine',   color: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'    },
+  { key: 'urgent',    label: 'Urgent',    color: 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900'    },
+  { key: 'immediate', label: 'Immediate', color: 'bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900'          },
 ]
 
 const STATUSES = [
-  { key: 'open',             label: 'Open',             color: 'bg-blue-100 text-blue-700'     },
-  { key: 'investigating',    label: 'Investigating',    color: 'bg-purple-100 text-purple-700' },
-  { key: 'pending_response', label: 'Pending Response', color: 'bg-amber-100 text-amber-700'   },
-  { key: 'resolved',         label: 'Resolved',         color: 'bg-green-100 text-green-700'   },
-  { key: 'escalated',        label: 'Escalated',        color: 'bg-red-100 text-red-700'       },
-  { key: 'withdrawn',        label: 'Withdrawn',        color: 'bg-slate-100 text-slate-500'   },
+  { key: 'open',             label: 'Open',             color: 'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400'     },
+  { key: 'investigating',    label: 'Investigating',    color: 'bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-400' },
+  { key: 'pending_response', label: 'Pending Response', color: 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400'   },
+  { key: 'resolved',         label: 'Resolved',         color: 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400'   },
+  { key: 'escalated',        label: 'Escalated',        color: 'bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-400'       },
+  { key: 'withdrawn',        label: 'Withdrawn',        color: 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'   },
 ]
 
 function getPriority(key) { return PRIORITIES.find(p => p.key === key) || PRIORITIES[0] }
@@ -103,11 +103,11 @@ function GrievanceModal({ residents, staff, orgId, grievance, canWrite, onClose,
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div>
-            <h2 className="font-display font-bold text-slate-800">
+            <h2 className="font-display font-bold text-slate-800 dark:text-slate-100">
               {isNew ? 'File Grievance' : `Grievance ${grievance.grievance_number}`}
             </h2>
             {!isNew && (
@@ -121,12 +121,12 @@ function GrievanceModal({ residents, staff, orgId, grievance, canWrite, onClose,
               </div>
             )}
           </div>
-          <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100"><X size={18} /></button>
+          <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800"><X size={18} /></button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
           {error && (
-            <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+            <div className="flex items-center gap-2 px-4 py-3 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-xl text-red-700 dark:text-red-400 text-sm">
               <AlertCircle size={14} /> {error}
             </div>
           )}
@@ -136,7 +136,7 @@ function GrievanceModal({ residents, staff, orgId, grievance, canWrite, onClose,
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Resident (if applicable)</label>
               <select value={form.resident_id} onChange={e => set('resident_id', e.target.value)} disabled={readOnly}
-                className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white disabled:bg-slate-50">
+                className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100 disabled:bg-slate-50 dark:disabled:bg-slate-800">
                 <option value="">— Not resident-specific —</option>
                 {residents.map(r => <option key={r.id} value={r.id}>{r.first_name} {r.last_name} (Rm {r.room})</option>)}
               </select>
@@ -147,7 +147,7 @@ function GrievanceModal({ residents, staff, orgId, grievance, canWrite, onClose,
                 {PRIORITIES.map(p => (
                   <button key={p.key} onClick={() => !readOnly && set('priority', p.key)} disabled={readOnly}
                     className={`flex-1 py-2 rounded-xl border text-xs font-semibold transition-all
-                      ${form.priority === p.key ? p.color + ' border-current' : 'bg-white text-slate-400 border-slate-200'}`}>
+                      ${form.priority === p.key ? p.color + ' border-current' : 'bg-white dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'}`}>
                     {p.label}
                   </button>
                 ))}
@@ -162,7 +162,7 @@ function GrievanceModal({ residents, staff, orgId, grievance, canWrite, onClose,
               {COMPLAINANT_TYPES.map(t => (
                 <button key={t.key} onClick={() => !readOnly && set('complainant_type', t.key)} disabled={readOnly}
                   className={`px-3 py-1.5 rounded-xl border text-sm font-medium transition-all
-                    ${form.complainant_type === t.key ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-slate-500 border-slate-200'}`}>
+                    ${form.complainant_type === t.key ? 'bg-brand-600 text-white border-brand-600' : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-300 border-slate-200 dark:border-slate-700'}`}>
                   {t.label}
                 </button>
               ))}
@@ -172,17 +172,17 @@ function GrievanceModal({ residents, staff, orgId, grievance, canWrite, onClose,
                 <div className="col-span-1">
                   <input value={form.complainant_name} onChange={e => set('complainant_name', e.target.value)} readOnly={readOnly}
                     placeholder="Complainant name"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:text-slate-100" />
                 </div>
                 <div>
                   <input value={form.complainant_phone} onChange={e => set('complainant_phone', e.target.value)} readOnly={readOnly}
                     placeholder="Phone"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:text-slate-100" />
                 </div>
                 <div>
                   <input value={form.complainant_relationship} onChange={e => set('complainant_relationship', e.target.value)} readOnly={readOnly}
                     placeholder="Relationship"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:text-slate-100" />
                 </div>
               </div>
             )}
@@ -195,7 +195,7 @@ function GrievanceModal({ residents, staff, orgId, grievance, canWrite, onClose,
               {CATEGORIES.map(cat => (
                 <button key={cat.key} onClick={() => !readOnly && set('category', cat.key)} disabled={readOnly}
                   className={`px-3 py-2 rounded-xl border text-sm font-medium transition-all text-left
-                    ${form.category === cat.key ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-slate-500 border-slate-200 hover:border-brand-300'}`}>
+                    ${form.category === cat.key ? 'bg-brand-600 text-white border-brand-600' : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-brand-300'}`}>
                   {cat.label}
                 </button>
               ))}
@@ -207,24 +207,24 @@ function GrievanceModal({ residents, staff, orgId, grievance, canWrite, onClose,
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Description of Complaint *</label>
             <textarea value={form.description} onChange={e => set('description', e.target.value)} readOnly={readOnly} rows={4}
               placeholder="Provide a detailed description of the grievance..."
-              className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none disabled:bg-slate-50" />
+              className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none disabled:bg-slate-50 dark:bg-slate-800 dark:text-slate-100 dark:disabled:bg-slate-800" />
           </div>
 
           {/* Status & Assignment (edit mode) */}
           {!isNew && (
             <>
-              <div className="grid grid-cols-2 gap-4 pt-3 border-t border-slate-100">
+              <div className="grid grid-cols-2 gap-4 pt-3 border-t border-slate-100 dark:border-slate-800">
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Status</label>
                   <select value={form.status} onChange={e => set('status', e.target.value)} disabled={readOnly}
-                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white disabled:bg-slate-50">
+                    className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100 disabled:bg-slate-50 dark:disabled:bg-slate-800">
                     {STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Assigned To</label>
                   <select value={form.assigned_to} onChange={e => set('assigned_to', e.target.value)} disabled={readOnly}
-                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white disabled:bg-slate-50">
+                    className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100 disabled:bg-slate-50 dark:disabled:bg-slate-800">
                     <option value="">— Unassigned —</option>
                     {staff.map(s => <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>)}
                   </select>
@@ -235,24 +235,24 @@ function GrievanceModal({ residents, staff, orgId, grievance, canWrite, onClose,
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Investigation Notes</label>
                 <textarea value={form.investigation_notes} onChange={e => set('investigation_notes', e.target.value)} readOnly={readOnly} rows={3}
                   placeholder="Running notes during investigation..."
-                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none disabled:bg-slate-50" />
+                  className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none disabled:bg-slate-50 dark:bg-slate-800 dark:text-slate-100 dark:disabled:bg-slate-800" />
               </div>
 
               {(form.status === 'resolved' || form.resolution) && (
-                <div className="space-y-3 p-4 bg-green-50 border border-green-200 rounded-xl">
-                  <label className="block text-xs font-semibold text-green-700 uppercase tracking-wider">Resolution</label>
+                <div className="space-y-3 p-4 bg-green-50 dark:bg-green-950/50 border border-green-200 dark:border-green-900 rounded-xl">
+                  <label className="block text-xs font-semibold text-green-700 dark:text-green-400 uppercase tracking-wider">Resolution</label>
                   <textarea value={form.resolution} onChange={e => set('resolution', e.target.value)} readOnly={readOnly} rows={3}
                     placeholder="Describe how the grievance was resolved..."
-                    className="w-full px-3 py-2.5 border border-green-200 bg-white rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 resize-none" />
+                    className="w-full px-3 py-2.5 border border-green-200 dark:border-green-800 bg-white dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 resize-none" />
                   <div className="flex items-center gap-3">
-                    <span className="text-sm text-green-700">Resident/family satisfied with resolution?</span>
+                    <span className="text-sm text-green-700 dark:text-green-400">Resident/family satisfied with resolution?</span>
                     <div className="flex gap-2 ml-auto">
                       {[true, false].map(v => (
                         <button key={String(v)} onClick={() => !readOnly && set('resident_satisfied', v)} disabled={readOnly}
                           className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all
                             ${form.resident_satisfied === v
                               ? v ? 'bg-green-600 text-white border-green-600' : 'bg-red-500 text-white border-red-500'
-                              : 'bg-white text-slate-500 border-slate-200'}`}>
+                              : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-300 border-slate-200 dark:border-slate-700'}`}>
                           {v ? 'Yes' : 'No'}
                         </button>
                       ))}
@@ -262,11 +262,11 @@ function GrievanceModal({ residents, staff, orgId, grievance, canWrite, onClose,
               )}
 
               {/* Regulatory */}
-              <div className="space-y-3 pt-3 border-t border-slate-100">
+              <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-slate-700 flex items-center gap-2"><Flag size={14} className="text-red-500" /> Regulatory Report Required</span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2"><Flag size={14} className="text-red-500" /> Regulatory Report Required</span>
                   <button onClick={() => !readOnly && set('regulatory_report_required', !form.regulatory_report_required)} disabled={readOnly}
-                    className={`w-11 h-6 rounded-full transition-colors relative ${form.regulatory_report_required ? 'bg-red-500' : 'bg-slate-300'}`}>
+                    className={`w-11 h-6 rounded-full transition-colors relative ${form.regulatory_report_required ? 'bg-red-500' : 'bg-slate-300 dark:bg-slate-700'}`}>
                     <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.regulatory_report_required ? 'translate-x-5' : ''}`} />
                   </button>
                 </div>
@@ -275,13 +275,13 @@ function GrievanceModal({ residents, staff, orgId, grievance, canWrite, onClose,
                     <div>
                       <label className="block text-xs text-slate-500 mb-1">Report Date</label>
                       <input type="date" value={form.regulatory_report_date} onChange={e => set('regulatory_report_date', e.target.value)} disabled={readOnly}
-                        className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-slate-50" />
+                        className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-slate-50 dark:bg-slate-800 dark:text-slate-100 dark:disabled:bg-slate-800" />
                     </div>
                     <div>
                       <label className="block text-xs text-slate-500 mb-1">Agency</label>
                       <input value={form.regulatory_agency} onChange={e => set('regulatory_agency', e.target.value)} readOnly={readOnly}
                         placeholder="e.g. MO DHSS"
-                        className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                        className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:text-slate-100" />
                     </div>
                   </div>
                 )}
@@ -291,8 +291,8 @@ function GrievanceModal({ residents, staff, orgId, grievance, canWrite, onClose,
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">{readOnly ? 'Close' : 'Cancel'}</button>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">{readOnly ? 'Close' : 'Cancel'}</button>
           {!readOnly && (
             <button onClick={handleSave} disabled={saving}
               className="flex items-center gap-2 px-6 py-2.5 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-semibold rounded-xl transition-colors">
@@ -361,9 +361,9 @@ export default function Grievances({ canWrite }) {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: 'Open',     value: open,    color: 'text-blue-600 bg-blue-50'   },
-          { label: 'Urgent',   value: urgent,  color: 'text-red-600 bg-red-50'     },
-          { label: 'Resolved', value: resolved, color: 'text-green-600 bg-green-50' },
+          { label: 'Open',     value: open,    color: 'text-blue-600 bg-blue-50 dark:bg-blue-950/50'   },
+          { label: 'Urgent',   value: urgent,  color: 'text-red-600 bg-red-50 dark:bg-red-950/50'     },
+          { label: 'Resolved', value: resolved, color: 'text-green-600 bg-green-50 dark:bg-green-950/50' },
         ].map(s => (
           <div key={s.label} className={`${s.color} rounded-2xl p-4`}>
             <div className={`text-3xl font-bold font-display ${s.color.split(' ')[0]}`}>{s.value}</div>
@@ -381,17 +381,17 @@ export default function Grievances({ canWrite }) {
           </button>
         )}
         <select value={filter.status} onChange={e => setFilter(f => ({ ...f, status: e.target.value }))}
-          className="px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+          className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500">
           <option value="">All Statuses</option>
           {STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
         </select>
         <select value={filter.priority} onChange={e => setFilter(f => ({ ...f, priority: e.target.value }))}
-          className="px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+          className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500">
           <option value="">All Priorities</option>
           {PRIORITIES.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
         </select>
         <select value={filter.category} onChange={e => setFilter(f => ({ ...f, category: e.target.value }))}
-          className="px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+          className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500">
           <option value="">All Categories</option>
           {CATEGORIES.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
         </select>
@@ -400,11 +400,11 @@ export default function Grievances({ canWrite }) {
 
       {/* List */}
       {loading ? (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm py-16 flex items-center justify-center">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm py-16 flex items-center justify-center">
           <Loader2 size={28} className="animate-spin text-brand-400" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm py-16 text-center text-slate-400">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm py-16 text-center text-slate-400">
           <AlertTriangle size={36} className="mx-auto mb-3 opacity-30" />
           <p className="font-medium">No grievances found</p>
           {canWrite && <p className="text-sm mt-1">Click "File Grievance" to log a new complaint</p>}
@@ -416,21 +416,21 @@ export default function Grievances({ canWrite }) {
             const status   = getStatus(g.status)
             return (
               <button key={g.id} onClick={() => { setEditing(g); setShowModal(true) }}
-                className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all p-4 text-left">
+                className="w-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all p-4 text-left">
                 <div className="flex items-start gap-3">
                   <div className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${
                     g.priority === 'immediate' ? 'bg-red-500' :
-                    g.priority === 'urgent'    ? 'bg-amber-500' : 'bg-slate-300'}`} />
+                    g.priority === 'urgent'    ? 'bg-amber-500' : 'bg-slate-300 dark:bg-slate-600'}`} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <span className="font-mono text-xs text-slate-400">{g.grievance_number}</span>
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${priority.color}`}>{priority.label}</span>
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${status.color}`}>{status.label}</span>
                       {g.regulatory_report_required && (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-red-50 text-red-600 font-medium border border-red-200">Reg. Report</span>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 font-medium border border-red-200 dark:border-red-900">Reg. Report</span>
                       )}
                     </div>
-                    <p className="font-semibold text-slate-800 text-sm">
+                    <p className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
                       {CATEGORIES.find(c => c.key === g.category)?.label || g.category}
                       {g.residents && ` · ${g.residents.first_name} ${g.residents.last_name}`}
                     </p>

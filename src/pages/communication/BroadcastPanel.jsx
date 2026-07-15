@@ -12,12 +12,12 @@ import {
 } from 'lucide-react'
 
 const CATEGORY_META = {
-  general:  { label: 'General',   color: 'bg-slate-100 text-slate-600',   icon: Megaphone },
-  urgent:   { label: 'Urgent',    color: 'bg-red-100 text-red-700',       icon: AlertTriangle },
-  reminder: { label: 'Reminder',  color: 'bg-yellow-100 text-yellow-700', icon: Clock },
-  activity: { label: 'Activity',  color: 'bg-blue-100 text-blue-700',     icon: Calendar },
-  meal:     { label: 'Meal',      color: 'bg-amber-100 text-amber-700',   icon: UtensilsCrossed },
-  health:   { label: 'Health',    color: 'bg-purple-100 text-purple-700', icon: Activity },
+  general:  { label: 'General',   color: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',   icon: Megaphone },
+  urgent:   { label: 'Urgent',    color: 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-400',       icon: AlertTriangle },
+  reminder: { label: 'Reminder',  color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-950/50 dark:text-yellow-400', icon: Clock },
+  activity: { label: 'Activity',  color: 'bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-400',     icon: Calendar },
+  meal:     { label: 'Meal',      color: 'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400',   icon: UtensilsCrossed },
+  health:   { label: 'Health',    color: 'bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-400', icon: Activity },
 }
 
 const AUDIENCE_LABELS = {
@@ -40,8 +40,8 @@ function ChannelBadge({ channels }) {
   return (
     <div className="flex gap-1">
       {channels?.includes('push')  && <span className="px-1.5 py-0.5 bg-brand-100 text-brand-700 rounded text-[10px] font-medium">🔔 App</span>}
-      {channels?.includes('email') && <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px] font-medium">✉️ Email</span>}
-      {channels?.includes('sms')   && <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[10px] font-medium">💬 SMS</span>}
+      {channels?.includes('email') && <span className="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400 rounded text-[10px] font-medium">✉️ Email</span>}
+      {channels?.includes('sms')   && <span className="px-1.5 py-0.5 bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400 rounded text-[10px] font-medium">💬 SMS</span>}
     </div>
   )
 }
@@ -60,11 +60,11 @@ function relativeTime(ts) {
 
 function StatCard({ icon: Icon, label, value, sub, color }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 p-5">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-5">
       <div className={`w-9 h-9 rounded-xl ${color} flex items-center justify-center mb-3`}>
         <Icon size={17} />
       </div>
-      <div className="text-2xl font-bold text-slate-800">{value}</div>
+      <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">{value}</div>
       <div className="text-sm text-slate-500 mt-0.5">{label}</div>
       {sub && <div className="text-xs text-slate-400 mt-0.5">{sub}</div>}
     </div>
@@ -140,12 +140,12 @@ export default function BroadcastPanel({ isStarter = false, restrictToDepartment
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-slate-800">{title || 'Broadcast Messaging'}</h2>
+          <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">{title || 'Broadcast Messaging'}</h2>
           <p className="text-slate-400 text-sm mt-0.5">{subtitle || 'Send email, push, and SMS to residents, family, and staff'}</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={fetchMessages}
-            className="p-2 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition-colors">
+            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
             <RefreshCw size={16} />
           </button>
           {canSend && (
@@ -171,7 +171,7 @@ export default function BroadcastPanel({ isStarter = false, restrictToDepartment
 
       {/* Quick Send */}
       {canSend && !restrictToDepartment && (
-        <div className="bg-white rounded-2xl border border-slate-100 p-5">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-5">
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Quick Send</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {[
@@ -184,9 +184,9 @@ export default function BroadcastPanel({ isStarter = false, restrictToDepartment
               return (
                 <button key={q.label}
                   onClick={() => setShowCompose({ subject: q.subject, body: q.body, category: q.category })}
-                  className="flex items-center gap-2 px-3 py-2.5 bg-slate-50 hover:bg-brand-50 border border-slate-200 hover:border-brand-300 rounded-xl text-left transition-all group">
+                  className="flex items-center gap-2 px-3 py-2.5 bg-slate-50 dark:bg-slate-800 hover:bg-brand-50 dark:hover:bg-brand-950/30 border border-slate-200 dark:border-slate-700 hover:border-brand-300 rounded-xl text-left transition-all group">
                   <Icon size={14} className="text-slate-400 group-hover:text-brand-600 flex-shrink-0" />
-                  <span className="text-xs font-medium text-slate-600 group-hover:text-brand-700">{q.label}</span>
+                  <span className="text-xs font-medium text-slate-600 dark:text-slate-300 group-hover:text-brand-700">{q.label}</span>
                 </button>
               )
             })}
@@ -195,23 +195,23 @@ export default function BroadcastPanel({ isStarter = false, restrictToDepartment
       )}
 
       {/* Message Log */}
-      <div className="bg-white rounded-2xl border border-slate-100">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800">
         {/* Filters */}
-        <div className="flex flex-col md:flex-row md:items-center gap-3 p-4 border-b border-slate-100">
+        <div className="flex flex-col md:flex-row md:items-center gap-3 p-4 border-b border-slate-100 dark:border-slate-800">
           <div className="relative flex-1">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search messages..."
-              className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
           <div className="flex gap-1.5 flex-wrap">
             {['all', ...Object.keys(CATEGORY_META)].map(key => (
               <button key={key} onClick={() => setFilterCategory(key)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors capitalize
-                  ${filterCategory === key ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                  ${filterCategory === key ? 'bg-brand-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>
                 {key === 'all' ? 'All' : CATEGORY_META[key].label}
               </button>
             ))}
@@ -238,7 +238,7 @@ export default function BroadcastPanel({ isStarter = false, restrictToDepartment
             )}
           </div>
         ) : (
-          <div className="divide-y divide-slate-50">
+          <div className="divide-y divide-slate-50 dark:divide-slate-800">
             {filtered.map(msg => {
               const cat     = CATEGORY_META[msg.category] || CATEGORY_META.general
               const CatIcon = cat.icon
@@ -248,7 +248,7 @@ export default function BroadcastPanel({ isStarter = false, restrictToDepartment
                 : 'Unknown'
 
               return (
-                <div key={msg.id} className="hover:bg-slate-50/50 transition-colors">
+                <div key={msg.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                   <button
                     onClick={() => setExpandedId(isExpanded ? null : msg.id)}
                     className="w-full text-left px-5 py-4 flex items-start gap-4"
@@ -258,7 +258,7 @@ export default function BroadcastPanel({ isStarter = false, restrictToDepartment
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold text-slate-800 text-sm">{msg.subject}</span>
+                        <span className="font-semibold text-slate-800 dark:text-slate-100 text-sm">{msg.subject}</span>
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${cat.color}`}>
                           {cat.label}
                         </span>
@@ -296,7 +296,7 @@ export default function BroadcastPanel({ isStarter = false, restrictToDepartment
                   {isExpanded && (
                     <div className="px-5 pb-4">
                       <div className="ml-13 pl-4 border-l-2 border-brand-100">
-                        <p className="text-sm text-slate-600 whitespace-pre-wrap leading-relaxed">{msg.body}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">{msg.body}</p>
                         <div className="flex gap-4 mt-3 text-xs text-slate-400">
                           <span>Recipients: {msg.recipient_count || '—'}</span>
                           {msg.email_sent > 0 && <span>Email: {msg.email_sent} delivered</span>}

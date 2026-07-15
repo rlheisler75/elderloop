@@ -18,28 +18,28 @@ const fmtDateShort = (ts) => ts
   : '—'
 
 const STATUS_COLORS = {
-  open:        'bg-blue-100 text-blue-700 border-blue-200',
-  in_progress: 'bg-amber-100 text-amber-700 border-amber-200',
-  waiting:     'bg-purple-100 text-purple-700 border-purple-200',
-  resolved:    'bg-green-100 text-green-700 border-green-200',
-  closed:      'bg-slate-100 text-slate-500 border-slate-200',
+  open:        'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-900',
+  in_progress: 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900',
+  waiting:     'bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-900',
+  resolved:    'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900',
+  closed:      'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700',
 }
 const STATUS_LABELS = {
   open: 'Open', in_progress: 'In Progress', waiting: 'Waiting',
   resolved: 'Resolved', closed: 'Closed',
 }
 const PRIORITY_COLORS = {
-  low:    'bg-slate-100 text-slate-600 border-slate-200',
-  normal: 'bg-blue-100 text-blue-700 border-blue-200',
-  high:   'bg-amber-100 text-amber-700 border-amber-200',
-  urgent: 'bg-red-100 text-red-700 border-red-200',
+  low:    'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700',
+  normal: 'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-900',
+  high:   'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900',
+  urgent: 'bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900',
 }
 const ASSET_STATUS_COLORS = {
-  active:  'bg-green-100 text-green-700',
-  retired: 'bg-slate-100 text-slate-500',
-  repair:  'bg-amber-100 text-amber-700',
-  missing: 'bg-red-100 text-red-700',
-  storage: 'bg-blue-100 text-blue-600',
+  active:  'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400',
+  retired: 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400',
+  repair:  'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400',
+  missing: 'bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-400',
+  storage: 'bg-blue-100 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400',
 }
 
 // ── New Ticket Modal ───────────────────────────────────────────
@@ -70,13 +70,13 @@ function NewTicketModal({ orgId, userId, categories, assets, staffList, onClose,
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
-          <h2 className="font-display font-semibold text-slate-800">Submit IT Ticket</h2>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Submit IT Ticket</h2>
           <button onClick={onClose}><X size={20} className="text-slate-400" /></button>
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
-          {error && <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+          {error && <div className="px-4 py-3 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
           <div>
             <label className="label">Title</label>
             <input value={form.title} onChange={e => set('title', e.target.value)}
@@ -114,8 +114,8 @@ function NewTicketModal({ orgId, userId, categories, assets, staffList, onClose,
               className="input w-full resize-none" />
           </div>
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600">Cancel</button>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300">Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
             {saving ? 'Submitting...' : 'Submit Ticket'}
@@ -150,10 +150,10 @@ function TicketModal({ ticket, categories, assets, staffList, isAdmin, onClose, 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div className="flex-1 min-w-0 pr-4">
-            <h2 className="font-display font-semibold text-slate-800 truncate">{ticket.title}</h2>
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 truncate">{ticket.title}</h2>
             <div className="text-xs text-slate-400 mt-0.5">#{ticket.id.slice(-8).toUpperCase()} · {catLabel} · {fmtDate(ticket.created_at)}</div>
           </div>
           <button onClick={onClose}><X size={20} className="text-slate-400 flex-shrink-0" /></button>
@@ -161,7 +161,7 @@ function TicketModal({ ticket, categories, assets, staffList, isAdmin, onClose, 
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
           {ticket.description && (
-            <div className="p-4 bg-slate-50 rounded-xl text-sm text-slate-600 leading-relaxed">{ticket.description}</div>
+            <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{ticket.description}</div>
           )}
 
           <div className="flex items-center gap-2 text-xs text-slate-400">
@@ -211,8 +211,8 @@ function TicketModal({ ticket, categories, assets, staffList, isAdmin, onClose, 
                 <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${PRIORITY_COLORS[ticket.priority]}`}>{ticket.priority}</span>
               </div>
               {ticket.resolution_notes && (
-                <div className="p-3 bg-green-50 border border-green-100 rounded-xl text-sm text-green-800">
-                  <div className="font-semibold text-xs text-green-600 mb-1">Resolution</div>
+                <div className="p-3 bg-green-50 dark:bg-green-950/50 border border-green-100 dark:border-green-900 rounded-xl text-sm text-green-800 dark:text-green-400">
+                  <div className="font-semibold text-xs text-green-600 dark:text-green-400 mb-1">Resolution</div>
                   {ticket.resolution_notes}
                 </div>
               )}
@@ -221,8 +221,8 @@ function TicketModal({ ticket, categories, assets, staffList, isAdmin, onClose, 
         </div>
 
         {isAdmin && (
-          <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
-            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600">Cancel</button>
+          <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
+            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300">Cancel</button>
             <button onClick={handleSave} disabled={saving}
               className="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg transition-colors">
               {saving ? 'Saving...' : 'Save Changes'}
@@ -273,9 +273,9 @@ function AssetModal({ asset, orgId, assetTypes, locations, staffList, onClose, o
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[92vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
-          <h2 className="font-display font-semibold text-slate-800">{isNew ? 'Add Asset' : 'Edit Asset'}</h2>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-xl max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">{isNew ? 'Add Asset' : 'Edit Asset'}</h2>
           <button onClick={onClose}><X size={20} className="text-slate-400" /></button>
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
@@ -358,8 +358,8 @@ function AssetModal({ asset, orgId, assetTypes, locations, staffList, onClose, o
               rows={2} className="input w-full resize-none" />
           </div>
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600">Cancel</button>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300">Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg transition-colors">
             {saving ? 'Saving...' : isNew ? 'Add Asset' : 'Save Changes'}
@@ -450,15 +450,15 @@ export default function ITTickets() {
 
   // css helpers (Tailwind classes can't be dynamic so we inline)
   const labelClass = "block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5"
-  const inputClass = "w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+  const inputClass = "w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 
   return (
     <div className="max-w-6xl mx-auto">
-      <style>{`.label{display:block;font-size:.65rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.375rem}.input{width:100%;padding:.5rem .75rem;border:1px solid #e2e8f0;border-radius:.5rem;font-size:.875rem;outline:none}.input:focus{ring:2px solid #0c90e1}`}</style>
+      <style>{`.label{display:block;font-size:.65rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.375rem}.input{width:100%;padding:.5rem .75rem;border:1px solid #e2e8f0;border-radius:.5rem;font-size:.875rem;outline:none}.input:focus{ring:2px solid #0c90e1}.dark .input{background:#1e293b;border-color:#334155;color:#f1f5f9}.dark .label{color:#94a3b8}`}</style>
 
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-slate-800">IT & Technology</h1>
+          <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">IT & Technology</h1>
           <p className="text-slate-500 text-sm mt-0.5">Support tickets and device inventory</p>
         </div>
         <button onClick={() => setShowNew(true)}
@@ -469,12 +469,12 @@ export default function ITTickets() {
 
       {/* Stat strip */}
       <div className="grid grid-cols-3 gap-3 mb-6">
-        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
-          <div className="text-2xl font-bold text-blue-600" style={{ fontFamily: '"Playfair Display", serif' }}>{counts.open}</div>
+        <div className="bg-blue-50 dark:bg-blue-950/50 border border-blue-100 dark:border-blue-900 rounded-2xl p-4">
+          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400" style={{ fontFamily: '"Playfair Display", serif' }}>{counts.open}</div>
           <div className="text-xs text-slate-500 font-medium mt-0.5">Open Tickets</div>
         </div>
-        <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
-          <div className="text-2xl font-bold text-amber-600" style={{ fontFamily: '"Playfair Display", serif' }}>{counts.in_progress}</div>
+        <div className="bg-amber-50 dark:bg-amber-950/50 border border-amber-100 dark:border-amber-900 rounded-2xl p-4">
+          <div className="text-2xl font-bold text-amber-600 dark:text-amber-400" style={{ fontFamily: '"Playfair Display", serif' }}>{counts.in_progress}</div>
           <div className="text-xs text-slate-500 font-medium mt-0.5">In Progress</div>
         </div>
         <div className="bg-brand-50 border border-brand-100 rounded-2xl p-4">
@@ -484,7 +484,7 @@ export default function ITTickets() {
       </div>
 
       {/* Main tabs */}
-      <div className="flex gap-1 mb-6 bg-slate-100 p-1 rounded-xl w-fit">
+      <div className="flex gap-1 mb-6 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit">
         {[
           { key: 'tickets', label: 'Tickets',  icon: ClipboardList },
           { key: 'assets',  label: 'Assets',   icon: Monitor },
@@ -492,7 +492,7 @@ export default function ITTickets() {
           const Icon = t.icon
           return (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === t.key ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === t.key ? 'bg-white dark:bg-slate-700 text-brand-700 dark:text-brand-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
               <Icon size={15} />{t.label}
             </button>
           )
@@ -504,14 +504,14 @@ export default function ITTickets() {
         <>
           {/* Filters */}
           <div className="flex flex-wrap items-center gap-3 mb-4">
-            <div className="flex gap-1 bg-slate-100 p-1 rounded-xl text-xs">
+            <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs">
               {[
                 { key: 'all',      label: 'All' },
                 { key: 'mine',     label: 'My Tickets' },
                 ...(admin ? [{ key: 'assigned', label: 'Assigned to Me' }] : []),
               ].map(v => (
                 <button key={v.key} onClick={() => setTicketView(v.key)}
-                  className={`px-3 py-1.5 rounded-lg font-medium transition-all ${ticketView === v.key ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500'}`}>
+                  className={`px-3 py-1.5 rounded-lg font-medium transition-all ${ticketView === v.key ? 'bg-white dark:bg-slate-700 text-brand-700 dark:text-brand-400 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}>
                   {v.label}
                 </button>
               ))}
@@ -519,15 +519,15 @@ export default function ITTickets() {
             <div className="relative flex-1 min-w-44">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search tickets..."
-                className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-              className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none">
+              className="px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none">
               <option value="all">All Statuses</option>
               {Object.entries(STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
             <select value={filterPriority} onChange={e => setFilterPriority(e.target.value)}
-              className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none">
+              className="px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none">
               <option value="all">All Priorities</option>
               <option value="low">Low</option>
               <option value="normal">Normal</option>
@@ -553,13 +553,13 @@ export default function ITTickets() {
                 const catLabel = categories.find(c => c.value === t.category)?.label || t.category
                 return (
                   <button key={t.id} onClick={() => setViewTicket(t)}
-                    className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-4 text-left hover:border-brand-200 hover:shadow-md transition-all group">
+                    className="w-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-4 flex items-center gap-4 text-left hover:border-brand-200 hover:shadow-md transition-all group">
                     <div className="w-10 h-10 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center flex-shrink-0">
                       <Monitor size={18} className="text-brand-600" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium text-slate-800 text-sm truncate">{t.title}</span>
+                        <span className="font-medium text-slate-800 dark:text-slate-100 text-sm truncate">{t.title}</span>
                         {t.priority === 'urgent' && <AlertTriangle size={13} className="text-red-500 flex-shrink-0" />}
                       </div>
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-400">
@@ -595,10 +595,10 @@ export default function ITTickets() {
             <div className="relative flex-1 min-w-44">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input value={assetSearch} onChange={e => setAssetSearch(e.target.value)} placeholder="Search by name, tag, serial..."
-                className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <select value={assetTypeFilter} onChange={e => setAssetTypeFilter(e.target.value)}
-              className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none">
+              className="px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none">
               <option value="all">All Types</option>
               {assetTypes.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
             </select>
@@ -616,10 +616,10 @@ export default function ITTickets() {
               <p className="font-display text-lg">No assets found</p>
             </div>
           ) : (
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50">
+                  <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                     {['Tag','Name','Type','Make / Model','Location','Assigned To','Warranty','Status',''].map(h => (
                       <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
                     ))}
@@ -632,11 +632,11 @@ export default function ITTickets() {
                     const warrantyExpired = a.warranty_expiry && new Date(a.warranty_expiry) < now
                     const warrantySoon = a.warranty_expiry && !warrantyExpired && new Date(a.warranty_expiry) < new Date(now.getTime() + 90*24*60*60*1000)
                     return (
-                      <tr key={a.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                      <tr key={a.id} className="border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                         <td className="px-4 py-3">
-                          <span className="font-mono text-xs text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">{a.asset_tag || '—'}</span>
+                          <span className="font-mono text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">{a.asset_tag || '—'}</span>
                         </td>
-                        <td className="px-4 py-3 font-medium text-slate-800 max-w-48 truncate">{a.name}</td>
+                        <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-100 max-w-48 truncate">{a.name}</td>
                         <td className="px-4 py-3 text-slate-500 text-xs whitespace-nowrap">{typeLabel}</td>
                         <td className="px-4 py-3 text-slate-500 text-xs">
                           {[a.make, a.model].filter(Boolean).join(' ') || '—'}

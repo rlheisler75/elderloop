@@ -27,18 +27,18 @@ export default function UpgradeWall({ moduleKey }) {
       <div className="max-w-md w-full text-center px-6">
 
         {/* Lock icon */}
-        <div className="w-20 h-20 bg-slate-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
+        <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-3xl flex items-center justify-center mx-auto mb-6">
           <Lock size={32} className="text-slate-400" />
         </div>
 
         {/* Heading */}
-        <h2 className="text-2xl font-bold text-slate-800 mb-3"
+        <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-3"
           style={{ fontFamily: '"Playfair Display", serif' }}>
           {label} is a Community feature
         </h2>
 
         <p className="text-slate-500 mb-2 leading-relaxed">
-          Your current <span className="font-semibold text-slate-700 capitalize">{organization?.plan || 'Starter'}</span> plan
+          Your current <span className="font-semibold text-slate-700 dark:text-slate-300 capitalize">{organization?.plan || 'Starter'}</span> plan
           doesn't include this module. Upgrade to <span className="font-semibold text-brand-600">Community</span> at $349/mo
           to unlock all 20 modules.
         </p>
@@ -53,7 +53,7 @@ export default function UpgradeWall({ moduleKey }) {
             <Zap size={15} className="text-brand-600" />
             <span className="text-sm font-semibold text-brand-700">Community plan includes:</span>
           </div>
-          <ul className="space-y-1.5 text-sm text-slate-600">
+          <ul className="space-y-1.5 text-sm text-slate-600 dark:text-slate-300">
             {[
               'Unlimited residents',
               'All 20 modules',
@@ -81,7 +81,7 @@ export default function UpgradeWall({ moduleKey }) {
 
         <button
           onClick={() => navigate(-1)}
-          className="w-full py-3 text-slate-500 hover:text-slate-700 text-sm transition-colors">
+          className="w-full py-3 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-sm transition-colors">
           Go back
         </button>
 

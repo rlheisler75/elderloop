@@ -11,9 +11,9 @@ import {
 
 // ── Constants ──────────────────────────────────────────────────
 const SHIFTS = [
-  { key: 'day',     label: 'Day',     time: '7am–3pm',  color: 'bg-amber-100 text-amber-700' },
-  { key: 'evening', label: 'Evening', time: '3pm–11pm', color: 'bg-indigo-100 text-indigo-700' },
-  { key: 'night',   label: 'Night',   time: '11pm–7am', color: 'bg-slate-100 text-slate-600' },
+  { key: 'day',     label: 'Day',     time: '7am–3pm',  color: 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400' },
+  { key: 'evening', label: 'Evening', time: '3pm–11pm', color: 'bg-indigo-100 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-400' },
+  { key: 'night',   label: 'Night',   time: '11pm–7am', color: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' },
 ]
 
 const NOTE_CATEGORIES = [
@@ -146,17 +146,17 @@ function VitalsModal({ vital, resident, orgId, profile, onClose, onSaved }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div>
-            <h2 className="font-display font-semibold text-slate-800">{isEdit ? 'Edit Vitals' : 'Record Vitals'}</h2>
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">{isEdit ? 'Edit Vitals' : 'Record Vitals'}</h2>
             <p className="text-xs text-slate-400 mt-0.5">{resident.first_name} {resident.last_name}</p>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
-          {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+          {error && <div className="px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900/50 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
 
           {/* Shift selector */}
           <div>
@@ -164,7 +164,7 @@ function VitalsModal({ vital, resident, orgId, profile, onClose, onSaved }) {
             <div className="flex gap-2">
               {SHIFTS.map(s => (
                 <button key={s.key} onClick={() => set('shift', s.key)}
-                  className={`flex-1 py-2 rounded-xl border-2 text-xs font-semibold transition-all ${form.shift === s.key ? 'bg-brand-600 border-brand-600 text-white' : 'border-slate-200 text-slate-600 hover:border-brand-300'}`}>
+                  className={`flex-1 py-2 rounded-xl border-2 text-xs font-semibold transition-all ${form.shift === s.key ? 'bg-brand-600 border-brand-600 text-white' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300'}`}>
                   {s.label}<br /><span className="font-normal opacity-70">{s.time}</span>
                 </button>
               ))}
@@ -181,11 +181,11 @@ function VitalsModal({ vital, resident, orgId, profile, onClose, onSaved }) {
               </label>
               <div className="flex gap-2 items-center">
                 <input type="number" value={form.bp_systolic} onChange={e => set('bp_systolic', e.target.value)}
-                  className="flex-1 px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 text-center font-semibold"
+                  className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 text-center font-semibold"
                   placeholder="Systolic" min="60" max="250" />
                 <span className="text-slate-400 font-bold text-lg">/</span>
                 <input type="number" value={form.bp_diastolic} onChange={e => set('bp_diastolic', e.target.value)}
-                  className="flex-1 px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 text-center font-semibold"
+                  className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 text-center font-semibold"
                   placeholder="Diastolic" min="40" max="150" />
               </div>
             </div>
@@ -206,7 +206,7 @@ function VitalsModal({ vital, resident, orgId, profile, onClose, onSaved }) {
                   </label>
                   <input type="number" value={form[v.key]} onChange={e => set(v.key, e.target.value)}
                     step={v.step || '1'} min={v.min} max={v.max}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 text-center font-semibold"
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 text-center font-semibold"
                     placeholder={v.placeholder} />
                 </div>
               )
@@ -223,7 +223,7 @@ function VitalsModal({ vital, resident, orgId, profile, onClose, onSaved }) {
                 <button key={i} onClick={() => set('pain_level', i.toString())}
                   className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all border-2 ${form.pain_level === i.toString()
                     ? i >= 7 ? 'bg-red-500 border-red-500 text-white' : i >= 4 ? 'bg-amber-500 border-amber-500 text-white' : 'bg-green-500 border-green-500 text-white'
-                    : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}>
+                    : 'border-slate-200 dark:border-slate-700 text-slate-500 hover:border-slate-300'}`}>
                   {i}
                 </button>
               ))}
@@ -236,12 +236,12 @@ function VitalsModal({ vital, resident, orgId, profile, onClose, onSaved }) {
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Notes</label>
             <textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows={2}
-              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
               placeholder="Any observations or relevant notes..." />
           </div>
         </div>
 
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-between gap-3 flex-shrink-0">
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-between gap-3 flex-shrink-0">
           <div>
             {isEdit && (
               <button onClick={handleDelete} disabled={deleting}
@@ -251,7 +251,7 @@ function VitalsModal({ vital, resident, orgId, profile, onClose, onSaved }) {
             )}
           </div>
           <div className="flex gap-3">
-            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
             <button onClick={handleSave} disabled={saving}
               className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
               {saving ? 'Saving...' : isEdit ? 'Update Vitals' : 'Save Vitals'}
@@ -315,101 +315,101 @@ function MedModal({ med, resident, orgId, profile, onClose, onSaved }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div>
-            <h2 className="font-display font-semibold text-slate-800">{isNew ? 'Add Medication' : 'Edit Medication'}</h2>
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">{isNew ? 'Add Medication' : 'Edit Medication'}</h2>
             <p className="text-xs text-slate-400 mt-0.5">{resident.first_name} {resident.last_name}</p>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-3">
-          {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+          {error && <div className="px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900/50 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
 
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2">
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Medication Name *</label>
               <input value={form.name} onChange={e => set('name', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="e.g. Lisinopril" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Generic Name</label>
               <input value={form.generic_name} onChange={e => set('generic_name', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="Generic name" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Dosage</label>
               <input value={form.dosage} onChange={e => set('dosage', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="e.g. 10mg" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Form</label>
               <select value={form.form} onChange={e => set('form', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 capitalize">
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 capitalize">
                 {MED_FORMS.map(f => <option key={f} value={f} className="capitalize">{f}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Route</label>
               <select value={form.route} onChange={e => set('route', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 uppercase">
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 uppercase">
                 {MED_ROUTES.map(r => <option key={r} value={r} className="uppercase">{r}</option>)}
               </select>
             </div>
             <div className="col-span-2">
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Frequency</label>
               <input value={form.frequency} onChange={e => set('frequency', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="e.g. Twice daily, Every 8 hours, PRN" />
             </div>
             <div className="col-span-2">
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Indication (What it's for)</label>
               <input value={form.indication} onChange={e => set('indication', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="e.g. Hypertension, Type 2 Diabetes" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Prescriber</label>
               <input value={form.prescriber} onChange={e => set('prescriber', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="Dr. Name" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Pharmacy</label>
               <input value={form.pharmacy} onChange={e => set('pharmacy', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="Pharmacy name" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Start Date</label>
               <input type="date" value={form.start_date} onChange={e => set('start_date', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">End Date</label>
               <input type="date" value={form.end_date} onChange={e => set('end_date', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
           </div>
 
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={form.is_prn} onChange={e => set('is_prn', e.target.checked)} className="w-4 h-4 rounded text-brand-600" />
-            <span className="text-sm text-slate-700 font-medium">PRN (As Needed)</span>
+            <span className="text-sm text-slate-700 dark:text-slate-300 font-medium">PRN (As Needed)</span>
           </label>
 
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Notes</label>
             <textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows={2}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
               placeholder="Special instructions, allergies, notes..." />
           </div>
         </div>
 
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-between gap-3 flex-shrink-0">
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-between gap-3 flex-shrink-0">
           <div>
             {!isNew && (
               <button onClick={handleDelete} disabled={deleting}
@@ -419,7 +419,7 @@ function MedModal({ med, resident, orgId, profile, onClose, onSaved }) {
             )}
           </div>
           <div className="flex gap-3">
-            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
             <button onClick={handleSave} disabled={saving}
               className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
               {saving ? 'Saving...' : isNew ? 'Add Medication' : 'Save Changes'}

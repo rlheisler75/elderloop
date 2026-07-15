@@ -7,12 +7,12 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 
 const CATEGORIES = [
-  { key: 'general',   label: 'General',   icon: Megaphone,       color: 'bg-slate-100 text-slate-600 border-slate-200' },
-  { key: 'urgent',    label: 'Urgent',    icon: AlertTriangle,   color: 'bg-red-50 text-red-600 border-red-200' },
-  { key: 'reminder',  label: 'Reminder',  icon: Clock,           color: 'bg-yellow-50 text-yellow-600 border-yellow-200' },
-  { key: 'activity',  label: 'Activity',  icon: Calendar,        color: 'bg-blue-50 text-blue-600 border-blue-200' },
-  { key: 'meal',      label: 'Meal',      icon: UtensilsCrossed, color: 'bg-amber-50 text-amber-600 border-amber-200' },
-  { key: 'health',    label: 'Health',    icon: Activity,        color: 'bg-purple-50 text-purple-600 border-purple-200' },
+  { key: 'general',   label: 'General',   icon: Megaphone,       color: 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700' },
+  { key: 'urgent',    label: 'Urgent',    icon: AlertTriangle,   color: 'bg-red-50 text-red-600 border-red-200 dark:bg-red-950/50 dark:text-red-400 dark:border-red-800' },
+  { key: 'reminder',  label: 'Reminder',  icon: Clock,           color: 'bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-950/50 dark:text-yellow-400 dark:border-yellow-800' },
+  { key: 'activity',  label: 'Activity',  icon: Calendar,        color: 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800' },
+  { key: 'meal',      label: 'Meal',      icon: UtensilsCrossed, color: 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800' },
+  { key: 'health',    label: 'Health',    icon: Activity,        color: 'bg-purple-50 text-purple-600 border-purple-200 dark:bg-purple-950/50 dark:text-purple-400 dark:border-purple-800' },
 ]
 
 // Fallback only — orgs manage their real department list in Admin Panel > Settings
@@ -256,20 +256,20 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center">
               <Send size={14} className="text-white" />
             </div>
-            <h2 className="font-semibold text-slate-800">New Message</h2>
+            <h2 className="font-semibold text-slate-800 dark:text-slate-100">New Message</h2>
           </div>
           <div className="flex items-center gap-2">
             {templates.length > 0 && (
               <button onClick={() => setShowTemplates(s => !s)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 hover:text-brand-600 border border-slate-200 hover:border-brand-300 rounded-lg transition-colors">
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 dark:text-slate-300 hover:text-brand-600 border border-slate-200 dark:border-slate-700 hover:border-brand-300 rounded-lg transition-colors">
                 Templates {showTemplates ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
               </button>
             )}
@@ -281,13 +281,13 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
 
         {/* Templates dropdown */}
         {showTemplates && templates.length > 0 && (
-          <div className="px-6 py-3 bg-slate-50 border-b border-slate-100 flex-shrink-0">
+          <div className="px-6 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
             <p className="text-xs font-medium text-slate-500 mb-2 uppercase tracking-wide">Quick Templates</p>
             <div className="grid grid-cols-3 gap-2">
               {templates.map(t => (
                 <button key={t.name} onClick={() => applyTemplate(t)}
-                  className="text-left px-3 py-2 bg-white rounded-xl border border-slate-200 hover:border-brand-300 hover:bg-brand-50 transition-colors text-xs">
-                  <div className="font-medium text-slate-700">{t.name}</div>
+                  className="text-left px-3 py-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-brand-300 hover:bg-brand-50 transition-colors text-xs">
+                  <div className="font-medium text-slate-700 dark:text-slate-300">{t.name}</div>
                   <div className="text-slate-400 truncate mt-0.5">{t.subject}</div>
                 </button>
               ))}
@@ -298,12 +298,12 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
         {/* Body */}
         <div className="overflow-y-auto flex-1 px-6 py-5 space-y-5">
           {error && (
-            <div className="px-4 py-2.5 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">{error}</div>
+            <div className="px-4 py-2.5 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-xl text-red-700 dark:text-red-400 text-sm">{error}</div>
           )}
 
           {/* Channels */}
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Send via</label>
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Send via</label>
             <div className="flex gap-2">
               {[
                 { key: 'push',  label: 'In-App',  icon: Bell,          activeClass: 'bg-brand-50 border-brand-400 text-brand-700' },
@@ -315,17 +315,17 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
                 return (
                   <button key={ch.key} onClick={() => toggleChannel(ch.key)}
                     className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 font-medium text-sm transition-all
-                      ${active ? ch.activeClass : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'}`}>
+                      ${active ? ch.activeClass : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'}`}>
                     <Icon size={15} />{ch.label}
                     {ch.key === 'sms' && active && (
-                      <span className="text-[10px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded-full font-semibold">Pending A2P</span>
+                      <span className="text-[10px] bg-yellow-100 dark:bg-yellow-950/50 text-yellow-700 dark:text-yellow-400 px-1.5 py-0.5 rounded-full font-semibold">Pending A2P</span>
                     )}
                   </button>
                 )
               })}
             </div>
             {smsWarning && form.channels.includes('sms') && (
-              <p className="text-xs text-yellow-700 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2 mt-2">
+              <p className="text-xs text-yellow-700 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-900 rounded-lg px-3 py-2 mt-2">
                 ⚠️ SMS requires Twilio A2P 10DLC registration (~2–4 weeks). Messages queued until approved.
               </p>
             )}
@@ -333,7 +333,7 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
 
           {/* Category */}
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Category</label>
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Category</label>
             <div className="flex flex-wrap gap-2">
               {CATEGORIES.map(cat => {
                 const Icon = cat.icon
@@ -342,7 +342,7 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all
                       ${form.category === cat.key
                         ? cat.color + ' ring-2 ring-offset-1 ring-brand-300'
-                        : 'border-slate-200 text-slate-500 hover:border-slate-300 bg-white'}`}>
+                        : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-slate-800'}`}>
                     <Icon size={13} />{cat.label}
                   </button>
                 )
@@ -352,7 +352,7 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
 
           {/* Audience */}
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Send to</label>
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Send to</label>
             <div className="grid grid-cols-3 gap-2">
               {audienceOptions.map(opt => {
                 const Icon = opt.icon
@@ -360,7 +360,7 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
                 return (
                   <button key={opt.key} onClick={() => setField('audience_type', opt.key)}
                     className={`flex flex-col items-start p-3 rounded-xl border-2 text-left transition-all
-                      ${active ? 'bg-brand-50 border-brand-400 text-brand-700' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'}`}>
+                      ${active ? 'bg-brand-50 border-brand-400 text-brand-700' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600'}`}>
                     <Icon size={15} className="mb-1" />
                     <div className="text-xs font-semibold">{opt.label}</div>
                     <div className="text-[10px] opacity-60 leading-tight mt-0.5">{opt.desc}</div>
@@ -379,7 +379,7 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
                       className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border-2 text-sm transition-all
                         ${form.audience_dept === d.key
                           ? 'bg-brand-50 border-brand-400 text-brand-700 font-medium'
-                          : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'}`}>
+                          : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600'}`}>
                       <Icon size={14} />{d.label}
                     </button>
                   )
@@ -389,15 +389,15 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
 
             {/* Individual picker */}
             {form.audience_type === 'individual' && (
-              <div className="mt-3 border border-slate-200 rounded-xl overflow-hidden">
+              <div className="mt-3 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
                 {/* Search */}
-                <div className="px-3 py-2 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
+                <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 flex items-center gap-2">
                   <Search size={13} className="text-slate-400 flex-shrink-0" />
                   <input
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
                     placeholder="Search by name, room, or email..."
-                    className="flex-1 bg-transparent text-sm outline-none text-slate-700 placeholder-slate-400"
+                    className="flex-1 bg-transparent text-sm outline-none text-slate-700 dark:text-slate-200 placeholder-slate-400"
                     autoFocus
                   />
                   {searchTerm && (
@@ -408,7 +408,7 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
                 </div>
 
                 {/* Results */}
-                <div className="max-h-52 overflow-y-auto divide-y divide-slate-50">
+                <div className="max-h-52 overflow-y-auto divide-y divide-slate-50 dark:divide-slate-800">
                   {getFilteredPeople().length === 0 ? (
                     <div className="px-3 py-8 text-center">
                       <User size={24} className="mx-auto text-slate-200 mb-2" />
@@ -422,13 +422,13 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
                       const selected = isSelected(p)
                       const isRes    = p._table === 'residents'
                       const isFam    = p.role === 'family'
-                      const avatarColor = isRes ? 'bg-green-100 text-green-700'
-                                        : isFam ? 'bg-pink-100 text-pink-700'
+                      const avatarColor = isRes ? 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400'
+                                        : isFam ? 'bg-pink-100 dark:bg-pink-950/50 text-pink-700 dark:text-pink-400'
                                         : 'bg-brand-100 text-brand-700'
                       return (
                         <label key={personKey(p)}
-                          className={`flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors hover:bg-slate-50
-                            ${selected ? 'bg-brand-50' : ''}`}>
+                          className={`flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-slate-800
+                            ${selected ? 'bg-brand-50 dark:bg-brand-950/30' : ''}`}>
                           <input
                             type="checkbox"
                             checked={selected}
@@ -439,7 +439,7 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
                             {p.first_name?.[0]}{p.last_name?.[0]}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium text-slate-800">{name}</div>
+                            <div className="text-sm font-medium text-slate-800 dark:text-slate-100">{name}</div>
                             <div className="text-xs text-slate-400">{p._typeLabel}</div>
                           </div>
                           {selected && <div className="w-2 h-2 rounded-full bg-brand-500 flex-shrink-0" />}
@@ -451,7 +451,7 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
 
                 {/* Selected count bar */}
                 {selectedPeople.length > 0 && (
-                  <div className="px-3 py-2 border-t border-slate-100 bg-brand-50 flex items-center justify-between">
+                  <div className="px-3 py-2 border-t border-slate-100 dark:border-slate-800 bg-brand-50 dark:bg-brand-950/30 flex items-center justify-between">
                     <span className="text-xs font-medium text-brand-700">
                       {selectedPeople.length} recipient{selectedPeople.length !== 1 ? 's' : ''} selected
                     </span>
@@ -466,24 +466,24 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
 
           {/* Subject */}
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Subject *</label>
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Subject *</label>
             <input
               value={form.subject}
               onChange={e => setField('subject', e.target.value)}
               placeholder="Message subject..."
-              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-800"
+              className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-800 dark:text-slate-100"
             />
           </div>
 
           {/* Body */}
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Message *</label>
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Message *</label>
             <textarea
               value={form.body}
               onChange={e => setField('body', e.target.value)}
               rows={4}
               placeholder="Write your message here..."
-              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none text-slate-800"
+              className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none text-slate-800 dark:text-slate-100"
             />
             {form.channels.includes('sms') && (
               <p className="text-xs text-slate-400 mt-1">{form.body.length}/160 chars (SMS)</p>
@@ -492,13 +492,13 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 flex-shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div className="text-xs text-slate-400 truncate max-w-xs">
             {form.channels.map(c => c === 'push' ? '🔔 In-App' : c === 'email' ? '✉️ Email' : '💬 SMS').join(' + ')}
             {' → '}{audienceSummary()}
           </div>
           <div className="flex gap-2 flex-shrink-0">
-            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 hover:text-slate-800 font-medium">
+            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-medium">
               Cancel
             </button>
             <button

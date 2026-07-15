@@ -38,7 +38,7 @@ function LiveClock() {
   useEffect(() => { const t = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(t) }, [])
   return (
     <div className="text-center">
-      <div className="text-5xl font-light text-slate-800 tracking-wide" style={{ fontFamily: '"Playfair Display", serif' }}>
+      <div className="text-5xl font-light text-slate-800 dark:text-slate-100 tracking-wide" style={{ fontFamily: '"Playfair Display", serif' }}>
         {now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
       </div>
       <div className="text-slate-400 text-sm mt-1">
@@ -74,7 +74,7 @@ function GPSStatus({ gps, geofence }) {
         {dist !== null && <span className="text-slate-400 font-normal">· {mToFt(dist)} ft from facility</span>}
       </div>
       {geofence && !inside && (
-        <div className="text-xs text-red-400 bg-red-50 px-3 py-1.5 rounded-lg">
+        <div className="text-xs text-red-400 bg-red-50 dark:bg-red-950/50 px-3 py-1.5 rounded-lg">
           Must be within {mToFt(geofence.radius_meters)} ft to clock in/out
         </div>
       )}
@@ -247,8 +247,8 @@ function PayrollExport({ orgId }) {
     <div className="space-y-6">
 
       {/* Date range picker */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-        <h3 className="font-semibold text-slate-700 mb-4 flex items-center gap-2">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6">
+        <h3 className="font-semibold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
           <Download size={16} className="text-brand-600" /> Payroll Export
         </h3>
 
@@ -260,7 +260,7 @@ function PayrollExport({ orgId }) {
             { label: 'Last month',  fn: () => setRange(lastMonthStart, lastMonthEnd) },
           ].map(p => (
             <button key={p.label} onClick={p.fn}
-              className="px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg text-slate-600 hover:border-brand-300 hover:text-brand-600 transition-colors">
+              className="px-3 py-1.5 text-xs font-medium border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 transition-colors">
               {p.label}
             </button>
           ))}
@@ -270,12 +270,12 @@ function PayrollExport({ orgId }) {
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">From</label>
             <input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setReport(null) }}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">To</label>
             <input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setReport(null) }}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
         </div>
 
@@ -289,17 +289,17 @@ function PayrollExport({ orgId }) {
       {report && (
         <>
           {/* Summary totals + export buttons */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="font-semibold text-slate-700">
+                <h3 className="font-semibold text-slate-700 dark:text-slate-300">
                   Summary — {new Date(report.dateFrom + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} to {new Date(report.dateTo + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">{report.rows.length} employee{report.rows.length !== 1 ? 's' : ''} with clock data in this period</p>
               </div>
               <div className="flex gap-2">
                 <button onClick={exportSummaryCSV}
-                  className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600 rounded-xl text-xs font-medium transition-colors">
+                  className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 rounded-xl text-xs font-medium transition-colors">
                   <Download size={13} /> Summary CSV
                 </button>
                 <button onClick={exportCSV}
@@ -311,7 +311,7 @@ function PayrollExport({ orgId }) {
 
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-100 bg-slate-50">
+                <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                   {['Employee','Role','Dept','Days','Regular Hrs','OT Hrs','Total Hrs'].map(h => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
                   ))}
@@ -322,14 +322,14 @@ function PayrollExport({ orgId }) {
                   <tr><td colSpan={7} className="px-4 py-10 text-center text-slate-400 text-sm">No clock data found for this date range</td></tr>
                 )}
                 {report.rows.map(({ profile, days, regularHrs, otHrs, totalHrs }) => (
-                  <tr key={profile?.id} className="border-b border-slate-50 hover:bg-slate-50">
-                    <td className="px-4 py-3 font-medium text-slate-800">
+                  <tr key={profile?.id} className="border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800">
+                    <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-100">
                       {profile?.first_name} {profile?.last_name}
                     </td>
                     <td className="px-4 py-3 text-slate-500 capitalize text-xs">{profile?.role?.replace(/_/g,' ')}</td>
                     <td className="px-4 py-3 text-slate-500 capitalize text-xs">{profile?.department || '—'}</td>
-                    <td className="px-4 py-3 text-slate-700 text-sm">{days}</td>
-                    <td className="px-4 py-3 font-medium text-slate-800">{fmtHrs(regularHrs)}</td>
+                    <td className="px-4 py-3 text-slate-700 dark:text-slate-300 text-sm">{days}</td>
+                    <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-100">{fmtHrs(regularHrs)}</td>
                     <td className="px-4 py-3">
                       {otHrs > 0
                         ? <span className="font-semibold text-amber-600">{fmtHrs(otHrs)}</span>
@@ -339,9 +339,9 @@ function PayrollExport({ orgId }) {
                   </tr>
                 ))}
                 {report.rows.length > 0 && (
-                  <tr className="bg-slate-50 border-t-2 border-slate-200">
-                    <td colSpan={4} className="px-4 py-3 font-semibold text-slate-700 text-sm">Totals</td>
-                    <td className="px-4 py-3 font-bold text-slate-800">
+                  <tr className="bg-slate-50 dark:bg-slate-800 border-t-2 border-slate-200 dark:border-slate-700">
+                    <td colSpan={4} className="px-4 py-3 font-semibold text-slate-700 dark:text-slate-300 text-sm">Totals</td>
+                    <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-100">
                       {fmtHrs(report.rows.reduce((s, r) => s + r.regularHrs, 0))}
                     </td>
                     <td className="px-4 py-3 font-bold text-amber-600">
@@ -358,24 +358,24 @@ function PayrollExport({ orgId }) {
 
           {/* Per-employee detail */}
           {report.rows.map(({ profile, pairs }) => (
-            <div key={profile?.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-              <div className="px-5 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
-                <div className="font-semibold text-slate-700 text-sm">
+            <div key={profile?.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
+              <div className="px-5 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <div className="font-semibold text-slate-700 dark:text-slate-300 text-sm">
                   {profile?.first_name} {profile?.last_name}
                   <span className="ml-2 text-xs text-slate-400 font-normal capitalize">{profile?.role?.replace(/_/g,' ')} · {profile?.department || 'no dept'}</span>
                 </div>
                 <div className="text-xs text-slate-400">{pairs.length} shift{pairs.length !== 1 ? 's' : ''}</div>
               </div>
               <table className="w-full text-sm">
-                <thead><tr className="border-b border-slate-50">
+                <thead><tr className="border-b border-slate-50 dark:border-slate-800">
                   {['Date','Clock In','Clock Out','Regular','OT','Total','On-Site'].map(h => (
                     <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">{h}</th>
                   ))}
                 </tr></thead>
                 <tbody>
                   {pairs.map((p, i) => (
-                    <tr key={i} className="border-b border-slate-50 hover:bg-slate-50 last:border-0">
-                      <td className="px-4 py-2.5 text-slate-600">
+                    <tr key={i} className="border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 last:border-0">
+                      <td className="px-4 py-2.5 text-slate-600 dark:text-slate-300">
                         {new Date(p.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                       </td>
                       <td className="px-4 py-2.5 font-medium text-green-700">{p.clock_in}</td>
@@ -384,14 +384,14 @@ function PayrollExport({ orgId }) {
                           ? <span className="text-xs text-amber-600 font-semibold flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" /> On Shift</span>
                           : p.clock_out}
                       </td>
-                      <td className="px-4 py-2.5 text-slate-700">{p.regular_hours != null ? `${p.regular_hours.toFixed(2)}h` : '—'}</td>
+                      <td className="px-4 py-2.5 text-slate-700 dark:text-slate-300">{p.regular_hours != null ? `${p.regular_hours.toFixed(2)}h` : '—'}</td>
                       <td className="px-4 py-2.5">
                         {p.ot_hours > 0 ? <span className="text-amber-600 font-medium">{p.ot_hours.toFixed(2)}h</span> : <span className="text-slate-300">—</span>}
                       </td>
-                      <td className="px-4 py-2.5 font-semibold text-slate-800">{p.total_hours != null ? `${p.total_hours.toFixed(2)}h` : '—'}</td>
+                      <td className="px-4 py-2.5 font-semibold text-slate-800 dark:text-slate-100">{p.total_hours != null ? `${p.total_hours.toFixed(2)}h` : '—'}</td>
                       <td className="px-4 py-2.5">
                         {p.on_site_in != null
-                          ? <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${p.on_site_in ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
+                          ? <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${p.on_site_in ? 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400'}`}>
                               {p.on_site_in ? 'On-site' : 'Remote'}
                             </span>
                           : <span className="text-slate-300 text-xs">—</span>}
@@ -510,7 +510,7 @@ function GeofenceMap({ lat, lng, radius, mapRef, circleRef, leafletMapRef, onCha
       </label>
       <div
         ref={containerRef}
-        className="w-full rounded-xl overflow-hidden border border-slate-200"
+        className="w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700"
         style={{ height: 280 }}
       />
       <p className="text-xs text-slate-400 mt-1.5 flex items-center gap-1">
@@ -654,13 +654,13 @@ export default function TimeClock() {
     <div className="max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-slate-800">Time Clock</h1>
+          <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Time Clock</h1>
           <p className="text-slate-500 text-sm mt-0.5">GPS-verified clock in/out</p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-slate-100 p-1 rounded-xl w-fit">
+      <div className="flex gap-1 mb-6 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit">
         {[
           { key: 'clock', label: 'My Clock', icon: Clock },
           { key: 'history', label: 'My History', icon: Calendar },
@@ -673,7 +673,7 @@ export default function TimeClock() {
           const Icon = t.icon
           return (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === t.key ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === t.key ? 'bg-white dark:bg-slate-700 text-brand-700 dark:text-brand-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
               <Icon size={15} />{t.label}
             </button>
           )
@@ -692,13 +692,13 @@ export default function TimeClock() {
       {tab === 'clock' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Clock card */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8 flex flex-col items-center gap-6">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-8 flex flex-col items-center gap-6">
             <LiveClock />
 
             <GPSStatus gps={gps} geofence={geofence} />
 
             {/* Status indicator */}
-            <div className={`w-full py-3 px-4 rounded-xl text-center text-sm font-semibold border ${status === 'in' ? 'bg-green-50 border-green-200 text-green-700' : 'bg-slate-50 border-slate-200 text-slate-500'}`}>
+            <div className={`w-full py-3 px-4 rounded-xl text-center text-sm font-semibold border ${status === 'in' ? 'bg-green-50 dark:bg-green-950/50 border-green-200 dark:border-green-900 text-green-700 dark:text-green-400' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'}`}>
               {status === 'in'
                 ? `On Shift · Clocked in at ${fmtTime(lastPunch?.punched_at)}`
                 : lastPunch ? `Last punch: ${fmtDate(lastPunch?.punched_at)} at ${fmtTime(lastPunch?.punched_at)}` : 'Not clocked in'}
@@ -725,8 +725,8 @@ export default function TimeClock() {
           </div>
 
           {/* Recent punches */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-            <h3 className="font-semibold text-slate-700 mb-4 text-sm">Recent Punches</h3>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6">
+            <h3 className="font-semibold text-slate-700 dark:text-slate-300 mb-4 text-sm">Recent Punches</h3>
             {punches.length === 0 ? (
               <div className="text-center py-8 text-slate-400 text-sm">No punches yet</div>
             ) : (
@@ -738,12 +738,12 @@ export default function TimeClock() {
                   const dur = isIn && nextOut ? new Date(nextOut.punched_at) - new Date(p.punched_at) : null
 
                   return (
-                    <div key={p.id} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${isIn ? 'bg-green-100' : 'bg-red-100'}`}>
+                    <div key={p.id} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${isIn ? 'bg-green-100 dark:bg-green-950/50' : 'bg-red-100 dark:bg-red-950/50'}`}>
                         {isIn ? <LogIn size={14} className="text-green-600" /> : <LogOut size={14} className="text-red-500" />}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-slate-700">
+                        <div className="text-sm font-medium text-slate-700 dark:text-slate-300">
                           {isIn ? 'Clock In' : 'Clock Out'} · {fmtTime(p.punched_at)}
                         </div>
                         <div className="text-xs text-slate-400">
@@ -764,13 +764,13 @@ export default function TimeClock() {
 
       {/* ── HISTORY TAB ── */}
       {tab === 'history' && (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-            <h3 className="font-semibold text-slate-700">My Punch History</h3>
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+          <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <h3 className="font-semibold text-slate-700 dark:text-slate-300">My Punch History</h3>
             <div className="text-xs text-slate-400">{punches.length} records</div>
           </div>
           <table className="w-full text-sm">
-            <thead><tr className="border-b border-slate-100">
+            <thead><tr className="border-b border-slate-100 dark:border-slate-800">
               {['Type','Date','Time','Location','Distance','Duration'].map(h => (
                 <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">{h}</th>
               ))}
@@ -782,14 +782,14 @@ export default function TimeClock() {
                 const dur = !isIn && prev?.punch_type === 'in'
                   ? new Date(p.punched_at) - new Date(prev.punched_at) : null
                 return (
-                  <tr key={p.id} className="border-b border-slate-50 hover:bg-slate-50">
+                  <tr key={p.id} className="border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800">
                     <td className="px-5 py-3">
-                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${isIn ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${isIn ? 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400'}`}>
                         {isIn ? 'IN' : 'OUT'}
                       </span>
                     </td>
-                    <td className="px-5 py-3 text-slate-600">{fmtDate(p.punched_at)}</td>
-                    <td className="px-5 py-3 font-medium text-slate-800">{fmtTime(p.punched_at)}</td>
+                    <td className="px-5 py-3 text-slate-600 dark:text-slate-300">{fmtDate(p.punched_at)}</td>
+                    <td className="px-5 py-3 font-medium text-slate-800 dark:text-slate-100">{fmtTime(p.punched_at)}</td>
                     <td className="px-5 py-3">
                       {p.within_geofence
                         ? <span className="text-green-600 text-xs flex items-center gap-1"><CheckCircle2 size={12} /> On-site</span>
@@ -810,8 +810,8 @@ export default function TimeClock() {
       {tab === 'team' && admin && (
         <div className="space-y-6">
           {/* Currently on shift */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-            <h3 className="font-semibold text-slate-700 mb-4 flex items-center gap-2">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6">
+            <h3 className="font-semibold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
               Currently On Shift
             </h3>
@@ -819,13 +819,13 @@ export default function TimeClock() {
               {Object.values(payrollMap).filter(u => u.onShift).map((u, i) => {
                 const lastIn = sortedPunches.filter(p => p.user_id === Object.keys(payrollMap)[i] && p.punch_type === 'in').pop()
                 return (
-                  <div key={i} className="flex items-center gap-3 p-3 bg-green-50 border border-green-100 rounded-xl">
-                    <div className="w-8 h-8 rounded-full bg-green-200 flex items-center justify-center text-green-700 text-sm font-bold flex-shrink-0">
+                  <div key={i} className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-950/50 border border-green-100 dark:border-green-900 rounded-xl">
+                    <div className="w-8 h-8 rounded-full bg-green-200 dark:bg-green-900 flex items-center justify-center text-green-700 dark:text-green-400 text-sm font-bold flex-shrink-0">
                       {u.profile?.first_name?.[0]}
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-slate-800">{u.profile?.first_name} {u.profile?.last_name}</div>
-                      <div className="text-xs text-green-600">Since {fmtTime(lastIn?.punched_at)}</div>
+                      <div className="text-sm font-medium text-slate-800 dark:text-slate-100">{u.profile?.first_name} {u.profile?.last_name}</div>
+                      <div className="text-xs text-green-600 dark:text-green-400">Since {fmtTime(lastIn?.punched_at)}</div>
                     </div>
                   </div>
                 )
@@ -837,27 +837,27 @@ export default function TimeClock() {
           </div>
 
           {/* Payroll summary */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm">
-            <div className="px-6 py-4 border-b border-slate-100">
-              <h3 className="font-semibold text-slate-700">Payroll Summary — All Time</h3>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+            <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="font-semibold text-slate-700 dark:text-slate-300">Payroll Summary — All Time</h3>
             </div>
             <table className="w-full text-sm">
-              <thead><tr className="border-b border-slate-100">
+              <thead><tr className="border-b border-slate-100 dark:border-slate-800">
                 {['Staff Member','Role','Total Hours','Status'].map(h => (
                   <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">{h}</th>
                 ))}
               </tr></thead>
               <tbody>
                 {Object.entries(payrollMap).map(([uid, u]) => (
-                  <tr key={uid} className="border-b border-slate-50 hover:bg-slate-50">
+                  <tr key={uid} className="border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800">
                     <td className="px-5 py-3">
-                      <div className="font-medium text-slate-800">{u.profile?.first_name} {u.profile?.last_name}</div>
+                      <div className="font-medium text-slate-800 dark:text-slate-100">{u.profile?.first_name} {u.profile?.last_name}</div>
                     </td>
                     <td className="px-5 py-3 text-slate-500 capitalize text-xs">{u.profile?.role?.replace('_',' ')}</td>
                     <td className="px-5 py-3 font-semibold text-brand-600">{fmtDuration(u.ms)}</td>
                     <td className="px-5 py-3">
                       {u.onShift
-                        ? <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">On Shift</span>
+                        ? <span className="text-xs bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full font-medium">On Shift</span>
                         : <span className="text-xs text-slate-400">Off</span>}
                     </td>
                   </tr>
@@ -875,15 +875,15 @@ export default function TimeClock() {
 
       {/* ── SETTINGS TAB (admin) ── */}
       {tab === 'settings' && admin && geofenceForm && (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 max-w-2xl">
-          <h3 className="font-semibold text-slate-700 mb-5 flex items-center gap-2">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6 max-w-2xl">
+          <h3 className="font-semibold text-slate-700 dark:text-slate-300 mb-5 flex items-center gap-2">
             <MapPin size={16} className="text-brand-600" /> Geofence Settings
           </h3>
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Facility Name</label>
               <input value={geofenceForm.name || ''} onChange={e => setGeofenceForm(f => ({...f, name: e.target.value}))}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -899,7 +899,7 @@ export default function TimeClock() {
                       if (leafletMapRef.current) leafletMapRef.current.panTo([v, geofenceForm.lng])
                     }
                   }}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono" />
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono" />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Longitude</label>
@@ -913,7 +913,7 @@ export default function TimeClock() {
                       if (leafletMapRef.current) leafletMapRef.current.panTo([geofenceForm.lat, v])
                     }
                   }}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono" />
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono" />
               </div>
             </div>
 
@@ -948,7 +948,7 @@ export default function TimeClock() {
               <input type="checkbox" checked={geofenceForm.require_geofence} onChange={e => setGeofenceForm(f => ({...f, require_geofence: e.target.checked}))}
                 className="w-4 h-4 rounded text-brand-600" />
               <div>
-                <div className="text-sm font-medium text-slate-700">Require on-site GPS to punch</div>
+                <div className="text-sm font-medium text-slate-700 dark:text-slate-300">Require on-site GPS to punch</div>
                 <div className="text-xs text-slate-400">Disable to allow remote clock-in</div>
               </div>
             </label>

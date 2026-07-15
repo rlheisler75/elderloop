@@ -167,37 +167,37 @@ export default function MeterBarcodeLabels({ onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[94vh] flex flex-col">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[94vh] flex flex-col">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div>
-            <h2 className="font-display font-semibold text-slate-800">Print Meter Barcodes</h2>
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Print Meter Barcodes</h2>
             <p className="text-xs text-slate-400 mt-0.5">{selected.size} meter{selected.size !== 1 ? 's' : ''} selected · {printMeters.length} label{printMeters.length !== 1 ? 's' : ''} total</p>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"><X size={20} /></button>
         </div>
 
         {noNumberCount > 0 && (
-          <div className="mx-6 mt-4 flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-xl text-sm flex-shrink-0">
+          <div className="mx-6 mt-4 flex items-start gap-3 p-3 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900 rounded-xl text-sm flex-shrink-0">
             <AlertCircle size={16} className="text-amber-600 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <span className="font-medium text-amber-800">{noNumberCount} meter{noNumberCount > 1 ? 's' : ''} don't have a meter number yet.</span>
-              <span className="text-amber-700"> Add the physical meter number to the meter before printing its barcode.</span>
+              <span className="font-medium text-amber-800 dark:text-amber-400">{noNumberCount} meter{noNumberCount > 1 ? 's' : ''} don't have a meter number yet.</span>
+              <span className="text-amber-700 dark:text-amber-400"> Add the physical meter number to the meter before printing its barcode.</span>
             </div>
           </div>
         )}
 
         <div className="flex flex-1 min-h-0 mt-4">
           {/* Left — meter selector */}
-          <div className="w-64 flex-shrink-0 border-r border-slate-100 flex flex-col">
-            <div className="p-3 border-b border-slate-100 space-y-2">
+          <div className="w-64 flex-shrink-0 border-r border-slate-100 dark:border-slate-800 flex flex-col">
+            <div className="p-3 border-b border-slate-100 dark:border-slate-800 space-y-2">
               <div className="relative">
                 <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search meters..." className="w-full pl-8 pr-3 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search meters..." className="w-full pl-8 pr-3 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100" />
               </div>
               <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)}
-                className="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+                className="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100">
                 <option value="all">All utility types</option>
                 {utilityTypes.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
               </select>
@@ -209,12 +209,12 @@ export default function MeterBarcodeLabels({ onClose }) {
               {loading ? <div className="p-4 text-xs text-slate-400">Loading...</div> :
                 filtered.map(m => (
                   <button key={m.id} onClick={() => m.meter_number && toggleMeter(m.id)} disabled={!m.meter_number}
-                    className={`w-full flex items-center gap-2 px-3 py-2 text-left border-b border-slate-50 transition-colors ${!m.meter_number ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-50'} ${selected.has(m.id) ? 'bg-brand-50' : ''}`}>
-                    <div className={`w-4 h-4 rounded border-2 flex-shrink-0 flex items-center justify-center transition-all ${selected.has(m.id) ? 'bg-brand-600 border-brand-600' : 'border-slate-300'}`}>
+                    className={`w-full flex items-center gap-2 px-3 py-2 text-left border-b border-slate-50 dark:border-slate-800 transition-colors ${!m.meter_number ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-50 dark:hover:bg-slate-800'} ${selected.has(m.id) ? 'bg-brand-50 dark:bg-brand-950/30' : ''}`}>
+                    <div className={`w-4 h-4 rounded border-2 flex-shrink-0 flex items-center justify-center transition-all ${selected.has(m.id) ? 'bg-brand-600 border-brand-600' : 'border-slate-300 dark:border-slate-600'}`}>
                       {selected.has(m.id) && <svg width="8" height="8" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                     </div>
                     <div className="min-w-0">
-                      <div className="text-xs font-medium text-slate-700 truncate">{m.resident_name || `Unit ${m.unit}`}</div>
+                      <div className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">{m.resident_name || `Unit ${m.unit}`}</div>
                       <div className="text-xs text-slate-400">{m.meter_number ? `#${m.meter_number}` : 'No meter number'}</div>
                     </div>
                   </button>
@@ -225,21 +225,22 @@ export default function MeterBarcodeLabels({ onClose }) {
 
           {/* Right — options + preview */}
           <div className="flex-1 flex flex-col min-w-0">
-            <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-5 flex-wrap">
+            <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-5 flex-wrap">
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Label Size</label>
-                <select value={size} onChange={e => setSize(e.target.value)} className="px-2 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <select value={size} onChange={e => setSize(e.target.value)} className="px-2 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100">
                   {LABEL_SIZES.map(l => <option key={l.key} value={l.key}>{l.label}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Copies per Meter</label>
                 <input type="number" min="1" max="10" value={copies} onChange={e => setCopies(Math.max(1, Math.min(10, Number(e.target.value))))}
-                  className="w-20 px-2 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 text-center" />
+                  className="w-20 px-2 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100 text-center" />
               </div>
             </div>
 
-            <div className="flex-1 overflow-auto p-5 bg-slate-50">
+            {/* Preview — chrome background darkens; the label cards themselves stay hardcoded white/light since they mirror the printed output */}
+            <div className="flex-1 overflow-auto p-5 bg-slate-50 dark:bg-slate-800">
               {generating ? (
                 <div className="flex items-center justify-center h-32 text-slate-400 text-sm">Generating QR codes...</div>
               ) : printMeters.length === 0 ? (
@@ -264,12 +265,12 @@ export default function MeterBarcodeLabels({ onClose }) {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between flex-shrink-0">
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between flex-shrink-0">
           <p className="text-xs text-slate-400">
             Labels print {s.cols} across · scan with "Scan Meter" to jump straight to entering a reading
           </p>
           <div className="flex gap-3">
-            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium hover:bg-slate-50 rounded-lg">Cancel</button>
+            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg">Cancel</button>
             <button onClick={handlePrint} disabled={printMeters.length === 0 || generating}
               className="flex items-center gap-2 px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-xl transition-colors shadow-sm">
               <Printer size={15} /> Print {printMeters.length} Label{printMeters.length !== 1 ? 's' : ''}

@@ -77,23 +77,23 @@ function LocationModal({ loc, parentId, parentName, locations, orgId, onClose, o
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <h2 className="font-display font-semibold text-slate-800">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">
             {isNew ? 'Add Location' : 'Edit Location'}
           </h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+          <button onClick={onClose} className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"><X size={20} /></button>
         </div>
 
         <div className="px-6 py-5 space-y-4">
-          {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+          {error && <div className="px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
 
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
               Location Name *
             </label>
             <input value={form.name} onChange={e => set('name', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:text-slate-100"
               placeholder="e.g. Building A, Room 101, West Wing..." />
           </div>
 
@@ -102,7 +102,7 @@ function LocationModal({ loc, parentId, parentName, locations, orgId, onClose, o
               Location Type *
             </label>
             <select value={form.location_type} onChange={e => set('location_type', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:text-slate-100">
               {LOCATION_TYPES.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
             </select>
           </div>
@@ -112,7 +112,7 @@ function LocationModal({ loc, parentId, parentName, locations, orgId, onClose, o
               Parent Location <span className="text-slate-400 font-normal">(optional — leave blank for top level)</span>
             </label>
             <select value={form.parent_id || ''} onChange={e => set('parent_id', e.target.value || null)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:text-slate-100">
               <option value="">— Top Level —</option>
               {parentOptions.map(l => (
                 <option key={l.id} value={l.id}>{l.name}</option>
@@ -121,8 +121,8 @@ function LocationModal({ loc, parentId, parentName, locations, orgId, onClose, o
           </div>
         </div>
 
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
             {saving ? 'Saving...' : isNew ? 'Add Location' : 'Save Changes'}
@@ -144,12 +144,12 @@ function LocationRow({ node, depth, onEdit, onAddChild, onDelete }) {
   return (
     <>
       <div
-        className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-slate-50 group transition-colors"
+        className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 group transition-colors"
         style={{ paddingLeft: `${12 + depth * 24}px` }}>
 
         {hasChildren ? (
           <button onClick={() => setOpen(o => !o)}
-            className="text-slate-400 hover:text-slate-600 flex-shrink-0">
+            className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 flex-shrink-0">
             {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
           </button>
         ) : (
@@ -158,7 +158,7 @@ function LocationRow({ node, depth, onEdit, onAddChild, onDelete }) {
 
         <Icon size={14} className={`flex-shrink-0 ${iconColor}`} />
 
-        <span className="flex-1 text-sm text-slate-700">{node.name}</span>
+        <span className="flex-1 text-sm text-slate-700 dark:text-slate-300">{node.name}</span>
 
         <span className="text-xs text-slate-400 capitalize hidden group-hover:inline">
           {LOCATION_TYPES.find(t => t.key === node.location_type)?.label}
@@ -167,11 +167,11 @@ function LocationRow({ node, depth, onEdit, onAddChild, onDelete }) {
         {/* Actions */}
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button onClick={() => onAddChild(node)}
-            className="p-1 text-slate-400 hover:text-brand-600 rounded transition-colors" title="Add child location">
+            className="p-1 text-slate-400 dark:text-slate-500 hover:text-brand-600 rounded transition-colors" title="Add child location">
             <Plus size={13} />
           </button>
           <button onClick={() => onEdit(node)}
-            className="p-1 text-slate-400 hover:text-brand-600 rounded transition-colors" title="Edit">
+            className="p-1 text-slate-400 dark:text-slate-500 hover:text-brand-600 rounded transition-colors" title="Edit">
             <Edit2 size={13} />
           </button>
           {confirmDel ? (
@@ -179,11 +179,11 @@ function LocationRow({ node, depth, onEdit, onAddChild, onDelete }) {
               <button onClick={() => onDelete(node)}
                 className="px-2 py-0.5 bg-red-600 text-white text-xs rounded font-medium">Delete</button>
               <button onClick={() => setConfirm(false)}
-                className="px-2 py-0.5 bg-slate-200 text-slate-600 text-xs rounded">Cancel</button>
+                className="px-2 py-0.5 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs rounded">Cancel</button>
             </div>
           ) : (
             <button onClick={() => setConfirm(true)}
-              className="p-1 text-slate-400 hover:text-red-500 rounded transition-colors" title="Delete">
+              className="p-1 text-slate-400 dark:text-slate-500 hover:text-red-500 rounded transition-colors" title="Delete">
               <Trash2 size={13} />
             </button>
           )}
@@ -227,7 +227,7 @@ export default function LocationManager({ orgId }) {
     <div>
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="font-display font-semibold text-slate-800 flex items-center gap-2">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2">
             <MapPin size={16} className="text-brand-600" /> Location Manager
           </h2>
           <p className="text-slate-400 text-xs mt-0.5">
@@ -241,7 +241,7 @@ export default function LocationManager({ orgId }) {
         </button>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
         {loading ? (
           <div className="text-center py-8 text-slate-400 text-sm">Loading locations...</div>
         ) : tree.length === 0 ? (

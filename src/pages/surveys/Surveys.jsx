@@ -53,7 +53,7 @@ function OpinionScale({ value, onChange }) {
       <div className="flex gap-1">
         {Array.from({ length: 11 }).map((_, i) => (
           <button key={i} type="button" onClick={() => onChange && onChange(i)}
-            className={`flex-1 py-2 rounded-lg text-xs font-bold border-2 transition-all ${value === i ? 'bg-brand-600 border-brand-600 text-white' : 'border-slate-200 text-slate-500 hover:border-brand-300'}`}>
+            className={`flex-1 py-2 rounded-lg text-xs font-bold border-2 transition-all ${value === i ? 'bg-brand-600 border-brand-600 text-white' : 'border-slate-200 dark:border-slate-800 text-slate-500 hover:border-brand-300'}`}>
             {i}
           </button>
         ))}
@@ -111,13 +111,13 @@ function QuestionBuilder({ questions, onChange }) {
         <div className="col-span-2">
           <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Question *</label>
           <textarea value={form.question} onChange={e => set('question', e.target.value)} rows={2}
-            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+            className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
             placeholder="Enter your question..." />
         </div>
         <div>
           <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Question Type</label>
           <select value={form.type} onChange={e => set('type', e.target.value)}
-            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+            className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
             {QUESTION_TYPES.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
           </select>
         </div>
@@ -125,7 +125,7 @@ function QuestionBuilder({ questions, onChange }) {
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Max Stars</label>
             <select value={form.max_rating} onChange={e => set('max_rating', parseInt(e.target.value))}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
               <option value={5}>5 stars</option>
               <option value={10}>10 stars</option>
             </select>
@@ -141,7 +141,7 @@ function QuestionBuilder({ questions, onChange }) {
             {(form.options || []).map((opt, i) => (
               <div key={i} className="flex gap-2">
                 <input value={opt} onChange={e => updateOption(i, e.target.value)}
-                  className="flex-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  className="flex-1 px-3 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                   placeholder={`Option ${i + 1}`} />
                 <button onClick={() => removeOption(i)} className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg transition-colors">
                   <X size={14} />
@@ -149,7 +149,7 @@ function QuestionBuilder({ questions, onChange }) {
               </div>
             ))}
             <button onClick={addOption}
-              className="w-full py-2 border-2 border-dashed border-slate-200 rounded-lg text-xs text-slate-400 hover:border-brand-400 hover:text-brand-500 transition-colors flex items-center justify-center gap-1">
+              className="w-full py-2 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-lg text-xs text-slate-400 hover:border-brand-400 hover:text-brand-500 transition-colors flex items-center justify-center gap-1">
               <Plus size={12} /> Add Option
             </button>
           </div>
@@ -158,12 +158,12 @@ function QuestionBuilder({ questions, onChange }) {
 
       <label className="flex items-center gap-2 cursor-pointer">
         <input type="checkbox" checked={form.is_required} onChange={e => set('is_required', e.target.checked)} className="w-4 h-4 rounded text-brand-600" />
-        <span className="text-sm text-slate-600">Required question</span>
+        <span className="text-sm text-slate-600 dark:text-slate-300">Required question</span>
       </label>
 
       <div className="flex justify-end gap-2">
         <button onClick={() => { resetForm(); setAdding(false); setEditIdx(null) }}
-          className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+          className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
         <button onClick={editIdx !== null ? handleSaveEdit : handleAdd}
           className="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg transition-colors">
           {editIdx !== null ? 'Save Question' : 'Add Question'}
@@ -178,17 +178,17 @@ function QuestionBuilder({ questions, onChange }) {
         const QIcon = getQType(q.type).icon
         if (editIdx === idx) return <div key={q.id || idx}>{renderForm()}</div>
         return (
-          <div key={q.id || idx} className="flex items-start gap-3 p-4 bg-white border border-slate-100 rounded-xl group hover:border-brand-200 transition-all">
+          <div key={q.id || idx} className="flex items-start gap-3 p-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl group hover:border-brand-200 transition-all">
             <div className="flex flex-col gap-1 flex-shrink-0">
-              <button onClick={() => move(idx, -1)} className="p-0.5 text-slate-300 hover:text-slate-600 transition-colors"><ArrowUp size={13} /></button>
-              <button onClick={() => move(idx, 1)} className="p-0.5 text-slate-300 hover:text-slate-600 transition-colors"><ArrowDown size={13} /></button>
+              <button onClick={() => move(idx, -1)} className="p-0.5 text-slate-300 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"><ArrowUp size={13} /></button>
+              <button onClick={() => move(idx, 1)} className="p-0.5 text-slate-300 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"><ArrowDown size={13} /></button>
             </div>
             <div className="w-7 h-7 bg-brand-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
               <QIcon size={14} className="text-brand-600" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <span className="font-medium text-slate-800 text-sm">{q.question}</span>
+                <span className="font-medium text-slate-800 dark:text-slate-100 text-sm">{q.question}</span>
                 {q.is_required && <span className="text-red-500 text-xs font-bold">*</span>}
               </div>
               <div className="text-xs text-slate-400 mt-0.5">
@@ -209,7 +209,7 @@ function QuestionBuilder({ questions, onChange }) {
 
       {!adding && editIdx === null && (
         <button onClick={() => setAdding(true)}
-          className="w-full py-3 border-2 border-dashed border-slate-200 rounded-xl text-sm text-slate-400 hover:border-brand-400 hover:text-brand-500 transition-colors flex items-center justify-center gap-2">
+          className="w-full py-3 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-400 hover:border-brand-400 hover:text-brand-500 transition-colors flex items-center justify-center gap-2">
           <Plus size={15} /> Add Question
         </button>
       )}
@@ -294,44 +294,44 @@ function SurveyModal({ survey, onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
-          <h2 className="font-display font-semibold text-slate-800">{isNew ? 'New Survey' : 'Edit Survey'}</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">{isNew ? 'New Survey' : 'Edit Survey'}</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"><X size={20} /></button>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 px-6 pt-3 border-b border-slate-100 flex-shrink-0">
+        <div className="flex gap-1 px-6 pt-3 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           {[{ key: 'details', label: 'Details' }, { key: 'questions', label: `Questions (${questions.length})` }, { key: 'settings', label: 'Settings' }].map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-all ${tab === t.key ? 'border-brand-600 text-brand-700' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
+              className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-all ${tab === t.key ? 'border-brand-600 text-brand-700' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
               {t.label}
             </button>
           ))}
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5">
-          {error && <div className="mb-4 px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+          {error && <div className="mb-4 px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
 
           {tab === 'details' && (
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Survey Title *</label>
                 <input value={form.title} onChange={e => set('title', e.target.value)}
-                  className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                   placeholder="e.g. Resident Satisfaction Survey Q2 2026" />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Description</label>
                 <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={3}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
                   placeholder="Tell respondents what this survey is about..." />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Survey Type</label>
                   <select value={form.survey_type} onChange={e => set('survey_type', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                     <option value="one_time">One Time</option>
                     <option value="periodic">Periodic (Repeating)</option>
                   </select>
@@ -340,7 +340,7 @@ function SurveyModal({ survey, onClose, onSave }) {
                   <div>
                     <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Repeat Every (days)</label>
                     <input type="number" value={form.recur_days} onChange={e => set('recur_days', e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                      className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                       placeholder="e.g. 30" />
                   </div>
                 )}
@@ -349,12 +349,12 @@ function SurveyModal({ survey, onClose, onSave }) {
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Start Date</label>
                   <input type="date" value={form.start_date} onChange={e => set('start_date', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">End Date</label>
                   <input type="date" value={form.end_date} onChange={e => set('end_date', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
                 </div>
               </div>
             </div>
@@ -366,17 +366,17 @@ function SurveyModal({ survey, onClose, onSave }) {
 
           {tab === 'settings' && (
             <div className="space-y-4">
-              <label className={`flex items-start gap-3 cursor-pointer p-4 rounded-xl border-2 transition-all ${form.allow_anonymous ? 'bg-brand-50 border-brand-200' : 'border-slate-200'}`}>
+              <label className={`flex items-start gap-3 cursor-pointer p-4 rounded-xl border-2 transition-all ${form.allow_anonymous ? 'bg-brand-50 border-brand-200' : 'border-slate-200 dark:border-slate-800'}`}>
                 <input type="checkbox" checked={form.allow_anonymous} onChange={e => set('allow_anonymous', e.target.checked)} className="w-4 h-4 rounded text-brand-600 mt-0.5" />
                 <div>
-                  <div className="font-medium text-slate-800 text-sm">Allow Anonymous Responses</div>
+                  <div className="font-medium text-slate-800 dark:text-slate-100 text-sm">Allow Anonymous Responses</div>
                   <div className="text-xs text-slate-400 mt-0.5">Anyone with the public link can respond without logging in. Name and email are optional.</div>
                 </div>
               </label>
-              <label className={`flex items-start gap-3 cursor-pointer p-4 rounded-xl border-2 transition-all ${form.show_in_portal ? 'bg-brand-50 border-brand-200' : 'border-slate-200'}`}>
+              <label className={`flex items-start gap-3 cursor-pointer p-4 rounded-xl border-2 transition-all ${form.show_in_portal ? 'bg-brand-50 border-brand-200' : 'border-slate-200 dark:border-slate-800'}`}>
                 <input type="checkbox" checked={form.show_in_portal} onChange={e => set('show_in_portal', e.target.checked)} className="w-4 h-4 rounded text-brand-600 mt-0.5" />
                 <div>
-                  <div className="font-medium text-slate-800 text-sm">Show in Resident Portal</div>
+                  <div className="font-medium text-slate-800 dark:text-slate-100 text-sm">Show in Resident Portal</div>
                   <div className="text-xs text-slate-400 mt-0.5">Logged-in residents and family members will see this survey in their portal.</div>
                 </div>
               </label>
@@ -384,11 +384,11 @@ function SurveyModal({ survey, onClose, onSave }) {
           )}
         </div>
 
-        <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between flex-shrink-0">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
           <div className="flex gap-2">
             <button onClick={() => handleSave(false)} disabled={saving}
-              className="px-4 py-2 border border-slate-200 text-slate-600 text-sm font-medium rounded-lg hover:border-slate-300 transition-colors disabled:opacity-50">
+              className="px-4 py-2 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 text-sm font-medium rounded-lg hover:border-slate-300 transition-colors disabled:opacity-50">
               Save Draft
             </button>
             <button onClick={() => handleSave(true)} disabled={saving}
@@ -413,7 +413,7 @@ function CopyLinkButton({ token }) {
   }
   return (
     <button onClick={handleCopy}
-      className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600 transition-colors">
+      className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 transition-colors">
       {copied ? <><Check size={12} className="text-green-500" /> Copied!</> : <><Link size={12} /> Copy Link</>}
     </button>
   )
@@ -486,13 +486,13 @@ function SurveyResults({ survey, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[92vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div>
-            <h2 className="font-display font-semibold text-slate-800">{survey.title}</h2>
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">{survey.title}</h2>
             <p className="text-xs text-slate-400 mt-0.5">{responses.length} response{responses.length !== 1 ? 's' : ''}</p>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"><X size={20} /></button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5">
@@ -513,7 +513,7 @@ function SurveyResults({ survey, onClose }) {
                   { label: 'Completion Rate', value: `${completionRate}%`, color: 'text-green-600', bg: 'bg-green-50' },
                   { label: 'Avg Satisfaction', value: avgScore > 0 ? `${avgScore}%` : '—', color: 'text-purple-600', bg: 'bg-purple-50' },
                 ].map(s => (
-                  <div key={s.label} className={`${s.bg} rounded-2xl p-4 text-center`}>
+                  <div key={s.label} className={`${s.bg} dark:bg-slate-900 rounded-2xl p-4 text-center`}>
                     <div className={`text-2xl font-display font-bold ${s.color}`}>{s.value}</div>
                     <div className="text-slate-500 text-xs mt-1">{s.label}</div>
                   </div>
@@ -526,14 +526,14 @@ function SurveyResults({ survey, onClose }) {
                 const QIcon = getQType(q.type).icon
                 const isExpanded = expandQ === q.id
                 return (
-                  <div key={q.id} className="border border-slate-100 rounded-2xl overflow-hidden">
+                  <div key={q.id} className="border border-slate-100 dark:border-slate-800 rounded-2xl overflow-hidden">
                     <button onClick={() => setExpandQ(isExpanded ? null : q.id)}
-                      className="w-full flex items-center gap-3 p-4 hover:bg-slate-50 transition-colors text-left">
+                      className="w-full flex items-center gap-3 p-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left">
                       <div className="w-8 h-8 bg-brand-100 rounded-lg flex items-center justify-center flex-shrink-0">
                         <QIcon size={15} className="text-brand-600" />
                       </div>
                       <div className="flex-1">
-                        <div className="font-medium text-slate-800 text-sm">{q.question}</div>
+                        <div className="font-medium text-slate-800 dark:text-slate-100 text-sm">{q.question}</div>
                         <div className="text-xs text-slate-400">{getQType(q.type).label}</div>
                       </div>
                       {stats && (
@@ -547,11 +547,11 @@ function SurveyResults({ survey, onClose }) {
                     </button>
 
                     {isExpanded && stats && (
-                      <div className="border-t border-slate-100 p-4 bg-slate-50">
+                      <div className="border-t border-slate-100 dark:border-slate-800 p-4 bg-slate-50 dark:bg-slate-800">
                         {stats.type === 'numeric' && (
                           <div>
                             <div className="flex items-center justify-between mb-3">
-                              <span className="text-xs text-slate-500">Average: <strong className="text-slate-800">{stats.avg} / {stats.max}</strong></span>
+                              <span className="text-xs text-slate-500">Average: <strong className="text-slate-800 dark:text-slate-100">{stats.avg} / {stats.max}</strong></span>
                               <span className="text-xs text-slate-400">{stats.count} response{stats.count !== 1 ? 's' : ''}</span>
                             </div>
                             {/* Distribution bars */}
@@ -576,8 +576,8 @@ function SurveyResults({ survey, onClose }) {
                         {stats.type === 'binary' && (
                           <div className="flex gap-4">
                             {[{ label: 'Yes', val: stats.yes, color: 'bg-green-500' }, { label: 'No', val: stats.no, color: 'bg-red-400' }].map(b => (
-                              <div key={b.label} className="flex-1 text-center p-4 bg-white rounded-xl border border-slate-200">
-                                <div className="text-2xl font-bold text-slate-800">{b.val}</div>
+                              <div key={b.label} className="flex-1 text-center p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
+                                <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">{b.val}</div>
                                 <div className="text-xs text-slate-500 mt-1">{b.label}</div>
                                 <div className="text-xs font-medium mt-0.5" style={{ color: b.label === 'Yes' ? '#16a34a' : '#dc2626' }}>
                                   {stats.total > 0 ? Math.round(b.val / stats.total * 100) : 0}%
@@ -590,7 +590,7 @@ function SurveyResults({ survey, onClose }) {
                           <div className="space-y-2">
                             {Object.entries(stats.counts).sort((a, b) => b[1] - a[1]).map(([opt, cnt]) => (
                               <div key={opt} className="flex items-center gap-2 text-sm">
-                                <span className="flex-1 text-slate-700 truncate">{opt}</span>
+                                <span className="flex-1 text-slate-700 dark:text-slate-300 truncate">{opt}</span>
                                 <div className="w-32 h-4 bg-slate-200 rounded overflow-hidden">
                                   <div className="h-full bg-brand-500 rounded" style={{ width: `${Math.round(cnt / stats.total * 100)}%` }} />
                                 </div>
@@ -602,7 +602,7 @@ function SurveyResults({ survey, onClose }) {
                         {stats.type === 'text' && (
                           <div className="space-y-2 max-h-40 overflow-y-auto">
                             {stats.values.map((v, i) => (
-                              <div key={i} className="text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 italic">
+                              <div key={i} className="text-sm text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 italic">
                                 "{v}"
                               </div>
                             ))}
@@ -616,11 +616,11 @@ function SurveyResults({ survey, onClose }) {
 
               {/* Individual responses */}
               <div>
-                <h3 className="font-display font-semibold text-slate-700 mb-3">All Responses</h3>
-                <div className="border border-slate-100 rounded-2xl overflow-hidden">
+                <h3 className="font-display font-semibold text-slate-700 dark:text-slate-300 mb-3">All Responses</h3>
+                <div className="border border-slate-100 dark:border-slate-800 rounded-2xl overflow-hidden">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-slate-100 bg-slate-50">
+                      <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                         <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Respondent</th>
                         <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Date</th>
                         <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Type</th>
@@ -630,13 +630,13 @@ function SurveyResults({ survey, onClose }) {
                     </thead>
                     <tbody>
                       {responses.map(r => (
-                        <tr key={r.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
-                          <td className="px-4 py-3 text-sm text-slate-800">{r.respondent_name || 'Anonymous'}</td>
+                        <tr key={r.id} className="border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                          <td className="px-4 py-3 text-sm text-slate-800 dark:text-slate-100">{r.respondent_name || 'Anonymous'}</td>
                           <td className="px-4 py-3 text-xs text-slate-500">{fmt(r.submitted_at)}</td>
                           <td className="px-4 py-3 text-xs text-slate-500 capitalize">{r.respondent_type}</td>
                           <td className="px-4 py-3 text-sm font-medium text-brand-600">{r.overall_score != null ? `${parseFloat(r.overall_score).toFixed(0)}%` : '—'}</td>
                           <td className="px-4 py-3">
-                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${r.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${r.status === 'completed' ? 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400' : 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400'}`}>
                               {r.status}
                             </span>
                           </td>
@@ -649,7 +649,7 @@ function SurveyResults({ survey, onClose }) {
             </div>
           )}
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end flex-shrink-0">
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end flex-shrink-0">
           <button onClick={onClose} className="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg transition-colors">Close</button>
         </div>
       </div>
@@ -718,7 +718,7 @@ export default function Surveys() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-slate-800">Surveys</h1>
+          <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Surveys</h1>
           <p className="text-slate-500 text-sm mt-0.5">Build surveys, collect responses, analyze results</p>
         </div>
         {canManage && (
@@ -736,7 +736,7 @@ export default function Surveys() {
           { label: 'Published',       value: stats.published, color: 'text-green-600',  bg: 'bg-green-50' },
           { label: 'Total Responses', value: stats.responses, color: 'text-purple-600', bg: 'bg-purple-50' },
         ].map(s => (
-          <div key={s.label} className={`${s.bg} rounded-2xl p-4`}>
+          <div key={s.label} className={`${s.bg} dark:bg-slate-900 rounded-2xl p-4`}>
             <div className={`text-3xl font-display font-bold ${s.color}`}>{s.value}</div>
             <div className="text-slate-500 text-xs mt-1">{s.label}</div>
           </div>
@@ -747,7 +747,7 @@ export default function Surveys() {
       <div className="relative mb-4">
         <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search surveys..."
-          className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
       </div>
 
       {/* Survey list */}
@@ -764,12 +764,12 @@ export default function Surveys() {
           {filtered.map(s => {
             const count = responseCounts[s.id] || 0
             return (
-              <div key={s.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-all">
+              <div key={s.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5 hover:shadow-md transition-all">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <span className="font-display font-semibold text-slate-800">{s.title}</span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.is_published ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
+                      <span className="font-display font-semibold text-slate-800 dark:text-slate-100">{s.title}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.is_published ? 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
                         {s.is_published ? 'Published' : 'Draft'}
                       </span>
                       <span className="text-xs text-slate-400 capitalize">{s.survey_type.replace('_', ' ')}</span>
@@ -785,13 +785,13 @@ export default function Surveys() {
                   <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
                     {s.is_published && <CopyLinkButton token={s.public_token} />}
                     <button onClick={() => setViewResults(s)}
-                      className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600 transition-colors">
+                      className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 transition-colors">
                       <BarChart3 size={12} /> Results
                     </button>
                     {canManage && (
                       <>
                         <button onClick={() => { setEditSurvey(s); setShowModal(true) }}
-                          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600 transition-colors">
+                          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 transition-colors">
                           <Edit2 size={12} /> Edit
                         </button>
                         <button onClick={() => handleTogglePublish(s)}

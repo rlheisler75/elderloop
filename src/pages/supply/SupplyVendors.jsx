@@ -24,8 +24,8 @@ function VendorModal({ vendor, orgId, canEdit, onClose, onSaved }) {
   const [saving, setSaving] = useState(false)
   const [error, setError]   = useState('')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
-  const inputCls = 'w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500'
-  const labelCls = 'block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5'
+  const inputCls = 'w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500'
+  const labelCls = 'block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5'
 
   const handleSave = async () => {
     if (!form.name.trim()) { setError('Vendor name is required'); return }
@@ -46,13 +46,13 @@ function VendorModal({ vendor, orgId, canEdit, onClose, onSaved }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
-          <h2 className="font-display font-semibold text-slate-800">{isNew ? 'Add Vendor' : 'Edit Vendor'}</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">{isNew ? 'Add Vendor' : 'Edit Vendor'}</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"><X size={20} /></button>
         </div>
         <fieldset disabled={readOnly} className="flex-1 overflow-y-auto px-6 py-5 space-y-4 disabled:opacity-75">
-          {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+          {error && <div className="px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
           <div>
             <label className={labelCls}>Vendor Name *</label>
             <input value={form.name} onChange={e => set('name', e.target.value)} className={inputCls} autoFocus placeholder="e.g. McKesson Medical" />
@@ -96,20 +96,20 @@ function VendorModal({ vendor, orgId, canEdit, onClose, onSaved }) {
             <textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows={3} className={inputCls + ' resize-none'} />
           </div>
           <div onClick={() => !readOnly && set('is_active', !form.is_active)}
-            className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${readOnly ? 'cursor-default' : 'cursor-pointer'} ${form.is_active ? 'bg-brand-50 border-brand-200' : 'bg-slate-50 border-slate-200'}`}>
-            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${form.is_active ? 'bg-brand-600 border-brand-600' : 'border-slate-300 bg-white'}`}>
+            className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${readOnly ? 'cursor-default' : 'cursor-pointer'} ${form.is_active ? 'bg-brand-50 dark:bg-brand-950/30 border-brand-200 dark:border-brand-800' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'}`}>
+            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${form.is_active ? 'bg-brand-600 border-brand-600' : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800'}`}>
               {form.is_active && <svg width="10" height="10" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
             </div>
             <div>
-              <div className="text-sm font-medium text-slate-700">Active vendor</div>
+              <div className="text-sm font-medium text-slate-700 dark:text-slate-300">Active vendor</div>
               <div className="text-xs text-slate-400">Show in vendor lists and purchase orders</div>
             </div>
           </div>
         </fieldset>
-        <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between flex-shrink-0">
-          <div>{!isNew && canEdit && <button onClick={handleDelete} className="flex items-center gap-1.5 px-3 py-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg text-sm transition-colors"><Trash2 size={14} /> Delete</button>}</div>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between flex-shrink-0">
+          <div>{!isNew && canEdit && <button onClick={handleDelete} className="flex items-center gap-1.5 px-3 py-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-lg text-sm transition-colors"><Trash2 size={14} /> Delete</button>}</div>
           <div className="flex gap-3">
-            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium hover:bg-slate-50 rounded-lg">{canEdit ? 'Cancel' : 'Close'}</button>
+            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg">{canEdit ? 'Cancel' : 'Close'}</button>
             {canEdit && (
               <button onClick={handleSave} disabled={saving} className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
                 {saving ? 'Saving...' : isNew ? 'Add Vendor' : 'Save Changes'}
@@ -155,10 +155,10 @@ export default function SupplyVendors() {
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search vendors..." className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white" />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search vendors..." className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100" />
         </div>
         <div className="flex gap-2">
-          <button onClick={() => setShowInactive(!showInactive)} className={`px-3 py-2 rounded-xl text-xs font-medium border transition-all ${showInactive ? 'bg-slate-700 text-white border-slate-700' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}>
+          <button onClick={() => setShowInactive(!showInactive)} className={`px-3 py-2 rounded-xl text-xs font-medium border transition-all ${showInactive ? 'bg-slate-700 text-white border-slate-700' : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
             {showInactive ? 'Showing inactive' : 'Show inactive'}
           </button>
           {canEditSupply && (
@@ -175,31 +175,31 @@ export default function SupplyVendors() {
         ) : filtered.length === 0 ? (
           <div className="col-span-3 text-center py-16 text-slate-400">
             <Truck size={36} className="mx-auto mb-3 opacity-30" />
-            <p className="font-display text-lg text-slate-600">{vendors.length === 0 ? 'No vendors yet' : 'No vendors match'}</p>
+            <p className="font-display text-lg text-slate-600 dark:text-slate-300">{vendors.length === 0 ? 'No vendors yet' : 'No vendors match'}</p>
             <p className="text-sm mt-1">{vendors.length === 0 ? 'Add your first vendor to get started.' : 'Try adjusting your search.'}</p>
             {vendors.length === 0 && canEditSupply && <button onClick={() => { setSelected(null); setShowModal(true) }} className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl"><Plus size={15} /> Add Vendor</button>}
           </div>
         ) : filtered.map(v => (
-          <div key={v.id} className={`bg-white rounded-2xl border shadow-sm p-5 flex flex-col gap-3 hover:shadow-md transition-shadow ${!v.is_active ? 'opacity-60' : 'border-slate-100'}`}>
+          <div key={v.id} className={`bg-white dark:bg-slate-900 rounded-2xl border shadow-sm p-5 flex flex-col gap-3 hover:shadow-md transition-shadow ${!v.is_active ? 'opacity-60' : 'border-slate-100 dark:border-slate-800'}`}>
             <div className="flex items-start justify-between">
               <div>
-                <div className="font-display font-semibold text-slate-800">{v.name}</div>
-                {!v.is_active && <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">Inactive</span>}
+                <div className="font-display font-semibold text-slate-800 dark:text-slate-100">{v.name}</div>
+                {!v.is_active && <span className="text-xs text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">Inactive</span>}
               </div>
-              <button onClick={() => { setSelected(v); setShowModal(true) }} className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors" title={canEditSupply ? 'Edit vendor' : 'View vendor'}>
+              <button onClick={() => { setSelected(v); setShowModal(true) }} className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/30 rounded-lg transition-colors" title={canEditSupply ? 'Edit vendor' : 'View vendor'}>
                 {canEditSupply ? <Edit2 size={14} /> : <Eye size={14} />}
               </button>
             </div>
-            <div className="space-y-1.5 text-sm text-slate-600">
+            <div className="space-y-1.5 text-sm text-slate-600 dark:text-slate-300">
               {v.contact_name    && <div className="flex items-center gap-2"><FileText size={13} className="text-slate-400 flex-shrink-0" />{v.contact_name}</div>}
               {v.phone           && <div className="flex items-center gap-2"><Phone    size={13} className="text-slate-400 flex-shrink-0" />{v.phone}</div>}
               {v.email           && <div className="flex items-center gap-2"><Mail     size={13} className="text-slate-400 flex-shrink-0" />{v.email}</div>}
               {v.account_number  && <div className="flex items-center gap-2"><Hash     size={13} className="text-slate-400 flex-shrink-0" />Acct: {v.account_number}</div>}
               {v.website         && <div className="flex items-center gap-2"><Globe    size={13} className="text-slate-400 flex-shrink-0" /><a href={v.website} target="_blank" rel="noreferrer" className="text-brand-600 hover:underline truncate">{v.website.replace(/^https?:\/\//, '')}</a></div>}
             </div>
-            <div className="pt-2 border-t border-slate-100 flex items-center gap-1.5">
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center gap-1.5">
               <Clock size={12} className="text-slate-400" />
-              <span className="text-xs text-slate-400">Lead time: <span className="font-medium text-slate-600">{v.lead_time_days ?? 3} day{(v.lead_time_days ?? 3) !== 1 ? 's' : ''}</span></span>
+              <span className="text-xs text-slate-400">Lead time: <span className="font-medium text-slate-600 dark:text-slate-300">{v.lead_time_days ?? 3} day{(v.lead_time_days ?? 3) !== 1 ? 's' : ''}</span></span>
             </div>
           </div>
         ))}

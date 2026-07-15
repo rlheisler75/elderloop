@@ -9,11 +9,11 @@ import {
 } from 'lucide-react'
 
 const CARE_LEVELS = [
-  { key: 'independent',    label: 'Independent Living',  color: 'bg-green-100 text-green-700 border-green-200' },
-  { key: 'assisted',       label: 'Assisted Living',     color: 'bg-blue-100 text-blue-700 border-blue-200' },
-  { key: 'memory_care',    label: 'Memory Care',         color: 'bg-purple-100 text-purple-700 border-purple-200' },
-  { key: 'skilled_nursing',label: 'Skilled Nursing',     color: 'bg-orange-100 text-orange-700 border-orange-200' },
-  { key: 'rehab',          label: 'Rehab',               color: 'bg-cyan-100 text-cyan-700 border-cyan-200' },
+  { key: 'independent',    label: 'Independent Living',  color: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-950/50 dark:text-green-400 dark:border-green-800' },
+  { key: 'assisted',       label: 'Assisted Living',     color: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800' },
+  { key: 'memory_care',    label: 'Memory Care',         color: 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-950/50 dark:text-purple-400 dark:border-purple-800' },
+  { key: 'skilled_nursing',label: 'Skilled Nursing',     color: 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950/50 dark:text-orange-400 dark:border-orange-800' },
+  { key: 'rehab',          label: 'Rehab',               color: 'bg-cyan-100 text-cyan-700 border-cyan-200 dark:bg-cyan-950/50 dark:text-cyan-400 dark:border-cyan-800' },
 ]
 
 const MEDICAL_TYPES = [
@@ -100,18 +100,18 @@ function PrintResidentCard({ resident, emergencyContacts, medicalContacts, orgNa
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <h2 className="font-display font-semibold text-slate-800">Print Resident Profile</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Print Resident Profile</h2>
+          <button onClick={onClose} className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"><X size={20} /></button>
         </div>
         <div className="px-6 py-5">
-          <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl mb-4">
+          <div className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800 rounded-xl mb-4">
             <div className="w-12 h-12 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 font-display font-bold text-lg flex-shrink-0">
               {resident.first_name[0]}
             </div>
             <div>
-              <div className="font-semibold text-slate-800">{resident.first_name} {resident.last_name}</div>
+              <div className="font-semibold text-slate-800 dark:text-slate-100">{resident.first_name} {resident.last_name}</div>
               <div className="text-xs text-slate-400">{getCareLevel(resident.care_level).label}{resident.room ? ` · Room ${resident.room}` : ''}</div>
             </div>
           </div>
@@ -120,8 +120,8 @@ function PrintResidentCard({ resident, emergencyContacts, medicalContacts, orgNa
             <div className="flex justify-between"><span>Medical contacts</span><span className="font-medium">{medicalContacts.length}</span></div>
           </div>
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
           <button onClick={handlePrint}
             className="flex items-center gap-2 px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg transition-colors">
             <Printer size={15} /> Print Profile
@@ -373,9 +373,9 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div className="flex items-center gap-3">
             {form.photo_url ? (
               <img src={form.photo_url} alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
@@ -385,7 +385,7 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
               </div>
             )}
             <div>
-              <h2 className="font-display font-semibold text-slate-800">
+              <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">
                 {isNew ? 'Add Resident' : `${form.first_name} ${form.last_name}`}
               </h2>
               {!isNew && age && <p className="text-xs text-slate-400">Age {age}</p>}
@@ -398,12 +398,12 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
                 <Printer size={16} />
               </button>
             )}
-            <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+            <button onClick={onClose} className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"><X size={20} /></button>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 px-6 pt-3 border-b border-slate-100 flex-shrink-0">
+        <div className="flex gap-1 px-6 pt-3 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           {[
             { key: 'info',      label: 'Info',              icon: User },
             { key: 'emergency', label: 'Emergency Contacts', icon: AlertTriangle },
@@ -412,7 +412,7 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
             const Icon = t.icon
             return (
               <button key={t.key} onClick={() => setTab(t.key)}
-                className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-all -mb-px ${tab === t.key ? 'border-brand-600 text-brand-700' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
+                className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-all -mb-px ${tab === t.key ? 'border-brand-600 text-brand-700' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
                 <Icon size={14} />{t.label}
               </button>
             )
@@ -420,7 +420,7 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5">
-          {error && <div className="mb-4 px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+          {error && <div className="mb-4 px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
 
           {/* INFO TAB */}
           {tab === 'info' && (
@@ -429,9 +429,9 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
               <div className="flex items-center gap-4">
                 <div className="relative">
                   {form.photo_url ? (
-                    <img src={form.photo_url} alt="" className="w-20 h-20 rounded-2xl object-cover border border-slate-200" />
+                    <img src={form.photo_url} alt="" className="w-20 h-20 rounded-2xl object-cover border border-slate-200 dark:border-slate-700" />
                   ) : (
-                    <div className="w-20 h-20 rounded-2xl bg-brand-100 flex items-center justify-center text-brand-700 font-display font-bold text-3xl border border-slate-200">
+                    <div className="w-20 h-20 rounded-2xl bg-brand-100 flex items-center justify-center text-brand-700 font-display font-bold text-3xl border border-slate-200 dark:border-slate-700">
                       {form.first_name?.[0] || '?'}
                     </div>
                   )}
@@ -453,17 +453,17 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">First Name *</label>
                   <input value={form.first_name} onChange={e => set('first_name', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Middle</label>
                   <input value={form.middle_name} onChange={e => set('middle_name', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Last Name *</label>
                   <input value={form.last_name} onChange={e => set('last_name', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
                 </div>
               </div>
 
@@ -472,13 +472,13 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Date of Birth</label>
                   <input type="date" value={form.date_of_birth} onChange={e => set('date_of_birth', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
                   {age && <p className="text-xs text-slate-400 mt-1">Age {age}</p>}
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Phone</label>
                   <input value={form.phone} onChange={e => set('phone', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                     placeholder="Resident's phone" />
                 </div>
               </div>
@@ -488,17 +488,17 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Room</label>
                   <input value={form.room} onChange={e => set('room', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Unit</label>
                   <input value={form.unit} onChange={e => set('unit', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Building</label>
                   <input value={form.building} onChange={e => set('building', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
                 </div>
               </div>
 
@@ -509,7 +509,7 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
                   <div className="space-y-1.5">
                     {CARE_LEVELS.map(c => (
                       <button key={c.key} onClick={() => set('care_level', c.key)}
-                        className={`w-full text-left px-3 py-2 rounded-lg border text-xs font-medium transition-all ${form.care_level === c.key ? c.color + ' ring-2 ring-offset-1 ring-brand-400' : 'border-slate-200 text-slate-600 hover:border-slate-300'}`}>
+                        className={`w-full text-left px-3 py-2 rounded-lg border text-xs font-medium transition-all ${form.care_level === c.key ? c.color + ' ring-2 ring-offset-1 ring-brand-400' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300'}`}>
                         {c.label}
                       </button>
                     ))}
@@ -518,17 +518,17 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Admission Date</label>
                   <input type="date" value={form.admission_date} onChange={e => set('admission_date', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
                 </div>
               </div>
 
               {/* Portal Access */}
               {!isNew && canEdit && (
-                <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
+                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       {linkedEmail ? <Wifi size={15} className="text-green-500" /> : <WifiOff size={15} className="text-slate-400" />}
-                      <span className="text-sm font-medium text-slate-700">Resident Portal Access</span>
+                      <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Resident Portal Access</span>
                     </div>
                     {linkedEmail ? (
                       <button onClick={handleRemovePortal} disabled={portalSaving}
@@ -544,7 +544,7 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
                   </div>
 
                   {linkedEmail ? (
-                    <p className="text-xs text-green-700">Active · <span className="font-mono">{linkedEmail}</span></p>
+                    <p className="text-xs text-green-700 dark:text-green-400">Active · <span className="font-mono">{linkedEmail}</span></p>
                   ) : (
                     <p className="text-xs text-slate-400">No portal account — resident cannot log in yet.</p>
                   )}
@@ -556,7 +556,7 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
                         onChange={e => setPortalEmail(e.target.value)}
                         placeholder="Resident's email address"
                         type="email"
-                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                        className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                       />
                       {portalError && <p className="text-xs text-red-500">{portalError}</p>}
                       <button onClick={handleEnablePortal} disabled={portalSaving}
@@ -572,11 +572,11 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
 
               {/* Family Portal Access */}
               {!isNew && (
-                <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-3">
+                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Users size={15} className="text-slate-400" />
-                      <span className="text-sm font-medium text-slate-700">Family Portal Access</span>
+                      <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Family Portal Access</span>
                     </div>
                     {canEdit && (
                       <button onClick={() => setShowFamilyForm(v => !v)}
@@ -595,9 +595,9 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
                       {familyLinks.map(link => {
                         const p = link.profiles
                         return (
-                          <div key={link.id} className="flex items-center justify-between py-1.5 px-2 bg-white rounded-lg border border-slate-100">
+                          <div key={link.id} className="flex items-center justify-between py-1.5 px-2 bg-white dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-800">
                             <div>
-                              <div className="text-xs font-medium text-slate-700">
+                              <div className="text-xs font-medium text-slate-700 dark:text-slate-300">
                                 {p?.first_name} {p?.last_name}
                                 {link.is_primary && <span className="ml-1.5 text-[10px] text-brand-600 font-semibold">PRIMARY</span>}
                               </div>
@@ -614,39 +614,39 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
                   )}
 
                   {showFamilyForm && canEdit && (
-                    <div className="pt-2 space-y-2 border-t border-slate-200">
+                    <div className="pt-2 space-y-2 border-t border-slate-200 dark:border-slate-700">
                       <div className="grid grid-cols-2 gap-2">
                         <div>
                           <label className="block text-xs text-slate-500 mb-1">First Name *</label>
                           <input value={familyForm.first_name} onChange={e => setFf('first_name', e.target.value)}
-                            placeholder="Jane" className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                            placeholder="Jane" className="w-full px-3 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500" />
                         </div>
                         <div>
                           <label className="block text-xs text-slate-500 mb-1">Last Name</label>
                           <input value={familyForm.last_name} onChange={e => setFf('last_name', e.target.value)}
-                            placeholder="Smith" className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                            placeholder="Smith" className="w-full px-3 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500" />
                         </div>
                       </div>
                       <div>
                         <label className="block text-xs text-slate-500 mb-1">Email *</label>
                         <input type="email" value={familyForm.email} onChange={e => setFf('email', e.target.value)}
-                          placeholder="jane@email.com" className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                          placeholder="jane@email.com" className="w-full px-3 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500" />
                       </div>
                       <div>
                         <label className="block text-xs text-slate-500 mb-1">Relationship</label>
                         <input value={familyForm.relationship} onChange={e => setFf('relationship', e.target.value)}
-                          placeholder="e.g. Daughter, Son, Spouse" className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                          placeholder="e.g. Daughter, Son, Spouse" className="w-full px-3 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500" />
                       </div>
                       <div className="flex items-center gap-4">
-                        <label className="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+                        <label className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 cursor-pointer">
                           <input type="checkbox" checked={familyForm.is_primary} onChange={e => setFf('is_primary', e.target.checked)} className="accent-brand-600" />
                           Primary contact
                         </label>
-                        <label className="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+                        <label className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 cursor-pointer">
                           <input type="checkbox" checked={familyForm.can_view_medical} onChange={e => setFf('can_view_medical', e.target.checked)} className="accent-brand-600" />
                           Medical info
                         </label>
-                        <label className="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+                        <label className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 cursor-pointer">
                           <input type="checkbox" checked={familyForm.can_view_dietary} onChange={e => setFf('can_view_dietary', e.target.checked)} className="accent-brand-600" />
                           Dietary
                         </label>
@@ -664,13 +664,13 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
               )}
 
               {/* Resident directory visibility */}
-              <div className={`flex items-start gap-3 p-4 rounded-xl border transition-all ${readOnly ? 'cursor-default' : 'cursor-pointer'} ${form.show_in_directory ? 'bg-green-50 border-green-200' : 'bg-slate-50 border-slate-200'}`}
+              <div className={`flex items-start gap-3 p-4 rounded-xl border transition-all ${readOnly ? 'cursor-default' : 'cursor-pointer'} ${form.show_in_directory ? 'bg-green-50 border-green-200 dark:bg-green-950/50 dark:border-green-800' : 'bg-slate-50 border-slate-200 dark:bg-slate-800 dark:border-slate-700'}`}
                 onClick={() => !readOnly && set('show_in_directory', !form.show_in_directory)}>
-                <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${form.show_in_directory ? 'bg-green-500 border-green-500' : 'border-slate-300 bg-white'}`}>
+                <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${form.show_in_directory ? 'bg-green-500 border-green-500' : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800'}`}>
                   {form.show_in_directory && <Check size={12} className="text-white" />}
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-slate-700">Show in Resident Directory</div>
+                  <div className="text-sm font-medium text-slate-700 dark:text-slate-300">Show in Resident Directory</div>
                   <div className="text-xs text-slate-400 mt-0.5">
                     When checked, this resident's name and room will be visible to other residents in the portal. Phone, emergency contacts, and medical info are never shared.
                   </div>
@@ -683,16 +683,16 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
           {tab === 'emergency' && (
             <fieldset disabled={readOnly} className="space-y-3 disabled:opacity-75">
               {isNew && (
-                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-700">
+                <div className="p-3 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 rounded-xl text-xs text-amber-700 dark:text-amber-400">
                   Save the resident info first before adding contacts.
                 </div>
               )}
               {emergencyContacts.map(c => (
-                <div key={c.id} className={`p-4 rounded-2xl border ${c.is_primary ? 'bg-brand-50 border-brand-200' : 'bg-white border-slate-100'}`}>
+                <div key={c.id} className={`p-4 rounded-2xl border ${c.is_primary ? 'bg-brand-50 border-brand-200' : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800'}`}>
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <Heart size={14} className={c.is_primary ? 'text-brand-600' : 'text-slate-400'} />
-                      <span className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
+                      <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wide">
                         {c.is_primary ? 'Primary Contact' : 'Contact'}
                       </span>
                     </div>
@@ -708,26 +708,26 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <input value={c.name} onChange={e => updateEC(c.id, 'name', e.target.value)}
-                      className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                      className="px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                       placeholder="Full name" />
                     <input value={c.relationship || ''} onChange={e => updateEC(c.id, 'relationship', e.target.value)}
-                      className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                      className="px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                       placeholder="Relationship (e.g. Son, Daughter)" />
                     <input value={c.phone || ''} onChange={e => updateEC(c.id, 'phone', e.target.value)}
-                      className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                      className="px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                       placeholder="Primary phone" />
                     <input value={c.alt_phone || ''} onChange={e => updateEC(c.id, 'alt_phone', e.target.value)}
-                      className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                      className="px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                       placeholder="Alt phone" />
                     <input value={c.email || ''} onChange={e => updateEC(c.id, 'email', e.target.value)}
-                      className="col-span-2 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                      className="col-span-2 px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                       placeholder="Email address" />
                   </div>
                 </div>
               ))}
               {!isNew && (
                 <button onClick={addEmergencyContact}
-                  className="w-full py-3 border-2 border-dashed border-slate-200 rounded-2xl text-sm text-slate-400 hover:border-brand-400 hover:text-brand-500 transition-colors flex items-center justify-center gap-2">
+                  className="w-full py-3 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl text-sm text-slate-400 hover:border-brand-400 hover:text-brand-500 transition-colors flex items-center justify-center gap-2">
                   <Plus size={15} /> Add Emergency Contact
                 </button>
               )}
@@ -738,42 +738,42 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
           {tab === 'medical' && (
             <fieldset disabled={readOnly} className="space-y-3 disabled:opacity-75">
               {isNew && (
-                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-700">
+                <div className="p-3 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 rounded-xl text-xs text-amber-700 dark:text-amber-400">
                   Save the resident info first before adding contacts.
                 </div>
               )}
               {medicalContacts.map(c => (
-                <div key={c.id} className="p-4 bg-white rounded-2xl border border-slate-100">
+                <div key={c.id} className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800">
                   <div className="flex items-center justify-between mb-3">
                     <Stethoscope size={14} className="text-slate-400" />
                     <button onClick={() => deleteMC(c.id)} className="p-1.5 text-slate-300 hover:text-red-500 rounded-lg transition-colors"><Trash2 size={13} /></button>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <select value={c.contact_type} onChange={e => updateMC(c.id, 'contact_type', e.target.value)}
-                      className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                      className="px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                       {MEDICAL_TYPES.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
                     </select>
                     <input value={c.name} onChange={e => updateMC(c.id, 'name', e.target.value)}
-                      className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                      className="px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                       placeholder="Doctor / provider name" />
                     <input value={c.practice || ''} onChange={e => updateMC(c.id, 'practice', e.target.value)}
-                      className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                      className="px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                       placeholder="Practice / clinic name" />
                     <input value={c.phone || ''} onChange={e => updateMC(c.id, 'phone', e.target.value)}
-                      className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                      className="px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                       placeholder="Phone" />
                     <input value={c.address || ''} onChange={e => updateMC(c.id, 'address', e.target.value)}
-                      className="col-span-2 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                      className="col-span-2 px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                       placeholder="Address" />
                     <input value={c.notes || ''} onChange={e => updateMC(c.id, 'notes', e.target.value)}
-                      className="col-span-2 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                      className="col-span-2 px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                       placeholder="Notes" />
                   </div>
                 </div>
               ))}
               {!isNew && (
                 <button onClick={addMedicalContact}
-                  className="w-full py-3 border-2 border-dashed border-slate-200 rounded-2xl text-sm text-slate-400 hover:border-brand-400 hover:text-brand-500 transition-colors flex items-center justify-center gap-2">
+                  className="w-full py-3 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl text-sm text-slate-400 hover:border-brand-400 hover:text-brand-500 transition-colors flex items-center justify-center gap-2">
                   <Plus size={15} /> Add Medical Contact
                 </button>
               )}
@@ -783,7 +783,7 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
 
         {/* Footer — only show save on info tab */}
         {tab === 'info' && !readOnly && (
-          <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between gap-3 flex-shrink-0">
+          <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 flex-shrink-0">
             {!isNew ? (
               <button onClick={() => onDelete(resident.id)}
                 className="px-4 py-2 text-sm text-red-500 hover:bg-red-50 rounded-lg font-medium transition-colors">
@@ -791,7 +791,7 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
               </button>
             ) : <div />}
             <div className="flex gap-3">
-              <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+              <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
               <button onClick={handleSaveInfo} disabled={saving}
                 className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
                 {saving ? 'Saving...' : isNew ? 'Add Resident' : 'Save Changes'}
@@ -800,7 +800,7 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
           </div>
         )}
         {(tab !== 'info' || readOnly) && (
-          <div className="px-6 py-4 border-t border-slate-100 flex justify-end flex-shrink-0">
+          <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end flex-shrink-0">
             <button onClick={onClose} className="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg transition-colors">
               {readOnly && tab === 'info' ? 'Close' : 'Done'}
             </button>
@@ -884,7 +884,7 @@ export default function ResidentDirectory() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-slate-800">Resident Directory</h1>
+          <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Resident Directory</h1>
           <p className="text-slate-500 text-sm mt-0.5">{residents.length} resident{residents.length !== 1 ? 's' : ''} on file</p>
         </div>
         {canEditDirectory && (
@@ -899,7 +899,7 @@ export default function ResidentDirectory() {
       <div className="grid grid-cols-4 gap-3 mb-6">
         {CARE_LEVELS.map(c => (
           <button key={c.key} onClick={() => setFilterCare(filterCare === c.key ? 'all' : c.key)}
-            className={`rounded-2xl p-4 text-left transition-all border-2 ${filterCare === c.key ? 'ring-2 ring-brand-400 border-brand-400' : 'border-transparent'} ${c.color.replace('text-', 'border-transparent bg-').split(' ')[0]}`}
+            className={`rounded-2xl p-4 text-left transition-all border-2 ${filterCare === c.key ? 'ring-2 ring-brand-400 border-brand-400' : 'border-transparent'} ${c.color.replace('text-', 'border-transparent bg-').split(' ')[0]} dark:bg-slate-900`}
             style={{ background: '' }}>
             <div className={`text-3xl font-display font-bold ${c.color.split(' ')[1]}`}>{stats[c.key] || 0}</div>
             <div className="text-slate-500 text-xs mt-1">{c.label}</div>
@@ -912,15 +912,15 @@ export default function ResidentDirectory() {
         <div className="relative flex-1 min-w-48">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name, room, or unit..."
-            className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
         </div>
         <button onClick={() => setFilterCare('all')}
-          className={`px-3 py-2 rounded-xl border text-sm font-medium transition-colors ${filterCare === 'all' ? 'bg-brand-600 text-white border-brand-600' : 'bg-white border-slate-200 text-slate-600'}`}>
+          className={`px-3 py-2 rounded-xl border text-sm font-medium transition-colors ${filterCare === 'all' ? 'bg-brand-600 text-white border-brand-600' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}`}>
           All
         </button>
         {CARE_LEVELS.map(c => (
           <button key={c.key} onClick={() => setFilterCare(filterCare === c.key ? 'all' : c.key)}
-            className={`px-3 py-2 rounded-xl border text-sm font-medium transition-colors ${filterCare === c.key ? 'bg-brand-600 text-white border-brand-600' : 'bg-white border-slate-200 text-slate-600'}`}>
+            className={`px-3 py-2 rounded-xl border text-sm font-medium transition-colors ${filterCare === c.key ? 'bg-brand-600 text-white border-brand-600' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}`}>
             {c.label}
           </button>
         ))}
@@ -952,7 +952,7 @@ export default function ResidentDirectory() {
                     return (
                       <div key={r.id}
                         onClick={() => handleOpen(r)}
-                        className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 cursor-pointer hover:shadow-md hover:border-brand-200 transition-all group">
+                        className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-4 cursor-pointer hover:shadow-md hover:border-brand-200 transition-all group">
                         <div className="flex items-start gap-3">
                           {r.photo_url ? (
                             <img src={r.photo_url} alt="" className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
@@ -962,10 +962,10 @@ export default function ResidentDirectory() {
                             </div>
                           )}
                           <div className="flex-1 min-w-0">
-                            <div className="font-display font-semibold text-slate-800 group-hover:text-brand-700 transition-colors flex items-center gap-2">
+                            <div className="font-display font-semibold text-slate-800 dark:text-slate-100 group-hover:text-brand-700 transition-colors flex items-center gap-2">
                               {r.first_name} {r.last_name}
                               {r.show_in_directory && (
-                                <span className="text-xs px-1.5 py-0.5 rounded-full bg-green-100 text-green-600 border border-green-200 font-medium flex-shrink-0">Public</span>
+                                <span className="text-xs px-1.5 py-0.5 rounded-full bg-green-100 dark:bg-green-950/50 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800 font-medium flex-shrink-0">Public</span>
                               )}
                             </div>
                             <div className="text-xs text-slate-400 mt-0.5">
@@ -982,7 +982,7 @@ export default function ResidentDirectory() {
                         )}
 
                         {primaryContact && (
-                          <div className="mt-2 pt-2 border-t border-slate-50">
+                          <div className="mt-2 pt-2 border-t border-slate-50 dark:border-slate-800">
                             <div className="flex items-center gap-1.5 text-xs text-slate-400">
                               <Heart size={11} className="text-red-400 flex-shrink-0" />
                               <span className="truncate">{primaryContact.name}{primaryContact.relationship ? ` (${primaryContact.relationship})` : ''}</span>
@@ -992,7 +992,7 @@ export default function ResidentDirectory() {
                         )}
 
                         {!primaryContact && (
-                          <div className="mt-2 pt-2 border-t border-slate-50">
+                          <div className="mt-2 pt-2 border-t border-slate-50 dark:border-slate-800">
                             <div className="flex items-center gap-1 text-xs text-amber-500">
                               <AlertTriangle size={11} /> No emergency contact on file
                             </div>
@@ -1010,11 +1010,11 @@ export default function ResidentDirectory() {
 
       {limitHit && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center">
-            <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center">
+            <div className="w-14 h-14 bg-amber-100 dark:bg-amber-950/50 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <AlertTriangle size={24} className="text-amber-600" />
             </div>
-            <h2 className="font-display font-bold text-slate-800 text-lg mb-2">Resident Limit Reached</h2>
+            <h2 className="font-display font-bold text-slate-800 dark:text-slate-100 text-lg mb-2">Resident Limit Reached</h2>
             <p className="text-slate-500 text-sm mb-1">
               Your <strong>Starter</strong> plan is limited to <strong>{organization?.resident_limit} residents</strong>.
             </p>
@@ -1025,7 +1025,7 @@ export default function ResidentDirectory() {
                 View Upgrade Options
               </button>
               <button onClick={() => setLimitHit(false)}
-                className="w-full py-2 text-slate-500 hover:text-slate-700 text-sm transition-colors">
+                className="w-full py-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 text-sm transition-colors">
                 Cancel
               </button>
             </div>

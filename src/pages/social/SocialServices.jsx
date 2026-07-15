@@ -26,26 +26,26 @@ export default function SocialServices() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="font-display font-bold text-slate-800 text-2xl flex items-center gap-2.5">
+          <h1 className="font-display font-bold text-slate-800 dark:text-slate-100 text-2xl flex items-center gap-2.5">
             <Heart size={22} className="text-brand-600" /> Social Services
           </h1>
           <p className="text-slate-500 text-sm mt-0.5">Resident psycho-social records, behavioral tracking, grievances and care conferences</p>
         </div>
         {!canWrite && (
-          <span className="text-xs text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-lg">
+          <span className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900 px-3 py-1.5 rounded-lg">
             View-only — contact your administrator to request write access
           </span>
         )}
       </div>
 
       {/* Tab bar */}
-      <div className="flex gap-1 bg-slate-100 p-1 rounded-2xl flex-wrap">
+      <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl flex-wrap">
         {TABS.filter(t => !t.directorOnly || ['social_services','supervisor','manager','org_admin','ceo','super_admin'].includes(profile?.role)).map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex-1 justify-center
               ${tab === t.key
-                ? 'bg-white text-brand-700 shadow-sm'
-                : 'text-slate-500 hover:text-slate-700 hover:bg-white/50'}`}>
+                ? 'bg-white dark:bg-slate-900 text-brand-700 shadow-sm'
+                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-900/50'}`}>
             <t.icon size={15} />
             <span className="hidden sm:inline">{t.label}</span>
             <span className="sm:hidden">{t.label.split(' ')[0]}</span>

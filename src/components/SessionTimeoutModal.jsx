@@ -12,7 +12,7 @@ export default function SessionTimeoutModal({ timeLeft, onExtend, onLogout }) {
       <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 overflow-hidden">
+      <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-sm w-full mx-4 overflow-hidden">
         {/* Header */}
         <div className={`px-6 py-4 flex items-center gap-3 ${isUrgent ? 'bg-red-600' : 'bg-amber-500'}`}>
           <Clock className="text-white flex-shrink-0" size={20} />
@@ -20,14 +20,14 @@ export default function SessionTimeoutModal({ timeLeft, onExtend, onLogout }) {
         </div>
 
         <div className="px-6 py-5">
-          <p className="text-slate-600 text-sm leading-relaxed mb-4">
+          <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-4">
             For the security of resident information, your session will automatically
             sign out after 30 minutes of inactivity.
           </p>
 
           {/* Countdown */}
-          <div className={`text-center py-4 rounded-xl mb-5 ${isUrgent ? 'bg-red-50' : 'bg-amber-50'}`}>
-            <div className={`text-4xl font-mono font-bold tabular-nums ${isUrgent ? 'text-red-600' : 'text-amber-600'}`}>
+          <div className={`text-center py-4 rounded-xl mb-5 ${isUrgent ? 'bg-red-50 dark:bg-red-950/50' : 'bg-amber-50 dark:bg-amber-950/50'}`}>
+            <div className={`text-4xl font-mono font-bold tabular-nums ${isUrgent ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'}`}>
               {formatted}
             </div>
             <p className={`text-xs mt-1 ${isUrgent ? 'text-red-400' : 'text-amber-500'}`}>
@@ -39,7 +39,7 @@ export default function SessionTimeoutModal({ timeLeft, onExtend, onLogout }) {
           <div className="flex gap-3">
             <button
               onClick={onLogout}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-sm font-medium hover:bg-slate-50 transition-colors flex-1"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex-1"
             >
               <LogOut size={14} />
               Sign Out

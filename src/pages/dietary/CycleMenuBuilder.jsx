@@ -47,25 +47,25 @@ function ItemPicker({ items, value, onChange, placeholder = 'Select item...' }) 
   return (
     <div className="relative">
       <button onClick={() => setOpen(o => !o)}
-        className="w-full text-left px-3 py-2 border border-slate-200 rounded-lg text-sm hover:border-brand-400 transition-colors flex items-center justify-between gap-2">
-        <span className={selected ? 'text-slate-800' : 'text-slate-400'}>{selected?.name || placeholder}</span>
+        className="w-full text-left px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded-lg text-sm hover:border-brand-400 transition-colors flex items-center justify-between gap-2">
+        <span className={selected ? 'text-slate-800 dark:text-slate-100' : 'text-slate-400'}>{selected?.name || placeholder}</span>
         <ChevronRight size={14} className={`text-slate-400 transition-transform flex-shrink-0 ${open ? 'rotate-90' : ''}`} />
       </button>
       {open && (
-        <div className="absolute z-50 top-full mt-1 left-0 right-0 bg-white border border-slate-200 rounded-xl shadow-lg">
-          <div className="p-2 border-b border-slate-100">
+        <div className="absolute z-50 top-full mt-1 left-0 right-0 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg">
+          <div className="p-2 border-b border-slate-100 dark:border-slate-800">
             <input autoFocus value={search} onChange={e => setSearch(e.target.value)}
-              className="w-full px-2 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-2 py-1.5 text-sm border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="Search..." />
           </div>
           <div className="max-h-48 overflow-y-auto">
             <button onClick={() => { onChange(null); setOpen(false) }}
-              className="w-full text-left px-3 py-2 text-sm text-slate-400 hover:bg-slate-50 italic">
+              className="w-full text-left px-3 py-2 text-sm text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 italic">
               None
             </button>
             {filtered.map(item => (
               <button key={item.id} onClick={() => { onChange(item.id); setOpen(false); setSearch('') }}
-                className={`w-full text-left px-3 py-2 text-sm hover:bg-brand-50 flex items-center justify-between ${value === item.id ? 'bg-brand-50 text-brand-700 font-medium' : 'text-slate-700'}`}>
+                className={`w-full text-left px-3 py-2 text-sm hover:bg-brand-50 dark:hover:bg-slate-800 flex items-center justify-between ${value === item.id ? 'bg-brand-50 text-brand-700 font-medium' : 'text-slate-700 dark:text-slate-300'}`}>
                 <span>{item.name}</span>
                 {value === item.id && <Check size={13} className="text-brand-600" />}
               </button>
@@ -121,7 +121,7 @@ function MenuItemsCatalog({ items, onRefresh, orgId, canEdit }) {
       <div className="flex items-center justify-between mb-4">
         <div className="relative flex-1 max-w-sm">
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search items..."
-            className="w-full pl-4 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            className="w-full pl-4 pr-4 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
         </div>
         {canEdit && (
           <button onClick={openNew}
@@ -132,21 +132,21 @@ function MenuItemsCatalog({ items, onRefresh, orgId, canEdit }) {
       </div>
 
       {showForm && (
-        <div className="mb-4 p-4 bg-slate-50 border border-slate-200 rounded-xl">
-          <h4 className="font-medium text-slate-800 mb-3 text-sm">{editItem ? 'Edit Item' : 'New Menu Item'}</h4>
+        <div className="mb-4 p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl">
+          <h4 className="font-medium text-slate-800 dark:text-slate-100 mb-3 text-sm">{editItem ? 'Edit Item' : 'New Menu Item'}</h4>
           <div className="space-y-3">
             <input value={form.name} onChange={e => set('name', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="Item name (e.g. Grilled Chicken)" />
             <input value={form.description} onChange={e => set('description', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="Description (optional)" />
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Contains Allergens</label>
               <div className="flex flex-wrap gap-1.5">
                 {ALLERGENS.map(a => (
                   <button key={a} onClick={() => toggleAllergen(a)}
-                    className={`px-2 py-1 rounded-lg border text-xs font-medium transition-all capitalize ${form.allergens.includes(a) ? 'bg-red-500 text-white border-red-500' : 'border-slate-200 text-slate-600 hover:border-red-300'}`}>
+                    className={`px-2 py-1 rounded-lg border text-xs font-medium transition-all capitalize ${form.allergens.includes(a) ? 'bg-red-500 text-white border-red-500' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-red-300'}`}>
                     {a.replace('_', ' ')}
                   </button>
                 ))}
@@ -157,7 +157,7 @@ function MenuItemsCatalog({ items, onRefresh, orgId, canEdit }) {
               <div className="flex flex-wrap gap-1.5">
                 {DIET_TYPES.map(d => (
                   <button key={d.key} onClick={() => toggleDiet(d.key)}
-                    className={`px-2 py-1 rounded-lg border text-xs font-medium transition-all ${form.suitable_diets.includes(d.key) ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 text-slate-600 hover:border-brand-300'}`}>
+                    className={`px-2 py-1 rounded-lg border text-xs font-medium transition-all ${form.suitable_diets.includes(d.key) ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300'}`}>
                     {d.label}
                   </button>
                 ))}
@@ -169,7 +169,7 @@ function MenuItemsCatalog({ items, onRefresh, orgId, canEdit }) {
               <div className="flex flex-wrap gap-1.5">
                 {CONSISTENCY_LEVELS.map(cl => (
                   <button key={cl.key} onClick={() => toggleCons(cl.key)}
-                    className={`px-2 py-1 rounded-lg border text-xs font-medium transition-all ${form.suitable_consistencies.includes(cl.key) ? 'bg-teal-600 text-white border-teal-600' : 'border-slate-200 text-slate-600 hover:border-teal-300'}`}>
+                    className={`px-2 py-1 rounded-lg border text-xs font-medium transition-all ${form.suitable_consistencies.includes(cl.key) ? 'bg-teal-600 text-white border-teal-600' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-teal-300'}`}>
                     {cl.label}
                   </button>
                 ))}
@@ -189,14 +189,14 @@ function MenuItemsCatalog({ items, onRefresh, orgId, canEdit }) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {filtered.map(item => (
-          <div key={item.id} className="bg-white border border-slate-100 rounded-xl p-4 flex items-start justify-between gap-2 hover:shadow-sm transition-all">
+          <div key={item.id} className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl p-4 flex items-start justify-between gap-2 hover:shadow-sm transition-all">
             <div className="flex-1 min-w-0">
-              <div className="font-medium text-slate-800 text-sm">{item.name}</div>
+              <div className="font-medium text-slate-800 dark:text-slate-100 text-sm">{item.name}</div>
               {item.description && <div className="text-xs text-slate-500 mt-0.5 truncate">{item.description}</div>}
               {item.allergens?.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-1.5">
                   {item.allergens.map(a => (
-                    <span key={a} className="text-xs px-1.5 py-0.5 bg-red-50 text-red-600 rounded border border-red-100 capitalize">{a.replace('_',' ')}</span>
+                    <span key={a} className="text-xs px-1.5 py-0.5 bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 rounded border border-red-100 dark:border-red-900/50 capitalize">{a.replace('_',' ')}</span>
                   ))}
                 </div>
               )}
@@ -284,7 +284,7 @@ function DayMealCell({ weekNum, dayIdx, period, dayData, items, onSave, canEdit 
   return (
     <>
       <button onClick={() => setOpen(true)}
-        className={`w-full text-left p-2 rounded-lg border transition-all min-h-[52px] ${hasItems ? 'border-brand-200 bg-brand-50 hover:bg-brand-100' : 'border-dashed border-slate-200 hover:border-brand-300 hover:bg-slate-50'}`}>
+        className={`w-full text-left p-2 rounded-lg border transition-all min-h-[52px] ${hasItems ? 'border-brand-200 bg-brand-50 hover:bg-brand-100' : 'border-dashed border-slate-200 dark:border-slate-700 hover:border-brand-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
         {hasItems ? (
           <div>
             {meal.courses.slice(0, 2).map((c, i) => (
@@ -303,10 +303,10 @@ function DayMealCell({ weekNum, dayIdx, period, dayData, items, onSave, canEdit 
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white rounded-t-2xl flex items-center justify-between px-5 py-4 border-b border-slate-100 z-10">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white dark:bg-slate-900 rounded-t-2xl flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800 z-10">
               <div>
-                <h3 className="font-display font-semibold text-slate-800 text-base">
+                <h3 className="font-display font-semibold text-slate-800 dark:text-slate-100 text-base">
                   {period.label} — Week {weekNum}, {DAYS[dayIdx]}
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">Set menu items and backup substitutions</p>
@@ -316,10 +316,10 @@ function DayMealCell({ weekNum, dayIdx, period, dayData, items, onSave, canEdit 
 
             <fieldset disabled={!canEdit} className="px-5 py-4 space-y-3 disabled:opacity-75">
               {courses.map((course, idx) => (
-                <div key={idx} className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <div key={idx} className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700">
                   <div className="flex items-center gap-2 mb-2">
                     <input value={course.course_name} onChange={e => updateCourse(idx, 'course_name', e.target.value)}
-                      className="flex-1 px-2 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white"
+                      className="flex-1 px-2 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-900 dark:text-slate-100"
                       placeholder="Course name (e.g. Entree, Vegetable, Dessert)" />
                     <button onClick={() => removeCourse(idx)} className="text-slate-300 hover:text-red-400 transition-colors flex-shrink-0"><X size={15} /></button>
                   </div>
@@ -341,7 +341,7 @@ function DayMealCell({ weekNum, dayIdx, period, dayData, items, onSave, canEdit 
                       <p className="text-xs text-slate-400 italic">No alternates — click "Add Alternate" to set substitutions.</p>
                     )}
                     {course.alternates?.map((alt, aIdx) => (
-                      <div key={aIdx} className="mb-2 p-2 bg-white rounded-lg border border-slate-200">
+                      <div key={aIdx} className="mb-2 p-2 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
                         <div className="flex items-center gap-2 mb-1.5">
                           <span className="text-xs font-bold text-slate-400 w-5 text-center">{aIdx + 1}</span>
                           <div className="flex-1">
@@ -357,7 +357,7 @@ function DayMealCell({ weekNum, dayIdx, period, dayData, items, onSave, canEdit 
                             <div className="flex flex-wrap gap-1">
                               {DIET_TYPES.map(d => (
                                 <button key={d.key} onClick={() => toggleAltCondition(idx, aIdx, 'diets', d.key)}
-                                  className={`px-1.5 py-0.5 rounded text-xs border transition-all ${(alt.conditions?.diets || []).includes(d.key) ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 text-slate-500 hover:border-brand-300'}`}>
+                                  className={`px-1.5 py-0.5 rounded text-xs border transition-all ${(alt.conditions?.diets || []).includes(d.key) ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-brand-300'}`}>
                                   {d.label}
                                 </button>
                               ))}
@@ -368,7 +368,7 @@ function DayMealCell({ weekNum, dayIdx, period, dayData, items, onSave, canEdit 
                             <div className="flex flex-wrap gap-1">
                               {ALLERGENS.map(a => (
                                 <button key={a} onClick={() => toggleAltCondition(idx, aIdx, 'allergens', a)}
-                                  className={`px-1.5 py-0.5 rounded text-xs border transition-all capitalize ${(alt.conditions?.allergens || []).includes(a) ? 'bg-red-500 text-white border-red-500' : 'border-slate-200 text-slate-500 hover:border-red-300'}`}>
+                                  className={`px-1.5 py-0.5 rounded text-xs border transition-all capitalize ${(alt.conditions?.allergens || []).includes(a) ? 'bg-red-500 text-white border-red-500' : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-red-300'}`}>
                                   {a.replace('_',' ')}
                                 </button>
                               ))}
@@ -386,8 +386,8 @@ function DayMealCell({ weekNum, dayIdx, period, dayData, items, onSave, canEdit 
               </button>
             </fieldset>
 
-            <div className="sticky bottom-0 bg-white rounded-b-2xl px-5 py-4 border-t border-slate-100 flex justify-end gap-3">
-              <button onClick={() => setOpen(false)} className="px-4 py-2 text-sm text-slate-600 font-medium">{canEdit ? 'Cancel' : 'Close'}</button>
+            <div className="sticky bottom-0 bg-white dark:bg-slate-900 rounded-b-2xl px-5 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
+              <button onClick={() => setOpen(false)} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">{canEdit ? 'Cancel' : 'Close'}</button>
               {canEdit && (
                 <button onClick={handleSave} disabled={saving}
                   className="flex items-center gap-2 px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
@@ -428,11 +428,11 @@ function CooksCount({ weekNum, dayIdx, menuId, items }) {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-display font-semibold text-slate-800">Cook's Count</h3>
+        <h3 className="font-display font-semibold text-slate-800 dark:text-slate-100">Cook's Count</h3>
         <select value={period} onChange={e => setPeriod(e.target.value)}
-          className="px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+          className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
           {MEAL_PERIODS.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
         </select>
       </div>
@@ -442,7 +442,7 @@ function CooksCount({ weekNum, dayIdx, menuId, items }) {
         : (
           <table className="w-full">
             <thead>
-              <tr className="border-b border-slate-100">
+              <tr className="border-b border-slate-100 dark:border-slate-800">
                 <th className="text-left text-xs font-semibold text-slate-500 pb-2">Course</th>
                 <th className="text-left text-xs font-semibold text-slate-500 pb-2">Item</th>
                 <th className="text-left text-xs font-semibold text-slate-500 pb-2">Alternates</th>
@@ -450,9 +450,9 @@ function CooksCount({ weekNum, dayIdx, menuId, items }) {
             </thead>
             <tbody>
               {counts.map((c, i) => (
-                <tr key={i} className="border-b border-slate-50">
-                  <td className="py-2 text-xs font-medium text-slate-700">{c.course_name}</td>
-                  <td className="py-2 text-xs text-slate-600">{c.menu_items?.name || '—'}</td>
+                <tr key={i} className="border-b border-slate-50 dark:border-slate-800">
+                  <td className="py-2 text-xs font-medium text-slate-700 dark:text-slate-300">{c.course_name}</td>
+                  <td className="py-2 text-xs text-slate-600 dark:text-slate-300">{c.menu_items?.name || '—'}</td>
                   <td className="py-2 text-xs text-slate-400 italic">
                     {c.alternates?.length > 0
                       ? c.alternates.sort((a,b) => a.priority - b.priority).map(a => a.item?.name).filter(Boolean).join(' → ')
@@ -547,15 +547,15 @@ function CycleMenuGrid({ menu, items, onBack, canEdit }) {
     <div>
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={onBack} className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
+        <button onClick={onBack} className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
           <ArrowLeft size={18} />
         </button>
         <div className="flex-1">
-          <h2 className="font-display font-semibold text-slate-800 text-lg">{menu.name}</h2>
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 text-lg">{menu.name}</h2>
           <p className="text-slate-400 text-xs">{menu.cycle_length}-week rotation</p>
         </div>
         <button onClick={() => setShowCount(s => !s)}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-colors ${showCount ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 text-slate-600 hover:border-brand-300'}`}>
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-colors ${showCount ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300'}`}>
           Cook's Count
         </button>
       </div>
@@ -563,19 +563,19 @@ function CycleMenuGrid({ menu, items, onBack, canEdit }) {
       {/* Week nav */}
       <div className="flex items-center gap-3 mb-4">
         <button onClick={() => setWeek(w => Math.max(1, w - 1))} disabled={week === 1}
-          className="p-2 text-slate-400 hover:text-slate-700 disabled:opacity-30 hover:bg-slate-100 rounded-lg transition-colors">
+          className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-30 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
           <ChevronLeft size={18} />
         </button>
         <div className="flex-1 flex gap-1 overflow-x-auto">
           {Array.from({ length: menu.cycle_length }, (_, i) => i + 1).map(w => (
             <button key={w} onClick={() => setWeek(w)}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${week === w ? 'bg-brand-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>
+              className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${week === w ? 'bg-brand-600 text-white' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
               Wk {w}
             </button>
           ))}
         </div>
         <button onClick={() => setWeek(w => Math.min(menu.cycle_length, w + 1))} disabled={week === menu.cycle_length}
-          className="p-2 text-slate-400 hover:text-slate-700 disabled:opacity-30 hover:bg-slate-100 rounded-lg transition-colors">
+          className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-30 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
           <ChevronRight size={18} />
         </button>
       </div>
@@ -586,7 +586,7 @@ function CycleMenuGrid({ menu, items, onBack, canEdit }) {
           <div className="flex gap-2 mb-3">
             {DAYS.map((d, i) => (
               <button key={i} onClick={() => setCountDay(i)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${countDay === i ? 'bg-brand-600 text-white' : 'border border-slate-200 text-slate-600'}`}>
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${countDay === i ? 'bg-brand-600 text-white' : 'border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}`}>
                 {d}
               </button>
             ))}
@@ -599,11 +599,11 @@ function CycleMenuGrid({ menu, items, onBack, canEdit }) {
       {loading ? (
         <div className="text-center py-12 text-slate-400">Loading week {week}...</div>
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[700px]">
               <thead>
-                <tr className="border-b border-slate-100 bg-slate-50">
+                <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                   <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide w-28">Meal</th>
                   {DAYS.map(d => (
                     <th key={d} className="px-2 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wide">{d}</th>
@@ -612,9 +612,9 @@ function CycleMenuGrid({ menu, items, onBack, canEdit }) {
               </thead>
               <tbody>
                 {MEAL_PERIODS.map(period => (
-                  <tr key={period.key} className="border-b border-slate-50">
+                  <tr key={period.key} className="border-b border-slate-50 dark:border-slate-800">
                     <td className="px-3 py-2">
-                      <span className="text-xs font-semibold text-slate-600">{period.label}</span>
+                      <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{period.label}</span>
                     </td>
                     {DAYS.map((_, dayIdx) => (
                       <td key={dayIdx} className="px-1.5 py-1.5">
@@ -661,11 +661,11 @@ function CycleMenuList({ menus, onSelect, onCreate, onDelete, onSetCurrent, canE
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {menus.map(menu => (
-            <div key={menu.id} className="bg-white border border-slate-100 rounded-2xl p-5 hover:shadow-md transition-all cursor-pointer group"
+            <div key={menu.id} className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-5 hover:shadow-md transition-all cursor-pointer group"
               onClick={() => onSelect(menu)}>
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="font-display font-semibold text-slate-800 group-hover:text-brand-700 transition-colors">{menu.name}</h3>
+                  <h3 className="font-display font-semibold text-slate-800 dark:text-slate-100 group-hover:text-brand-700 dark:group-hover:text-brand-400 transition-colors">{menu.name}</h3>
                   <p className="text-slate-400 text-sm mt-0.5 flex items-center gap-1.5">
                     <RefreshCw size={12} /> {menu.cycle_length}-week rotation
                   </p>
@@ -690,13 +690,13 @@ function CycleMenuList({ menus, onSelect, onCreate, onDelete, onSetCurrent, canE
                   <ChevronRight size={13} />
                 </div>
                 {menu.is_current
-                  ? <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">✓ Active</span>
+                  ? <span className="px-2 py-0.5 bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400 text-xs font-semibold rounded-full">✓ Active</span>
                   : canEdit
                     ? <button onClick={e => { e.stopPropagation(); onSetCurrent(menu.id) }}
-                        className="px-2 py-0.5 bg-slate-100 hover:bg-brand-100 text-slate-500 hover:text-brand-700 text-xs font-medium rounded-full transition-colors">
+                        className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 hover:bg-brand-100 text-slate-500 dark:text-slate-400 hover:text-brand-700 text-xs font-medium rounded-full transition-colors">
                         Set Active
                       </button>
-                    : <span className="px-2 py-0.5 bg-slate-100 text-slate-400 text-xs font-medium rounded-full">Inactive</span>
+                    : <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-400 text-xs font-medium rounded-full">Inactive</span>
                 }
               </div>
             </div>
@@ -727,32 +727,32 @@ function NewMenuModal({ onClose, onSave, orgId, userId }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <h2 className="font-display font-semibold text-slate-800">New Cycle Menu</h2>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">New Cycle Menu</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
         </div>
         <div className="px-6 py-5 space-y-4">
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Menu Name</label>
             <input value={form.name} onChange={e => set('name', e.target.value)}
-              className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="e.g. 16-Week Summer Rotation" />
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Cycle Length (weeks)</label>
             <input type="number" min={1} max={52} value={form.cycle_length} onChange={e => set('cycle_length', parseInt(e.target.value))}
-              className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Cycle Start Date</label>
             <input type="date" value={form.start_date} onChange={e => set('start_date', e.target.value)}
-              className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             <p className="text-xs text-slate-400 mt-1">Used to calculate which week of the cycle today falls on</p>
           </div>
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
             {saving ? 'Creating...' : 'Create Menu'}
@@ -792,13 +792,13 @@ export default function CycleMenuBuilder({ menus, items, onRefresh, orgId, userI
     <div>
       {/* Sub-tabs */}
       {view === 'list' && (
-        <div className="flex gap-1 mb-6 bg-slate-100 p-1 rounded-xl w-fit">
+        <div className="flex gap-1 mb-6 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit">
           <button onClick={() => setView('list')}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-white text-brand-700 shadow-sm">
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-white dark:bg-slate-900 text-brand-700 dark:text-brand-400 shadow-sm">
             <BookOpen size={14} /> Cycle Menus
           </button>
           <button onClick={() => setView('items')}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-slate-500 hover:text-slate-700">
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">
             <Package size={14} /> Menu Items
           </button>
         </div>
@@ -806,13 +806,13 @@ export default function CycleMenuBuilder({ menus, items, onRefresh, orgId, userI
 
       {view === 'items' && (
         <div>
-          <div className="flex gap-1 mb-6 bg-slate-100 p-1 rounded-xl w-fit">
+          <div className="flex gap-1 mb-6 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit">
             <button onClick={() => setView('list')}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-slate-500 hover:text-slate-700">
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">
               <BookOpen size={14} /> Cycle Menus
             </button>
             <button onClick={() => setView('items')}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-white text-brand-700 shadow-sm">
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-white dark:bg-slate-900 text-brand-700 dark:text-brand-400 shadow-sm">
               <Package size={14} /> Menu Items
             </button>
           </div>

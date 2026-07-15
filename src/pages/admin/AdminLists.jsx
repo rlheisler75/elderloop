@@ -29,25 +29,25 @@ function EditableList({ items, onAdd, onUpdate, onDelete, addPlaceholder, column
       <div className="space-y-2 mb-3">
         {items.map(item => (
           <div key={item.id}
-            className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${item.is_active === false ? 'opacity-40 border-slate-100 bg-slate-50' : 'border-slate-100 bg-white hover:border-brand-200'}`}>
+            className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${item.is_active === false ? 'opacity-40 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800' : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-brand-200'}`}>
             {editId === item.id ? (
               <>
                 <div className="flex-1 flex gap-2 flex-wrap">
                   {columns.map(col => col.type === 'select' ? (
                     <select key={col.key} value={editVals[col.key] || ''}
                       onChange={e => setEditVals(v => ({ ...v, [col.key]: e.target.value }))}
-                      className="flex-1 px-2 py-1.5 border border-brand-300 rounded-lg text-sm focus:outline-none">
+                      className="flex-1 px-2 py-1.5 border border-brand-300 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none">
                       {col.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                     </select>
                   ) : (
                     <input key={col.key} value={editVals[col.key] || ''}
                       onChange={e => setEditVals(v => ({ ...v, [col.key]: e.target.value }))}
-                      className="flex-1 px-2 py-1.5 border border-brand-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                      className="flex-1 px-2 py-1.5 border border-brand-300 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                       placeholder={col.label} />
                   ))}
                 </div>
                 <button onClick={handleUpdate} className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg"><Check size={15} /></button>
-                <button onClick={() => setEditId(null)} className="p-1.5 text-slate-400 hover:bg-slate-100 rounded-lg"><X size={15} /></button>
+                <button onClick={() => setEditId(null)} className="p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"><X size={15} /></button>
               </>
             ) : (
               <>
@@ -59,7 +59,7 @@ function EditableList({ items, onAdd, onUpdate, onDelete, addPlaceholder, column
           </div>
         ))}
         {items.length === 0 && !adding && (
-          <div className="text-center py-6 text-slate-400 text-sm border border-dashed border-slate-200 rounded-xl">No items yet — add one below.</div>
+          <div className="text-center py-6 text-slate-400 text-sm border border-dashed border-slate-200 dark:border-slate-700 rounded-xl">No items yet — add one below.</div>
         )}
       </div>
 
@@ -68,7 +68,7 @@ function EditableList({ items, onAdd, onUpdate, onDelete, addPlaceholder, column
           {columns.map(col => col.type === 'select' ? (
             <select key={col.key} value={newVals[col.key] || ''}
               onChange={e => setNewVals(v => ({ ...v, [col.key]: e.target.value }))}
-              className="flex-1 px-3 py-2 border border-brand-300 rounded-lg text-sm focus:outline-none bg-white">
+              className="flex-1 px-3 py-2 border border-brand-300 rounded-lg text-sm focus:outline-none bg-white dark:bg-slate-800 dark:text-slate-100">
               <option value="">{col.label}</option>
               {col.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
@@ -77,7 +77,7 @@ function EditableList({ items, onAdd, onUpdate, onDelete, addPlaceholder, column
               onChange={e => setNewVals(v => ({ ...v, [col.key]: e.target.value }))}
               onKeyDown={e => e.key === 'Enter' && handleAdd()}
               autoFocus={col === columns[0]}
-              className="flex-1 px-3 py-2 border border-brand-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white"
+              className="flex-1 px-3 py-2 border border-brand-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100"
               placeholder={col.label} />
           ))}
           <button onClick={handleAdd} className="px-3 py-2 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 flex-shrink-0">Add</button>
@@ -152,12 +152,12 @@ function FamilyLinks({ orgId }) {
   return (
     <div>
       <div className="mb-4">
-        <h3 className="font-display font-semibold text-slate-800">Family → Resident Links</h3>
+        <h3 className="font-display font-semibold text-slate-800 dark:text-slate-100">Family → Resident Links</h3>
         <p className="text-slate-400 text-xs mt-0.5">
           Connect family member accounts to their resident. Family members can only see linked residents in the Family Portal.
         </p>
         {familyUsers.length === 0 && (
-          <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-700 flex items-start gap-2">
+          <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900 rounded-xl text-xs text-amber-700 dark:text-amber-400 flex items-start gap-2">
             <AlertTriangle size={13} className="flex-shrink-0 mt-0.5" />
             No family accounts found. Create user accounts with the "Family" role in the Users tab first.
           </div>
@@ -170,13 +170,13 @@ function FamilyLinks({ orgId }) {
           const fam = link.profiles
           const res = link.residents
           return (
-            <div key={link.id} className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 bg-white hover:border-brand-200 transition-all">
+            <div key={link.id} className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-brand-200 transition-all">
               <div className="flex items-center gap-2 flex-1 min-w-0">
-                <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+                <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-950/50 flex items-center justify-center flex-shrink-0">
                   <Heart size={14} className="text-purple-600" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-slate-800 truncate">
+                  <div className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">
                     {fam ? `${fam.first_name} ${fam.last_name}` : 'Unknown'}
                     <span className="text-slate-400 font-normal mx-2">→</span>
                     {res ? `${res.first_name} ${res.last_name}` : 'Unknown'}
@@ -190,14 +190,14 @@ function FamilyLinks({ orgId }) {
                 </div>
               </div>
               <button onClick={() => handleDelete(link.id)}
-                className="p-1.5 text-slate-300 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors flex-shrink-0">
+                className="p-1.5 text-slate-300 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors flex-shrink-0">
                 <Trash2 size={14} />
               </button>
             </div>
           )
         })}
         {links.length === 0 && !adding && (
-          <div className="text-center py-6 text-slate-400 text-sm border border-dashed border-slate-200 rounded-xl">
+          <div className="text-center py-6 text-slate-400 text-sm border border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
             No family links yet. Add one below.
           </div>
         )}
@@ -210,7 +210,7 @@ function FamilyLinks({ orgId }) {
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Family Member *</label>
               <select value={form.family_user_id} onChange={e => set('family_user_id', e.target.value)}
-                className="w-full px-3 py-2 border border-brand-300 rounded-lg text-sm focus:outline-none bg-white">
+                className="w-full px-3 py-2 border border-brand-300 rounded-lg text-sm focus:outline-none bg-white dark:bg-slate-800 dark:text-slate-100">
                 <option value="">Select family user</option>
                 {familyUsers.map(u => (
                   <option key={u.id} value={u.id}>{u.first_name} {u.last_name} — {u.email}</option>
@@ -220,7 +220,7 @@ function FamilyLinks({ orgId }) {
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Resident *</label>
               <select value={form.resident_id} onChange={e => set('resident_id', e.target.value)}
-                className="w-full px-3 py-2 border border-brand-300 rounded-lg text-sm focus:outline-none bg-white">
+                className="w-full px-3 py-2 border border-brand-300 rounded-lg text-sm focus:outline-none bg-white dark:bg-slate-800 dark:text-slate-100">
                 <option value="">Select resident</option>
                 {residents.map(r => (
                   <option key={r.id} value={r.id}>{r.first_name} {r.last_name}{r.room_number ? ` — Room ${r.room_number}` : ''}</option>
@@ -230,19 +230,19 @@ function FamilyLinks({ orgId }) {
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Relationship</label>
               <select value={form.relationship} onChange={e => set('relationship', e.target.value)}
-                className="w-full px-3 py-2 border border-brand-300 rounded-lg text-sm focus:outline-none bg-white capitalize">
+                className="w-full px-3 py-2 border border-brand-300 rounded-lg text-sm focus:outline-none bg-white dark:bg-slate-800 dark:text-slate-100 capitalize">
                 {RELATIONSHIPS.map(r => <option key={r} value={r} className="capitalize">{r}</option>)}
               </select>
             </div>
             <div className="flex items-end">
               <label className="flex items-center gap-2 cursor-pointer pb-2">
                 <input type="checkbox" checked={form.is_primary} onChange={e => set('is_primary', e.target.checked)} className="w-4 h-4 rounded text-brand-600" />
-                <span className="text-sm text-slate-700">Primary contact</span>
+                <span className="text-sm text-slate-700 dark:text-slate-300">Primary contact</span>
               </label>
             </div>
           </div>
           <div className="flex justify-end gap-2">
-            <button onClick={() => setAdding(false)} className="px-4 py-2 text-sm text-slate-600">Cancel</button>
+            <button onClick={() => setAdding(false)} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300">Cancel</button>
             <button onClick={handleAdd} disabled={saving || !form.family_user_id || !form.resident_id}
               className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
               {saving ? 'Linking...' : 'Link Family to Resident'}
@@ -406,11 +406,11 @@ export default function AdminLists({ orgId }) {
           const Icon = s.icon
           return (
             <button key={s.key} onClick={() => setSection(s.key)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-medium transition-all ${section === s.key ? 'bg-brand-600 text-white border-brand-600' : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300'}`}>
+              className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-medium transition-all ${section === s.key ? 'bg-brand-600 text-white border-brand-600' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300'}`}>
               <Icon size={13} />
               {s.label}
               {s.count !== null && (
-                <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${section === s.key ? 'bg-brand-500 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${section === s.key ? 'bg-brand-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'}`}>
                   {s.count}
                 </span>
               )}
@@ -427,7 +427,7 @@ export default function AdminLists({ orgId }) {
           {section === 'vehicles' && (
             <div>
               <div className="mb-4">
-                <h3 className="font-display font-semibold text-slate-800">Vehicles</h3>
+                <h3 className="font-display font-semibold text-slate-800 dark:text-slate-100">Vehicles</h3>
                 <p className="text-slate-400 text-xs mt-0.5">Vehicles available for transportation scheduling. Only this org's vehicles.</p>
               </div>
               <EditableList items={vehicles} onAdd={veh.add} onUpdate={veh.update} onDelete={veh.del}
@@ -443,7 +443,7 @@ export default function AdminLists({ orgId }) {
                       <Car size={15} className="text-brand-600" />
                     </div>
                     <div>
-                      <div className="font-medium text-slate-800 text-sm">{item.name}</div>
+                      <div className="font-medium text-slate-800 dark:text-slate-100 text-sm">{item.name}</div>
                       <div className="text-xs text-slate-400">
                         {[item.license_plate, item.capacity && `${item.capacity} passenger${item.capacity !== 1 ? 's' : ''}`].filter(Boolean).join(' · ')}
                       </div>
@@ -459,7 +459,7 @@ export default function AdminLists({ orgId }) {
             <div>
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h3 className="font-display font-semibold text-slate-800">Residents</h3>
+                  <h3 className="font-display font-semibold text-slate-800 dark:text-slate-100">Residents</h3>
                   <p className="text-slate-400 text-xs mt-0.5">Master resident list. Used across work orders, transportation, dietary, and family portal. Only this org's residents.</p>
                 </div>
                 <button onClick={() => setShowImport(true)}
@@ -477,11 +477,11 @@ export default function AdminLists({ orgId }) {
                 ]}
                 renderRow={item => (
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-700 text-xs font-bold flex-shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-950/50 flex items-center justify-center text-green-700 dark:text-green-400 text-xs font-bold flex-shrink-0">
                       {item.first_name?.[0]?.toUpperCase()}
                     </div>
                     <div>
-                      <div className="font-medium text-slate-800 text-sm">{item.first_name} {item.last_name}</div>
+                      <div className="font-medium text-slate-800 dark:text-slate-100 text-sm">{item.first_name} {item.last_name}</div>
                       <div className="text-xs text-slate-400">
                         {[item.room_number && `Room ${item.room_number}`, item.phone].filter(Boolean).join(' · ')}
                       </div>
@@ -499,7 +499,7 @@ export default function AdminLists({ orgId }) {
           {section === 'departments' && (
             <div>
               <div className="mb-4">
-                <h3 className="font-display font-semibold text-slate-800">Departments</h3>
+                <h3 className="font-display font-semibold text-slate-800 dark:text-slate-100">Departments</h3>
                 <p className="text-slate-400 text-xs mt-0.5">Used for staff profiles/filtering and internal department broadcast messages (e.g. Maintenance Communication).</p>
               </div>
               <EditableList
@@ -512,7 +512,7 @@ export default function AdminLists({ orgId }) {
                     <div className="w-8 h-8 rounded-lg bg-brand-100 flex items-center justify-center flex-shrink-0">
                       <Building2 size={15} className="text-brand-600" />
                     </div>
-                    <span className="text-sm font-medium text-slate-800">{item.label}</span>
+                    <span className="text-sm font-medium text-slate-800 dark:text-slate-100">{item.label}</span>
                   </div>
                 )}
               />
@@ -523,7 +523,7 @@ export default function AdminLists({ orgId }) {
           {section === 'utilities' && (
             <div>
               <div className="mb-4">
-                <h3 className="font-display font-semibold text-slate-800">Utility Types</h3>
+                <h3 className="font-display font-semibold text-slate-800 dark:text-slate-100">Utility Types</h3>
                 <p className="text-slate-400 text-xs mt-0.5">Utility meter types tracked in Meter Readings. Each org manages their own — Electric, Water, Gas, or custom types.</p>
               </div>
               <EditableList items={utilityTypes} onAdd={util.add} onUpdate={util.update} onDelete={util.del}
@@ -534,11 +534,11 @@ export default function AdminLists({ orgId }) {
                 ]}
                 renderRow={item => (
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+                    <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-950/50 flex items-center justify-center flex-shrink-0">
                       <Gauge size={15} className="text-amber-600" />
                     </div>
                     <div>
-                      <div className="font-medium text-slate-800 text-sm">{item.name}</div>
+                      <div className="font-medium text-slate-800 dark:text-slate-100 text-sm">{item.name}</div>
                       <div className="text-xs text-slate-400">{item.unit || 'No unit set'}</div>
                     </div>
                   </div>
@@ -551,7 +551,7 @@ export default function AdminLists({ orgId }) {
           {section === 'checkpoints' && (
             <div>
               <div className="mb-4">
-                <h3 className="font-display font-semibold text-slate-800">Security Checkpoints</h3>
+                <h3 className="font-display font-semibold text-slate-800 dark:text-slate-100">Security Checkpoints</h3>
                 <p className="text-slate-400 text-xs mt-0.5">GPS checkpoints for security guard rounds. Staff must be within the set radius to check in. Only this org's checkpoints.</p>
               </div>
               <EditableList items={checkpoints} onAdd={cp.add} onUpdate={cp.update} onDelete={cp.del}
@@ -564,11 +564,11 @@ export default function AdminLists({ orgId }) {
                 ]}
                 renderRow={item => (
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-950/50 flex items-center justify-center flex-shrink-0">
                       <MapPin size={15} className="text-indigo-600" />
                     </div>
                     <div>
-                      <div className="font-medium text-slate-800 text-sm">{item.name}</div>
+                      <div className="font-medium text-slate-800 dark:text-slate-100 text-sm">{item.name}</div>
                       <div className="text-xs text-slate-400">
                         {item.latitude && item.longitude
                           ? `${parseFloat(item.latitude).toFixed(4)}, ${parseFloat(item.longitude).toFixed(4)} · ${item.radius_feet || 100}ft radius`
@@ -585,7 +585,7 @@ export default function AdminLists({ orgId }) {
           {section === 'certs' && (
             <div>
               <div className="mb-4">
-                <h3 className="font-display font-semibold text-slate-800">Custom Certification Types</h3>
+                <h3 className="font-display font-semibold text-slate-800 dark:text-slate-100">Custom Certification Types</h3>
                 <p className="text-slate-400 text-xs mt-0.5">
                   Add org-specific certification types here. Platform defaults (CNA License, CPR, etc.) are always available.
                   These custom types appear alongside them in Staff Management.
@@ -599,11 +599,11 @@ export default function AdminLists({ orgId }) {
                 ]}
                 renderRow={item => (
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
+                    <div className="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-950/50 flex items-center justify-center flex-shrink-0">
                       <Award size={15} className="text-purple-600" />
                     </div>
                     <div>
-                      <div className="font-medium text-slate-800 text-sm">{item.name}</div>
+                      <div className="font-medium text-slate-800 dark:text-slate-100 text-sm">{item.name}</div>
                       <div className="text-xs text-slate-400">
                         Alert {item.alert_days || 30} days before expiry
                         {item.is_required && <span className="ml-2 text-red-500 font-medium">Required</span>}
@@ -619,7 +619,7 @@ export default function AdminLists({ orgId }) {
           {section === 'areas' && (
             <div>
               <div className="mb-4">
-                <h3 className="font-display font-semibold text-slate-800">Inspection Areas</h3>
+                <h3 className="font-display font-semibold text-slate-800 dark:text-slate-100">Inspection Areas</h3>
                 <p className="text-slate-400 text-xs mt-0.5">Rooms and common areas for housekeeping LTC inspections. Only this org's areas.</p>
               </div>
               <EditableList items={areas} onAdd={area.add} onUpdate={area.update} onDelete={area.del}
@@ -632,11 +632,11 @@ export default function AdminLists({ orgId }) {
                 ]}
                 renderRow={item => (
                   <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${item.area_type === 'common' ? 'bg-purple-100' : 'bg-blue-100'}`}>
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${item.area_type === 'common' ? 'bg-purple-100 dark:bg-purple-950/50' : 'bg-blue-100 dark:bg-blue-950/50'}`}>
                       <Home size={15} className={item.area_type === 'common' ? 'text-purple-600' : 'text-blue-600'} />
                     </div>
                     <div>
-                      <div className="font-medium text-slate-800 text-sm">{item.name}</div>
+                      <div className="font-medium text-slate-800 dark:text-slate-100 text-sm">{item.name}</div>
                       <div className="text-xs text-slate-400 capitalize">
                         {[item.area_type?.replace('_',' '), item.building].filter(Boolean).join(' · ')}
                       </div>
@@ -651,7 +651,7 @@ export default function AdminLists({ orgId }) {
           {section === 'checklist' && (
             <div>
               <div className="mb-4">
-                <h3 className="font-display font-semibold text-slate-800">Inspection Checklist Items</h3>
+                <h3 className="font-display font-semibold text-slate-800 dark:text-slate-100">Inspection Checklist Items</h3>
                 <p className="text-slate-400 text-xs mt-0.5">Items on every housekeeping inspection — pass or fail per item. Only this org's checklist.</p>
               </div>
               <EditableList items={checklist} onAdd={chk.add} onUpdate={chk.update} onDelete={chk.del}
@@ -660,7 +660,7 @@ export default function AdminLists({ orgId }) {
                 renderRow={item => (
                   <div className="flex items-center gap-3">
                     <div className="w-5 h-5 rounded border-2 border-slate-300 flex-shrink-0" />
-                    <span className="text-sm text-slate-700">{item.label}</span>
+                    <span className="text-sm text-slate-700 dark:text-slate-300">{item.label}</span>
                   </div>
                 )}
               />
@@ -669,7 +669,7 @@ export default function AdminLists({ orgId }) {
           {section === 'it_categories' && (
             <div>
               <div className="mb-4">
-                <h3 className="font-display font-semibold text-slate-800">IT Ticket Categories</h3>
+                <h3 className="font-display font-semibold text-slate-800 dark:text-slate-100">IT Ticket Categories</h3>
                 <p className="text-slate-400 text-xs mt-0.5">Categories staff can choose when submitting an IT support ticket.</p>
               </div>
               <EditableList items={itCategories} onAdd={itCat.add} onUpdate={itCat.update} onDelete={itCat.del}
@@ -678,7 +678,7 @@ export default function AdminLists({ orgId }) {
                 renderRow={item => (
                   <div className="flex items-center gap-3">
                     <Monitor size={14} className="text-brand-500 flex-shrink-0" />
-                    <span className="text-sm text-slate-700">{item.label}</span>
+                    <span className="text-sm text-slate-700 dark:text-slate-300">{item.label}</span>
                     <span className="text-xs text-slate-400 font-mono">{item.value}</span>
                   </div>
                 )} />
@@ -688,7 +688,7 @@ export default function AdminLists({ orgId }) {
           {section === 'asset_types' && (
             <div>
               <div className="mb-4">
-                <h3 className="font-display font-semibold text-slate-800">IT Asset Types</h3>
+                <h3 className="font-display font-semibold text-slate-800 dark:text-slate-100">IT Asset Types</h3>
                 <p className="text-slate-400 text-xs mt-0.5">Device types used in the asset inventory. Add anything specific to your community.</p>
               </div>
               <EditableList items={itAssetTypes} onAdd={itType.add} onUpdate={itType.update} onDelete={itType.del}
@@ -697,7 +697,7 @@ export default function AdminLists({ orgId }) {
                 renderRow={item => (
                   <div className="flex items-center gap-3">
                     <Tag size={14} className="text-brand-500 flex-shrink-0" />
-                    <span className="text-sm text-slate-700">{item.label}</span>
+                    <span className="text-sm text-slate-700 dark:text-slate-300">{item.label}</span>
                   </div>
                 )} />
             </div>
@@ -706,7 +706,7 @@ export default function AdminLists({ orgId }) {
           {section === 'asset_locations' && (
             <div>
               <div className="mb-4">
-                <h3 className="font-display font-semibold text-slate-800">Asset Locations</h3>
+                <h3 className="font-display font-semibold text-slate-800 dark:text-slate-100">Asset Locations</h3>
                 <p className="text-slate-400 text-xs mt-0.5">Physical locations where devices are deployed. Used in the asset inventory dropdown.</p>
               </div>
               <EditableList items={itAssetLocations} onAdd={itLoc.add} onUpdate={itLoc.update} onDelete={itLoc.del}
@@ -715,7 +715,7 @@ export default function AdminLists({ orgId }) {
                 renderRow={item => (
                   <div className="flex items-center gap-3">
                     <MapPin size={14} className="text-brand-500 flex-shrink-0" />
-                    <span className="text-sm text-slate-700">{item.label}</span>
+                    <span className="text-sm text-slate-700 dark:text-slate-300">{item.label}</span>
                   </div>
                 )} />
             </div>

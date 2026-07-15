@@ -121,7 +121,7 @@ function ResidentPicker({ orgId, value, onSelect }) {
           {value.first_name?.[0]}{value.last_name?.[0]}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-slate-800">{value.first_name} {value.last_name}</p>
+          <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{value.first_name} {value.last_name}</p>
           <p className="text-xs text-slate-500">
             Room {value.room}{value.care_level ? ` · ${CARE_LABELS[value.care_level] || value.care_level}` : ''}
           </p>
@@ -147,7 +147,7 @@ function ResidentPicker({ orgId, value, onSelect }) {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search by name or room number..."
-          className="w-full pl-8 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+          className="w-full pl-8 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
         />
         {loading && (
           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">Searching…</span>
@@ -155,18 +155,18 @@ function ResidentPicker({ orgId, value, onSelect }) {
       </div>
 
       {open && (
-        <div className="absolute z-30 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden">
+        <div className="absolute z-30 w-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg overflow-hidden">
           {options.length > 0 ? options.map(r => (
             <button
               key={r.id}
               onClick={() => { onSelect(r); setSearch(''); setOpen(false) }}
-              className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-brand-50 text-left transition-colors border-b border-slate-50 last:border-0"
+              className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-brand-50 dark:hover:bg-slate-800 text-left transition-colors border-b border-slate-50 dark:border-slate-800 last:border-0"
             >
-              <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-semibold text-xs flex-shrink-0">
+              <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 font-semibold text-xs flex-shrink-0">
                 {r.first_name?.[0]}{r.last_name?.[0]}
               </div>
               <div>
-                <p className="text-sm font-medium text-slate-800">{r.first_name} {r.last_name}</p>
+                <p className="text-sm font-medium text-slate-800 dark:text-slate-100">{r.first_name} {r.last_name}</p>
                 <p className="text-xs text-slate-500">
                   Room {r.room}{r.care_level ? ` · ${CARE_LABELS[r.care_level] || r.care_level}` : ''}
                 </p>
@@ -188,38 +188,38 @@ function ResidentCard({ resident, onEdit, onPrint, canEdit }) {
   const hasAllergens = resident.allergens?.length > 0
   const dir = resident.residents  // joined directory record
   const dietColor = {
-    regular:      'bg-slate-100 text-slate-700',
-    heart_healthy:'bg-red-100 text-red-700',
-    low_sodium:   'bg-yellow-100 text-yellow-700',
-    diabetic:     'bg-blue-100 text-blue-700',
-    ncs:          'bg-sky-100 text-sky-700',
-    renal:        'bg-purple-100 text-purple-700',
-    lo_carb:      'bg-orange-100 text-orange-700',
-    low_fat:      'bg-green-100 text-green-700',
-    low_residue:  'bg-amber-100 text-amber-700',
-    dash:         'bg-rose-100 text-rose-700',
-    gluten_free:  'bg-lime-100 text-lime-700',
-    vegetarian:   'bg-emerald-100 text-emerald-700',
-    vegan:        'bg-teal-100 text-teal-700',
-    neutropenic:  'bg-indigo-100 text-indigo-700',
-    other:        'bg-slate-100 text-slate-600',
-  }[resident.diet_type] || 'bg-slate-100 text-slate-700'
+    regular:      'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
+    heart_healthy:'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-400',
+    low_sodium:   'bg-yellow-100 text-yellow-700 dark:bg-yellow-950/50 dark:text-yellow-400',
+    diabetic:     'bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-400',
+    ncs:          'bg-sky-100 text-sky-700 dark:bg-sky-950/50 dark:text-sky-400',
+    renal:        'bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-400',
+    lo_carb:      'bg-orange-100 text-orange-700 dark:bg-orange-950/50 dark:text-orange-400',
+    low_fat:      'bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-400',
+    low_residue:  'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400',
+    dash:         'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400',
+    gluten_free:  'bg-lime-100 text-lime-700 dark:bg-lime-950/50 dark:text-lime-400',
+    vegetarian:   'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400',
+    vegan:        'bg-teal-100 text-teal-700 dark:bg-teal-950/50 dark:text-teal-400',
+    neutropenic:  'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-400',
+    other:        'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+  }[resident.diet_type] || 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-all">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5 hover:shadow-md transition-all">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2.5 min-w-0">
           {/* Avatar / initials */}
           {dir?.photo_url ? (
             <img src={dir.photo_url} alt="" className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
           ) : (
-            <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-semibold text-sm flex-shrink-0">
+            <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400 font-semibold text-sm flex-shrink-0">
               {resident.first_name?.[0]}{resident.last_name?.[0]}
             </div>
           )}
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <h3 className="font-display font-semibold text-slate-800 truncate">
+              <h3 className="font-display font-semibold text-slate-800 dark:text-slate-100 truncate">
                 {resident.first_name} {resident.last_name}
               </h3>
               {resident.resident_id && (
@@ -250,7 +250,7 @@ function ResidentCard({ resident, onEdit, onPrint, canEdit }) {
         {(() => {
           const c = CONSISTENCIES.find(c => c.key === resident.consistency)
           return (
-            <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-slate-100 text-slate-600 flex items-center gap-1">
+            <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center gap-1">
               {c?.label || resident.consistency}
               {c?.iddsi && resident.consistency !== 'regular' && (
                 <span className="font-mono text-slate-400">IDDSI {c.iddsi}</span>
@@ -258,8 +258,8 @@ function ResidentCard({ resident, onEdit, onPrint, canEdit }) {
             </span>
           )
         })()}
-        {resident.fluid_restriction && <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-blue-100 text-blue-700">Fluid Restriction</span>}
-        {resident.assistance_needed && <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-100 text-amber-700">Assist Needed</span>}
+        {resident.fluid_restriction && <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400">Fluid Restriction</span>}
+        {resident.assistance_needed && <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400">Assist Needed</span>}
       </div>
 
       {hasAllergens && (
@@ -356,13 +356,13 @@ function ResidentProfileModal({ resident, menus, canEdit, onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
-          <h2 className="font-display font-semibold text-slate-800">{resident ? 'Edit Dietary Profile' : 'New Resident Profile'}</h2>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">{resident ? 'Edit Dietary Profile' : 'New Resident Profile'}</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
         </div>
         <fieldset disabled={readOnly} className="flex-1 overflow-y-auto px-6 py-5 space-y-5 disabled:opacity-75">
-          {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+          {error && <div className="px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900/50 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
 
           {/* ── Link to Resident Directory ── */}
           <div>
@@ -396,7 +396,7 @@ function ResidentProfileModal({ resident, menus, canEdit, onClose, onSave }) {
                 value={form.first_name}
                 onChange={e => set('first_name', e.target.value)}
                 readOnly={isLinked}
-                className={`w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 ${isLinked ? 'bg-slate-50 text-slate-500 cursor-default' : ''}`}
+                className={`w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 ${isLinked ? 'bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-default' : 'dark:bg-slate-800 dark:text-slate-100'}`}
               />
             </div>
             <div>
@@ -407,7 +407,7 @@ function ResidentProfileModal({ resident, menus, canEdit, onClose, onSave }) {
                 value={form.last_name}
                 onChange={e => set('last_name', e.target.value)}
                 readOnly={isLinked}
-                className={`w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 ${isLinked ? 'bg-slate-50 text-slate-500 cursor-default' : ''}`}
+                className={`w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 ${isLinked ? 'bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-default' : 'dark:bg-slate-800 dark:text-slate-100'}`}
               />
             </div>
             <div>
@@ -416,7 +416,7 @@ function ResidentProfileModal({ resident, menus, canEdit, onClose, onSave }) {
                 value={form.room}
                 onChange={e => set('room', e.target.value)}
                 readOnly={isLinked}
-                className={`w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 ${isLinked ? 'bg-slate-50 text-slate-500 cursor-default' : ''}`}
+                className={`w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 ${isLinked ? 'bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-default' : 'dark:bg-slate-800 dark:text-slate-100'}`}
                 placeholder="Room number"
               />
             </div>
@@ -425,7 +425,7 @@ function ResidentProfileModal({ resident, menus, canEdit, onClose, onSave }) {
               <input
                 value={form.dining_location}
                 onChange={e => set('dining_location', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="e.g. Dining Room, Room Tray"
               />
             </div>
@@ -438,8 +438,8 @@ function ResidentProfileModal({ resident, menus, canEdit, onClose, onSave }) {
             <div className="grid grid-cols-2 gap-2">
               {DIET_TYPES.map(d => (
                 <button key={d.key} onClick={() => set('diet_type', d.key)}
-                  className={`px-3 py-2.5 rounded-xl border text-left transition-all ${form.diet_type === d.key ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 hover:border-brand-300'}`}>
-                  <div className={`text-xs font-semibold ${form.diet_type === d.key ? 'text-white' : 'text-slate-800'}`}>{d.label}</div>
+                  className={`px-3 py-2.5 rounded-xl border text-left transition-all ${form.diet_type === d.key ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 dark:border-slate-700 hover:border-brand-300'}`}>
+                  <div className={`text-xs font-semibold ${form.diet_type === d.key ? 'text-white' : 'text-slate-800 dark:text-slate-100'}`}>{d.label}</div>
                   <div className={`text-xs mt-0.5 ${form.diet_type === d.key ? 'text-brand-100' : 'text-slate-400'}`}>{d.desc}</div>
                 </button>
               ))}
@@ -455,10 +455,10 @@ function ResidentProfileModal({ resident, menus, canEdit, onClose, onSave }) {
               <div className="grid grid-cols-2 gap-2 mb-3">
                 {CONSISTENCIES.filter(c => !['slightly_thick','mildly_thick','moderately_thick','extremely_thick','thickened_liquid','liquid'].includes(c.key)).map(c => (
                   <button key={c.key} onClick={() => set('consistency', c.key)}
-                    className={`px-3 py-2.5 rounded-xl border text-left transition-all ${form.consistency === c.key ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 hover:border-brand-300'}`}>
+                    className={`px-3 py-2.5 rounded-xl border text-left transition-all ${form.consistency === c.key ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 dark:border-slate-700 hover:border-brand-300'}`}>
                     <div className="flex items-center justify-between">
-                      <span className={`text-xs font-semibold ${form.consistency === c.key ? 'text-white' : 'text-slate-800'}`}>{c.label}</span>
-                      {c.iddsi && <span className={`text-xs px-1.5 py-0.5 rounded font-mono ${form.consistency === c.key ? 'bg-brand-500 text-white' : 'bg-slate-100 text-slate-500'}`}>IDDSI {c.iddsi}</span>}
+                      <span className={`text-xs font-semibold ${form.consistency === c.key ? 'text-white' : 'text-slate-800 dark:text-slate-100'}`}>{c.label}</span>
+                      {c.iddsi && <span className={`text-xs px-1.5 py-0.5 rounded font-mono ${form.consistency === c.key ? 'bg-brand-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'}`}>IDDSI {c.iddsi}</span>}
                     </div>
                     <div className={`text-xs mt-0.5 ${form.consistency === c.key ? 'text-brand-100' : 'text-slate-400'}`}>{c.desc}</div>
                   </button>
@@ -468,10 +468,10 @@ function ResidentProfileModal({ resident, menus, canEdit, onClose, onSave }) {
               <div className="grid grid-cols-2 gap-2">
                 {CONSISTENCIES.filter(c => ['slightly_thick','mildly_thick','moderately_thick','extremely_thick','thickened_liquid','liquid'].includes(c.key)).map(c => (
                   <button key={c.key} onClick={() => set('consistency', c.key)}
-                    className={`px-3 py-2.5 rounded-xl border text-left transition-all ${form.consistency === c.key ? 'bg-teal-600 text-white border-teal-600' : 'border-slate-200 hover:border-teal-300'}`}>
+                    className={`px-3 py-2.5 rounded-xl border text-left transition-all ${form.consistency === c.key ? 'bg-teal-600 text-white border-teal-600' : 'border-slate-200 dark:border-slate-700 hover:border-teal-300'}`}>
                     <div className="flex items-center justify-between">
-                      <span className={`text-xs font-semibold ${form.consistency === c.key ? 'text-white' : 'text-slate-800'}`}>{c.label}</span>
-                      {c.iddsi && <span className={`text-xs px-1.5 py-0.5 rounded font-mono ${form.consistency === c.key ? 'bg-teal-500 text-white' : 'bg-slate-100 text-slate-500'}`}>IDDSI {c.iddsi}</span>}
+                      <span className={`text-xs font-semibold ${form.consistency === c.key ? 'text-white' : 'text-slate-800 dark:text-slate-100'}`}>{c.label}</span>
+                      {c.iddsi && <span className={`text-xs px-1.5 py-0.5 rounded font-mono ${form.consistency === c.key ? 'bg-teal-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'}`}>IDDSI {c.iddsi}</span>}
                     </div>
                     <div className={`text-xs mt-0.5 ${form.consistency === c.key ? 'text-teal-100' : 'text-slate-400'}`}>{c.desc}</div>
                   </button>
@@ -486,13 +486,13 @@ function ResidentProfileModal({ resident, menus, canEdit, onClose, onSave }) {
             <div className="grid grid-cols-5 gap-2 mb-2">
               {ALLERGENS.map(a => (
                 <button key={a.key} onClick={() => toggleAllergen(a.key)}
-                  className={`px-2 py-1.5 rounded-lg border text-xs font-medium transition-all flex items-center gap-1 ${form.allergens.includes(a.key) ? 'bg-red-500 text-white border-red-500' : 'border-slate-200 text-slate-600 hover:border-red-300'}`}>
+                  className={`px-2 py-1.5 rounded-lg border text-xs font-medium transition-all flex items-center gap-1 ${form.allergens.includes(a.key) ? 'bg-red-500 text-white border-red-500' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-red-300'}`}>
                   {form.allergens.includes(a.key) && <Check size={10} />}{a.label}
                 </button>
               ))}
             </div>
             <textarea value={form.allergy_notes} onChange={e => set('allergy_notes', e.target.value)} rows={2}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
               placeholder="Additional allergy notes..." />
           </div>
 
@@ -501,38 +501,38 @@ function ResidentProfileModal({ resident, menus, canEdit, onClose, onSave }) {
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Likes</label>
               <textarea value={form.likes} onChange={e => set('likes', e.target.value)} rows={2}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
                 placeholder="Foods resident enjoys..." />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Dislikes</label>
               <textarea value={form.dislikes} onChange={e => set('dislikes', e.target.value)} rows={2}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
                 placeholder="Foods to avoid..." />
             </div>
           </div>
 
           {/* ── Fluid / Assistance ── */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl">
+            <div className="p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50 rounded-xl">
               <label className="flex items-center gap-2 cursor-pointer mb-2">
                 <input type="checkbox" checked={form.fluid_restriction} onChange={e => set('fluid_restriction', e.target.checked)} className="w-4 h-4 rounded text-blue-600" />
-                <span className="text-sm font-medium text-blue-800">Fluid Restriction</span>
+                <span className="text-sm font-medium text-blue-800 dark:text-blue-300">Fluid Restriction</span>
               </label>
               {form.fluid_restriction && (
                 <input value={form.fluid_notes} onChange={e => set('fluid_notes', e.target.value)}
-                  className="w-full px-3 py-1.5 border border-blue-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
+                  className="w-full px-3 py-1.5 border border-blue-200 dark:border-blue-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white dark:bg-slate-800 dark:text-slate-100"
                   placeholder="Restriction details..." />
               )}
             </div>
-            <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl">
+            <div className="p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/50 rounded-xl">
               <label className="flex items-center gap-2 cursor-pointer mb-2">
                 <input type="checkbox" checked={form.assistance_needed} onChange={e => set('assistance_needed', e.target.checked)} className="w-4 h-4 rounded text-amber-600" />
-                <span className="text-sm font-medium text-amber-800">Assistance Needed</span>
+                <span className="text-sm font-medium text-amber-800 dark:text-amber-300">Assistance Needed</span>
               </label>
               {form.assistance_needed && (
                 <input value={form.assistance_notes} onChange={e => set('assistance_notes', e.target.value)}
-                  className="w-full px-3 py-1.5 border border-amber-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
+                  className="w-full px-3 py-1.5 border border-amber-200 dark:border-amber-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white dark:bg-slate-800 dark:text-slate-100"
                   placeholder="Type of assistance..." />
               )}
             </div>
@@ -542,7 +542,7 @@ function ResidentProfileModal({ resident, menus, canEdit, onClose, onSave }) {
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">General Notes</label>
             <textarea value={form.general_notes} onChange={e => set('general_notes', e.target.value)} rows={2}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
               placeholder="Any other dietary notes..." />
           </div>
 
@@ -550,7 +550,7 @@ function ResidentProfileModal({ resident, menus, canEdit, onClose, onSave }) {
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Assigned Cycle Menu</label>
             <select value={form.cycle_menu_id || ''} onChange={e => set('cycle_menu_id', e.target.value || null)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100">
               <option value="">Default to active menu</option>
               {(menus || []).map(m => (
                 <option key={m.id} value={m.id}>{m.name}{m.is_current ? ' ✓ Active' : ''}</option>
@@ -559,8 +559,8 @@ function ResidentProfileModal({ resident, menus, canEdit, onClose, onSave }) {
             <p className="text-xs text-slate-400 mt-1">Leave blank to use the org's active menu automatically.</p>
           </div>
         </fieldset>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 hover:text-slate-800 font-medium">{readOnly ? 'Close' : 'Cancel'}</button>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-slate-100 font-medium">{readOnly ? 'Close' : 'Cancel'}</button>
           {!readOnly && (
             <button onClick={handleSave} disabled={saving}
               className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
@@ -671,9 +671,9 @@ function PrintTicket({ resident, menus, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[92vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
-          <h2 className="font-display font-semibold text-slate-800">Meal Ticket Preview</h2>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Meal Ticket Preview</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
         </div>
 
@@ -682,12 +682,12 @@ function PrintTicket({ resident, menus, onClose }) {
           <div className="flex-1">
             <label className="block text-xs font-medium text-slate-500 mb-1">Date</label>
             <input type="date" value={date} onChange={e => setDate(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
           <div className="flex-1">
             <label className="block text-xs font-medium text-slate-500 mb-1">Meal Period</label>
             <select value={period} onChange={e => setPeriod(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100">
               {MEAL_PERIODS.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
             </select>
           </div>
@@ -801,8 +801,8 @@ function PrintTicket({ resident, menus, onClose }) {
           </div>
         </div>
 
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Close</button>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Close</button>
           <button onClick={handlePrint}
             className="flex items-center gap-2 px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg transition-colors">
             <Printer size={15} /> Print Ticket
@@ -884,7 +884,7 @@ export default function Dietary() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-slate-800">Dietary</h1>
+          <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Dietary</h1>
           <p className="text-slate-500 text-sm mt-0.5">Resident profiles, dietary restrictions, and cycle menus</p>
         </div>
         {tab === 'residents' && canEditDietary && (
@@ -896,12 +896,12 @@ export default function Dietary() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-slate-100 p-1 rounded-xl w-fit">
+      <div className="flex gap-1 mb-6 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit">
         {tabs.map(t => {
           const Icon = t.icon
           return (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === t.key ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === t.key ? 'bg-white dark:bg-slate-900 text-brand-700 dark:text-brand-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
               <Icon size={15} />{t.label}
             </button>
           )
@@ -914,12 +914,12 @@ export default function Dietary() {
           {/* Diet summary */}
           <div className="flex flex-wrap gap-2 mb-5">
             <button onClick={() => setFilterDiet('all')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${filterDiet === 'all' ? 'bg-brand-600 text-white border-brand-600' : 'bg-white border-slate-200 text-slate-600'}`}>
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${filterDiet === 'all' ? 'bg-brand-600 text-white border-brand-600' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300'}`}>
               All ({residents.length})
             </button>
             {DIET_TYPES.filter(d => dietCounts[d.key] > 0).map(d => (
               <button key={d.key} onClick={() => setFilterDiet(d.key)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${filterDiet === d.key ? 'bg-brand-600 text-white border-brand-600' : 'bg-white border-slate-200 text-slate-600'}`}>
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${filterDiet === d.key ? 'bg-brand-600 text-white border-brand-600' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300'}`}>
                 {d.label} ({dietCounts[d.key]})
               </button>
             ))}
@@ -930,7 +930,7 @@ export default function Dietary() {
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input value={search} onChange={e => setSearch(e.target.value)}
               placeholder="Search by name or room..."
-              className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
 
           {loading ? (

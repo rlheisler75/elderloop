@@ -11,18 +11,18 @@ import {
 
 // ── Constants ─────────────────────────────────────────────────
 const CATEGORIES = [
-  { key: 'fitness',      label: 'Fitness',      icon: Dumbbell,       color: '#ef4444', bg: 'bg-red-100 text-red-700' },
-  { key: 'arts_crafts',  label: 'Arts & Crafts', icon: Palette,       color: '#f97316', bg: 'bg-orange-100 text-orange-700' },
-  { key: 'games',        label: 'Games',         icon: Gamepad2,      color: '#eab308', bg: 'bg-yellow-100 text-yellow-700' },
-  { key: 'social',       label: 'Social',        icon: Users,         color: '#22c55e', bg: 'bg-green-100 text-green-700' },
-  { key: 'music',        label: 'Music',         icon: Music,         color: '#06b6d4', bg: 'bg-cyan-100 text-cyan-700' },
-  { key: 'educational',  label: 'Educational',   icon: BookOpen,      color: '#3b82f6', bg: 'bg-blue-100 text-blue-700' },
-  { key: 'spiritual',    label: 'Spiritual',     icon: Church,        color: '#8b5cf6', bg: 'bg-purple-100 text-purple-700' },
-  { key: 'outing',       label: 'Outing',        icon: Bus,           color: '#ec4899', bg: 'bg-pink-100 text-pink-700' },
-  { key: 'dining',       label: 'Dining',        icon: UtensilsCrossed, color: '#84cc16', bg: 'bg-lime-100 text-lime-700' },
-  { key: 'health',       label: 'Health',        icon: Heart,         color: '#f43f5e', bg: 'bg-rose-100 text-rose-700' },
-  { key: 'entertainment',label: 'Entertainment', icon: Tv,            color: '#a855f7', bg: 'bg-violet-100 text-violet-700' },
-  { key: 'other',        label: 'Other',         icon: Star,          color: '#64748b', bg: 'bg-slate-100 text-slate-600' },
+  { key: 'fitness',      label: 'Fitness',      icon: Dumbbell,       color: '#ef4444', bg: 'bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-400' },
+  { key: 'arts_crafts',  label: 'Arts & Crafts', icon: Palette,       color: '#f97316', bg: 'bg-orange-100 dark:bg-orange-950/50 text-orange-700 dark:text-orange-400' },
+  { key: 'games',        label: 'Games',         icon: Gamepad2,      color: '#eab308', bg: 'bg-yellow-100 dark:bg-yellow-950/50 text-yellow-700 dark:text-yellow-400' },
+  { key: 'social',       label: 'Social',        icon: Users,         color: '#22c55e', bg: 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400' },
+  { key: 'music',        label: 'Music',         icon: Music,         color: '#06b6d4', bg: 'bg-cyan-100 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-400' },
+  { key: 'educational',  label: 'Educational',   icon: BookOpen,      color: '#3b82f6', bg: 'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400' },
+  { key: 'spiritual',    label: 'Spiritual',     icon: Church,        color: '#8b5cf6', bg: 'bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-400' },
+  { key: 'outing',       label: 'Outing',        icon: Bus,           color: '#ec4899', bg: 'bg-pink-100 dark:bg-pink-950/50 text-pink-700 dark:text-pink-400' },
+  { key: 'dining',       label: 'Dining',        icon: UtensilsCrossed, color: '#84cc16', bg: 'bg-lime-100 dark:bg-lime-950/50 text-lime-700 dark:text-lime-400' },
+  { key: 'health',       label: 'Health',        icon: Heart,         color: '#f43f5e', bg: 'bg-rose-100 dark:bg-rose-950/50 text-rose-700 dark:text-rose-400' },
+  { key: 'entertainment',label: 'Entertainment', icon: Tv,            color: '#a855f7', bg: 'bg-violet-100 dark:bg-violet-950/50 text-violet-700 dark:text-violet-400' },
+  { key: 'other',        label: 'Other',         icon: Star,          color: '#64748b', bg: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' },
 ]
 
 const RECUR_TYPES = [
@@ -140,20 +140,20 @@ function ActivityModal({ activity, canEdit, onClose, onSave, onDelete }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
-          <h2 className="font-display font-semibold text-slate-800">{activity?.id ? 'Edit Activity' : 'New Activity'}</h2>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">{activity?.id ? 'Edit Activity' : 'New Activity'}</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
         </div>
 
         <fieldset disabled={readOnly} className="flex-1 overflow-y-auto px-6 py-5 space-y-5 disabled:opacity-75">
-          {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+          {error && <div className="px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900/50 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
 
           {/* Title */}
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Title *</label>
             <input value={form.title} onChange={e => set('title', e.target.value)}
-              className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="e.g. Morning Exercise Class" />
           </div>
 
@@ -165,7 +165,7 @@ function ActivityModal({ activity, canEdit, onClose, onSave, onDelete }) {
                 const Icon = c.icon
                 return (
                   <button key={c.key} onClick={() => setCategory(c.key)}
-                    className={`flex flex-col items-center gap-1 p-2 rounded-xl border text-xs font-medium transition-all ${form.category === c.key ? c.bg + ' ring-2 ring-offset-1 ring-brand-400 border-transparent' : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}>
+                    className={`flex flex-col items-center gap-1 p-2 rounded-xl border text-xs font-medium transition-all ${form.category === c.key ? c.bg + ' ring-2 ring-offset-1 ring-brand-400 border-transparent' : 'border-slate-200 dark:border-slate-700 text-slate-500 hover:border-slate-300'}`}>
                     <Icon size={15} />
                     <span className="leading-tight text-center text-xs">{c.label}</span>
                   </button>
@@ -181,26 +181,26 @@ function ActivityModal({ activity, canEdit, onClose, onSave, onDelete }) {
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Date *</label>
                 <input type="date" value={form.start_date} onChange={e => set('start_date', e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
               </div>
               {!form.all_day && (
                 <>
                   <div>
                     <label className="block text-xs text-slate-400 mb-1">Start Time</label>
                     <input type="time" value={form.start_time} onChange={e => set('start_time', e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                      className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
                   </div>
                   <div>
                     <label className="block text-xs text-slate-400 mb-1">End Time</label>
                     <input type="time" value={form.end_time} onChange={e => set('end_time', e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                      className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
                   </div>
                 </>
               )}
             </div>
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" checked={form.all_day} onChange={e => set('all_day', e.target.checked)} className="w-4 h-4 rounded text-brand-600" />
-              <span className="text-sm text-slate-600">All day event</span>
+              <span className="text-sm text-slate-600 dark:text-slate-300">All day event</span>
             </label>
           </div>
 
@@ -208,7 +208,7 @@ function ActivityModal({ activity, canEdit, onClose, onSave, onDelete }) {
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Location</label>
             <input value={form.location} onChange={e => set('location', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="e.g. Activity Room, Dining Hall, Chapel" />
           </div>
 
@@ -216,19 +216,19 @@ function ActivityModal({ activity, canEdit, onClose, onSave, onDelete }) {
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Description</label>
             <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={2}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
               placeholder="Optional details..." />
           </div>
 
           {/* Recurring */}
-          <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
+          <div className="p-4 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl">
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
               <RefreshCw size={12} /> Repeat
             </label>
             <div className="grid grid-cols-2 gap-2 mb-3">
               {RECUR_TYPES.map(r => (
                 <button key={r.key} onClick={() => set('recur_type', r.key)}
-                  className={`px-3 py-2 rounded-lg border text-xs font-medium transition-all text-left ${form.recur_type === r.key ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 text-slate-600 hover:border-slate-300'}`}>
+                  className={`px-3 py-2 rounded-lg border text-xs font-medium transition-all text-left ${form.recur_type === r.key ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300'}`}>
                   {r.label}
                 </button>
               ))}
@@ -238,7 +238,7 @@ function ActivityModal({ activity, canEdit, onClose, onSave, onDelete }) {
                 <label className="block text-xs text-slate-400 mb-1">Repeat until (leave blank for no end)</label>
                 <input type="date" value={form.recur_end_date} onChange={e => set('recur_end_date', e.target.value)}
                   min={form.start_date}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white" />
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100" />
               </div>
             )}
           </div>
@@ -247,38 +247,38 @@ function ActivityModal({ activity, canEdit, onClose, onSave, onDelete }) {
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Department</label>
             <input value={form.department} onChange={e => set('department', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="e.g. Activities, Dietary, Chaplain" />
           </div>
 
           {/* Display options */}
           <div className="grid grid-cols-2 gap-3">
-            <label className={`flex items-center gap-2 cursor-pointer p-3 rounded-xl border transition-all ${form.show_on_portal ? 'bg-brand-50 border-brand-200' : 'border-slate-200'}`}>
+            <label className={`flex items-center gap-2 cursor-pointer p-3 rounded-xl border transition-all ${form.show_on_portal ? 'bg-brand-50 dark:bg-brand-950/30 border-brand-200 dark:border-brand-800' : 'border-slate-200 dark:border-slate-700'}`}>
               <input type="checkbox" checked={form.show_on_portal} onChange={e => set('show_on_portal', e.target.checked)} className="w-4 h-4 rounded text-brand-600" />
               <div>
-                <div className="text-xs font-medium text-slate-700">Show in Resident Portal</div>
+                <div className="text-xs font-medium text-slate-700 dark:text-slate-300">Show in Resident Portal</div>
                 <div className="text-xs text-slate-400">Visible to residents when they log in</div>
               </div>
             </label>
-            <label className={`flex items-center gap-2 cursor-pointer p-3 rounded-xl border transition-all ${form.show_on_signage ? 'bg-brand-50 border-brand-200' : 'border-slate-200'}`}>
+            <label className={`flex items-center gap-2 cursor-pointer p-3 rounded-xl border transition-all ${form.show_on_signage ? 'bg-brand-50 dark:bg-brand-950/30 border-brand-200 dark:border-brand-800' : 'border-slate-200 dark:border-slate-700'}`}>
               <input type="checkbox" checked={form.show_on_signage} onChange={e => set('show_on_signage', e.target.checked)} className="w-4 h-4 rounded text-brand-600" />
               <div>
-                <div className="text-xs font-medium text-slate-700">Show on Digital Signage</div>
+                <div className="text-xs font-medium text-slate-700 dark:text-slate-300">Show on Digital Signage</div>
                 <div className="text-xs text-slate-400">Appears on the TV display board</div>
               </div>
             </label>
           </div>
         </fieldset>
 
-        <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between gap-3 flex-shrink-0">
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 flex-shrink-0">
           {!readOnly && activity?.id ? (
             <button onClick={() => onDelete(activity.id)}
-              className="flex items-center gap-1.5 px-3 py-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg text-sm font-medium transition-colors">
+              className="flex items-center gap-1.5 px-3 py-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-lg text-sm font-medium transition-colors">
               <Trash2 size={14} /> Delete
             </button>
           ) : <div />}
           <div className="flex gap-3">
-            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">{readOnly ? 'Close' : 'Cancel'}</button>
+            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">{readOnly ? 'Close' : 'Cancel'}</button>
             {!readOnly && (
               <button onClick={handleSave} disabled={saving}
                 className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
@@ -324,9 +324,9 @@ function MonthCalendar({ year, month, expanded, onEditActivity, onNewActivity, c
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
       {/* Day headers */}
-      <div className="grid grid-cols-7 border-b border-slate-100">
+      <div className="grid grid-cols-7 border-b border-slate-100 dark:border-slate-800">
         {DAYS.map(d => (
           <div key={d} className="py-2 text-center text-xs font-semibold text-slate-400 uppercase tracking-wide">{d}</div>
         ))}
@@ -334,15 +334,15 @@ function MonthCalendar({ year, month, expanded, onEditActivity, onNewActivity, c
       {/* Cells */}
       <div className="grid grid-cols-7">
         {cells.map((d, i) => {
-          if (!d) return <div key={`empty-${i}`} className="min-h-[90px] border-b border-r border-slate-50 bg-slate-50/50" />
+          if (!d) return <div key={`empty-${i}`} className="min-h-[90px] border-b border-r border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50" />
           const ds = getDateStr(d)
           const isToday = ds === todayStr
           const dayActivities = activitiesForDay(d)
           return (
             <div key={d}
-              className={`min-h-[90px] border-b border-r border-slate-100 p-1.5 transition-colors ${canEdit ? 'cursor-pointer hover:bg-slate-50' : ''} ${isToday ? 'bg-brand-50' : ''}`}
+              className={`min-h-[90px] border-b border-r border-slate-100 dark:border-slate-800 p-1.5 transition-colors ${canEdit ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800' : ''} ${isToday ? 'bg-brand-50 dark:bg-brand-950/30' : ''}`}
               onClick={() => canEdit && onNewActivity(ds)}>
-              <div className={`text-xs font-semibold mb-1 w-6 h-6 flex items-center justify-center rounded-full ${isToday ? 'bg-brand-600 text-white' : 'text-slate-600'}`}>
+              <div className={`text-xs font-semibold mb-1 w-6 h-6 flex items-center justify-center rounded-full ${isToday ? 'bg-brand-600 text-white' : 'text-slate-600 dark:text-slate-300'}`}>
                 {d}
               </div>
               <div>
@@ -402,9 +402,9 @@ function PrintSchedule({ activities, month, year, orgName, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
-          <h2 className="font-display font-semibold text-slate-800">{monthName} Schedule</h2>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">{monthName} Schedule</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-4">
@@ -419,12 +419,12 @@ function PrintSchedule({ activities, month, year, orgName, onClose }) {
                   {grouped[date].map((a, i) => {
                     const cat = getCat(a.category)
                     return (
-                      <div key={i} className="flex items-start gap-3 py-2 border-b border-slate-50">
+                      <div key={i} className="flex items-start gap-3 py-2 border-b border-slate-50 dark:border-slate-800">
                         <div className="text-xs text-slate-400 w-20 flex-shrink-0 mt-0.5">
                           {a.all_day ? 'All Day' : fmt12(a.start_time) || '—'}
                         </div>
                         <div className="flex-1">
-                          <div className="text-sm font-semibold text-slate-800">{a.title}
+                          <div className="text-sm font-semibold text-slate-800 dark:text-slate-100">{a.title}
                             <span className="ml-2 text-xs px-1.5 py-0.5 rounded-full font-medium" style={{ background: a.color + '22', color: a.color }}>{cat.label}</span>
                           </div>
                           {a.location && <div className="text-xs text-slate-400 mt-0.5">📍 {a.location}</div>}
@@ -441,8 +441,8 @@ function PrintSchedule({ activities, month, year, orgName, onClose }) {
             )}
           </div>
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Close</button>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Close</button>
           <button onClick={handlePrint}
             className="flex items-center gap-2 px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg transition-colors">
             <Printer size={15} /> Print Schedule
@@ -485,14 +485,14 @@ function UpcomingList({ activities, onEdit, canEdit }) {
                 return (
                   <div key={i}
                     onClick={() => onEdit(a)}
-                    className="bg-white rounded-xl border border-slate-100 p-4 flex items-center gap-4 cursor-pointer hover:shadow-sm hover:border-brand-200 transition-all group">
+                    className="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-4 flex items-center gap-4 cursor-pointer hover:shadow-sm hover:border-brand-200 transition-all group">
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                       style={{ background: a.color + '22', border: `2px solid ${a.color}44` }}>
                       <Icon size={18} style={{ color: a.color }} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-slate-800 text-sm">{a.title}</span>
+                        <span className="font-semibold text-slate-800 dark:text-slate-100 text-sm">{a.title}</span>
                         {a.recur_type !== 'none' && <RefreshCw size={11} className="text-slate-400 flex-shrink-0" />}
                         {!a.show_on_portal && <EyeOff size={11} className="text-slate-300 flex-shrink-0" title="Hidden from residents" />}
                       </div>
@@ -601,12 +601,12 @@ export default function Activities() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-slate-800">Activities</h1>
+          <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Activities</h1>
           <p className="text-slate-500 text-sm mt-0.5">Activity calendar and resident programming</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setShowPrint(true)}
-            className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
+            className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
             <Printer size={15} /> Print Schedule
           </button>
           {canEditActivities && (
@@ -626,7 +626,7 @@ export default function Activities() {
           { label: 'Total Events',  value: activities.length,    color: 'text-green-600',  bg: 'bg-green-50' },
           { label: 'Recurring',     value: recurringCount,       color: 'text-purple-600', bg: 'bg-purple-50' },
         ].map(s => (
-          <div key={s.label} className={`${s.bg} rounded-2xl p-4`}>
+          <div key={s.label} className={`${s.bg} dark:bg-slate-900 rounded-2xl p-4`}>
             <div className={`text-3xl font-display font-bold ${s.color}`}>{s.value}</div>
             <div className="text-slate-500 text-xs mt-1">{s.label}</div>
           </div>
@@ -635,13 +635,13 @@ export default function Activities() {
 
       {/* View + filter controls */}
       <div className="flex flex-wrap items-center gap-3 mb-5">
-        <div className="flex gap-1 bg-slate-100 p-1 rounded-xl">
+        <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
           <button onClick={() => setView('calendar')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${view === 'calendar' ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500'}`}>
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${view === 'calendar' ? 'bg-white dark:bg-slate-900 text-brand-700 shadow-sm' : 'text-slate-500'}`}>
             <Grid3x3 size={14} /> Calendar
           </button>
           <button onClick={() => setView('list')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${view === 'list' ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500'}`}>
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${view === 'list' ? 'bg-white dark:bg-slate-900 text-brand-700 shadow-sm' : 'text-slate-500'}`}>
             <List size={14} /> Upcoming
           </button>
         </div>
@@ -649,14 +649,14 @@ export default function Activities() {
         {/* Category filter */}
         <div className="flex gap-1.5 flex-wrap">
           <button onClick={() => setFilterCat('all')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${filterCat === 'all' ? 'bg-brand-600 text-white border-brand-600' : 'bg-white border-slate-200 text-slate-600'}`}>
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${filterCat === 'all' ? 'bg-brand-600 text-white border-brand-600' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}`}>
             All
           </button>
           {CATEGORIES.map(c => {
             const Icon = c.icon
             return (
               <button key={c.key} onClick={() => setFilterCat(c.key)}
-                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${filterCat === c.key ? 'text-white border-transparent' : 'bg-white border-slate-200 text-slate-600'}`}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${filterCat === c.key ? 'text-white border-transparent' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}`}
                 style={filterCat === c.key ? { background: c.color, borderColor: c.color } : {}}>
                 <Icon size={11} />{c.label}
               </button>
@@ -669,13 +669,13 @@ export default function Activities() {
       {view === 'calendar' && (
         <>
           <div className="flex items-center justify-between mb-4">
-            <button onClick={prevMonth} className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
+            <button onClick={prevMonth} className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
               <ChevronLeft size={18} />
             </button>
             <div className="text-center">
-              <h2 className="font-display font-semibold text-slate-800 text-lg">{MONTHS[calMonth]} {calYear}</h2>
+              <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 text-lg">{MONTHS[calMonth]} {calYear}</h2>
             </div>
-            <button onClick={nextMonth} className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
+            <button onClick={nextMonth} className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
               <ChevronRight size={18} />
             </button>
           </div>

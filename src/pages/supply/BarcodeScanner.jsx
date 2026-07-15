@@ -52,14 +52,14 @@ export default function BarcodeScanner({ onScan, onClose, title = 'Scan Barcode'
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-2">
             <Camera size={18} className="text-brand-600" />
-            <h2 className="font-display font-semibold text-slate-800">{title}</h2>
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">{title}</h2>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
             <X size={20} />
           </button>
         </div>
@@ -77,7 +77,7 @@ export default function BarcodeScanner({ onScan, onClose, title = 'Scan Barcode'
 
         <div className="px-5 pb-4">
           <button onClick={onClose}
-            className="w-full py-2.5 border border-slate-200 text-slate-600 text-sm font-medium rounded-xl hover:bg-slate-50 transition-colors">
+            className="w-full py-2.5 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-sm font-medium rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
             Cancel
           </button>
         </div>

@@ -21,7 +21,7 @@ const STEPS = [
   {
     key: 'profile',
     icon: Building2,
-    iconBg: 'bg-purple-100',
+    iconBg: 'bg-purple-100 dark:bg-purple-950/50',
     iconColor: 'text-purple-600',
     title: () => 'Set up your community profile',
     body: 'Add your community name, address, phone number, and logo. This information appears throughout ElderLoop and in printed reports.',
@@ -32,7 +32,7 @@ const STEPS = [
   {
     key: 'resident',
     icon: User,
-    iconBg: 'bg-green-100',
+    iconBg: 'bg-green-100 dark:bg-green-950/50',
     iconColor: 'text-green-600',
     title: () => 'Add your first resident',
     body: 'Build your resident directory — add names, room numbers, care levels, and emergency contacts. Everything in ElderLoop connects back to your residents.',
@@ -43,7 +43,7 @@ const STEPS = [
   {
     key: 'staff',
     icon: Users,
-    iconBg: 'bg-blue-100',
+    iconBg: 'bg-blue-100 dark:bg-blue-950/50',
     iconColor: 'text-blue-600',
     title: () => 'Invite your team',
     body: 'Create accounts for your staff. Each person gets access to the modules their role needs — nothing more, nothing less.',
@@ -54,7 +54,7 @@ const STEPS = [
   {
     key: 'done',
     icon: CheckCircle2,
-    iconBg: 'bg-green-100',
+    iconBg: 'bg-green-100 dark:bg-green-950/50',
     iconColor: 'text-green-600',
     title: () => "You're ready to go!",
     body: "ElderLoop is set up and ready for your team. You can always come back to these steps from the Admin panel.",
@@ -95,10 +95,10 @@ export default function OnboardingModal({ onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
 
         {/* Progress bar */}
-        <div className="h-1 bg-slate-100">
+        <div className="h-1 bg-slate-100 dark:bg-slate-800">
           <div
             className="h-1 bg-brand-500 transition-all duration-500 ease-out"
             style={{ width: `${progress * 100}%` }}
@@ -112,7 +112,7 @@ export default function OnboardingModal({ onClose }) {
           </span>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-300 hover:text-slate-500 rounded-lg transition-colors"
+            className="p-1.5 text-slate-300 dark:text-slate-600 hover:text-slate-500 dark:hover:text-slate-400 rounded-lg transition-colors"
             title="Close and set up later"
           >
             <X size={16} />
@@ -127,7 +127,7 @@ export default function OnboardingModal({ onClose }) {
           </div>
 
           {/* Title */}
-          <h2 className="font-display text-xl font-bold text-slate-800 mb-2 leading-snug">
+          <h2 className="font-display text-xl font-bold text-slate-800 dark:text-slate-100 mb-2 leading-snug">
             {current.title(organization?.name)}
           </h2>
 
@@ -147,7 +147,7 @@ export default function OnboardingModal({ onClose }) {
                       ? 'bg-brand-500 w-4'
                       : i === step - 1
                       ? 'bg-brand-400 w-6'
-                      : 'bg-slate-200 w-4'
+                      : 'bg-slate-200 dark:bg-slate-700 w-4'
                   }`}
                 />
               ))}
@@ -167,7 +167,7 @@ export default function OnboardingModal({ onClose }) {
             {current.skipLabel && (
               <button
                 onClick={handleSkip}
-                className="w-full py-2 text-slate-400 hover:text-slate-600 text-sm transition-colors"
+                className="w-full py-2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors"
               >
                 {current.skipLabel}
               </button>

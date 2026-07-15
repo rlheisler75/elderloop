@@ -24,13 +24,13 @@ function KPICard({ icon: Icon, label, value, sub, color, bg, to, alert }) {
   const navigate = useNavigate()
   return (
     <button onClick={() => to && navigate(to)}
-      className={`${bg} rounded-2xl p-5 text-left hover:shadow-md transition-all group border-2 ${alert ? 'border-red-300' : 'border-transparent'}`}>
+      className={`${bg} dark:bg-slate-900 rounded-2xl p-5 text-left hover:shadow-md transition-all group border-2 ${alert ? 'border-red-300 dark:border-red-800' : 'border-transparent dark:border-slate-800'}`}>
       <div className="flex items-start justify-between mb-3">
-        <div className="p-2 rounded-xl bg-white/50"><Icon size={18} className={color} /></div>
-        {to && <ArrowUpRight size={14} className="text-slate-400 group-hover:text-slate-600 transition-colors" />}
+        <div className="p-2 rounded-xl bg-white/50 dark:bg-slate-800"><Icon size={18} className={color} /></div>
+        {to && <ArrowUpRight size={14} className="text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors" />}
       </div>
       <div className={`text-3xl font-bold ${color}`} style={{ fontFamily: '"Playfair Display", serif' }}>{value}</div>
-      <div className="text-slate-600 text-xs font-medium mt-1">{label}</div>
+      <div className="text-slate-600 dark:text-slate-300 text-xs font-medium mt-1">{label}</div>
       {sub && <div className="text-slate-400 text-xs mt-0.5">{sub}</div>}
     </button>
   )
@@ -40,10 +40,10 @@ function KPICard({ icon: Icon, label, value, sub, color, bg, to, alert }) {
 function StatusBadge({ live, label, sublabel }) {
   return (
     <div className={`flex items-center gap-3 p-3 rounded-xl border ${live
-      ? 'bg-green-50 border-green-200' : 'bg-slate-50 border-slate-200'}`}>
+      ? 'bg-green-50 border-green-200 dark:bg-green-950/50 dark:border-green-900' : 'bg-slate-50 border-slate-200 dark:bg-slate-800 dark:border-slate-700'}`}>
       <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${live ? 'bg-green-500 animate-pulse' : 'bg-slate-400'}`} />
       <div>
-        <div className={`text-xs font-semibold ${live ? 'text-green-700' : 'text-slate-600'}`}>{label}</div>
+        <div className={`text-xs font-semibold ${live ? 'text-green-700 dark:text-green-400' : 'text-slate-600 dark:text-slate-300'}`}>{label}</div>
         {sublabel && <div className="text-xs text-slate-400">{sublabel}</div>}
       </div>
     </div>
@@ -219,7 +219,7 @@ export default function CEODashboard() {
   const hasAlerts = data.criticalInc > 0 || data.urgentWO > 0 || data.overdueCompliance > 0 || data.overduePM > 0 || data.supplyCritical > 0
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet" />
 
       {/* Header */}
@@ -269,11 +269,11 @@ export default function CEODashboard() {
           <>
             {/* Alert Banner */}
             {hasAlerts && (
-              <div className="bg-red-50 border border-red-200 rounded-2xl p-5 flex items-start gap-4">
+              <div className="bg-red-50 border border-red-200 dark:bg-red-950/50 dark:border-red-900 rounded-2xl p-5 flex items-start gap-4">
                 <AlertTriangle size={20} className="text-red-500 flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <div className="font-semibold text-red-800 text-sm mb-1">Attention Required</div>
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-red-600 text-xs">
+                  <div className="font-semibold text-red-800 dark:text-red-300 text-sm mb-1">Attention Required</div>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-red-600 dark:text-red-400 text-xs">
                     {data.criticalInc > 0 && <span>⚠ {data.criticalInc} critical incident{data.criticalInc > 1 ? 's' : ''} open</span>}
                     {data.urgentWO > 0 && <span>🔧 {data.urgentWO} urgent maintenance request{data.urgentWO > 1 ? 's' : ''}</span>}
                     {data.overdueCompliance > 0 && <span>📋 {data.overdueCompliance} compliance inspection{data.overdueCompliance > 1 ? 's' : ''} overdue</span>}
@@ -286,7 +286,7 @@ export default function CEODashboard() {
 
             {/* ── KPI Grid ── */}
             <div>
-              <h2 className="font-semibold text-slate-500 mb-4 text-xs uppercase tracking-widest">Key Metrics</h2>
+              <h2 className="font-semibold text-slate-500 dark:text-slate-400 mb-4 text-xs uppercase tracking-widest">Key Metrics</h2>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 <KPICard icon={Users}         label="Total Residents"     value={data.totalResidents}  sub="Active census"                   color="text-brand-600"  bg="bg-brand-50"   to="/app/directory" />
                 <KPICard icon={Wrench}        label="Open Work Orders"    value={data.openWO}          sub={`${data.urgentWO} urgent · ${data.inProgressWO} in progress`} color="text-amber-600"  bg="bg-amber-50"   to="/app/maintenance" alert={data.urgentWO > 0} />
@@ -302,7 +302,7 @@ export default function CEODashboard() {
             {/* ── Central Supply KPIs ── */}
             {hasModule('central_supply') && (
               <div>
-                <h2 className="font-semibold text-slate-500 mb-4 text-xs uppercase tracking-widest">Central Supply</h2>
+                <h2 className="font-semibold text-slate-500 dark:text-slate-400 mb-4 text-xs uppercase tracking-widest">Central Supply</h2>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                   <KPICard
                     icon={Package}
@@ -345,18 +345,18 @@ export default function CEODashboard() {
               </div>
             )}
             <div>
-              <h2 className="font-semibold text-slate-500 mb-4 text-xs uppercase tracking-widest">Live Status</h2>
+              <h2 className="font-semibold text-slate-500 dark:text-slate-400 mb-4 text-xs uppercase tracking-widest">Live Status</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
                 {/* Security */}
                 <button onClick={() => navigate('/app/security')}
-                  className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 text-left hover:shadow-md transition-all group">
+                  className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5 text-left hover:shadow-md transition-all group">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <Shield size={16} className="text-indigo-600" />
-                      <span className="font-semibold text-slate-700 text-sm">Security</span>
+                      <span className="font-semibold text-slate-700 dark:text-slate-300 text-sm">Security</span>
                     </div>
-                    <ChevronRight size={14} className="text-slate-300 group-hover:text-slate-500 transition-colors" />
+                    <ChevronRight size={14} className="text-slate-300 dark:text-slate-600 group-hover:text-slate-500 dark:group-hover:text-slate-400 transition-colors" />
                   </div>
                   {data.secActive ? (
                     <StatusBadge live label="Round In Progress" sublabel="Guard currently on round" />
@@ -370,13 +370,13 @@ export default function CEODashboard() {
 
                 {/* Chapel */}
                 <button onClick={() => navigate('/app/chapel')}
-                  className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 text-left hover:shadow-md transition-all group">
+                  className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5 text-left hover:shadow-md transition-all group">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <Church size={16} className="text-purple-600" />
-                      <span className="font-semibold text-slate-700 text-sm">Chapel</span>
+                      <span className="font-semibold text-slate-700 dark:text-slate-300 text-sm">Chapel</span>
                     </div>
-                    <ChevronRight size={14} className="text-slate-300 group-hover:text-slate-500 transition-colors" />
+                    <ChevronRight size={14} className="text-slate-300 dark:text-slate-600 group-hover:text-slate-500 dark:group-hover:text-slate-400 transition-colors" />
                   </div>
                   {data.chapelIsLive ? (
                     <StatusBadge live label="Live Now"
@@ -391,13 +391,13 @@ export default function CEODashboard() {
 
                 {/* Care Activity */}
                 <button onClick={() => navigate('/app/nursing')}
-                  className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 text-left hover:shadow-md transition-all group">
+                  className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5 text-left hover:shadow-md transition-all group">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <Activity size={16} className="text-rose-600" />
-                      <span className="font-semibold text-slate-700 text-sm">Care Activity</span>
+                      <span className="font-semibold text-slate-700 dark:text-slate-300 text-sm">Care Activity</span>
                     </div>
-                    <ChevronRight size={14} className="text-slate-300 group-hover:text-slate-500 transition-colors" />
+                    <ChevronRight size={14} className="text-slate-300 dark:text-slate-600 group-hover:text-slate-500 dark:group-hover:text-slate-400 transition-colors" />
                   </div>
                   <StatusBadge
                     live={data.careNotes24h > 0}
@@ -411,8 +411,8 @@ export default function CEODashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
               {/* Census breakdown */}
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-                <h2 className="font-semibold text-slate-800 mb-4 flex items-center gap-2 text-sm"
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6">
+                <h2 className="font-semibold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2 text-sm"
                   style={{ fontFamily: '"Playfair Display", serif' }}>
                   <Building2 size={15} className="text-brand-600" /> Census by Care Level
                 </h2>
@@ -428,10 +428,10 @@ export default function CEODashboard() {
                   return (
                     <div key={level.key} className="flex items-center gap-3 mb-3">
                       <div className="text-xs text-slate-500 w-32 flex-shrink-0">{level.label}</div>
-                      <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="flex-1 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                         <div className={`h-full ${level.color} rounded-full transition-all`} style={{ width: `${pct}%` }} />
                       </div>
-                      <div className="text-xs font-semibold text-slate-700 w-6 text-right">{count}</div>
+                      <div className="text-xs font-semibold text-slate-700 dark:text-slate-300 w-6 text-right">{count}</div>
                     </div>
                   )
                 })}
@@ -439,8 +439,8 @@ export default function CEODashboard() {
               </div>
 
               {/* Maintenance snapshot */}
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-                <h2 className="font-semibold text-slate-800 mb-4 flex items-center gap-2 text-sm"
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6">
+                <h2 className="font-semibold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2 text-sm"
                   style={{ fontFamily: '"Playfair Display", serif' }}>
                   <Wrench size={15} className="text-amber-600" /> Maintenance Snapshot
                 </h2>
@@ -451,7 +451,7 @@ export default function CEODashboard() {
                   { label: 'PM Schedules Overdue', value: data.overduePM,     color: data.overduePM > 0 ? 'text-red-600' : 'text-green-600' },
                   { label: 'Compliance Overdue', value: data.overdueCompliance, color: data.overdueCompliance > 0 ? 'text-red-600' : 'text-green-600' },
                 ].map(row => (
-                  <div key={row.label} className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
+                  <div key={row.label} className="flex items-center justify-between py-2 border-b border-slate-50 dark:border-slate-800 last:border-0">
                     <span className="text-xs text-slate-500">{row.label}</span>
                     <span className={`text-sm font-bold ${row.color}`}>{row.value ?? '—'}</span>
                   </div>
@@ -459,8 +459,8 @@ export default function CEODashboard() {
               </div>
 
               {/* Quick links */}
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-                <h2 className="font-semibold text-slate-800 mb-4 text-sm"
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6">
+                <h2 className="font-semibold text-slate-800 dark:text-slate-100 mb-4 text-sm"
                   style={{ fontFamily: '"Playfair Display", serif' }}>Quick Navigation</h2>
                 <div className="space-y-0.5">
                   {[
@@ -476,10 +476,10 @@ export default function CEODashboard() {
                     const Icon = item.icon
                     return (
                       <button key={item.to} onClick={() => navigate(item.to)}
-                        className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-50 transition-colors group text-left">
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group text-left">
                         <Icon size={15} className={item.color} />
-                        <span className="text-sm text-slate-600 group-hover:text-slate-900 flex-1">{item.label}</span>
-                        <ChevronRight size={13} className="text-slate-300 group-hover:text-slate-400 transition-colors" />
+                        <span className="text-sm text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100 flex-1">{item.label}</span>
+                        <ChevronRight size={13} className="text-slate-300 dark:text-slate-600 group-hover:text-slate-400 transition-colors" />
                       </button>
                     )
                   })}

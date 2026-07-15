@@ -28,16 +28,16 @@ const getOrgDepartments = (organization) =>
   organization?.departments?.length ? organization.departments : FALLBACK_DEPARTMENTS
 
 const STAFF_STATUSES = [
-  { key: 'active',     label: 'Active',     color: 'bg-green-100 text-green-700' },
-  { key: 'on_leave',   label: 'On Leave',   color: 'bg-amber-100 text-amber-700' },
-  { key: 'inactive',   label: 'Inactive',   color: 'bg-slate-100 text-slate-500' },
-  { key: 'terminated', label: 'Terminated', color: 'bg-red-100 text-red-600' },
+  { key: 'active',     label: 'Active',     color: 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400' },
+  { key: 'on_leave',   label: 'On Leave',   color: 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400' },
+  { key: 'inactive',   label: 'Inactive',   color: 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400' },
+  { key: 'terminated', label: 'Terminated', color: 'bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400' },
 ]
 
 const CERT_STATUS_COLOR = {
-  active:          'text-green-600 bg-green-50 border-green-200',
-  expiring_soon:   'text-amber-600 bg-amber-50 border-amber-200',
-  expired:         'text-red-600 bg-red-50 border-red-200',
+  active:          'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/50 border-green-200 dark:border-green-900',
+  expiring_soon:   'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-900',
+  expired:         'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/50 border-red-200 dark:border-red-900',
 }
 
 const getStatus = (key) => STAFF_STATUSES.find(s => s.key === key) || STAFF_STATUSES[0]
@@ -122,18 +122,18 @@ function CertModal({ cert, staffId, orgId, certTypes, onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
-          <h2 className="font-display font-semibold text-slate-800">{isNew ? 'Add Certification' : 'Edit Certification'}</h2>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">{isNew ? 'Add Certification' : 'Edit Certification'}</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
-          {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+          {error && <div className="px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
 
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Certification Type</label>
             <select value={form.cert_type_id} onChange={e => handleTypeChange(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
               <option value="">Custom / Other</option>
               {certTypes.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
             </select>
@@ -142,7 +142,7 @@ function CertModal({ cert, staffId, orgId, certTypes, onClose, onSave }) {
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Certification Name *</label>
             <input value={form.name} onChange={e => set('name', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="e.g. CNA License" />
           </div>
 
@@ -150,24 +150,24 @@ function CertModal({ cert, staffId, orgId, certTypes, onClose, onSave }) {
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Certificate / License #</label>
               <input value={form.cert_number} onChange={e => set('cert_number', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="License number" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Issuing Body</label>
               <input value={form.issuing_body} onChange={e => set('issuing_body', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="e.g. State of Missouri" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Issue Date</label>
               <input type="date" value={form.issued_date} onChange={e => set('issued_date', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Expiry Date</label>
               <input type="date" value={form.expiry_date} onChange={e => set('expiry_date', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
           </div>
 
@@ -175,9 +175,9 @@ function CertModal({ cert, staffId, orgId, certTypes, onClose, onSave }) {
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Certificate File</label>
             {form.file_url ? (
-              <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-xl">
+              <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-950/50 border border-green-200 dark:border-green-900 rounded-xl">
                 <FileText size={16} className="text-green-600 flex-shrink-0" />
-                <span className="text-sm text-green-700 flex-1 truncate">{form.file_name || 'Uploaded file'}</span>
+                <span className="text-sm text-green-700 dark:text-green-400 flex-1 truncate">{form.file_name || 'Uploaded file'}</span>
                 <div className="flex gap-1">
                   <a href={form.file_url} target="_blank" rel="noopener noreferrer"
                     className="p-1.5 text-green-600 hover:text-green-800 rounded-lg transition-colors"><Eye size={14} /></a>
@@ -187,7 +187,7 @@ function CertModal({ cert, staffId, orgId, certTypes, onClose, onSave }) {
               </div>
             ) : (
               <button onClick={() => fileRef.current.click()} disabled={uploading}
-                className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-slate-200 rounded-xl text-sm text-slate-400 hover:border-brand-400 hover:text-brand-500 transition-colors disabled:opacity-50">
+                className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-400 hover:border-brand-400 hover:text-brand-500 transition-colors disabled:opacity-50">
                 <Upload size={15} /> {uploading ? 'Uploading...' : 'Upload Certificate (PDF, JPG, PNG)'}
               </button>
             )}
@@ -197,12 +197,12 @@ function CertModal({ cert, staffId, orgId, certTypes, onClose, onSave }) {
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Notes</label>
             <textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows={2}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
               placeholder="Optional notes..." />
           </div>
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
             {saving ? 'Saving...' : isNew ? 'Add Certification' : 'Save Changes'}
@@ -274,37 +274,37 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 font-display font-bold flex-shrink-0">
               {form.first_name?.[0] || '?'}
             </div>
             <div>
-              <h2 className="font-display font-semibold text-slate-800">
+              <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">
                 {isNew ? 'Add Staff Member' : `${staff.first_name} ${staff.last_name}`}
               </h2>
               {!isNew && <p className="text-xs text-slate-400">{form.job_title || form.role?.replace('_',' ') || 'Staff'}</p>}
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><X size={20} /></button>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 px-6 pt-3 border-b border-slate-100 flex-shrink-0">
+        <div className="flex gap-1 px-6 pt-3 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           {[
             { key: 'info',  label: 'Profile' },
             { key: 'certs', label: `Certifications${certs.length ? ` (${certs.length})` : ''}${expired.length ? ' ⚠' : ''}` },
           ].map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-all ${tab === t.key ? 'border-brand-600 text-brand-700' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
+              className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-all ${tab === t.key ? 'border-brand-600 text-brand-700 dark:text-brand-400' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
               {t.label}
             </button>
           ))}
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5">
-          {error && <div className="mb-4 px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+          {error && <div className="mb-4 px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
 
           {/* PROFILE TAB */}
           {tab === 'info' && (
@@ -313,23 +313,23 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">First Name *</label>
                   <input value={form.first_name} onChange={e => set('first_name', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Last Name</label>
                   <input value={form.last_name} onChange={e => set('last_name', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Job Title</label>
                   <input value={form.job_title} onChange={e => set('job_title', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                     placeholder="e.g. Charge Nurse, Head Cook" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Department</label>
                   <select value={form.department} onChange={e => set('department', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                     <option value="">Select department</option>
                     {departments.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
                   </select>
@@ -337,19 +337,19 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Phone</label>
                   <input value={form.phone} onChange={e => set('phone', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                     placeholder="Mobile or work phone" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Email</label>
                   <input type="email" value={form.email} onChange={e => set('email', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                     placeholder="staff@email.com" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Hire Date</label>
                   <input type="date" value={form.hire_date} onChange={e => set('hire_date', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
                 </div>
               </div>
 
@@ -358,29 +358,29 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
                 <div className="flex gap-2 flex-wrap">
                   {STAFF_STATUSES.map(s => (
                     <button key={s.key} onClick={() => set('status', s.key)}
-                      className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${form.status === s.key ? s.color + ' ring-2 ring-offset-1 ring-brand-400 border-transparent' : 'border-slate-200 text-slate-600 hover:border-slate-300'}`}>
+                      className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${form.status === s.key ? s.color + ' ring-2 ring-offset-1 ring-brand-400 border-transparent' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600'}`}>
                       {s.label}
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 p-4 bg-red-50 border border-red-100 rounded-xl">
-                <div className="col-span-2 text-xs font-semibold text-red-700 uppercase tracking-wide mb-1 flex items-center gap-1.5">
+              <div className="grid grid-cols-2 gap-3 p-4 bg-red-50 dark:bg-red-950/50 border border-red-100 dark:border-red-900 rounded-xl">
+                <div className="col-span-2 text-xs font-semibold text-red-700 dark:text-red-400 uppercase tracking-wide mb-1 flex items-center gap-1.5">
                   <Phone size={12} /> Emergency Contact
                 </div>
                 <input value={form.emergency_contact_name} onChange={e => set('emergency_contact_name', e.target.value)}
-                  className="px-3 py-2 border border-red-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-400 bg-white"
+                  className="px-3 py-2 border border-red-200 dark:border-red-900 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-400 bg-white dark:bg-slate-800 dark:text-slate-100"
                   placeholder="Contact name" />
                 <input value={form.emergency_contact_phone} onChange={e => set('emergency_contact_phone', e.target.value)}
-                  className="px-3 py-2 border border-red-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-400 bg-white"
+                  className="px-3 py-2 border border-red-200 dark:border-red-900 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-400 bg-white dark:bg-slate-800 dark:text-slate-100"
                   placeholder="Contact phone" />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Notes</label>
                 <textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows={2}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
                   placeholder="Internal notes about this staff member..." />
               </div>
             </div>
@@ -391,14 +391,14 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
             <div className="space-y-3">
               {/* Alerts */}
               {(expired.length > 0 || expiring.length > 0) && (
-                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700">
+                <div className="p-3 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900 rounded-xl text-sm text-amber-700 dark:text-amber-400">
                   {expired.length > 0 && <div className="flex items-center gap-1.5 font-medium"><XCircle size={14} className="text-red-500" /> {expired.length} expired certification{expired.length > 1 ? 's' : ''}</div>}
                   {expiring.length > 0 && <div className="flex items-center gap-1.5"><AlertTriangle size={14} /> {expiring.length} expiring within 30 days</div>}
                 </div>
               )}
 
               {isNew && (
-                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-700">
+                <div className="p-3 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900 rounded-xl text-xs text-amber-700 dark:text-amber-400">
                   Save the staff profile first, then add certifications.
                 </div>
               )}
@@ -412,7 +412,7 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
                       <div className="flex items-start gap-3">
                         <Award size={16} className={`flex-shrink-0 mt-0.5 ${status === 'expired' ? 'text-red-500' : status === 'expiring_soon' ? 'text-amber-500' : 'text-green-500'}`} />
                         <div>
-                          <div className="font-medium text-slate-800 text-sm">{c.name}</div>
+                          <div className="font-medium text-slate-800 dark:text-slate-100 text-sm">{c.name}</div>
                           {c.cert_number && <div className="text-xs text-slate-500 mt-0.5">#{c.cert_number}</div>}
                           {c.issuing_body && <div className="text-xs text-slate-400">{c.issuing_body}</div>}
                           <div className="flex items-center gap-3 mt-1.5 text-xs">
@@ -444,7 +444,7 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
 
               {!isNew && (
                 <button onClick={() => { setEditCert(null); setShowCertModal(true) }}
-                  className="w-full py-3 border-2 border-dashed border-slate-200 rounded-2xl text-sm text-slate-400 hover:border-brand-400 hover:text-brand-500 transition-colors flex items-center justify-center gap-2">
+                  className="w-full py-3 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl text-sm text-slate-400 hover:border-brand-400 hover:text-brand-500 transition-colors flex items-center justify-center gap-2">
                   <Plus size={14} /> Add Certification
                 </button>
               )}
@@ -453,8 +453,8 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
         </div>
 
         {tab === 'info' && (
-          <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
-            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+          <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
+            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
             <button onClick={handleSaveInfo} disabled={saving || isNew}
               className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
               {isNew ? 'Create User in Admin Panel' : saving ? 'Saving...' : 'Save Changes'}
@@ -462,7 +462,7 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
           </div>
         )}
         {tab === 'certs' && (
-          <div className="px-6 py-4 border-t border-slate-100 flex justify-end flex-shrink-0">
+          <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end flex-shrink-0">
             <button onClick={onClose} className="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg transition-colors">Done</button>
           </div>
         )}
@@ -529,50 +529,50 @@ function CreateStaffModal({ orgId, departments, onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[92vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <h2 className="font-display font-semibold text-slate-800">Add Staff Member</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Add Staff Member</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><X size={20} /></button>
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
-          {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+          {error && <div className="px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">First Name *</label>
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">First Name *</label>
               <input value={form.first_name} onChange={e => set('first_name', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Last Name</label>
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Last Name</label>
               <input value={form.last_name} onChange={e => set('last_name', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Email *</label>
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Email *</label>
             <input type="email" value={form.email} onChange={e => set('email', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Password *</label>
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Password *</label>
             <input type="password" value={form.password} onChange={e => set('password', e.target.value)}
               placeholder="Min. 8 characters"
-              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Job Title</label>
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Job Title</label>
               <input value={form.job_title} onChange={e => set('job_title', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Department</label>
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Department</label>
               <select value={form.department} onChange={e => set('department', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100">
                 <option value="">Select...</option>
                 {departments.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
               </select>
@@ -581,14 +581,14 @@ function CreateStaffModal({ orgId, departments, onClose, onSave }) {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Phone</label>
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Phone</label>
               <input value={form.phone} onChange={e => set('phone', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Role</label>
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Role</label>
               <select value={form.role} onChange={e => set('role', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100">
                 <option value="staff">Staff</option>
                 <option value="nursing">Nursing</option>
                 <option value="supervisor">Supervisor</option>
@@ -599,8 +599,8 @@ function CreateStaffModal({ orgId, departments, onClose, onSave }) {
           </div>
         </div>
 
-        <div className="flex gap-3 px-6 py-4 border-t border-slate-100">
-          <button onClick={onClose} className="flex-1 px-4 py-2 border border-slate-200 rounded-xl text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+        <div className="flex gap-3 px-6 py-4 border-t border-slate-100 dark:border-slate-800">
+          <button onClick={onClose} className="flex-1 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
             Cancel
           </button>
           <button onClick={handleSave} disabled={saving}
@@ -694,7 +694,7 @@ export default function StaffManagement() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-slate-800">Staff Management</h1>
+          <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Staff Management</h1>
           <p className="text-slate-500 text-sm mt-0.5">Staff profiles, certifications, and compliance tracking</p>
         </div>
         {isOrgAdmin && (
@@ -709,21 +709,21 @@ export default function StaffManagement() {
       <div className="grid grid-cols-4 gap-3 mb-6">
         {[
           { label: 'Active Staff',     value: activeCount,  color: 'text-brand-600',  bg: 'bg-brand-50' },
-          { label: 'On Leave',         value: onLeaveCount, color: 'text-amber-600',  bg: 'bg-amber-50' },
-          { label: 'Certs Expiring',   value: expiringSoon, color: expiringSoon > 0 ? 'text-amber-600' : 'text-slate-400', bg: expiringSoon > 0 ? 'bg-amber-50' : 'bg-slate-100', alert: expiringSoon > 0 },
-          { label: 'Expired Certs',    value: expiredCerts, color: expiredCerts > 0 ? 'text-red-600' : 'text-slate-400',   bg: expiredCerts > 0 ? 'bg-red-50' : 'bg-slate-100',   alert: expiredCerts > 0 },
+          { label: 'On Leave',         value: onLeaveCount, color: 'text-amber-600',  bg: 'bg-amber-50 dark:bg-amber-950/50' },
+          { label: 'Certs Expiring',   value: expiringSoon, color: expiringSoon > 0 ? 'text-amber-600' : 'text-slate-400', bg: expiringSoon > 0 ? 'bg-amber-50 dark:bg-amber-950/50' : 'bg-slate-100 dark:bg-slate-800', alert: expiringSoon > 0 },
+          { label: 'Expired Certs',    value: expiredCerts, color: expiredCerts > 0 ? 'text-red-600' : 'text-slate-400',   bg: expiredCerts > 0 ? 'bg-red-50 dark:bg-red-950/50' : 'bg-slate-100 dark:bg-slate-800',   alert: expiredCerts > 0 },
         ].map(s => (
           <div key={s.label} className={`${s.bg} rounded-2xl p-4 ${s.alert ? 'ring-2 ring-red-300' : ''}`}>
             <div className={`text-3xl font-display font-bold ${s.color}`}>{s.value}</div>
-            <div className="text-slate-500 text-xs mt-1">{s.label}</div>
+            <div className="text-slate-500 dark:text-slate-400 text-xs mt-1">{s.label}</div>
           </div>
         ))}
       </div>
 
       {/* Cert alerts banner */}
       {(expiredCerts > 0 || expiringSoon > 0) && (
-        <div className="mb-5 p-4 bg-amber-50 border border-amber-200 rounded-2xl">
-          <div className="font-semibold text-amber-800 text-sm mb-2 flex items-center gap-2">
+        <div className="mb-5 p-4 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900 rounded-2xl">
+          <div className="font-semibold text-amber-800 dark:text-amber-400 text-sm mb-2 flex items-center gap-2">
             <AlertTriangle size={15} /> Certification Alerts
           </div>
           <div className="space-y-1 max-h-32 overflow-y-auto">
@@ -733,8 +733,8 @@ export default function StaffManagement() {
               return (
                 <div key={c.id} className="flex items-center gap-3 text-xs">
                   <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${status === 'expired' ? 'bg-red-500' : 'bg-amber-500'}`} />
-                  <span className="font-medium text-slate-700">{c.profiles?.first_name} {c.profiles?.last_name}</span>
-                  <span className="text-slate-500">{c.name}</span>
+                  <span className="font-medium text-slate-700 dark:text-slate-300">{c.profiles?.first_name} {c.profiles?.last_name}</span>
+                  <span className="text-slate-500 dark:text-slate-400">{c.name}</span>
                   <span className={`ml-auto font-medium ${status === 'expired' ? 'text-red-600' : 'text-amber-600'}`}>
                     {status === 'expired' ? `Expired ${Math.abs(days)}d ago` : `Expires in ${days}d`}
                   </span>
@@ -750,15 +750,15 @@ export default function StaffManagement() {
         <div className="relative flex-1 min-w-48">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search staff..."
-            className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
         </div>
         <select value={filterDept} onChange={e => setFilterDept(e.target.value)}
-          className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+          className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100">
           <option value="all">All Departments</option>
           {departments.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
         </select>
         <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-          className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+          className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100">
           <option value="all">All Statuses</option>
           {STAFF_STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
         </select>
@@ -791,13 +791,13 @@ export default function StaffManagement() {
                     return (
                       <button key={s.id}
                         onClick={() => { setSelectedStaff(s); setShowDetail(true) }}
-                        className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 text-left hover:shadow-md hover:border-brand-200 transition-all group">
+                        className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-4 text-left hover:shadow-md hover:border-brand-200 transition-all group">
                         <div className="flex items-start gap-3">
                           <div className="w-10 h-10 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 font-display font-bold flex-shrink-0">
                             {s.first_name?.[0]?.toUpperCase() || '?'}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="font-semibold text-slate-800 text-sm group-hover:text-brand-700 transition-colors truncate">
+                            <div className="font-semibold text-slate-800 dark:text-slate-100 text-sm group-hover:text-brand-700 transition-colors truncate">
                               {s.first_name} {s.last_name}
                             </div>
                             <div className="text-xs text-slate-400 truncate">{s.job_title || s.role?.replace('_',' ')}</div>
@@ -836,11 +836,11 @@ export default function StaffManagement() {
 
       {limitHit && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center">
-            <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center">
+            <div className="w-14 h-14 bg-amber-100 dark:bg-amber-950/50 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <AlertTriangle size={24} className="text-amber-600" />
             </div>
-            <h2 className="font-display font-bold text-slate-800 text-lg mb-2">Staff Limit Reached</h2>
+            <h2 className="font-display font-bold text-slate-800 dark:text-slate-100 text-lg mb-2">Staff Limit Reached</h2>
             <p className="text-slate-500 text-sm mb-1">
               Your <strong>Starter</strong> plan is limited to <strong>{organization?.staff_limit} staff members</strong>.
             </p>

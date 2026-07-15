@@ -20,8 +20,8 @@ function TabBtn({ tab, active, onClick }) {
       onClick={() => onClick(tab.key)}
       className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
         active
-          ? 'bg-white text-brand-700 shadow-sm'
-          : 'text-slate-500 hover:text-slate-700'
+          ? 'bg-white dark:bg-slate-700 text-brand-700 dark:text-brand-400 shadow-sm'
+          : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
       }`}
     >
       <Icon size={15} />
@@ -35,8 +35,8 @@ function Toast({ type, message }) {
   return (
     <div className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm mb-4 ${
       type === 'success'
-        ? 'bg-green-50 border border-green-200 text-green-700'
-        : 'bg-red-50 border border-red-200 text-red-700'
+        ? 'bg-green-50 dark:bg-green-950/50 border border-green-200 dark:border-green-900 text-green-700 dark:text-green-400'
+        : 'bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-400'
     }`}>
       {type === 'success'
         ? <CheckCircle2 size={15} className="flex-shrink-0" />
@@ -78,7 +78,7 @@ function ProfileTab({ profile }) {
     }
   }
 
-  const inputCls = 'w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500'
+  const inputCls = 'w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:text-slate-100'
   const labelCls = 'block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5'
 
   return (
@@ -86,12 +86,12 @@ function ProfileTab({ profile }) {
       <Toast {...(toast || {})} message={toast?.message} />
 
       {/* Avatar */}
-      <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
+      <div className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
         <div className="w-14 h-14 rounded-full bg-brand-600 flex items-center justify-center text-white font-display font-bold text-xl flex-shrink-0">
           {form.first_name?.[0]?.toUpperCase() || '?'}
         </div>
         <div>
-          <div className="font-semibold text-slate-800">{form.first_name} {form.last_name}</div>
+          <div className="font-semibold text-slate-800 dark:text-slate-100">{form.first_name} {form.last_name}</div>
           <div className="text-xs text-slate-400 capitalize mt-0.5">
             {profile?.role?.replace(/_/g, ' ')} · {profile?.email}
           </div>
@@ -178,7 +178,7 @@ function PasswordTab() {
     }
   }
 
-  const inputCls = 'w-full px-3 py-2.5 pr-10 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500'
+  const inputCls = 'w-full px-3 py-2.5 pr-10 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:text-slate-100'
   const labelCls = 'block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5'
 
   const PasswordField = ({ label, field, placeholder }) => (
@@ -194,7 +194,7 @@ function PasswordTab() {
         />
         <button
           onClick={() => toggleShow(field)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
         >
           {show[field] ? <EyeOff size={15} /> : <Eye size={15} />}
         </button>
@@ -214,7 +214,7 @@ function PasswordTab() {
         <div>
           <div className="flex gap-1 mb-1">
             {[1,2,3,4,5].map(i => (
-              <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${i <= strength ? strengthColor : 'bg-slate-200'}`} />
+              <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${i <= strength ? strengthColor : 'bg-slate-200 dark:bg-slate-700'}`} />
             ))}
           </div>
           <p className="text-xs text-slate-400">{strengthLabel}</p>
@@ -267,13 +267,13 @@ function NotificationsTab({ profile }) {
   const Toggle = ({ label, desc, field, disabled, disabledMsg }) => (
     <div className={`flex items-start justify-between gap-4 py-3 ${disabled ? 'opacity-50' : ''}`}>
       <div>
-        <div className="text-sm font-medium text-slate-700">{label}</div>
+        <div className="text-sm font-medium text-slate-700 dark:text-slate-300">{label}</div>
         <div className="text-xs text-slate-400 mt-0.5">{disabled ? disabledMsg : desc}</div>
       </div>
       <button
         disabled={disabled}
         onClick={() => !disabled && set(field, !form[field])}
-        className={`relative flex-shrink-0 w-11 h-6 rounded-full transition-colors ${form[field] && !disabled ? 'bg-brand-600' : 'bg-slate-200'}`}
+        className={`relative flex-shrink-0 w-11 h-6 rounded-full transition-colors ${form[field] && !disabled ? 'bg-brand-600' : 'bg-slate-200 dark:bg-slate-700'}`}
       >
         <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${form[field] && !disabled ? 'translate-x-6' : 'translate-x-1'}`} />
       </button>
@@ -285,9 +285,9 @@ function NotificationsTab({ profile }) {
       <Toast {...(toast || {})} message={toast?.message} />
 
       {/* Push */}
-      <div className="bg-slate-50 rounded-xl p-4">
+      <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4">
         <div className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">In-App Notifications</div>
-        <div className="divide-y divide-slate-200">
+        <div className="divide-y divide-slate-200 dark:divide-slate-700">
           <Toggle label="Push notifications" desc="Receive alerts in the app" field="push_enabled" />
           <Toggle label="Urgent alerts" desc="Emergency and urgent broadcasts" field="push_urgent" disabled={!form.push_enabled} disabledMsg="Enable push notifications first" />
           <Toggle label="General messages" desc="Announcements and reminders" field="push_general" disabled={!form.push_enabled} disabledMsg="Enable push notifications first" />
@@ -295,9 +295,9 @@ function NotificationsTab({ profile }) {
       </div>
 
       {/* Email */}
-      <div className="bg-slate-50 rounded-xl p-4">
+      <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4">
         <div className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Email Notifications</div>
-        <div className="divide-y divide-slate-200">
+        <div className="divide-y divide-slate-200 dark:divide-slate-700">
           <Toggle label="Email notifications" desc="Receive messages at your email address" field="email_enabled" />
           <Toggle label="Urgent alerts only" desc="Only urgent/emergency broadcasts" field="email_urgent" disabled={!form.email_enabled} disabledMsg="Enable email notifications first" />
           <Toggle label="General messages" desc="All broadcast categories" field="email_general" disabled={!form.email_enabled} disabledMsg="Enable email notifications first" />
@@ -305,7 +305,7 @@ function NotificationsTab({ profile }) {
       </div>
 
       {/* SMS */}
-      <div className="bg-slate-50 rounded-xl p-4">
+      <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4">
         <div className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">SMS Notifications</div>
         <Toggle
           label="SMS text messages"
@@ -332,18 +332,18 @@ export default function UserProfileModal({ onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[92vh] flex flex-col">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md max-h-[92vh] flex flex-col">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
-          <h2 className="font-display font-semibold text-slate-800">My Account</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">My Account</h2>
+          <button onClick={onClose} className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
             <X size={20} />
           </button>
         </div>
 
         {/* Tab bar */}
-        <div className="flex gap-1 mx-6 mt-4 mb-2 bg-slate-100 p-1 rounded-xl flex-shrink-0">
+        <div className="flex gap-1 mx-6 mt-4 mb-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex-shrink-0">
           {TABS.map(t => (
             <TabBtn key={t.key} tab={t} active={tab === t.key} onClick={setTab} />
           ))}

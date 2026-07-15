@@ -26,16 +26,16 @@ function TextArea({ label, value, onChange, rows = 3, readOnly, placeholder }) {
       <textarea
         value={value || ''} onChange={e => onChange(e.target.value)}
         rows={rows} readOnly={readOnly} placeholder={placeholder}
-        className={`w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none transition-colors
-          ${readOnly ? 'bg-slate-50 text-slate-600 cursor-default' : 'bg-white'}`} />
+        className={`w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none transition-colors
+          ${readOnly ? 'bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 cursor-default' : 'bg-white dark:bg-slate-800 dark:text-slate-100'}`} />
     </div>
   )
 }
 
 function FieldGroup({ title, icon: Icon, children }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-      <h3 className="font-semibold text-slate-700 text-sm flex items-center gap-2 mb-4 pb-3 border-b border-slate-100">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5">
+      <h3 className="font-semibold text-slate-700 dark:text-slate-300 text-sm flex items-center gap-2 mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
         <Icon size={15} className="text-brand-500" /> {title}
       </h3>
       <div className="space-y-4">{children}</div>
@@ -100,7 +100,7 @@ function ProfileEditor({ resident, orgId, profile: existingProfile, canWrite, on
   return (
     <div className="space-y-4">
       {error && (
-        <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+        <div className="flex items-center gap-2 px-4 py-3 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-xl text-red-700 dark:text-red-400 text-sm">
           <AlertCircle size={15} /> {error}
         </div>
       )}
@@ -115,7 +115,7 @@ function ProfileEditor({ resident, orgId, profile: existingProfile, canWrite, on
                 className={`px-3 py-1.5 rounded-xl text-sm border font-medium transition-all
                   ${form.cognitive_level === l.key
                     ? 'bg-brand-600 text-white border-brand-600'
-                    : 'bg-white text-slate-500 border-slate-200 hover:border-brand-300'}`}>
+                    : 'bg-white dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700 hover:border-brand-300'}`}>
                 {l.label}
               </button>
             ))}
@@ -159,7 +159,7 @@ function ProfileEditor({ resident, orgId, profile: existingProfile, canWrite, on
             <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform
               ${form.advance_directive_on_file ? 'translate-x-5' : ''}`} />
           </button>
-          <span className="text-sm font-medium text-slate-700">Advance Directive on File</span>
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Advance Directive on File</span>
         </div>
 
         {form.advance_directive_on_file && (
@@ -172,7 +172,7 @@ function ProfileEditor({ resident, orgId, profile: existingProfile, canWrite, on
                     className={`px-3 py-1.5 rounded-xl text-sm border font-medium transition-all
                       ${(form.advance_directive_types || []).includes(d.key)
                         ? 'bg-green-600 text-white border-green-600'
-                        : 'bg-white text-slate-500 border-slate-200 hover:border-green-300'}`}>
+                        : 'bg-white dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700 hover:border-green-300'}`}>
                     {d.label}
                   </button>
                 ))}
@@ -182,21 +182,21 @@ function ProfileEditor({ resident, orgId, profile: existingProfile, canWrite, on
           </>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 border-t border-slate-100">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 border-t border-slate-100 dark:border-slate-800">
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Legal Guardian</label>
             <input value={form.legal_guardian || ''} onChange={e => set('legal_guardian', e.target.value)} readOnly={readOnly}
-              placeholder="Full name" className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              placeholder="Full name" className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Phone</label>
             <input value={form.legal_guardian_phone || ''} onChange={e => set('legal_guardian_phone', e.target.value)} readOnly={readOnly}
-              placeholder="(555) 000-0000" className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              placeholder="(555) 000-0000" className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Relationship</label>
             <input value={form.legal_guardian_relationship || ''} onChange={e => set('legal_guardian_relationship', e.target.value)} readOnly={readOnly}
-              placeholder="e.g. Daughter" className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              placeholder="e.g. Daughter" className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
         </div>
       </FieldGroup>
@@ -205,7 +205,7 @@ function ProfileEditor({ resident, orgId, profile: existingProfile, canWrite, on
       {canWrite && (
         <div className="flex justify-end gap-3 pt-2">
           {onCancel && (
-            <button onClick={onCancel} className="px-4 py-2 text-sm text-slate-600 hover:text-slate-800 font-medium">Cancel</button>
+            <button onClick={onCancel} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-slate-100 font-medium">Cancel</button>
           )}
           <button onClick={handleSave} disabled={saving}
             className="flex items-center gap-2 px-6 py-2.5 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-semibold rounded-xl transition-colors">
@@ -253,23 +253,23 @@ export default function SocialProfile({ canWrite }) {
   )
 
   const CARE_COLORS = {
-    independent:     'bg-green-100 text-green-700',
-    assisted:        'bg-blue-100 text-blue-700',
-    memory_care:     'bg-purple-100 text-purple-700',
-    skilled_nursing: 'bg-orange-100 text-orange-700',
-    rehab:           'bg-teal-100 text-teal-700',
+    independent:     'bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-400',
+    assisted:        'bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-400',
+    memory_care:     'bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-400',
+    skilled_nursing: 'bg-orange-100 text-orange-700 dark:bg-orange-950/50 dark:text-orange-400',
+    rehab:           'bg-teal-100 text-teal-700 dark:bg-teal-950/50 dark:text-teal-400',
   }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
       {/* Resident list */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-slate-100">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-slate-100 dark:border-slate-800">
           <div className="relative">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input value={search} onChange={e => setSearch(e.target.value)}
               placeholder="Search residents..."
-              className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              className="w-full pl-9 pr-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
         </div>
         <div className="overflow-y-auto" style={{ maxHeight: 600 }}>
@@ -279,13 +279,13 @@ export default function SocialProfile({ canWrite }) {
             <div className="py-12 text-center text-slate-400 text-sm">No residents found</div>
           ) : filtered.map(r => (
             <button key={r.id} onClick={() => selectResident(r)}
-              className={`w-full flex items-center gap-3 px-4 py-3 text-left border-b border-slate-50 hover:bg-slate-50 transition-colors
+              className={`w-full flex items-center gap-3 px-4 py-3 text-left border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors
                 ${selected?.id === r.id ? 'bg-brand-50 border-l-2 border-l-brand-500' : ''}`}>
               <div className="w-9 h-9 rounded-xl bg-brand-100 flex items-center justify-center text-brand-700 font-bold text-sm flex-shrink-0">
                 {r.first_name[0]}{r.last_name[0]}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="font-medium text-slate-800 text-sm truncate">{r.first_name} {r.last_name}</div>
+                <div className="font-medium text-slate-800 dark:text-slate-100 text-sm truncate">{r.first_name} {r.last_name}</div>
                 <div className="text-xs text-slate-400">Room {r.room}</div>
               </div>
               <ChevronRight size={14} className="text-slate-300 flex-shrink-0" />
@@ -297,36 +297,36 @@ export default function SocialProfile({ canWrite }) {
       {/* Profile panel */}
       <div className="lg:col-span-2">
         {!selected ? (
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm h-64 flex items-center justify-center text-slate-400">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm h-64 flex items-center justify-center text-slate-400">
             <div className="text-center">
               <User size={36} className="mx-auto mb-3 opacity-30" />
               <p className="font-medium">Select a resident to view their social profile</p>
             </div>
           </div>
         ) : profLoading ? (
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm h-64 flex items-center justify-center">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm h-64 flex items-center justify-center">
             <Loader2 size={28} className="animate-spin text-brand-400" />
           </div>
         ) : (
           <div className="space-y-4">
             {/* Resident header */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-4 flex items-center gap-4">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm px-5 py-4 flex items-center gap-4">
               <div className="w-12 h-12 rounded-2xl bg-brand-100 flex items-center justify-center text-brand-700 font-bold text-lg">
                 {selected.first_name[0]}{selected.last_name[0]}
               </div>
               <div>
-                <h2 className="font-display font-bold text-slate-800 text-lg">{selected.first_name} {selected.last_name}</h2>
+                <h2 className="font-display font-bold text-slate-800 dark:text-slate-100 text-lg">{selected.first_name} {selected.last_name}</h2>
                 <div className="flex items-center gap-2 mt-0.5">
                   <span className="text-xs text-slate-400">Room {selected.room}</span>
                   {selected.care_level && (
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${CARE_COLORS[selected.care_level] || 'bg-slate-100 text-slate-600'}`}>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${CARE_COLORS[selected.care_level] || 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>
                       {selected.care_level.replace(/_/g, ' ')}
                     </span>
                   )}
                   {ssProfile ? (
-                    <span className="text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full font-medium">Profile on file</span>
+                    <span className="text-xs text-green-600 bg-green-50 dark:bg-green-950/50 dark:text-green-400 px-2 py-0.5 rounded-full font-medium">Profile on file</span>
                   ) : (
-                    <span className="text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full font-medium">No profile yet</span>
+                    <span className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/50 dark:text-amber-400 px-2 py-0.5 rounded-full font-medium">No profile yet</span>
                   )}
                 </div>
               </div>

@@ -109,18 +109,18 @@ function ServiceModal({ service, onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
-          <h2 className="font-display font-semibold text-slate-800">{service ? 'Edit Service' : 'New Chapel Service'}</h2>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">{service ? 'Edit Service' : 'New Chapel Service'}</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
-          {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+          {error && <div className="px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900/50 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
 
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Title *</label>
             <input value={form.title} onChange={e => set('title', e.target.value)}
-              className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="e.g. Sunday Morning Service" />
           </div>
 
@@ -128,14 +128,14 @@ function ServiceModal({ service, onClose, onSave }) {
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Service Type</label>
               <select value={form.service_type} onChange={e => set('service_type', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                 {SERVICE_TYPES.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Officiant / Pastor</label>
               <input value={form.officiant} onChange={e => set('officiant', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="Name" />
             </div>
           </div>
@@ -144,41 +144,41 @@ function ServiceModal({ service, onClose, onSave }) {
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Date *</label>
               <input type="date" value={form.service_date} onChange={e => set('service_date', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Start *</label>
               <input type="time" value={form.start_time} onChange={e => set('start_time', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">End</label>
               <input type="time" value={form.end_time} onChange={e => set('end_time', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Description</label>
             <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={2}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
               placeholder="Optional description or message topic..." />
           </div>
 
-          <div className="p-4 bg-purple-50 border border-purple-100 rounded-xl space-y-3">
-            <label className="block text-xs font-semibold text-purple-700 uppercase tracking-wide flex items-center gap-1.5">
+          <div className="p-4 bg-purple-50 dark:bg-purple-950/50 border border-purple-100 dark:border-purple-900/50 rounded-xl space-y-3">
+            <label className="block text-xs font-semibold text-purple-700 dark:text-purple-400 uppercase tracking-wide flex items-center gap-1.5">
               <Video size={13} /> YouTube Streaming
             </label>
             <div>
               <label className="block text-xs text-slate-500 mb-1">Live Stream URL or Video ID</label>
               <input value={form.stream_youtube_id} onChange={e => set('stream_youtube_id', e.target.value)}
-                className="w-full px-3 py-2 border border-purple-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white"
+                className="w-full px-3 py-2 border border-purple-200 dark:border-purple-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white dark:bg-slate-800 dark:text-slate-100"
                 placeholder="https://youtube.com/live/... or video ID" />
             </div>
             <div>
               <label className="block text-xs text-slate-500 mb-1">Past Recording URL or Video ID</label>
               <input value={form.recording_youtube_id} onChange={e => set('recording_youtube_id', e.target.value)}
-                className="w-full px-3 py-2 border border-purple-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white"
+                className="w-full px-3 py-2 border border-purple-200 dark:border-purple-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white dark:bg-slate-800 dark:text-slate-100"
                 placeholder="https://youtube.com/watch?v=... or video ID" />
             </div>
           </div>
@@ -187,21 +187,21 @@ function ServiceModal({ service, onClose, onSave }) {
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Attendance</label>
               <input type="number" value={form.attendance_count} onChange={e => set('attendance_count', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="Number attended" />
             </div>
           </div>
 
-          <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
+          <div className="p-4 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl">
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" checked={form.is_recurring} onChange={e => set('is_recurring', e.target.checked)} className="w-4 h-4 rounded text-brand-600" />
-              <span className="text-sm font-medium text-slate-700">Recurring service</span>
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Recurring service</span>
             </label>
             {form.is_recurring && (
               <div className="mt-3">
                 <label className="block text-xs text-slate-500 mb-1">Repeats every</label>
                 <select value={form.recur_day_of_week} onChange={e => set('recur_day_of_week', parseInt(e.target.value))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                   <option value="">Select day</option>
                   {DAYS.map((d, i) => <option key={i} value={i}>{d}</option>)}
                 </select>
@@ -209,8 +209,8 @@ function ServiceModal({ service, onClose, onSave }) {
             )}
           </div>
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
             {saving ? 'Saving...' : 'Save Service'}
@@ -279,7 +279,7 @@ export default function Chapel() {
     <div className="max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-slate-800">Chapel Management</h1>
+          <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Chapel Management</h1>
           <p className="text-slate-500 text-sm mt-0.5">Chaplain Portal — Manage services and live streams</p>
         </div>
         <button onClick={() => { setEditService(null); setShowModal(true) }}
@@ -298,7 +298,7 @@ export default function Chapel() {
         ].map(s => {
           const Icon = s.icon
           return (
-            <div key={s.label} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+            <div key={s.label} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5">
               <div className="flex items-center gap-2 mb-2">
                 <Icon size={18} className={s.color} />
                 <span className="text-xs text-slate-500">{s.label}</span>
@@ -314,9 +314,9 @@ export default function Chapel() {
 
       <div className="grid grid-cols-2 gap-6 mb-8">
         {/* Live Stream Control */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display font-semibold text-slate-800">Live Stream Control</h2>
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Live Stream Control</h2>
             {liveService ? (
               <button onClick={() => toggleLive(liveService)}
                 className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-xl transition-colors flex items-center gap-2">
@@ -332,7 +332,7 @@ export default function Chapel() {
             isLive={true}
             offline={!liveService} />
           {liveService && (
-            <div className="mt-3 space-y-1 text-sm text-slate-600">
+            <div className="mt-3 space-y-1 text-sm text-slate-600 dark:text-slate-300">
               <div className="flex justify-between">
                 <span className="text-slate-400">Now Streaming</span>
                 <span className="font-medium">{liveService.title}</span>
@@ -348,14 +348,14 @@ export default function Chapel() {
         </div>
 
         {/* Quick go-live picker */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-          <h2 className="font-display font-semibold text-slate-800 mb-4">Go Live</h2>
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 mb-4">Go Live</h2>
           <p className="text-xs text-slate-400 mb-4">Select a service to start streaming. Make sure you've added a YouTube live URL first.</p>
           <div className="space-y-2">
             {upcoming.slice(0, 5).map(s => (
-              <div key={s.id} className={`flex items-center justify-between p-3 rounded-xl border transition-all ${s.is_live ? 'bg-red-50 border-red-200' : 'border-slate-100 hover:border-brand-200'}`}>
+              <div key={s.id} className={`flex items-center justify-between p-3 rounded-xl border transition-all ${s.is_live ? 'bg-red-50 dark:bg-red-950/50 border-red-200 dark:border-red-900/50' : 'border-slate-100 dark:border-slate-800 hover:border-brand-200'}`}>
                 <div>
-                  <div className="text-sm font-medium text-slate-800">{s.title}</div>
+                  <div className="text-sm font-medium text-slate-800 dark:text-slate-100">{s.title}</div>
                   <div className="text-xs text-slate-400">
                     {new Date(s.service_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} · {formatTime(s.start_time)}
                   </div>
@@ -365,7 +365,7 @@ export default function Chapel() {
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                     s.is_live ? 'bg-red-500 text-white hover:bg-red-600'
                     : s.stream_youtube_id ? 'bg-green-500 text-white hover:bg-green-600'
-                    : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
                   }`}>
                   {s.is_live ? 'Stop' : s.stream_youtube_id ? 'Go Live' : 'No URL'}
                 </button>
@@ -378,24 +378,24 @@ export default function Chapel() {
 
       {/* Upcoming Services */}
       <div className="mb-8">
-        <h2 className="font-display font-semibold text-slate-800 mb-4">Upcoming Services</h2>
+        <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 mb-4">Upcoming Services</h2>
         {upcoming.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-100 p-8 text-center text-slate-400">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-8 text-center text-slate-400">
             <Church size={32} className="mx-auto mb-2 opacity-30" />
             <p>No upcoming services — add one above.</p>
           </div>
         ) : (
           <div className="space-y-3">
             {upcoming.map(s => (
-              <div key={s.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-4">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${s.is_live ? 'bg-red-100' : 'bg-purple-100'}`}>
+              <div key={s.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-4 flex items-center gap-4">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${s.is_live ? 'bg-red-100 dark:bg-red-950/50' : 'bg-purple-100 dark:bg-purple-950/50'}`}>
                   {s.is_live ? <Radio size={18} className="text-red-600" /> : <Church size={18} className="text-purple-600" />}
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-slate-800 text-sm">{s.title}</span>
+                    <span className="font-medium text-slate-800 dark:text-slate-100 text-sm">{s.title}</span>
                     {s.is_live && <span className="flex items-center gap-1 text-xs bg-red-500 text-white px-2 py-0.5 rounded-full font-medium"><span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />LIVE</span>}
-                    {s.is_recurring && <span className="text-xs text-slate-400 border border-slate-200 px-1.5 py-0.5 rounded">Recurring</span>}
+                    {s.is_recurring && <span className="text-xs text-slate-400 border border-slate-200 dark:border-slate-700 px-1.5 py-0.5 rounded">Recurring</span>}
                   </div>
                   <div className="text-xs text-slate-400 mt-0.5">
                     {new Date(s.service_date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })} · {formatTime(s.start_time)}
@@ -416,14 +416,14 @@ export default function Chapel() {
 
       {/* Past Services */}
       <div>
-        <h2 className="font-display font-semibold text-slate-800 mb-4">Past Services</h2>
+        <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 mb-4">Past Services</h2>
         {past.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-100 p-8 text-center text-slate-400">No past services yet.</div>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-8 text-center text-slate-400">No past services yet.</div>
         ) : (
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-slate-100 bg-slate-50">
+                <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Service</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Date</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Officiant</th>
@@ -434,8 +434,8 @@ export default function Chapel() {
               </thead>
               <tbody>
                 {past.map(s => (
-                  <tr key={s.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
-                    <td className="px-4 py-3 text-sm font-medium text-slate-800">{s.title}</td>
+                  <tr key={s.id} className="border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    <td className="px-4 py-3 text-sm font-medium text-slate-800 dark:text-slate-100">{s.title}</td>
                     <td className="px-4 py-3 text-xs text-slate-500">
                       {new Date(s.service_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </td>

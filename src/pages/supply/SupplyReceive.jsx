@@ -111,15 +111,15 @@ export default function SupplyReceive() {
     return i.name.toLowerCase().includes(q) || i.barcode?.toLowerCase().includes(q) || i.sku?.toLowerCase().includes(q)
   })
 
-  const inputCls = 'w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500'
+  const inputCls = 'w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500'
 
   return (
     <div className="p-6 max-w-4xl">
-      <h2 className="font-display font-semibold text-slate-800 text-lg mb-1">Receive Stock</h2>
+      <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 text-lg mb-1">Receive Stock</h2>
       <p className="text-sm text-slate-400 mb-5">Add inventory from a purchase order or manually enter items received.</p>
 
       {success && (
-        <div className="flex items-center gap-2 px-4 py-3 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm font-medium mb-5">
+        <div className="flex items-center gap-2 px-4 py-3 bg-green-50 dark:bg-green-950/50 border border-green-200 dark:border-green-900 rounded-xl text-green-700 dark:text-green-400 text-sm font-medium mb-5">
           <CheckCircle2 size={16} /> Stock received and inventory updated successfully.
         </div>
       )}
@@ -128,7 +128,7 @@ export default function SupplyReceive() {
       <div className="flex gap-2 mb-6">
         {[{ k: 'manual', label: 'Manual Receive', icon: PackagePlus }, { k: 'po', label: 'Receive from PO', icon: ClipboardList }].map(m => (
           <button key={m.k} onClick={() => { setMode(m.k); setLines([]); setSelectedPO(null) }}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${mode === m.k ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}>
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${mode === m.k ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
             <m.icon size={15} />{m.label}
           </button>
         ))}
@@ -137,14 +137,14 @@ export default function SupplyReceive() {
       {/* PO selector */}
       {mode === 'po' && (
         <div className="mb-5">
-          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Select Open PO</label>
+          <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">Select Open PO</label>
           {openPOs.length === 0 ? (
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-sm text-slate-400 text-center">No open purchase orders found.</div>
+            <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-sm text-slate-400 text-center">No open purchase orders found.</div>
           ) : (
             <div className="flex gap-2 flex-wrap">
               {openPOs.map(po => (
                 <button key={po.id} onClick={() => handleSelectPO(po)}
-                  className={`px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${selectedPO?.id === po.id ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}>
+                  className={`px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${selectedPO?.id === po.id ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
                   {po.po_number} {po.supply_vendors?.name ? `— ${po.supply_vendors.name}` : ''}
                 </button>
               ))}
@@ -158,9 +158,9 @@ export default function SupplyReceive() {
         <div className="mb-5 flex gap-2">
           <div className="relative flex-1">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search items to add..." className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white" />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search items to add..." className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100" />
           </div>
-          <button onClick={() => setShowScanner(true)} className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-sm font-medium transition-colors">
+          <button onClick={() => setShowScanner(true)} className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl text-sm font-medium transition-colors">
             <ScanLine size={15} /> Scan
           </button>
         </div>
@@ -168,12 +168,12 @@ export default function SupplyReceive() {
 
       {/* Item search results (manual mode) */}
       {mode === 'manual' && search && (
-        <div className="mb-4 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden max-h-48 overflow-y-auto">
+        <div className="mb-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden max-h-48 overflow-y-auto">
           {filteredItems.slice(0, 8).map(item => (
             <button key={item.id} onClick={() => { addLine(item); setSearch('') }}
-              className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-50 border-b border-slate-100 last:border-0 text-left transition-colors">
+              className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 border-b border-slate-100 dark:border-slate-800 last:border-0 text-left transition-colors">
               <div>
-                <div className="text-sm font-medium text-slate-800">{item.name}</div>
+                <div className="text-sm font-medium text-slate-800 dark:text-slate-100">{item.name}</div>
                 <div className="text-xs text-slate-400">{item.category} · {item.unit}</div>
               </div>
               <span className="text-xs text-slate-400">On hand: {item.quantity_on_hand}</span>
@@ -185,27 +185,27 @@ export default function SupplyReceive() {
 
       {/* Lines to receive */}
       {lines.length > 0 && (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mb-5">
-          <div className="px-5 py-3 border-b border-slate-100 bg-slate-50">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Items to Receive</span>
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden mb-5">
+          <div className="px-5 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Items to Receive</span>
           </div>
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-slate-100 dark:divide-slate-800">
             {lines.map((line, idx) => (
               <div key={idx} className="flex items-center gap-3 px-5 py-3">
                 {mode === 'po' && (
                   <input type="checkbox" checked={line.checked || false} onChange={e => setLineVal(idx, 'checked', e.target.checked)} className="w-4 h-4 accent-brand-600 flex-shrink-0" />
                 )}
                 <div className="flex-1">
-                  <div className="text-sm font-medium text-slate-800">{line.description}</div>
+                  <div className="text-sm font-medium text-slate-800 dark:text-slate-100">{line.description}</div>
                   <div className="text-xs text-slate-400">{line.unit} · Ordered: {line.quantity_ordered ?? '—'}</div>
                 </div>
                 <div className="flex items-center gap-2">
                   <label className="text-xs text-slate-400">Qty</label>
-                  <input type="number" min="0" step="0.01" value={line.receive_qty} onChange={e => setLineVal(idx, 'receive_qty', e.target.value)} className="w-20 px-2 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 text-center" />
+                  <input type="number" min="0" step="0.01" value={line.receive_qty} onChange={e => setLineVal(idx, 'receive_qty', e.target.value)} className="w-20 px-2 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 text-center" />
                   {mode === 'manual' && (
                     <>
                       <label className="text-xs text-slate-400">Cost $</label>
-                      <input type="number" min="0" step="0.01" value={line.unit_cost ?? ''} onChange={e => setLineVal(idx, 'unit_cost', e.target.value)} className="w-24 px-2 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 text-center" />
+                      <input type="number" min="0" step="0.01" value={line.unit_cost ?? ''} onChange={e => setLineVal(idx, 'unit_cost', e.target.value)} className="w-24 px-2 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 text-center" />
                     </>
                   )}
                 </div>
@@ -219,7 +219,7 @@ export default function SupplyReceive() {
       {lines.length > 0 && (
         <>
           <div className="mb-4">
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Notes (optional)</label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Notes (optional)</label>
             <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} className={inputCls + ' resize-none'} placeholder="e.g. Partial shipment, invoice #12345..." />
           </div>
           <button onClick={handleSubmit} disabled={saving} className="flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 disabled:bg-green-300 text-white font-medium rounded-xl shadow-sm transition-colors">

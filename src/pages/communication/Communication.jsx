@@ -11,14 +11,14 @@ import {
 } from 'lucide-react'
 
 const CATEGORIES = [
-  { key: 'general',            label: 'General',            icon: Megaphone,       color: 'bg-slate-100 text-slate-600 border-slate-200' },
-  { key: 'birthday',           label: 'Birthday',           icon: Cake,            color: 'bg-pink-50 text-pink-600 border-pink-200' },
-  { key: 'resident_spotlight', label: 'Resident Spotlight', icon: Star,            color: 'bg-yellow-50 text-yellow-600 border-yellow-200' },
-  { key: 'event',              label: 'Event',              icon: Calendar,        color: 'bg-blue-50 text-blue-600 border-blue-200' },
-  { key: 'weather',            label: 'Weather',            icon: CloudSun,        color: 'bg-sky-50 text-sky-600 border-sky-200' },
-  { key: 'chapel',             label: 'Chapel',             icon: Church,          color: 'bg-purple-50 text-purple-600 border-purple-200' },
-  { key: 'menu',               label: 'Menu',               icon: UtensilsCrossed, color: 'bg-green-50 text-green-600 border-green-200' },
-  { key: 'alert',              label: 'Alert',              icon: Bell,            color: 'bg-red-50 text-red-600 border-red-200' },
+  { key: 'general',            label: 'General',            icon: Megaphone,       color: 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700' },
+  { key: 'birthday',           label: 'Birthday',           icon: Cake,            color: 'bg-pink-50 text-pink-600 border-pink-200 dark:bg-pink-950/50 dark:text-pink-400 dark:border-pink-800' },
+  { key: 'resident_spotlight', label: 'Resident Spotlight', icon: Star,            color: 'bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-950/50 dark:text-yellow-400 dark:border-yellow-800' },
+  { key: 'event',              label: 'Event',              icon: Calendar,        color: 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800' },
+  { key: 'weather',            label: 'Weather',            icon: CloudSun,        color: 'bg-sky-50 text-sky-600 border-sky-200 dark:bg-sky-950/50 dark:text-sky-400 dark:border-sky-800' },
+  { key: 'chapel',             label: 'Chapel',             icon: Church,          color: 'bg-purple-50 text-purple-600 border-purple-200 dark:bg-purple-950/50 dark:text-purple-400 dark:border-purple-800' },
+  { key: 'menu',               label: 'Menu',               icon: UtensilsCrossed, color: 'bg-green-50 text-green-600 border-green-200 dark:bg-green-950/50 dark:text-green-400 dark:border-green-800' },
+  { key: 'alert',              label: 'Alert',              icon: Bell,            color: 'bg-red-50 text-red-600 border-red-200 dark:bg-red-950/50 dark:text-red-400 dark:border-red-800' },
 ]
 
 const BG_PRESETS = [
@@ -47,9 +47,9 @@ function AnnouncementCard({ item, canEdit, canDelete, onEdit, onDelete }) {
   const expired   = isExpired(item)
 
   return (
-    <div className={`bg-white rounded-2xl border shadow-sm p-5 flex gap-4 transition-all hover:shadow-md
+    <div className={`bg-white dark:bg-slate-900 rounded-2xl border shadow-sm p-5 flex gap-4 transition-all hover:shadow-md
       ${expired ? 'opacity-50' : ''}
-      ${scheduled ? 'border-dashed border-amber-300 bg-amber-50/30' : item.pinned ? 'border-amber-200 bg-amber-50/20' : 'border-slate-100'}`}>
+      ${scheduled ? 'border-dashed border-amber-300 dark:border-amber-800 bg-amber-50/30 dark:bg-amber-950/20' : item.pinned ? 'border-amber-200 dark:border-amber-900/50 bg-amber-50/20 dark:bg-amber-950/10' : 'border-slate-100 dark:border-slate-800'}`}>
       <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${cat.color}`}>
         <Icon size={18} />
       </div>
@@ -57,9 +57,9 @@ function AnnouncementCard({ item, canEdit, canDelete, onEdit, onDelete }) {
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 flex-wrap">
             {item.pinned && <Pin size={12} className="text-amber-500 fill-amber-400 flex-shrink-0" />}
-            {scheduled && <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-semibold">Scheduled</span>}
-            {expired   && <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full font-semibold">Expired</span>}
-            <h3 className="font-semibold text-slate-800 text-sm">{item.title}</h3>
+            {scheduled && <span className="text-[10px] bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded-full font-semibold">Scheduled</span>}
+            {expired   && <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded-full font-semibold">Expired</span>}
+            <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">{item.title}</h3>
           </div>
           {(canEdit || canDelete) && (
             <div className="flex items-center gap-1 flex-shrink-0">
@@ -78,9 +78,9 @@ function AnnouncementCard({ item, canEdit, canDelete, onEdit, onDelete }) {
             </div>
           )}
         </div>
-        {item.body && <p className="text-slate-600 text-sm mt-1.5 leading-relaxed">{item.body}</p>}
+        {item.body && <p className="text-slate-600 dark:text-slate-300 text-sm mt-1.5 leading-relaxed">{item.body}</p>}
         {item.image_url && (
-          <img src={item.image_url} alt="" className="mt-3 rounded-xl w-full max-h-48 object-cover border border-slate-100" />
+          <img src={item.image_url} alt="" className="mt-3 rounded-xl w-full max-h-48 object-cover border border-slate-100 dark:border-slate-800" />
         )}
         <div className="flex items-center gap-3 mt-2 text-xs text-slate-400 flex-wrap">
           <span>Created {new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
@@ -175,33 +175,33 @@ function AnnouncementModal({ item, onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 sticky top-0 bg-white rounded-t-2xl z-10">
-          <h2 className="font-display font-semibold text-slate-800">{item ? 'Edit Announcement' : 'New Announcement'}</h2>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 sticky top-0 bg-white dark:bg-slate-900 rounded-t-2xl z-10">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">{item ? 'Edit Announcement' : 'New Announcement'}</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
         </div>
 
         <div className="px-6 py-5 space-y-5">
-          {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+          {error && <div className="px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
 
           {/* Title */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Title *</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Title *</label>
             <input value={form.title} onChange={e => setField('title', e.target.value)}
-              className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="Announcement title" />
           </div>
 
           {/* Category */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Category</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Category</label>
             <div className="grid grid-cols-4 gap-2">
               {CATEGORIES.map(cat => {
                 const Icon = cat.icon
                 return (
                   <button key={cat.key} onClick={() => setField('category', cat.key)}
                     className={`flex flex-col items-center gap-1 p-2 rounded-xl border text-xs font-medium transition-all
-                      ${form.category === cat.key ? cat.color + ' ring-2 ring-offset-1 ring-brand-400' : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}>
+                      ${form.category === cat.key ? cat.color + ' ring-2 ring-offset-1 ring-brand-400' : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'}`}>
                     <Icon size={16} /><span className="leading-tight text-center">{cat.label}</span>
                   </button>
                 )
@@ -211,19 +211,19 @@ function AnnouncementModal({ item, onClose, onSave }) {
 
           {/* Body */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Message</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Message</label>
             <textarea value={form.body} onChange={e => setField('body', e.target.value)} rows={3}
-              className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+              className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
               placeholder="Optional message body..." />
           </div>
 
           {/* Photo Upload */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-1.5">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1.5">
               <Image size={14} /> Photo
             </label>
             {imagePreview ? (
-              <div className="relative rounded-xl overflow-hidden border border-slate-200">
+              <div className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
                 <img src={imagePreview} alt="Preview" className="w-full h-40 object-cover" />
                 <button onClick={removeImage}
                   className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-lg transition-colors">
@@ -232,7 +232,7 @@ function AnnouncementModal({ item, onClose, onSave }) {
               </div>
             ) : (
               <button onClick={() => fileRef.current.click()} disabled={uploading}
-                className="w-full h-28 border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center gap-2 text-slate-400 hover:border-brand-400 hover:text-brand-500 transition-colors">
+                className="w-full h-28 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl flex flex-col items-center justify-center gap-2 text-slate-400 hover:border-brand-400 hover:text-brand-500 transition-colors">
                 {uploading
                   ? <><div className="w-5 h-5 border-2 border-brand-400 border-t-transparent rounded-full animate-spin" /><span className="text-xs">Uploading...</span></>
                   : <><Upload size={20} /><span className="text-xs font-medium">Click to upload photo</span><span className="text-xs">JPG, PNG, GIF up to 5MB</span></>
@@ -244,14 +244,14 @@ function AnnouncementModal({ item, onClose, onSave }) {
 
           {/* Background Color */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-1.5">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1.5">
               <Palette size={14} /> Background Color <span className="text-slate-400 font-normal">(signage display)</span>
             </label>
             <div className="grid grid-cols-4 gap-2">
               {BG_PRESETS.map(preset => (
                 <button key={preset.value} onClick={() => handleBgSelect(preset.value)}
                   className={`px-2 py-2 rounded-lg border text-xs font-medium transition-all flex items-center gap-1.5
-                    ${bgMode === preset.value ? 'ring-2 ring-brand-500 border-brand-400' : 'border-slate-200 hover:border-slate-300'}`}>
+                    ${bgMode === preset.value ? 'ring-2 ring-brand-500 border-brand-400' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'}`}>
                   {preset.value && preset.value !== 'custom'
                     ? <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: preset.value }} />
                     : preset.value === 'custom'
@@ -265,9 +265,9 @@ function AnnouncementModal({ item, onClose, onSave }) {
             {bgMode === 'custom' && (
               <div className="mt-2 flex items-center gap-3">
                 <input type="color" value={customHex} onChange={e => handleCustomHex(e.target.value)}
-                  className="w-10 h-10 rounded-lg border border-slate-200 cursor-pointer" />
+                  className="w-10 h-10 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer" />
                 <input type="text" value={customHex} onChange={e => handleCustomHex(e.target.value)}
-                  className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-brand-500"
                   placeholder="#000000" />
               </div>
             )}
@@ -276,21 +276,21 @@ function AnnouncementModal({ item, onClose, onSave }) {
           {/* Schedule */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Post Date</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Post Date</label>
               <input type="date" value={form.starts_at} onChange={e => setField('starts_at', e.target.value)}
-                className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Expiration Date <span className="text-slate-400 font-normal">(optional)</span></label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Expiration Date <span className="text-slate-400 font-normal">(optional)</span></label>
               <input type="date" value={form.expires_at} onChange={e => setField('expires_at', e.target.value)}
-                className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
           </div>
 
           {isScheduledPost && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
+            <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-lg">
               <Clock size={14} className="text-amber-500 flex-shrink-0" />
-              <p className="text-xs text-amber-700">
+              <p className="text-xs text-amber-700 dark:text-amber-400">
                 Hidden until <strong>{new Date(form.starts_at).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</strong>
               </p>
             </div>
@@ -300,12 +300,12 @@ function AnnouncementModal({ item, onClose, onSave }) {
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={form.pinned} onChange={e => setField('pinned', e.target.checked)}
               className="w-4 h-4 rounded text-brand-600" />
-            <span className="text-sm font-medium text-slate-700">Pin to top of board</span>
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Pin to top of board</span>
           </label>
         </div>
 
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 sticky bottom-0 bg-white rounded-b-2xl">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 hover:text-slate-800 font-medium">Cancel</button>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 sticky bottom-0 bg-white dark:bg-slate-900 rounded-b-2xl">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-medium">Cancel</button>
           <button onClick={handleSave} disabled={saving || uploading}
             className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
             {saving ? 'Saving...' : isScheduledPost ? 'Schedule Announcement' : item ? 'Save Changes' : 'Post Announcement'}
@@ -383,13 +383,13 @@ export default function Communication() {
       {/* Page header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-slate-800">Communication</h1>
+          <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Communication</h1>
           <p className="text-slate-500 text-sm mt-0.5">Announcements, events, and community updates</p>
         </div>
         {activeTab === 'announcements' && (
           <div className="flex items-center gap-2">
             <a href="/signage?org=sunrise-gardens" target="_blank"
-              className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 hover:text-brand-600 hover:border-brand-300 rounded-xl text-sm font-medium transition-colors">
+              className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-brand-600 hover:border-brand-300 rounded-xl text-sm font-medium transition-colors">
               <Monitor size={16} /> Digital Signage
             </a>
             {canPost && (
@@ -404,11 +404,11 @@ export default function Communication() {
 
       {/* ── Tab bar — only show if user has broadcast access ── */}
       {canSeeBroadcast && (
-        <div className="flex gap-1 mb-6 bg-slate-100 p-1 rounded-xl w-fit">
+        <div className="flex gap-1 mb-6 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit">
           <button
             onClick={() => setActiveTab('announcements')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              activeTab === 'announcements' ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              activeTab === 'announcements' ? 'bg-white dark:bg-slate-900 text-brand-700 dark:text-brand-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
             }`}
           >
             <Megaphone size={15} /> Announcements
@@ -416,7 +416,7 @@ export default function Communication() {
           <button
             onClick={() => setActiveTab('broadcast')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              activeTab === 'broadcast' ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              activeTab === 'broadcast' ? 'bg-white dark:bg-slate-900 text-brand-700 dark:text-brand-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
             }`}
           >
             <Send size={15} /> Broadcast Messages
@@ -435,18 +435,18 @@ export default function Communication() {
             <div className="relative flex-1 min-w-48">
               <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search announcements..."
-                className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="flex gap-1.5 flex-wrap">
               <button onClick={() => setFilterCat('all')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filterCat === 'all' ? 'bg-brand-600 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:border-brand-300'}`}>
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filterCat === 'all' ? 'bg-brand-600 text-white' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300'}`}>
                 All
               </button>
               {CATEGORIES.map(cat => {
                 const Icon = cat.icon
                 return (
                   <button key={cat.key} onClick={() => setFilterCat(cat.key)}
-                    className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filterCat === cat.key ? 'bg-brand-600 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:border-brand-300'}`}>
+                    className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filterCat === cat.key ? 'bg-brand-600 text-white' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300'}`}>
                     <Icon size={12} />{cat.label}
                   </button>
                 )
@@ -457,7 +457,7 @@ export default function Communication() {
           {/* Scheduled banner */}
           {canPost && filteredScheduled.length > 0 && (
             <button onClick={() => setShowScheduled(s => !s)}
-              className="w-full flex items-center justify-between px-4 py-3 mb-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700 font-medium hover:bg-amber-100 transition-colors">
+              className="w-full flex items-center justify-between px-4 py-3 mb-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-xl text-sm text-amber-700 dark:text-amber-400 font-medium hover:bg-amber-100 dark:hover:bg-amber-950/50 transition-colors">
               <div className="flex items-center gap-2">
                 <Clock size={15} />
                 <span>{filteredScheduled.length} scheduled announcement{filteredScheduled.length > 1 ? 's' : ''} waiting to post</span>

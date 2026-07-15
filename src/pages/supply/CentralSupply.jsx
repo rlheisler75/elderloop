@@ -53,13 +53,13 @@ export default function CentralSupply() {
   return (
     <div className="flex flex-col h-full">
       {/* ── Page header ── */}
-      <div className="px-6 pt-6 pb-0 bg-white border-b border-slate-100">
+      <div className="px-6 pt-6 pb-0 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center flex-shrink-0">
             <Package size={18} className="text-white" />
           </div>
           <div>
-            <h1 className="font-display font-semibold text-slate-800 text-xl leading-tight">Central Supply</h1>
+            <h1 className="font-display font-semibold text-slate-800 dark:text-slate-100 text-xl leading-tight">Central Supply</h1>
             <p className="text-xs text-slate-400 mt-0.5">Inventory, ordering, and supply tracking</p>
           </div>
         </div>
@@ -75,7 +75,7 @@ export default function CentralSupply() {
                 className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 whitespace-nowrap transition-all flex-shrink-0 ${
                   tab === t.key
                     ? 'border-brand-600 text-brand-700'
-                    : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                    : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700'
                 }`}>
                 <Icon size={14} />
                 {t.label}

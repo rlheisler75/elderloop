@@ -74,18 +74,18 @@ function PostUpdateModal({ residents, orgId, profile, onClose, onSaved }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[92vh]">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
-          <h2 className="font-display font-semibold text-slate-800">Post Resident Update</h2>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[92vh]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Post Resident Update</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
-          {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+          {error && <div className="px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
 
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Resident *</label>
             <select value={form.resident_id} onChange={e => set('resident_id', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
               <option value="">Select resident</option>
               {residents.map(r => <option key={r.id} value={r.id}>{r.first_name} {r.last_name}</option>)}
             </select>
@@ -98,7 +98,7 @@ function PostUpdateModal({ residents, orgId, profile, onClose, onSaved }) {
                 const Icon = c.icon
                 return (
                   <button key={c.key} onClick={() => set('category', c.key)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${form.category === c.key ? 'bg-brand-600 border-brand-600 text-white' : 'border-slate-200 text-slate-600 hover:border-brand-300'}`}>
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${form.category === c.key ? 'bg-brand-600 border-brand-600 text-white' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300'}`}>
                     <Icon size={11} /> {c.label}
                   </button>
                 )
@@ -109,14 +109,14 @@ function PostUpdateModal({ residents, orgId, profile, onClose, onSaved }) {
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Title (optional)</label>
             <input value={form.title} onChange={e => set('title', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="e.g. Great Day Today" />
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Update *</label>
             <textarea value={form.body} onChange={e => set('body', e.target.value)} rows={4}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
               placeholder="Share what's happening with the resident today..." />
           </div>
 
@@ -132,23 +132,23 @@ function PostUpdateModal({ residents, orgId, profile, onClose, onSaved }) {
               </div>
             ) : (
               <button onClick={() => fileRef.current.click()} disabled={uploading}
-                className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-slate-200 rounded-xl text-sm text-slate-400 hover:border-brand-400 hover:text-brand-500 transition-colors">
+                className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-400 hover:border-brand-400 hover:text-brand-500 transition-colors">
                 <Camera size={15} /> {uploading ? 'Uploading...' : 'Add Photo (optional)'}
               </button>
             )}
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
           </div>
 
-          <label className={`flex items-start gap-3 cursor-pointer p-3 rounded-xl border-2 transition-all ${form.is_family_visible ? 'bg-green-50 border-green-200' : 'border-slate-200'}`}>
+          <label className={`flex items-start gap-3 cursor-pointer p-3 rounded-xl border-2 transition-all ${form.is_family_visible ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-900' : 'border-slate-200 dark:border-slate-700'}`}>
             <input type="checkbox" checked={form.is_family_visible} onChange={e => set('is_family_visible', e.target.checked)} className="w-4 h-4 rounded text-brand-600 mt-0.5" />
             <div>
-              <div className="font-medium text-slate-800 text-sm">Visible to Family</div>
+              <div className="font-medium text-slate-800 dark:text-slate-100 text-sm">Visible to Family</div>
               <div className="text-xs text-slate-400 mt-0.5">Family members will see this update in their portal</div>
             </div>
           </label>
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 font-medium">Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
             {saving ? 'Posting...' : 'Post Update'}
@@ -296,7 +296,7 @@ export default function FamilyMessaging() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-slate-800">Family Communication</h1>
+          <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Family Communication</h1>
           <p className="text-slate-500 text-sm mt-0.5">Manage family messages and resident updates</p>
         </div>
         {canEditMessaging && (
@@ -314,7 +314,7 @@ export default function FamilyMessaging() {
           { label: 'Total Threads',     value: threads.length, color: 'text-brand-600', bg: 'bg-brand-50' },
           { label: 'Updates Posted',    value: updates.length, color: 'text-green-600',  bg: 'bg-green-50' },
         ].map(s => (
-          <div key={s.label} className={`${s.bg} rounded-2xl p-4`}>
+          <div key={s.label} className={`${s.bg} dark:bg-slate-900 rounded-2xl p-4`}>
             <div className={`text-3xl font-display font-bold ${s.color}`}>{s.value}</div>
             <div className="text-slate-500 text-xs mt-1">{s.label}</div>
           </div>
@@ -322,10 +322,10 @@ export default function FamilyMessaging() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mb-5 w-fit">
+      <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl mb-5 w-fit">
         {[{ key:'messages',label:`Messages${unreadCount > 0 ? ` (${unreadCount})` : ''}`},{ key:'updates',label:'Resident Updates'}].map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
-            className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${tab === t.key ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500'}`}>
+            className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${tab === t.key ? 'bg-white dark:bg-slate-900 text-brand-700 dark:text-brand-400 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}>
             {t.label}
           </button>
         ))}
@@ -335,10 +335,10 @@ export default function FamilyMessaging() {
       {tab === 'messages' && (
         <div className="grid grid-cols-5 gap-5" style={{ height: '65vh' }}>
           {/* Thread list */}
-          <div className="col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col overflow-hidden">
-            <div className="p-3 border-b border-slate-100 flex-shrink-0">
+          <div className="col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col overflow-hidden">
+            <div className="p-3 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
               <select value={filterDept} onChange={e => setFilterDept(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
                 <option value="all">All Departments</option>
                 {DEPTS.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
               </select>
@@ -358,9 +358,9 @@ export default function FamilyMessaging() {
                 const isActive = activeThread?.[0]?.id === first.id
                 return (
                   <button key={first.id} onClick={() => handleOpenThread(thread)}
-                    className={`w-full p-4 text-left border-b border-slate-50 hover:bg-slate-50 transition-colors ${isActive ? 'bg-brand-50 border-l-4 border-l-brand-600' : ''}`}>
+                    className={`w-full p-4 text-left border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${isActive ? 'bg-brand-50 dark:bg-brand-950/30 border-l-4 border-l-brand-600' : ''}`}>
                     <div className="flex items-start justify-between gap-2 mb-1">
-                      <span className={`text-sm font-semibold truncate ${unread > 0 ? 'text-slate-900' : 'text-slate-600'}`}>
+                      <span className={`text-sm font-semibold truncate ${unread > 0 ? 'text-slate-900 dark:text-slate-100' : 'text-slate-600 dark:text-slate-300'}`}>
                         {first.subject || `Message to ${dept?.label || 'Staff'}`}
                       </span>
                       {unread > 0 && <span className="w-2 h-2 bg-red-500 rounded-full flex-shrink-0 mt-1" />}
@@ -380,7 +380,7 @@ export default function FamilyMessaging() {
           </div>
 
           {/* Thread detail */}
-          <div className="col-span-3 bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col overflow-hidden">
+          <div className="col-span-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col overflow-hidden">
             {!activeThread ? (
               <div className="flex-1 flex items-center justify-center text-center p-8">
                 <div>
@@ -391,8 +391,8 @@ export default function FamilyMessaging() {
             ) : (
               <>
                 {/* Thread header */}
-                <div className="p-4 border-b border-slate-100 flex-shrink-0">
-                  <div className="font-semibold text-slate-800 text-sm">{activeThread[0].subject || 'Message Thread'}</div>
+                <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+                  <div className="font-semibold text-slate-800 dark:text-slate-100 text-sm">{activeThread[0].subject || 'Message Thread'}</div>
                   <div className="text-xs text-slate-400 mt-0.5">
                     {DEPTS.find(d => d.key === activeThread[0].to_department)?.label} ·
                     Resident: {residentMap[activeThread[0].resident_id]?.first_name} {residentMap[activeThread[0].resident_id]?.last_name} ·
@@ -408,7 +408,7 @@ export default function FamilyMessaging() {
                       <div key={msg.id} className={`flex ${isStaff ? 'justify-end' : 'justify-start'}`}>
                         <div className={`max-w-[80%] flex flex-col gap-1 ${isStaff ? 'items-end' : 'items-start'}`}>
                           {!isStaff && <span className="text-xs text-slate-400 px-1">Family Member</span>}
-                          <div className={`px-4 py-3 rounded-2xl text-sm ${isStaff ? 'bg-brand-600 text-white rounded-br-sm' : 'bg-slate-100 text-slate-800 rounded-bl-sm'}`}>
+                          <div className={`px-4 py-3 rounded-2xl text-sm ${isStaff ? 'bg-brand-600 text-white rounded-br-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-bl-sm'}`}>
                             {msg.body}
                             {msg.attachment_url && (
                               <a href={msg.attachment_url} target="_blank" rel="noopener noreferrer"
@@ -429,11 +429,11 @@ export default function FamilyMessaging() {
 
                 {/* Reply box */}
                 {canEditMessaging ? (
-                  <div className="p-4 border-t border-slate-100 flex-shrink-0">
+                  <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex-shrink-0">
                     {attachment && (
-                      <div className="flex items-center gap-2 mb-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg text-xs">
+                      <div className="flex items-center gap-2 mb-2 px-3 py-1.5 bg-green-50 dark:bg-green-950/50 border border-green-200 dark:border-green-900 rounded-lg text-xs">
                         <Paperclip size={12} className="text-green-600" />
-                        <span className="flex-1 truncate text-green-700">{attachment.name}</span>
+                        <span className="flex-1 truncate text-green-700 dark:text-green-400">{attachment.name}</span>
                         <button onClick={() => setAttachment(null)} className="text-slate-400 hover:text-red-500"><X size={12} /></button>
                       </div>
                     )}
@@ -445,7 +445,7 @@ export default function FamilyMessaging() {
                       <textarea value={reply} onChange={e => setReply(e.target.value)}
                         onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleReply() } }}
                         rows={2} placeholder="Reply to family... (Enter to send)"
-                        className="flex-1 px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none" />
+                        className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none" />
                       <button onClick={handleReply} disabled={!reply.trim() || sending}
                         className="p-2.5 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white rounded-xl transition-colors flex-shrink-0">
                         <Send size={16} />
@@ -455,7 +455,7 @@ export default function FamilyMessaging() {
                       onChange={e => setAttachment(e.target.files?.[0] || null)} />
                   </div>
                 ) : (
-                  <div className="p-4 border-t border-slate-100 flex-shrink-0 text-center text-xs text-slate-400">
+                  <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex-shrink-0 text-center text-xs text-slate-400">
                     View-only access — you don't have permission to reply to family messages.
                   </div>
                 )}

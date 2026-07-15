@@ -107,7 +107,7 @@ export default function MaintenanceSettings({ orgId, profile }) {
   return (
     <div className="max-w-3xl">
       {/* Settings sub-tabs */}
-      <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mb-6 w-fit">
+      <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl mb-6 w-fit">
         {[
           { key: 'sla',       label: 'SLA Rules',        icon: Clock },
           { key: 'assign',    label: 'Auto-Assignment',   icon: Users },
@@ -116,7 +116,7 @@ export default function MaintenanceSettings({ orgId, profile }) {
           const Icon = t.icon
           return (
             <button key={t.key} onClick={() => setSettingsTab(t.key)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${settingsTab === t.key ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${settingsTab === t.key ? 'bg-white dark:bg-slate-900 text-brand-700 dark:text-brand-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
               <Icon size={14} /> {t.label}
             </button>
           )
@@ -136,19 +136,19 @@ export default function MaintenanceSettings({ orgId, profile }) {
       {settingsTab === 'sla' && (
       <div>
         <div className="mb-4">
-          <h2 className="font-display font-semibold text-slate-800 flex items-center gap-2">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2">
             <Clock size={16} className="text-brand-600" /> SLA Response Times
           </h2>
           <p className="text-slate-400 text-xs mt-0.5">Set target response and completion times per priority level. Work orders that breach these targets are flagged.</p>
         </div>
-        <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
-          <div className="grid grid-cols-4 gap-4 px-5 py-3 bg-slate-50 border-b border-slate-100 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden">
+          <div className="grid grid-cols-4 gap-4 px-5 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
             <span>Priority</span><span>Response Target</span><span>Completion Target</span><span>Notes</span>
           </div>
           {PRIORITIES.map(p => {
             const rule = slaRules[p.key] || {}
             return (
-              <div key={p.key} className="grid grid-cols-4 gap-4 items-center px-5 py-4 border-b border-slate-50 last:border-0">
+              <div key={p.key} className="grid grid-cols-4 gap-4 items-center px-5 py-4 border-b border-slate-50 dark:border-slate-800 last:border-0">
                 <div>
                   <div className={`font-semibold text-sm ${p.color}`}>{p.label}</div>
                   <div className="text-xs text-slate-400">{p.desc}</div>
@@ -156,14 +156,14 @@ export default function MaintenanceSettings({ orgId, profile }) {
                 <div className="flex items-center gap-1.5">
                   <input type="number" value={rule.response_hours || ''}
                     onChange={e => setSlaRules(s => ({ ...s, [p.key]: { ...s[p.key], response_hours: e.target.value } }))}
-                    className="w-16 px-2 py-1.5 border border-slate-200 rounded-lg text-sm text-center focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-16 px-2 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm text-center focus:outline-none focus:ring-2 focus:ring-brand-500"
                     min="0" placeholder="4" />
                   <span className="text-xs text-slate-400">hours</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <input type="number" value={rule.completion_hours || ''}
                     onChange={e => setSlaRules(s => ({ ...s, [p.key]: { ...s[p.key], completion_hours: e.target.value } }))}
-                    className="w-20 px-2 py-1.5 border border-slate-200 rounded-lg text-sm text-center focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-20 px-2 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm text-center focus:outline-none focus:ring-2 focus:ring-brand-500"
                     min="0" placeholder="24" />
                   <span className="text-xs text-slate-400">hours</span>
                 </div>
@@ -181,23 +181,23 @@ export default function MaintenanceSettings({ orgId, profile }) {
       {settingsTab === 'assign' && (
       <div>
         <div className="mb-4">
-          <h2 className="font-display font-semibold text-slate-800 flex items-center gap-2">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2">
             <Users size={16} className="text-brand-600" /> Auto-Assignment Rules
           </h2>
           <p className="text-slate-400 text-xs mt-0.5">Automatically assign new work orders to a staff member based on category. Override is always possible on individual work orders.</p>
         </div>
-        <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
-          <div className="grid grid-cols-2 gap-4 px-5 py-3 bg-slate-50 border-b border-slate-100 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden">
+          <div className="grid grid-cols-2 gap-4 px-5 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
             <span>Category</span><span>Auto-Assign To</span>
           </div>
           {WO_CATEGORIES.map(cat => {
             const rule = autoAssign[cat.key] || {}
             return (
-              <div key={cat.key} className="grid grid-cols-2 gap-4 items-center px-5 py-3 border-b border-slate-50 last:border-0">
-                <div className="text-sm font-medium text-slate-700">{cat.label}</div>
+              <div key={cat.key} className="grid grid-cols-2 gap-4 items-center px-5 py-3 border-b border-slate-50 dark:border-slate-800 last:border-0">
+                <div className="text-sm font-medium text-slate-700 dark:text-slate-300">{cat.label}</div>
                 <select value={rule.assign_to || ''}
                   onChange={e => setAutoAssign(a => ({ ...a, [cat.key]: { ...a[cat.key], assign_to: e.target.value || null } }))}
-                  className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                  className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                   <option value="">No auto-assign</option>
                   {staff.map(s => <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>)}
                 </select>

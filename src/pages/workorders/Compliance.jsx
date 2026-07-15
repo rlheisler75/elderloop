@@ -103,19 +103,19 @@ const ALL_STATES = [
 ]
 
 const FREQ_LABELS = {
-  daily:     { label: 'Daily',     color: 'bg-red-100 text-red-700' },
-  weekly:    { label: 'Weekly',    color: 'bg-orange-100 text-orange-700' },
-  monthly:   { label: 'Monthly',   color: 'bg-amber-100 text-amber-700' },
-  quarterly: { label: 'Quarterly', color: 'bg-blue-100 text-blue-700' },
-  biannual:  { label: 'Bi-Annual', color: 'bg-indigo-100 text-indigo-700' },
-  annual:    { label: 'Annual',    color: 'bg-slate-100 text-slate-600' },
+  daily:     { label: 'Daily',     color: 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-400' },
+  weekly:    { label: 'Weekly',    color: 'bg-orange-100 text-orange-700 dark:bg-orange-950/50 dark:text-orange-400' },
+  monthly:   { label: 'Monthly',   color: 'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400' },
+  quarterly: { label: 'Quarterly', color: 'bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-400' },
+  biannual:  { label: 'Bi-Annual', color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-400' },
+  annual:    { label: 'Annual',    color: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300' },
 }
 
 const STATUS_CONFIG = {
-  pass:                 { label: 'Pass',              color: 'text-green-600',  bg: 'bg-green-50',  border: 'border-green-200', icon: CheckCircle2 },
-  pass_with_conditions: { label: 'Pass w/ Conditions',color: 'text-amber-600',  bg: 'bg-amber-50',  border: 'border-amber-200', icon: AlertTriangle },
-  fail:                 { label: 'Fail',              color: 'text-red-600',    bg: 'bg-red-50',    border: 'border-red-200',   icon: XCircle },
-  pending:              { label: 'Pending',           color: 'text-slate-500',  bg: 'bg-slate-50',  border: 'border-slate-200', icon: Clock },
+  pass:                 { label: 'Pass',              color: 'text-green-600',  bg: 'bg-green-50 dark:bg-green-950/50',  border: 'border-green-200 dark:border-green-900', icon: CheckCircle2 },
+  pass_with_conditions: { label: 'Pass w/ Conditions',color: 'text-amber-600',  bg: 'bg-amber-50 dark:bg-amber-950/50',  border: 'border-amber-200 dark:border-amber-900', icon: AlertTriangle },
+  fail:                 { label: 'Fail',              color: 'text-red-600',    bg: 'bg-red-50 dark:bg-red-950/50',    border: 'border-red-200 dark:border-red-900',   icon: XCircle },
+  pending:              { label: 'Pending',           color: 'text-slate-500',  bg: 'bg-slate-50 dark:bg-slate-800',  border: 'border-slate-200 dark:border-slate-700', icon: Clock },
 }
 
 const daysUntil = (dateStr) => {
@@ -171,9 +171,9 @@ function AddCategoryModal({ orgId, onClose, onSaved }) {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <h2 className="font-display font-semibold text-slate-800">Add Custom Inspection</h2>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Add Custom Inspection</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
         </div>
         <div className="px-6 py-5 space-y-4">
@@ -181,27 +181,27 @@ function AddCategoryModal({ orgId, onClose, onSaved }) {
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Inspection Name *</label>
             <input value={form.label} onChange={e => set('label', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="e.g. Grease Trap Cleaning, Pool Safety Inspection" />
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Description</label>
             <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={2}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
               placeholder="What does this inspection cover?" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Frequency</label>
               <select value={form.frequency} onChange={e => set('frequency', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 capitalize">
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 capitalize">
                 {FREQ_OPTIONS.map(f => <option key={f} value={f} className="capitalize">{f}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Color Tag</label>
               <select value={form.color} onChange={e => set('color', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                 {COLOR_OPTIONS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
             </div>
@@ -209,18 +209,18 @@ function AddCategoryModal({ orgId, onClose, onSaved }) {
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Regulatory Authority <span className="font-normal text-slate-400">(optional)</span></label>
             <input value={form.authority} onChange={e => set('authority', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="e.g. State Health Dept, Local Fire Marshal" />
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Regulation / Code Reference <span className="font-normal text-slate-400">(optional)</span></label>
             <input value={form.authority_ref} onChange={e => set('authority_ref', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="e.g. §19 CSR 30-85, NFPA 96" />
           </div>
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
             {saving ? 'Saving...' : 'Add Inspection'}
@@ -321,14 +321,14 @@ function InspectionModal({ category, orgId, profile, onClose, onSaved }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[95vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[95vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center">
               <ShieldCheck size={20} className="text-brand-600" />
             </div>
             <div>
-              <h2 className="font-display font-semibold text-slate-800">{category.label} Inspection</h2>
+              <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">{category.label} Inspection</h2>
               <p className="text-xs text-slate-400">
                 {category.authority_ref && <span>{category.authority_ref} · </span>}
                 {FREQ_LABELS[category.frequency]?.label || category.frequency}
@@ -345,17 +345,17 @@ function InspectionModal({ category, orgId, profile, onClose, onSaved }) {
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Inspection Date *</label>
               <input type="date" value={form.inspection_date} onChange={e => set('inspection_date', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Next Due Date</label>
               <input type="date" value={form.next_due_date} onChange={e => set('next_due_date', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Inspector</label>
               <input value={form.inspector_name} onChange={e => set('inspector_name', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
           </div>
 

@@ -27,22 +27,22 @@ const getOrgDepartments = (organization) =>
   organization?.departments?.length ? organization.departments : FALLBACK_DEPARTMENTS
 
 const ROLE_LABELS = {
-  super_admin:  { label: 'Super Admin',  color: 'bg-purple-100 text-purple-700' },
+  super_admin:  { label: 'Super Admin',  color: 'bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-400' },
   org_admin:    { label: 'Org Admin',    color: 'bg-brand-100 text-brand-700' },
-  ceo:          { label: 'CEO',          color: 'bg-purple-100 text-purple-700' },
-  supervisor:   { label: 'Supervisor',   color: 'bg-blue-100 text-blue-700' },
-  manager:      { label: 'Manager',      color: 'bg-indigo-100 text-indigo-700' },
-  maintenance:  { label: 'Maintenance',  color: 'bg-amber-100 text-amber-700' },
-  dietary:      { label: 'Dietary',      color: 'bg-green-100 text-green-700' },
-  housekeeping: { label: 'Housekeeping', color: 'bg-teal-100 text-teal-700' },
-  nursing:      { label: 'Nursing',      color: 'bg-rose-100 text-rose-700' },
-  staff:        { label: 'Staff',        color: 'bg-slate-100 text-slate-600' },
+  ceo:          { label: 'CEO',          color: 'bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-400' },
+  supervisor:   { label: 'Supervisor',   color: 'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400' },
+  manager:      { label: 'Manager',      color: 'bg-indigo-100 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-400' },
+  maintenance:  { label: 'Maintenance',  color: 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400' },
+  dietary:      { label: 'Dietary',      color: 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400' },
+  housekeeping: { label: 'Housekeeping', color: 'bg-teal-100 dark:bg-teal-950/50 text-teal-700 dark:text-teal-400' },
+  nursing:      { label: 'Nursing',      color: 'bg-rose-100 dark:bg-rose-950/50 text-rose-700 dark:text-rose-400' },
+  staff:        { label: 'Staff',        color: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' },
 }
 
 const isPrivileged = (role) =>
   ['org_admin','ceo','super_admin','supervisor','manager'].includes(role)
 
-const getRoleCfg = (role) => ROLE_LABELS[role] || { label: role, color: 'bg-slate-100 text-slate-500' }
+const getRoleCfg = (role) => ROLE_LABELS[role] || { label: role, color: 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400' }
 
 const initials = (first, last) =>
   `${first?.[0] || ''}${last?.[0] || ''}`.toUpperCase() || '?'
@@ -83,21 +83,21 @@ function EditProfileModal({ staffMember, isSelf, canEditAll, departments, onClos
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div>
-            <h2 className="font-display font-semibold text-slate-800">
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">
               {isSelf ? 'My Directory Profile' : `Edit — ${staffMember.first_name} ${staffMember.last_name}`}
             </h2>
             <p className="text-xs text-slate-400 mt-0.5">
               {canEditAll ? 'Editing all fields' : 'You can update your contact info and visibility'}
             </p>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><X size={20} /></button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
-          {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+          {error && <div className="px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
 
           {/* Supervisor-only fields */}
           {canEditAll && (
@@ -106,13 +106,13 @@ function EditProfileModal({ staffMember, isSelf, canEditAll, departments, onClos
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Job Title</label>
                   <input value={form.job_title} onChange={e => set('job_title', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                     placeholder="e.g. Charge Nurse, Head Cook" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Department</label>
                   <select value={form.department} onChange={e => set('department', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                     <option value="">Select department</option>
                     {departments.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
                   </select>
@@ -122,25 +122,25 @@ function EditProfileModal({ staffMember, isSelf, canEditAll, departments, onClos
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Email</label>
                   <input type="email" value={form.email} onChange={e => set('email', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                     placeholder="work@email.com" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Work Phone / Ext.</label>
                   <input value={form.work_phone} onChange={e => set('work_phone', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                     placeholder="417-555-0100 x102" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Office / Location</label>
                   <input value={form.office_location} onChange={e => set('office_location', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                     placeholder="e.g. Admin Wing, Room 102" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Cell Phone</label>
                   <input value={form.cell_phone} onChange={e => set('cell_phone', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                     placeholder="417-555-0200" />
                 </div>
               </div>
@@ -152,7 +152,7 @@ function EditProfileModal({ staffMember, isSelf, canEditAll, departments, onClos
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Cell Phone</label>
               <input value={form.cell_phone} onChange={e => set('cell_phone', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="Your mobile number" />
             </div>
           )}
@@ -161,7 +161,7 @@ function EditProfileModal({ staffMember, isSelf, canEditAll, departments, onClos
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Short Bio</label>
             <textarea value={form.bio} onChange={e => set('bio', e.target.value)} rows={3}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
               placeholder="A few words about your role, background, or anything you'd like coworkers to know..." />
           </div>
 
@@ -169,12 +169,12 @@ function EditProfileModal({ staffMember, isSelf, canEditAll, departments, onClos
           {(isSelf || canEditAll) && (
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Directory Visibility</label>
-              <label className={`flex items-start gap-3 cursor-pointer p-4 rounded-xl border-2 transition-all ${form.directory_public ? 'bg-green-50 border-green-300' : 'bg-slate-50 border-slate-200'}`}>
+              <label className={`flex items-start gap-3 cursor-pointer p-4 rounded-xl border-2 transition-all ${form.directory_public ? 'bg-green-50 dark:bg-green-950/50 border-green-300 dark:border-green-800' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'}`}>
                 <input type="checkbox" checked={form.directory_public}
                   onChange={e => set('directory_public', e.target.checked)}
                   className="w-4 h-4 rounded text-brand-600 mt-0.5" />
                 <div>
-                  <div className="flex items-center gap-2 font-medium text-slate-800 text-sm">
+                  <div className="flex items-center gap-2 font-medium text-slate-800 dark:text-slate-100 text-sm">
                     {form.directory_public
                       ? <><Eye size={14} className="text-green-600" /> Visible to all staff</>
                       : <><EyeOff size={14} className="text-slate-500" /> Supervisors & above only</>
@@ -191,8 +191,8 @@ function EditProfileModal({ staffMember, isSelf, canEditAll, departments, onClos
           )}
         </div>
 
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="flex items-center gap-2 px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
             <Save size={14} /> {saving ? 'Saving...' : 'Save Changes'}
@@ -210,7 +210,7 @@ function StaffCard({ member, canSeeAll, isSelf, canEdit, departments, onEdit, on
   const getDept = (key) => departments.find(d => d.key === key)?.label || key || '—'
 
   return (
-    <div className={`bg-white rounded-2xl border shadow-sm hover:shadow-md transition-all overflow-hidden ${!member.directory_public && !canSeeAll ? 'opacity-50' : ''} ${isSelf ? 'border-brand-300 ring-2 ring-brand-100' : 'border-slate-100'}`}>
+    <div className={`bg-white dark:bg-slate-900 rounded-2xl border shadow-sm hover:shadow-md transition-all overflow-hidden ${!member.directory_public && !canSeeAll ? 'opacity-50' : ''} ${isSelf ? 'border-brand-300 ring-2 ring-brand-100' : 'border-slate-100 dark:border-slate-800'}`}>
       {/* Card header */}
       <div className="p-5">
         <div className="flex items-start gap-4">
@@ -224,7 +224,7 @@ function StaffCard({ member, canSeeAll, isSelf, canEdit, departments, onEdit, on
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-0.5">
-              <h3 className="font-display font-semibold text-slate-800">
+              <h3 className="font-display font-semibold text-slate-800 dark:text-slate-100">
                 {member.first_name} {member.last_name}
               </h3>
               {isSelf && <span className="text-xs bg-brand-100 text-brand-700 px-1.5 py-0.5 rounded-full font-medium">You</span>}
@@ -271,14 +271,14 @@ function StaffCard({ member, canSeeAll, isSelf, canEdit, departments, onEdit, on
           <div className="mt-4 space-y-1.5">
             {member.email && (
               <a href={`mailto:${member.email}`}
-                className="flex items-center gap-2 text-xs text-slate-600 hover:text-brand-600 transition-colors group">
+                className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300 hover:text-brand-600 transition-colors group">
                 <Mail size={12} className="text-slate-400 group-hover:text-brand-500 flex-shrink-0" />
                 <span className="truncate">{member.email}</span>
               </a>
             )}
             {member.work_phone && (
               <a href={`tel:${member.work_phone}`}
-                className="flex items-center gap-2 text-xs text-slate-600 hover:text-brand-600 transition-colors group">
+                className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300 hover:text-brand-600 transition-colors group">
                 <Phone size={12} className="text-slate-400 group-hover:text-brand-500 flex-shrink-0" />
                 <span>{member.work_phone}</span>
                 <span className="text-slate-400">work</span>
@@ -286,7 +286,7 @@ function StaffCard({ member, canSeeAll, isSelf, canEdit, departments, onEdit, on
             )}
             {member.cell_phone && (
               <a href={`tel:${member.cell_phone}`}
-                className="flex items-center gap-2 text-xs text-slate-600 hover:text-brand-600 transition-colors group">
+                className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300 hover:text-brand-600 transition-colors group">
                 <Phone size={12} className="text-slate-400 group-hover:text-brand-500 flex-shrink-0" />
                 <span>{member.cell_phone}</span>
                 <span className="text-slate-400">cell</span>
@@ -297,7 +297,7 @@ function StaffCard({ member, canSeeAll, isSelf, canEdit, departments, onEdit, on
 
         {/* Bio */}
         {member.bio && (canSeeAll || member.directory_public) && (
-          <p className="mt-3 text-xs text-slate-500 italic leading-relaxed border-t border-slate-50 pt-3">
+          <p className="mt-3 text-xs text-slate-500 italic leading-relaxed border-t border-slate-50 dark:border-slate-800 pt-3">
             "{member.bio}"
           </p>
         )}
@@ -371,12 +371,12 @@ export default function StaffDirectory() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-slate-800">Staff Directory</h1>
+          <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Staff Directory</h1>
           <p className="text-slate-500 text-sm mt-0.5">Find and contact your coworkers</p>
         </div>
         {/* Edit own profile shortcut */}
         <button onClick={() => setEditMember(staff.find(s => s.id === profile.id) || null)}
-          className="flex items-center gap-2 px-4 py-2 border border-slate-200 hover:border-brand-300 text-slate-600 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
+          className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 hover:border-brand-300 text-slate-600 dark:text-slate-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
           <Edit2 size={15} /> My Profile
         </button>
       </div>
@@ -386,12 +386,12 @@ export default function StaffDirectory() {
         <div className="grid grid-cols-3 gap-3 mb-6">
           {[
             { label: 'Total Staff',    value: staff.length,  color: 'text-brand-600', bg: 'bg-brand-50' },
-            { label: 'Public Profiles',value: publicCount,   color: 'text-green-600', bg: 'bg-green-50' },
-            { label: 'Private',        value: privateCount,  color: 'text-slate-500', bg: 'bg-slate-100' },
+            { label: 'Public Profiles',value: publicCount,   color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-950/50' },
+            { label: 'Private',        value: privateCount,  color: 'text-slate-500', bg: 'bg-slate-100 dark:bg-slate-800' },
           ].map(s => (
             <div key={s.label} className={`${s.bg} rounded-2xl p-4`}>
               <div className={`text-3xl font-display font-bold ${s.color}`}>{s.value}</div>
-              <div className="text-slate-500 text-xs mt-1">{s.label}</div>
+              <div className="text-slate-500 dark:text-slate-400 text-xs mt-1">{s.label}</div>
             </div>
           ))}
         </div>
@@ -411,10 +411,10 @@ export default function StaffDirectory() {
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Search by name, title, department, phone..."
-            className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
         </div>
         <select value={filterDept} onChange={e => setFilterDept(e.target.value)}
-          className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+          className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100">
           <option value="all">All Departments</option>
           {departments.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
         </select>

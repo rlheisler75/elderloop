@@ -87,10 +87,10 @@ function CheckpointModal({ checkpoint, onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <h2 className="font-display font-semibold text-slate-800">{checkpoint ? 'Edit Checkpoint' : 'New Checkpoint'}</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">{checkpoint ? 'Edit Checkpoint' : 'New Checkpoint'}</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"><X size={20} /></button>
         </div>
         <div className="px-6 py-5 space-y-4">
           {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
@@ -98,20 +98,20 @@ function CheckpointModal({ checkpoint, onClose, onSave }) {
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Checkpoint Name *</label>
             <input value={form.name} onChange={e => set('name', e.target.value)}
-              className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
               placeholder="e.g. Front Entrance, Parking Lot B, Chapel" />
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Description</label>
             <input value={form.description} onChange={e => set('description', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
               placeholder="Optional notes about this location" />
           </div>
 
           {/* GPS */}
-          <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl">
-            <label className="block text-xs font-semibold text-blue-700 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+          <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl dark:bg-blue-950/30 dark:border-blue-900">
+            <label className="block text-xs font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
               <MapPin size={13} /> GPS Coordinates
             </label>
             <button onClick={useMyLocation} disabled={locating}
@@ -119,23 +119,23 @@ function CheckpointModal({ checkpoint, onClose, onSave }) {
               <Crosshair size={15} />
               {locating ? 'Getting location...' : 'Use My Current Location'}
             </button>
-            <p className="text-xs text-blue-600 text-center mb-3">— or enter manually —</p>
+            <p className="text-xs text-blue-600 dark:text-blue-400 text-center mb-3">— or enter manually —</p>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-xs text-slate-500 mb-1">Latitude</label>
+                <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Latitude</label>
                 <input type="number" step="0.0000001" value={form.latitude} onChange={e => set('latitude', e.target.value)}
-                  className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
+                  className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white dark:bg-slate-800 dark:border-blue-900 dark:text-slate-100"
                   placeholder="37.1234567" />
               </div>
               <div>
-                <label className="block text-xs text-slate-500 mb-1">Longitude</label>
+                <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Longitude</label>
                 <input type="number" step="0.0000001" value={form.longitude} onChange={e => set('longitude', e.target.value)}
-                  className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
+                  className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white dark:bg-slate-800 dark:border-blue-900 dark:text-slate-100"
                   placeholder="-93.1234567" />
               </div>
             </div>
             {form.latitude && form.longitude && (
-              <div className="mt-2 text-xs text-blue-600 flex items-center gap-1">
+              <div className="mt-2 text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1">
                 <Check size={12} /> Coordinates set
               </div>
             )}
@@ -154,8 +154,8 @@ function CheckpointModal({ checkpoint, onClose, onSave }) {
             <p className="text-xs text-slate-400 mt-1">Guard must be within this distance to check in</p>
           </div>
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
             {saving ? 'Saving...' : 'Save Checkpoint'}
@@ -245,11 +245,11 @@ function GuardRoundView({ checkpoints, onClose, guardId, orgId }) {
   if (completed) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm text-center p-8">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-sm text-center p-8">
+          <div className="w-16 h-16 bg-green-100 dark:bg-green-950/50 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle2 size={32} className="text-green-600" />
           </div>
-          <h2 className="font-display text-xl font-semibold text-slate-800 mb-2">Round Complete</h2>
+          <h2 className="font-display text-xl font-semibold text-slate-800 dark:text-slate-100 mb-2">Round Complete</h2>
           <p className="text-slate-500 text-sm mb-2">{checkedCount} of {checkpoints.length} checkpoints verified</p>
           <p className="text-xs text-slate-400 mb-6">
             {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
@@ -405,17 +405,17 @@ function RoundHistory({ round, checkpoints, onClose }) {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div>
-            <h2 className="font-display font-semibold text-slate-800">Round Detail</h2>
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Round Detail</h2>
             <p className="text-xs text-slate-400 mt-0.5">
               {new Date(round.started_at).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })} ·
               Started {fmt(round.started_at)}
               {duration && ` · ${duration} min`}
             </p>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"><X size={20} /></button>
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-4">
           {loading ? (
@@ -426,11 +426,11 @@ function RoundHistory({ round, checkpoints, onClose }) {
                 const checkin = checkins.find(c => c.checkpoint_id === cp.id)
                 return (
                   <div key={cp.id} className={`flex items-center gap-3 p-3 rounded-xl border ${
-                    checkin?.passed ? 'bg-green-50 border-green-200' :
-                    checkin ? 'bg-red-50 border-red-200' :
-                    'bg-slate-50 border-slate-200'}`}>
+                    checkin?.passed ? 'bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-900' :
+                    checkin ? 'bg-red-50 border-red-200 dark:bg-red-950/30 dark:border-red-900' :
+                    'bg-slate-50 border-slate-200 dark:bg-slate-800 dark:border-slate-700'}`}>
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      checkin?.passed ? 'bg-green-500' : checkin ? 'bg-red-500' : 'bg-slate-300'}`}>
+                      checkin?.passed ? 'bg-green-500' : checkin ? 'bg-red-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
                       {checkin?.passed
                         ? <CheckCircle2 size={16} className="text-white" />
                         : checkin
@@ -438,7 +438,7 @@ function RoundHistory({ round, checkpoints, onClose }) {
                         : <Clock size={16} className="text-white" />}
                     </div>
                     <div className="flex-1">
-                      <div className="font-medium text-slate-800 text-sm">{cp.name}</div>
+                      <div className="font-medium text-slate-800 dark:text-slate-100 text-sm">{cp.name}</div>
                       {checkin ? (
                         <div className="text-xs text-slate-500 mt-0.5">
                           {fmt(checkin.checked_in_at)} · {checkin.distance_feet}ft away
@@ -459,7 +459,7 @@ function RoundHistory({ round, checkpoints, onClose }) {
             </div>
           )}
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex-shrink-0">
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div className="flex items-center justify-between text-sm mb-4">
             <span className="text-slate-500">Completion</span>
             <span className={`font-semibold ${round.status === 'completed' ? 'text-green-600' : round.status === 'incomplete' ? 'text-amber-600' : 'text-blue-600'}`}>
@@ -495,17 +495,17 @@ const REPORT_TYPES = [
 ]
 
 const REPORT_PRIORITIES = [
-  { key: 'low',    label: 'Low',    color: 'bg-slate-100 text-slate-600' },
-  { key: 'medium', label: 'Medium', color: 'bg-yellow-100 text-yellow-700' },
-  { key: 'high',   label: 'High',   color: 'bg-orange-100 text-orange-700' },
-  { key: 'urgent', label: 'Urgent', color: 'bg-red-100 text-red-700' },
+  { key: 'low',    label: 'Low',    color: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300' },
+  { key: 'medium', label: 'Medium', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-950/50 dark:text-yellow-400' },
+  { key: 'high',   label: 'High',   color: 'bg-orange-100 text-orange-700 dark:bg-orange-950/50 dark:text-orange-400' },
+  { key: 'urgent', label: 'Urgent', color: 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-400' },
 ]
 
 const REPORT_STATUSES = [
-  { key: 'open',         label: 'Open',         color: 'bg-blue-100 text-blue-700',   dot: 'bg-blue-500' },
-  { key: 'under_review', label: 'Under Review', color: 'bg-amber-100 text-amber-700', dot: 'bg-amber-500' },
-  { key: 'resolved',     label: 'Resolved',     color: 'bg-green-100 text-green-700', dot: 'bg-green-500' },
-  { key: 'escalated',    label: 'Escalated',    color: 'bg-red-100 text-red-700',     dot: 'bg-red-500' },
+  { key: 'open',         label: 'Open',         color: 'bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-400',   dot: 'bg-blue-500' },
+  { key: 'under_review', label: 'Under Review', color: 'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400', dot: 'bg-amber-500' },
+  { key: 'resolved',     label: 'Resolved',     color: 'bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-400', dot: 'bg-green-500' },
+  { key: 'escalated',    label: 'Escalated',    color: 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-400',     dot: 'bg-red-500' },
 ]
 
 const getReportStatus = (key) => REPORT_STATUSES.find(s => s.key === key) || REPORT_STATUSES[0]
@@ -574,11 +574,11 @@ function SecurityReportModal({ report, roundId, checkpoints, onClose, onSave }) 
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[92vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-xl max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div className="flex items-center gap-3">
             <Shield size={18} className="text-brand-600" />
-            <h2 className="font-display font-semibold text-slate-800">
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">
               {isNew ? 'Security Report' : `Report #${report.report_number}`}
             </h2>
             {!isNew && (
@@ -588,7 +588,7 @@ function SecurityReportModal({ report, roundId, checkpoints, onClose, onSave }) 
               </span>
             )}
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"><X size={20} /></button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
@@ -601,7 +601,7 @@ function SecurityReportModal({ report, roundId, checkpoints, onClose, onSave }) 
               <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto pr-1">
                 {REPORT_TYPES.map(t => (
                   <button key={t.key} onClick={() => set('report_type', t.key)}
-                    className={`text-left px-2.5 py-2 rounded-lg border text-xs font-medium transition-all ${form.report_type === t.key ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 text-slate-600 hover:border-brand-300'}`}>
+                    className={`text-left px-2.5 py-2 rounded-lg border text-xs font-medium transition-all ${form.report_type === t.key ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300'}`}>
                     {t.label}
                   </button>
                 ))}
@@ -613,7 +613,7 @@ function SecurityReportModal({ report, roundId, checkpoints, onClose, onSave }) 
                 <div className="space-y-1.5">
                   {REPORT_PRIORITIES.map(p => (
                     <button key={p.key} onClick={() => set('priority', p.key)}
-                      className={`w-full text-left px-3 py-2 rounded-lg border text-xs font-medium transition-all ${form.priority === p.key ? p.color + ' ring-2 ring-offset-1 ring-brand-400 border-transparent' : 'border-slate-200 text-slate-600 hover:border-slate-300'}`}>
+                      className={`w-full text-left px-3 py-2 rounded-lg border text-xs font-medium transition-all ${form.priority === p.key ? p.color + ' ring-2 ring-offset-1 ring-brand-400 border-transparent' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600'}`}>
                       {p.label}
                     </button>
                   ))}
@@ -626,7 +626,7 @@ function SecurityReportModal({ report, roundId, checkpoints, onClose, onSave }) 
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Title *</label>
             <input value={form.title} onChange={e => set('title', e.target.value)}
-              className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
               placeholder="Brief summary of the incident or observation" />
           </div>
 
@@ -635,13 +635,13 @@ function SecurityReportModal({ report, roundId, checkpoints, onClose, onSave }) 
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Location</label>
               <input value={form.location} onChange={e => set('location', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
                 placeholder="Where did this occur?" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Nearby Checkpoint</label>
               <select value={form.checkpoint_id} onChange={e => set('checkpoint_id', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100">
                 <option value="">None</option>
                 {checkpoints.map(cp => <option key={cp.id} value={cp.id}>{cp.name}</option>)}
               </select>
@@ -652,7 +652,7 @@ function SecurityReportModal({ report, roundId, checkpoints, onClose, onSave }) 
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Description *</label>
             <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={4}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
               placeholder="Describe what you observed in detail — time, people, vehicles, actions taken..." />
           </div>
 
@@ -660,7 +660,7 @@ function SecurityReportModal({ report, roundId, checkpoints, onClose, onSave }) 
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Persons Involved</label>
             <input value={form.persons_involved} onChange={e => set('persons_involved', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
               placeholder="Names, descriptions, or 'Unknown'" />
           </div>
 
@@ -668,21 +668,21 @@ function SecurityReportModal({ report, roundId, checkpoints, onClose, onSave }) 
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Action Taken</label>
             <textarea value={form.action_taken} onChange={e => set('action_taken', e.target.value)} rows={2}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
               placeholder="What did you do in response?" />
           </div>
 
           {/* Notifications */}
-          <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
+          <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl dark:bg-slate-800 dark:border-slate-700">
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Notifications</label>
             <div className="grid grid-cols-2 gap-3">
               {[
                 { key: 'police_called',       label: 'Police Called' },
                 { key: 'management_notified', label: 'Management Notified' },
               ].map(n => (
-                <label key={n.key} className={`flex items-center gap-2 cursor-pointer p-3 rounded-xl border transition-all ${form[n.key] ? 'bg-brand-50 border-brand-200' : 'border-slate-200 bg-white'}`}>
+                <label key={n.key} className={`flex items-center gap-2 cursor-pointer p-3 rounded-xl border transition-all ${form[n.key] ? 'bg-brand-50 dark:bg-brand-950/30 border-brand-200' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'}`}>
                   <input type="checkbox" checked={form[n.key]} onChange={e => set(n.key, e.target.checked)} className="w-4 h-4 rounded text-brand-600" />
-                  <span className="text-sm font-medium text-slate-700">{n.label}</span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{n.label}</span>
                 </label>
               ))}
             </div>
@@ -690,27 +690,27 @@ function SecurityReportModal({ report, roundId, checkpoints, onClose, onSave }) 
 
           {/* Supervisor review */}
           {isSupervisor && !isNew && (
-            <div className="p-4 bg-purple-50 border border-purple-100 rounded-xl space-y-3">
-              <label className="block text-xs font-semibold text-purple-700 uppercase tracking-wide flex items-center gap-1.5">
+            <div className="p-4 bg-purple-50 border border-purple-100 rounded-xl space-y-3 dark:bg-purple-950/30 dark:border-purple-900">
+              <label className="block text-xs font-semibold text-purple-700 dark:text-purple-400 uppercase tracking-wide flex items-center gap-1.5">
                 <Shield size={13} /> Supervisor Review
               </label>
               <div className="flex flex-wrap gap-2">
                 {REPORT_STATUSES.map(s => (
                   <button key={s.key} onClick={() => set('status', s.key)}
-                    className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${form.status === s.key ? s.color + ' ring-2 ring-offset-1 ring-purple-400 border-transparent' : 'border-slate-200 text-slate-500'}`}>
+                    className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${form.status === s.key ? s.color + ' ring-2 ring-offset-1 ring-purple-400 border-transparent' : 'border-slate-200 dark:border-slate-700 text-slate-500'}`}>
                     {s.label}
                   </button>
                 ))}
               </div>
               <textarea value={form.review_notes} onChange={e => set('review_notes', e.target.value)} rows={2}
-                className="w-full px-3 py-2 border border-purple-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white resize-none"
+                className="w-full px-3 py-2 border border-purple-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white resize-none dark:bg-slate-800 dark:border-purple-900 dark:text-slate-100"
                 placeholder="Supervisor notes, follow-up actions..." />
             </div>
           )}
         </div>
 
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
             {saving ? 'Saving...' : isNew ? 'File Report' : 'Save Changes'}
@@ -819,18 +819,18 @@ export default function Security() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-slate-800">Security</h1>
+          <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Security</h1>
           <p className="text-slate-500 text-sm mt-0.5">Guard rounds, GPS checkpoints, and security logs</p>
         </div>
         <div className="flex items-center gap-2">
           {isSupervisor && (
             <button onClick={() => { setEditCp(null); setShowCpModal(true) }}
-              className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
+              className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
               <MapPin size={15} /> Add Checkpoint
             </button>
           )}
           <button onClick={() => { setEditReport(null); setShowReport(true) }}
-            className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
+            className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
             <FileText size={15} /> File Report
           </button>
           <button onClick={() => setShowRound(true)}
@@ -849,7 +849,7 @@ export default function Security() {
           { label: 'Active Round',   value: activeRound ? 'Yes' : 'No', color: activeRound ? 'text-green-600' : 'text-slate-400', bg: activeRound ? 'bg-green-50' : 'bg-slate-100' },
           { label: 'Overdue (2h+)',  value: overdueCount, color: overdueCount > 0 ? 'text-red-600' : 'text-slate-400', bg: overdueCount > 0 ? 'bg-red-50' : 'bg-slate-100' },
         ].map(s => (
-          <div key={s.label} className={`${s.bg} rounded-2xl p-4`}>
+          <div key={s.label} className={`${s.bg} dark:bg-slate-900 rounded-2xl p-4`}>
             <div className={`text-3xl font-display font-bold ${s.color}`}>{s.value}</div>
             <div className="text-slate-500 text-xs mt-1">{s.label}</div>
           </div>
@@ -857,10 +857,10 @@ export default function Security() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-slate-100 p-1 rounded-xl w-fit">
+      <div className="flex gap-1 mb-6 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit">
         {tabs.map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === t.key ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === t.key ? 'bg-white dark:bg-slate-900 text-brand-700 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
             {t.label}
           </button>
         ))}
@@ -870,8 +870,8 @@ export default function Security() {
       {tab === 'overview' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Checkpoint status */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-            <h2 className="font-display font-semibold text-slate-800 mb-4">Checkpoint Status</h2>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5">
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 mb-4">Checkpoint Status</h2>
             {checkpoints.length === 0 ? (
               <div className="text-center py-8 text-slate-400 text-sm">
                 <MapPin size={28} className="mx-auto mb-2 opacity-30" />
@@ -884,10 +884,10 @@ export default function Security() {
                   const mins = last ? (Date.now() - new Date(last.checked_in_at).getTime()) / 60000 : null
                   const isOverdue = !last || mins > 120
                   return (
-                    <div key={cp.id} className={`flex items-center gap-3 p-3 rounded-xl border ${isOverdue ? 'border-red-100 bg-red-50/50' : 'border-slate-100'}`}>
+                    <div key={cp.id} className={`flex items-center gap-3 p-3 rounded-xl border ${isOverdue ? 'border-red-100 dark:border-red-900 bg-red-50/50 dark:bg-red-950/20' : 'border-slate-100 dark:border-slate-800'}`}>
                       <div className={`w-3 h-3 rounded-full flex-shrink-0 ${isOverdue ? 'bg-red-400' : last?.passed ? 'bg-green-400' : 'bg-amber-400'}`} />
                       <div className="flex-1">
-                        <div className="font-medium text-slate-800 text-sm">{cp.name}</div>
+                        <div className="font-medium text-slate-800 dark:text-slate-100 text-sm">{cp.name}</div>
                         <div className="text-xs text-slate-400">
                           {last
                             ? `Last check: ${timeAgo(last.checked_in_at)}${last.profiles ? ` · ${last.profiles.first_name} ${last.profiles.last_name}` : ''}`
@@ -903,8 +903,8 @@ export default function Security() {
           </div>
 
           {/* Recent rounds */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-            <h2 className="font-display font-semibold text-slate-800 mb-4">Recent Rounds</h2>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5">
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 mb-4">Recent Rounds</h2>
             {rounds.length === 0 ? (
               <div className="text-center py-8 text-slate-400 text-sm">No rounds completed yet.</div>
             ) : (
@@ -915,17 +915,17 @@ export default function Security() {
                     : null
                   return (
                     <button key={r.id} onClick={() => setViewRound(r)}
-                      className="w-full flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:border-brand-200 hover:bg-brand-50 transition-all text-left group">
+                      className="w-full flex items-center gap-3 p-3 rounded-xl border border-slate-100 dark:border-slate-800 hover:border-brand-200 hover:bg-brand-50 dark:hover:bg-brand-950/30 transition-all text-left group">
                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                        r.status === 'completed'   ? 'bg-green-100' :
-                        r.status === 'incomplete'  ? 'bg-amber-100' :
-                        'bg-blue-100'}`}>
+                        r.status === 'completed'   ? 'bg-green-100 dark:bg-green-950/50' :
+                        r.status === 'incomplete'  ? 'bg-amber-100 dark:bg-amber-950/50' :
+                        'bg-blue-100 dark:bg-blue-950/50'}`}>
                         {r.status === 'completed'   ? <CheckCircle2 size={15} className="text-green-600" /> :
                          r.status === 'incomplete'  ? <AlertTriangle size={15} className="text-amber-600" /> :
                          <Play size={15} className="text-blue-600" />}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-slate-800">
+                        <div className="text-sm font-medium text-slate-800 dark:text-slate-100">
                           {r.guard ? `${r.guard.first_name} ${r.guard.last_name}` : 'Unknown Guard'}
                         </div>
                         <div className="text-xs text-slate-400">
@@ -934,9 +934,9 @@ export default function Security() {
                         </div>
                       </div>
                       <span className={`text-xs font-medium flex-shrink-0 capitalize px-2 py-0.5 rounded-full ${
-                        r.status === 'completed'  ? 'bg-green-100 text-green-700' :
-                        r.status === 'incomplete' ? 'bg-amber-100 text-amber-700' :
-                        'bg-blue-100 text-blue-700'}`}>
+                        r.status === 'completed'  ? 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400' :
+                        r.status === 'incomplete' ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400' :
+                        'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400'}`}>
                         {r.status.replace('_',' ')}
                       </span>
                       <ChevronRight size={13} className="text-slate-300 group-hover:text-brand-400 flex-shrink-0 transition-colors" />
@@ -953,7 +953,7 @@ export default function Security() {
       {tab === 'checkpoints' && (
         <div>
           {!isSupervisor && (
-            <div className="mb-4 px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-700">
+            <div className="mb-4 px-4 py-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded-xl text-sm text-blue-700 dark:text-blue-400">
               Only supervisors and admins can add or edit checkpoints.
             </div>
           )}
@@ -962,14 +962,14 @@ export default function Security() {
               const last = lastCheckins[cp.id]
               const isOverdue = !last || (Date.now() - new Date(last.checked_in_at).getTime()) / 60000 > 120
               return (
-                <div key={cp.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                <div key={cp.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold text-white ${isOverdue ? 'bg-red-400' : 'bg-brand-500'}`}>
                         {i + 1}
                       </div>
                       <div>
-                        <div className="font-semibold text-slate-800 text-sm">{cp.name}</div>
+                        <div className="font-semibold text-slate-800 dark:text-slate-100 text-sm">{cp.name}</div>
                         <div className="text-xs text-slate-400">{cp.radius_feet}ft radius</div>
                       </div>
                     </div>
@@ -1006,10 +1006,10 @@ export default function Security() {
 
       {/* HISTORY TAB */}
       {tab === 'history' && (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-slate-100 bg-slate-50">
+              <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                 <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Guard</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Date</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Started</th>
@@ -1024,21 +1024,21 @@ export default function Security() {
                   ? Math.round((new Date(r.completed_at) - new Date(r.started_at)) / 60000)
                   : null
                 return (
-                  <tr key={r.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer"
+                  <tr key={r.id} className="border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                     onClick={() => setViewRound(r)}>
-                    <td className="px-4 py-3 text-sm font-medium text-slate-800">
+                    <td className="px-4 py-3 text-sm font-medium text-slate-800 dark:text-slate-100">
                       {r.guard ? `${r.guard.first_name} ${r.guard.last_name}` : '—'}
                     </td>
-                    <td className="px-4 py-3 text-xs text-slate-600">
+                    <td className="px-4 py-3 text-xs text-slate-600 dark:text-slate-300">
                       {new Date(r.started_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </td>
-                    <td className="px-4 py-3 text-xs text-slate-600">{fmt(r.started_at)}</td>
+                    <td className="px-4 py-3 text-xs text-slate-600 dark:text-slate-300">{fmt(r.started_at)}</td>
                     <td className="px-4 py-3 text-xs text-slate-500">{duration ? `${duration} min` : '—'}</td>
                     <td className="px-4 py-3">
                       <span className={`text-xs font-medium px-2 py-1 rounded-full capitalize ${
-                        r.status === 'completed'  ? 'bg-green-100 text-green-700' :
-                        r.status === 'incomplete' ? 'bg-amber-100 text-amber-700' :
-                        'bg-blue-100 text-blue-700'}`}>
+                        r.status === 'completed'  ? 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400' :
+                        r.status === 'incomplete' ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400' :
+                        'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400'}`}>
                         {r.status.replace('_',' ')}
                       </span>
                     </td>
@@ -1073,10 +1073,10 @@ export default function Security() {
               <p className="text-sm mt-1">Guards can file reports during or after rounds.</p>
             </div>
           ) : (
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50">
+                  <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                     <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">#</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Type</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Title</th>
@@ -1092,11 +1092,11 @@ export default function Security() {
                     const priority = getReportPriority(r.priority)
                     return (
                       <tr key={r.id} onClick={() => { setEditReport(r); setShowReport(true) }}
-                        className="border-b border-slate-50 hover:bg-slate-50 cursor-pointer transition-colors">
+                        className="border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors">
                         <td className="px-4 py-3 text-xs font-mono text-slate-400">#{r.report_number}</td>
-                        <td className="px-4 py-3 text-xs text-slate-600 capitalize">{r.report_type?.replace('_',' ')}</td>
+                        <td className="px-4 py-3 text-xs text-slate-600 dark:text-slate-300 capitalize">{r.report_type?.replace('_',' ')}</td>
                         <td className="px-4 py-3">
-                          <div className="text-sm font-medium text-slate-800">{r.title}</div>
+                          <div className="text-sm font-medium text-slate-800 dark:text-slate-100">{r.title}</div>
                           {r.location && <div className="text-xs text-slate-400 flex items-center gap-1 mt-0.5"><MapPin size={10} />{r.location}</div>}
                         </td>
                         <td className="px-4 py-3">
@@ -1148,9 +1148,9 @@ export default function Security() {
       )}
       {showRound && checkpoints.length === 0 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center">
             <AlertTriangle size={32} className="mx-auto mb-3 text-amber-500" />
-            <h3 className="font-display font-semibold text-slate-800 mb-2">No Checkpoints Set Up</h3>
+            <h3 className="font-display font-semibold text-slate-800 dark:text-slate-100 mb-2">No Checkpoints Set Up</h3>
             <p className="text-slate-400 text-sm mb-4">A supervisor needs to add checkpoints before rounds can be started.</p>
             <button onClick={() => setShowRound(false)}
               className="w-full py-2 bg-brand-600 text-white rounded-xl font-medium">OK</button>

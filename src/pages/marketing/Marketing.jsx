@@ -12,24 +12,24 @@ import {
 // ── Constants ────────────────────────────────────────────────
 
 const LEAD_STATUSES = [
-  { key: 'new',             label: 'New',             color: 'bg-slate-100 text-slate-700 border-slate-200' },
-  { key: 'contacted',       label: 'Contacted',       color: 'bg-blue-100 text-blue-700 border-blue-200' },
-  { key: 'tour_scheduled',  label: 'Tour Scheduled',  color: 'bg-purple-100 text-purple-700 border-purple-200' },
-  { key: 'tour_completed',  label: 'Tour Completed',  color: 'bg-indigo-100 text-indigo-700 border-indigo-200' },
-  { key: 'application',     label: 'Application',     color: 'bg-amber-100 text-amber-700 border-amber-200' },
-  { key: 'deposit_paid',    label: 'Deposit Paid',    color: 'bg-orange-100 text-orange-700 border-orange-200' },
-  { key: 'waitlisted',      label: 'Waitlisted',      color: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
-  { key: 'move_in',         label: 'Moved In',        color: 'bg-green-100 text-green-700 border-green-200' },
-  { key: 'lost',            label: 'Lost',            color: 'bg-red-100 text-red-700 border-red-200' },
-  { key: 'disqualified',    label: 'Disqualified',    color: 'bg-slate-100 text-slate-500 border-slate-200' },
+  { key: 'new',             label: 'New',             color: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700' },
+  { key: 'contacted',       label: 'Contacted',       color: 'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-900' },
+  { key: 'tour_scheduled',  label: 'Tour Scheduled',  color: 'bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-900' },
+  { key: 'tour_completed',  label: 'Tour Completed',  color: 'bg-indigo-100 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-900' },
+  { key: 'application',     label: 'Application',     color: 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900' },
+  { key: 'deposit_paid',    label: 'Deposit Paid',    color: 'bg-orange-100 dark:bg-orange-950/50 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-900' },
+  { key: 'waitlisted',      label: 'Waitlisted',      color: 'bg-yellow-100 dark:bg-yellow-950/50 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-900' },
+  { key: 'move_in',         label: 'Moved In',        color: 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900' },
+  { key: 'lost',            label: 'Lost',            color: 'bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900' },
+  { key: 'disqualified',    label: 'Disqualified',    color: 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700' },
 ]
 
 const CAMPAIGN_STATUSES = [
-  { key: 'draft',     label: 'Draft',     color: 'bg-slate-100 text-slate-600 border-slate-200',   icon: Edit2 },
-  { key: 'active',    label: 'Active',    color: 'bg-green-100 text-green-700 border-green-200',   icon: Play },
-  { key: 'paused',    label: 'Paused',    color: 'bg-amber-100 text-amber-700 border-amber-200',   icon: Pause },
-  { key: 'completed', label: 'Completed', color: 'bg-blue-100 text-blue-700 border-blue-200',      icon: CheckCircle },
-  { key: 'cancelled', label: 'Cancelled', color: 'bg-red-100 text-red-500 border-red-200',         icon: XCircle },
+  { key: 'draft',     label: 'Draft',     color: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700',   icon: Edit2 },
+  { key: 'active',    label: 'Active',    color: 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900',   icon: Play },
+  { key: 'paused',    label: 'Paused',    color: 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900',   icon: Pause },
+  { key: 'completed', label: 'Completed', color: 'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-900',      icon: CheckCircle },
+  { key: 'cancelled', label: 'Cancelled', color: 'bg-red-100 dark:bg-red-950/50 text-red-500 dark:text-red-400 border-red-200 dark:border-red-900',         icon: XCircle },
 ]
 
 const CAMPAIGN_TYPES = [
@@ -62,12 +62,12 @@ function Badge({ color, children }) {
 
 function StatCard({ icon: Icon, label, value, sub, color = 'text-brand-600' }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5">
       <div className="flex items-center justify-between mb-3">
         <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">{label}</span>
         <Icon size={16} className={color} />
       </div>
-      <div className="text-2xl font-bold text-slate-800" style={{ fontFamily: '"Playfair Display", serif' }}>{value}</div>
+      <div className="text-2xl font-bold text-slate-800 dark:text-slate-100" style={{ fontFamily: '"Playfair Display", serif' }}>{value}</div>
       {sub && <div className="text-xs text-slate-400 mt-1">{sub}</div>}
     </div>
   )
@@ -76,10 +76,10 @@ function StatCard({ icon: Icon, label, value, sub, color = 'text-brand-600' }) {
 function Modal({ title, onClose, children, wide }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-      <div className={`bg-white rounded-2xl shadow-2xl w-full ${wide ? 'max-w-3xl' : 'max-w-lg'} max-h-[90vh] flex flex-col`}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <h2 className="font-semibold text-slate-800" style={{ fontFamily: '"Playfair Display", serif' }}>{title}</h2>
-          <button onClick={onClose} className="p-1 hover:bg-slate-100 rounded-lg transition-colors">
+      <div className={`bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full ${wide ? 'max-w-3xl' : 'max-w-lg'} max-h-[90vh] flex flex-col`}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+          <h2 className="font-semibold text-slate-800 dark:text-slate-100" style={{ fontFamily: '"Playfair Display", serif' }}>{title}</h2>
+          <button onClick={onClose} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
             <X size={18} className="text-slate-400" />
           </button>
         </div>
@@ -92,7 +92,7 @@ function Modal({ title, onClose, children, wide }) {
 function Field({ label, required, children }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
         {label}{required && <span className="text-red-400 ml-0.5">*</span>}
       </label>
       {children}
@@ -100,7 +100,7 @@ function Field({ label, required, children }) {
   )
 }
 
-const inputCls = 'w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent'
+const inputCls = 'w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent'
 const selectCls = inputCls
 
 // ── Lead Form ─────────────────────────────────────────────────
@@ -224,7 +224,7 @@ function LeadForm({ lead, sources, staff, onSave, onClose }) {
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
                   form.care_level_interest.includes(lvl)
                     ? 'bg-brand-600 text-white border-brand-600'
-                    : 'bg-white text-slate-600 border-slate-200 hover:border-brand-300'
+                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-brand-300'
                 }`}>
                 {fmt(lvl)}
               </button>
@@ -249,7 +249,7 @@ function LeadForm({ lead, sources, staff, onSave, onClose }) {
       </div>
 
       <div className="flex justify-end gap-3 mt-6">
-        <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">Cancel</button>
+        <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors">Cancel</button>
         <button onClick={handleSave} disabled={saving || !form.first_name}
           className="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-50">
           {saving ? 'Saving…' : lead?.id ? 'Save Changes' : 'Add Lead'}
@@ -371,7 +371,7 @@ function CampaignForm({ campaign, onSave, onClose }) {
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
                   form.target_care_levels.includes(lvl)
                     ? 'bg-brand-600 text-white border-brand-600'
-                    : 'bg-white text-slate-600 border-slate-200 hover:border-brand-300'
+                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-brand-300'
                 }`}>
                 {fmt(lvl)}
               </button>
@@ -381,7 +381,7 @@ function CampaignForm({ campaign, onSave, onClose }) {
       </div>
 
       <div className="flex justify-end gap-3 mt-6">
-        <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">Cancel</button>
+        <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors">Cancel</button>
         <button onClick={handleSave} disabled={saving || !form.name}
           className="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-50">
           {saving ? 'Saving…' : campaign?.id ? 'Save Changes' : 'Create Campaign'}
@@ -456,12 +456,12 @@ function ActivityModal({ lead, onClose }) {
       <div className="space-y-3">
         {activities.length === 0 && <p className="text-sm text-slate-400 text-center py-4">No activity logged yet.</p>}
         {activities.map(a => (
-          <div key={a.id} className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+          <div key={a.id} className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-800">
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs font-semibold text-brand-600">{fmt(a.activity_type)}</span>
               <span className="text-xs text-slate-400">{a.completed_at ? new Date(a.completed_at).toLocaleString() : '—'}</span>
             </div>
-            {a.subject && <p className="text-sm font-medium text-slate-700">{a.subject}</p>}
+            {a.subject && <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{a.subject}</p>}
             {a.body    && <p className="text-sm text-slate-500 mt-0.5">{a.body}</p>}
             {a.outcome && <p className="text-xs text-slate-400 mt-1 italic">{a.outcome}</p>}
             <p className="text-xs text-slate-400 mt-1">
@@ -515,7 +515,7 @@ function SourcesTab({ orgId }) {
       </div>
 
       {showForm && (
-        <div className="mb-4 p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-end gap-3">
+        <div className="mb-4 p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl flex items-end gap-3">
           <Field label="Source Name">
             <input className={inputCls} value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="Dr. Johnson's Practice" />
           </Field>
@@ -533,14 +533,14 @@ function SourcesTab({ orgId }) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {sources.map(s => (
-          <div key={s.id} className={`p-4 bg-white rounded-xl border transition-all ${s.is_active ? 'border-slate-200' : 'border-slate-100 opacity-60'}`}>
+          <div key={s.id} className={`p-4 bg-white dark:bg-slate-900 rounded-xl border transition-all ${s.is_active ? 'border-slate-200 dark:border-slate-700' : 'border-slate-100 dark:border-slate-800 opacity-60'}`}>
             <div className="flex items-start justify-between">
               <div>
-                <p className="font-medium text-slate-800 text-sm">{s.name}</p>
+                <p className="font-medium text-slate-800 dark:text-slate-100 text-sm">{s.name}</p>
                 <p className="text-xs text-slate-400 mt-0.5">{fmt(s.category)}</p>
               </div>
               <button onClick={() => toggle(s.id, s.is_active)}
-                className={`text-xs px-2 py-0.5 rounded-full border font-medium transition-colors ${s.is_active ? 'text-green-600 border-green-200 bg-green-50 hover:bg-red-50 hover:text-red-500 hover:border-red-200' : 'text-slate-400 border-slate-200 bg-slate-50 hover:bg-green-50 hover:text-green-600 hover:border-green-200'}`}>
+                className={`text-xs px-2 py-0.5 rounded-full border font-medium transition-colors ${s.is_active ? 'text-green-600 dark:text-green-400 border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950/50 hover:bg-red-50 hover:text-red-500 hover:border-red-200' : 'text-slate-400 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-green-50 hover:text-green-600 hover:border-green-200'}`}>
                 {s.is_active ? 'Active' : 'Inactive'}
               </button>
             </div>
@@ -651,7 +651,7 @@ export default function Marketing() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-slate-800">Marketing</h1>
+          <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Marketing</h1>
           <p className="text-slate-500 text-sm mt-0.5">Lead pipeline, campaigns, and referral tracking</p>
         </div>
         <button onClick={() => { setEditLead(null); setShowLeadForm(true) }}
@@ -669,12 +669,12 @@ export default function Marketing() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-slate-100 p-1 rounded-xl w-fit">
+      <div className="flex gap-1 mb-6 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit">
         {tabs.map(t => {
           const Icon = t.icon
           return (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === t.key ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === t.key ? 'bg-white dark:bg-slate-700 text-brand-700 dark:text-brand-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
               <Icon size={15} />{t.label}
             </button>
           )
@@ -687,10 +687,10 @@ export default function Marketing() {
           <div className="flex flex-wrap items-center gap-3 mb-5">
             <div className="relative flex-1 min-w-48">
               <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input className="pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm w-full focus:outline-none focus:ring-2 focus:ring-brand-500"
+              <input className="pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm w-full focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="Search leads…" value={leadSearch} onChange={e=>setLeadSearch(e.target.value)} />
             </div>
-            <select className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+            <select className="px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               value={leadStatusFilter} onChange={e=>setLeadStatusFilter(e.target.value)}>
               <option value="all">All Statuses</option>
               {LEAD_STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
@@ -708,10 +708,10 @@ export default function Marketing() {
               <p className="text-slate-300 text-sm mt-1">Add your first lead to start the pipeline</p>
             </div>
           ) : (
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50">
+                  <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                     <th className="text-left px-4 py-3 font-medium text-slate-500">Contact</th>
                     <th className="text-left px-4 py-3 font-medium text-slate-500 hidden md:table-cell">For</th>
                     <th className="text-left px-4 py-3 font-medium text-slate-500 hidden lg:table-cell">Care Interest</th>
@@ -726,9 +726,9 @@ export default function Marketing() {
                   {filteredLeads.map(lead => {
                     const st = getLeadStatus(lead.status)
                     return (
-                      <tr key={lead.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                      <tr key={lead.id} className="border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                         <td className="px-4 py-3">
-                          <p className="font-medium text-slate-800">{lead.first_name} {lead.last_name}</p>
+                          <p className="font-medium text-slate-800 dark:text-slate-100">{lead.first_name} {lead.last_name}</p>
                           <div className="flex items-center gap-2 mt-0.5">
                             {lead.email && <span className="text-xs text-slate-400">{lead.email}</span>}
                             {lead.phone && <span className="text-xs text-slate-400">{lead.phone}</span>}
@@ -736,13 +736,13 @@ export default function Marketing() {
                         </td>
                         <td className="px-4 py-3 hidden md:table-cell">
                           {lead.inquiry_type !== 'self' && (lead.prospect_first_name || lead.prospect_last_name)
-                            ? <span className="text-sm text-slate-600">{lead.prospect_first_name} {lead.prospect_last_name}</span>
+                            ? <span className="text-sm text-slate-600 dark:text-slate-300">{lead.prospect_first_name} {lead.prospect_last_name}</span>
                             : <span className="text-xs text-slate-400">Self</span>}
                         </td>
                         <td className="px-4 py-3 hidden lg:table-cell">
                           <div className="flex flex-wrap gap-1">
                             {(lead.care_level_interest || []).map(c => (
-                              <span key={c} className="text-xs bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">{fmt(c)}</span>
+                              <span key={c} className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded">{fmt(c)}</span>
                             ))}
                           </div>
                         </td>
@@ -763,7 +763,7 @@ export default function Marketing() {
                               <Clock size={14} />
                             </button>
                             <button onClick={() => { setEditLead(lead); setShowLeadForm(true) }}
-                              className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors text-slate-400">
+                              className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-400">
                               <Edit2 size={14} />
                             </button>
                             <button onClick={() => deleteLead(lead.id)}
@@ -789,10 +789,10 @@ export default function Marketing() {
             <div className="flex items-center gap-3 flex-1">
               <div className="relative flex-1 min-w-48">
                 <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input className="pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm w-full focus:outline-none focus:ring-2 focus:ring-brand-500"
+                <input className="pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm w-full focus:outline-none focus:ring-2 focus:ring-brand-500"
                   placeholder="Search campaigns…" value={campSearch} onChange={e=>setCampSearch(e.target.value)} />
               </div>
-              <select className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              <select className="px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 value={campStatusFilter} onChange={e=>setCampStatusFilter(e.target.value)}>
                 <option value="all">All</option>
                 {CAMPAIGN_STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
@@ -816,14 +816,14 @@ export default function Marketing() {
                 const StatusIcon = st.icon
                 const pctBudget = camp.budget && camp.actual_spend ? Math.min(100, Math.round((camp.actual_spend / camp.budget) * 100)) : null
                 return (
-                  <div key={camp.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-all">
+                  <div key={camp.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5 hover:shadow-md transition-all">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <Badge color={st.color}><StatusIcon size={11} className="mr-1 inline" />{st.label}</Badge>
                           <span className="text-xs text-slate-400">{fmt(camp.campaign_type)}</span>
                         </div>
-                        <h3 className="font-semibold text-slate-800 truncate">{camp.name}</h3>
+                        <h3 className="font-semibold text-slate-800 dark:text-slate-100 truncate">{camp.name}</h3>
                         {camp.description && <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">{camp.description}</p>}
                       </div>
                       <div className="flex items-center gap-1 ml-3">
@@ -848,9 +848,9 @@ export default function Marketing() {
                         { label: 'Spent',  value: fmtMoney(camp.actual_spend) },
                         { label: 'Goal Leads', value: camp.goal_leads || '—' },
                       ].map(m => (
-                        <div key={m.label} className="bg-slate-50 rounded-xl p-2.5 text-center">
+                        <div key={m.label} className="bg-slate-50 dark:bg-slate-800 rounded-xl p-2.5 text-center">
                           <p className="text-xs text-slate-400">{m.label}</p>
-                          <p className="font-semibold text-slate-700 text-sm mt-0.5">{m.value}</p>
+                          <p className="font-semibold text-slate-700 dark:text-slate-300 text-sm mt-0.5">{m.value}</p>
                         </div>
                       ))}
                     </div>
@@ -860,7 +860,7 @@ export default function Marketing() {
                         <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
                           <span>Budget used</span><span>{pctBudget}%</span>
                         </div>
-                        <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                           <div className={`h-full rounded-full transition-all ${pctBudget > 90 ? 'bg-red-400' : pctBudget > 70 ? 'bg-amber-400' : 'bg-brand-500'}`}
                             style={{ width: `${pctBudget}%` }} />
                         </div>

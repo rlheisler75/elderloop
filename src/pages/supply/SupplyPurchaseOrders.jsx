@@ -8,16 +8,16 @@ import {
 } from 'lucide-react'
 
 const STATUS_CFG = {
-  draft:              { label: 'Draft',             color: 'bg-slate-100 text-slate-600',  icon: Edit2 },
-  submitted:          { label: 'Submitted',         color: 'bg-blue-100 text-blue-700',    icon: Clock },
-  partially_received: { label: 'Partial',           color: 'bg-amber-100 text-amber-700',  icon: AlertTriangle },
-  received:           { label: 'Received',          color: 'bg-green-100 text-green-700',  icon: CheckCircle2 },
-  cancelled:          { label: 'Cancelled',         color: 'bg-red-100 text-red-700',      icon: XCircle },
+  draft:              { label: 'Draft',             color: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300',  icon: Edit2 },
+  submitted:          { label: 'Submitted',         color: 'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400',    icon: Clock },
+  partially_received: { label: 'Partial',           color: 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400',  icon: AlertTriangle },
+  received:           { label: 'Received',          color: 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400',  icon: CheckCircle2 },
+  cancelled:          { label: 'Cancelled',         color: 'bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-400',      icon: XCircle },
 }
 
 const TYPE_CFG = {
   stock:     { label: 'Stock PO',     color: 'bg-brand-100 text-brand-700' },
-  non_stock: { label: 'Non-Stock',    color: 'bg-purple-100 text-purple-700' },
+  non_stock: { label: 'Non-Stock',    color: 'bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-400' },
 }
 
 function poTotal(lines) {
@@ -37,7 +37,7 @@ function CreatePOModal({ orgId, profileId, vendors, items, editPO, editLines, on
   const [saving, setSaving]   = useState(false)
   const [error, setError]     = useState('')
 
-  const inputCls = 'w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500'
+  const inputCls = 'w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500'
 
   const addLine = () => setLines(l => [...l, { supply_item_id: '', description: '', unit: 'each', quantity_ordered: 1, unit_cost: '' }])
   const removeLine = (i) => setLines(l => l.filter((_, idx) => idx !== i))
@@ -110,22 +110,22 @@ function CreatePOModal({ orgId, profileId, vendors, items, editPO, editLines, on
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[94vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
-          <h2 className="font-display font-semibold text-slate-800">{isEdit ? `Edit ${editPO.po_number}` : 'New Purchase Order'}</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[94vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">{isEdit ? `Edit ${editPO.po_number}` : 'New Purchase Order'}</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"><X size={20} /></button>
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-          {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+          {error && <div className="px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
 
           {/* PO Type */}
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">PO Type</label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">PO Type</label>
             <div className="flex gap-2">
               {[{ k: 'stock', label: 'Stock Reorder', desc: 'Reorder catalog items' }, { k: 'non_stock', label: 'Non-Stock / One-Time', desc: 'Custom purchase, no catalog link' }].map(t => (
                 <button key={t.k} onClick={() => setPoType(t.k)}
-                  className={`flex-1 p-3 rounded-xl border text-left transition-all ${poType === t.k ? 'bg-brand-50 border-brand-300' : 'border-slate-200 hover:border-slate-300'}`}>
-                  <div className={`text-sm font-medium ${poType === t.k ? 'text-brand-700' : 'text-slate-700'}`}>{t.label}</div>
+                  className={`flex-1 p-3 rounded-xl border text-left transition-all ${poType === t.k ? 'bg-brand-50 dark:bg-brand-950/30 border-brand-300 dark:border-brand-700' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'}`}>
+                  <div className={`text-sm font-medium ${poType === t.k ? 'text-brand-700' : 'text-slate-700 dark:text-slate-300'}`}>{t.label}</div>
                   <div className="text-xs text-slate-400 mt-0.5">{t.desc}</div>
                 </button>
               ))}
@@ -135,7 +135,7 @@ function CreatePOModal({ orgId, profileId, vendors, items, editPO, editLines, on
           {/* Vendor + dates */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Vendor</label>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Vendor</label>
               {vendors.length > 0
                 ? <select value={vendorId} onChange={e => setVendorId(e.target.value)} className={inputCls}>
                     <option value="">— Select vendor —</option>
@@ -146,11 +146,11 @@ function CreatePOModal({ orgId, profileId, vendors, items, editPO, editLines, on
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Order Date</label>
+                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Order Date</label>
                 <input type="date" value={orderedDate} onChange={e => setOrderedDate(e.target.value)} className={inputCls} />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Expected</label>
+                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Expected</label>
                 <input type="date" value={expectedDate} onChange={e => setExpectedDate(e.target.value)} className={inputCls} />
               </div>
             </div>
@@ -158,10 +158,10 @@ function CreatePOModal({ orgId, profileId, vendors, items, editPO, editLines, on
 
           {/* Line items */}
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Line Items</label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">Line Items</label>
             <div className="space-y-2">
               {lines.map((line, i) => (
-                <div key={i} className="flex gap-2 items-start p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <div key={i} className="flex gap-2 items-start p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700">
                   <div className="flex-1 space-y-2">
                     {poType === 'stock' ? (
                       <select value={line.supply_item_id} onChange={e => handleItemSelect(i, e.target.value)} className={inputCls}>
@@ -193,21 +193,21 @@ function CreatePOModal({ orgId, profileId, vendors, items, editPO, editLines, on
           </div>
 
           {total > 0 && (
-            <div className="flex items-center justify-between px-4 py-3 bg-slate-50 rounded-xl border border-slate-100">
-              <span className="text-sm text-slate-600">Estimated Total</span>
-              <span className="font-display font-semibold text-slate-800">${total.toFixed(2)}</span>
+            <div className="flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700">
+              <span className="text-sm text-slate-600 dark:text-slate-300">Estimated Total</span>
+              <span className="font-display font-semibold text-slate-800 dark:text-slate-100">${total.toFixed(2)}</span>
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Notes</label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Notes</label>
             <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} className={inputCls + ' resize-none'} placeholder="Optional notes..." />
           </div>
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-between flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium hover:bg-slate-50 rounded-lg">Cancel</button>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-between flex-shrink-0">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg">Cancel</button>
           <div className="flex gap-2">
-            <button onClick={() => handleSave('draft')} disabled={saving} className="px-4 py-2 border border-slate-200 text-slate-600 text-sm font-medium rounded-lg hover:bg-slate-50 disabled:opacity-50">
+            <button onClick={() => handleSave('draft')} disabled={saving} className="px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-sm font-medium rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50">
               Save as Draft
             </button>
             <button onClick={() => handleSave('submitted')} disabled={saving} className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg">
@@ -315,38 +315,38 @@ function ReceiveLineRow({ line, po, orgId, profileId, canEdit, onDone }) {
   }
 
   return (
-    <tr className="border-b border-slate-100 last:border-0">
+    <tr className="border-b border-slate-100 dark:border-slate-800 last:border-0">
       <td className="px-4 py-3">
-        <div className="text-sm font-medium text-slate-800">{line.description}</div>
+        <div className="text-sm font-medium text-slate-800 dark:text-slate-100">{line.description}</div>
         {line.supply_items?.name && line.supply_items.name !== line.description &&
           <div className="text-xs text-slate-400">{line.supply_items.name}</div>}
       </td>
-      <td className="px-4 py-3 text-sm text-slate-700">{ordered} {line.unit}</td>
+      <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">{ordered} {line.unit}</td>
       <td className="px-4 py-3 text-sm">
-        <span className={status === 'partial' ? 'text-amber-600 font-medium' : 'text-slate-700'}>
+        <span className={status === 'partial' ? 'text-amber-600 font-medium' : 'text-slate-700 dark:text-slate-300'}>
           {received} {line.unit}
         </span>
         {status === 'partial' && (
           <div className="text-xs text-slate-400">{remaining} remaining</div>
         )}
       </td>
-      <td className="px-4 py-3 text-sm text-slate-600">{line.unit_cost ? `$${Number(line.unit_cost).toFixed(2)}` : '—'}</td>
-      <td className="px-4 py-3 text-sm font-medium text-slate-800">
+      <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">{line.unit_cost ? `$${Number(line.unit_cost).toFixed(2)}` : '—'}</td>
+      <td className="px-4 py-3 text-sm font-medium text-slate-800 dark:text-slate-100">
         ${(ordered * Number(line.unit_cost || 0)).toFixed(2)}
       </td>
       <td className="px-4 py-3">
         {status === 'received' && (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400">
             <Check size={10} /> Received
           </span>
         )}
         {status === 'partial' && (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400">
             <Clock size={10} /> Partial
           </span>
         )}
         {status === 'pending' && (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-500">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
             <Clock size={10} /> Pending
           </span>
         )}
@@ -362,7 +362,7 @@ function ReceiveLineRow({ line, po, orgId, profileId, canEdit, onDone }) {
                   <>
                     <input type="number" min="1" max={remaining} value={receiveQty}
                       onChange={e => setReceiveQty(Math.min(remaining, Math.max(1, Number(e.target.value))))}
-                      className="w-16 px-2 py-1 border border-slate-200 rounded-lg text-xs text-center focus:outline-none focus:ring-2 focus:ring-green-400" />
+                      className="w-16 px-2 py-1 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-xs text-center focus:outline-none focus:ring-2 focus:ring-green-400" />
                     <span className="text-xs text-slate-400">{line.unit}</span>
                     <button onClick={handleReceive} disabled={saving}
                       className="text-xs px-2.5 py-1 bg-green-600 text-white hover:bg-green-700 rounded-lg font-medium transition-colors disabled:opacity-50">
@@ -372,7 +372,7 @@ function ReceiveLineRow({ line, po, orgId, profileId, canEdit, onDone }) {
                   </>
                 ) : (
                   <button onClick={() => setMode('receive')}
-                    className="text-xs px-2.5 py-1 bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 rounded-lg font-medium transition-colors whitespace-nowrap">
+                    className="text-xs px-2.5 py-1 bg-green-50 dark:bg-green-950/50 text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/50 border border-green-200 dark:border-green-900 rounded-lg font-medium transition-colors whitespace-nowrap">
                     {status === 'partial' ? 'Receive More' : 'Receive'}
                   </button>
                 )}
@@ -386,7 +386,7 @@ function ReceiveLineRow({ line, po, orgId, profileId, canEdit, onDone }) {
                   <>
                     <input type="number" min="1" max={received} value={reverseQty}
                       onChange={e => setReverseQty(Math.min(received, Math.max(1, Number(e.target.value))))}
-                      className="w-16 px-2 py-1 border border-red-200 rounded-lg text-xs text-center focus:outline-none focus:ring-2 focus:ring-red-400" />
+                      className="w-16 px-2 py-1 border border-red-200 dark:border-red-900 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-xs text-center focus:outline-none focus:ring-2 focus:ring-red-400" />
                     <span className="text-xs text-slate-400">{line.unit}</span>
                     <button onClick={handleReverse} disabled={saving}
                       className="text-xs px-2.5 py-1 bg-red-600 text-white hover:bg-red-700 rounded-lg font-medium transition-colors disabled:opacity-50">
@@ -396,7 +396,7 @@ function ReceiveLineRow({ line, po, orgId, profileId, canEdit, onDone }) {
                   </>
                 ) : (
                   <button onClick={() => setMode('reverse')}
-                    className="flex items-center gap-1 text-xs px-2.5 py-1 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 rounded-lg font-medium transition-colors">
+                    className="flex items-center gap-1 text-xs px-2.5 py-1 bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50 border border-red-200 dark:border-red-900 rounded-lg font-medium transition-colors">
                     <Undo2 size={11} /> Reverse
                   </button>
                 )}
@@ -499,27 +499,27 @@ function PODetail({ po, orgId, profileId, canEdit, onBack, onRefresh, onEdit }) 
 
   return (
     <div className="p-6">
-      <button onClick={onBack} className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 mb-5 transition-colors">
+      <button onClick={onBack} className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 mb-5 transition-colors">
         <ArrowLeft size={15} /> Back to Purchase Orders
       </button>
 
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 mb-5">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6 mb-5">
         <div className="flex items-start justify-between flex-wrap gap-4">
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <h2 className="font-display font-bold text-slate-800 text-xl">{po.po_number}</h2>
+              <h2 className="font-display font-bold text-slate-800 dark:text-slate-100 text-xl">{po.po_number}</h2>
               <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${TYPE_CFG[po.po_type]?.color}`}>{TYPE_CFG[po.po_type]?.label}</span>
               <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${cfg.color}`}>{cfg.label}</span>
             </div>
-            <div className="text-sm text-slate-500 space-y-0.5">
-              {po.supply_vendors?.name && <div>Vendor: <span className="text-slate-700 font-medium">{po.supply_vendors.name}</span></div>}
-              {po.ordered_date && <div>Ordered: <span className="text-slate-700">{new Date(po.ordered_date).toLocaleDateString()}</span></div>}
-              {po.expected_date && <div>Expected: <span className="text-slate-700">{new Date(po.expected_date).toLocaleDateString()}</span></div>}
-              {po.notes && <div className="mt-2 text-slate-600 italic">{po.notes}</div>}
+            <div className="text-sm text-slate-500 dark:text-slate-400 space-y-0.5">
+              {po.supply_vendors?.name && <div>Vendor: <span className="text-slate-700 dark:text-slate-300 font-medium">{po.supply_vendors.name}</span></div>}
+              {po.ordered_date && <div>Ordered: <span className="text-slate-700 dark:text-slate-300">{new Date(po.ordered_date).toLocaleDateString()}</span></div>}
+              {po.expected_date && <div>Expected: <span className="text-slate-700 dark:text-slate-300">{new Date(po.expected_date).toLocaleDateString()}</span></div>}
+              {po.notes && <div className="mt-2 text-slate-600 dark:text-slate-300 italic">{po.notes}</div>}
             </div>
           </div>
           <div className="text-right">
-            <div className="text-2xl font-display font-bold text-slate-800">${total.toFixed(2)}</div>
+            <div className="text-2xl font-display font-bold text-slate-800 dark:text-slate-100">${total.toFixed(2)}</div>
             <div className="text-xs text-slate-400">Estimated total</div>
           </div>
         </div>
@@ -529,7 +529,7 @@ function PODetail({ po, orgId, profileId, canEdit, onBack, onRefresh, onEdit }) 
       {po.status === 'draft' && canEdit && (
         <div className="flex items-center gap-2 mb-4">
           <button onClick={onEdit}
-            className="flex items-center gap-2 px-4 py-2 border border-brand-200 text-brand-700 hover:bg-brand-50 text-sm font-medium rounded-xl transition-colors">
+            className="flex items-center gap-2 px-4 py-2 border border-brand-200 text-brand-700 hover:bg-brand-50 dark:hover:bg-brand-950/30 text-sm font-medium rounded-xl transition-colors">
             <Edit2 size={14} /> Edit PO
           </button>
           <button onClick={async () => {
@@ -544,7 +544,7 @@ function PODetail({ po, orgId, profileId, canEdit, onBack, onRefresh, onEdit }) 
             await supabase.from('supply_po_line_items').delete().eq('po_id', po.id)
             await supabase.from('supply_purchase_orders').delete().eq('id', po.id)
             onBack()
-          }} className="flex items-center gap-2 px-4 py-2 border border-red-200 text-red-600 hover:bg-red-50 text-sm font-medium rounded-xl transition-colors ml-auto">
+          }} className="flex items-center gap-2 px-4 py-2 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 text-sm font-medium rounded-xl transition-colors ml-auto">
             <XCircle size={14} /> Delete Draft
           </button>
         </div>

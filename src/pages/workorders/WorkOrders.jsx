@@ -41,14 +41,14 @@ import BroadcastPanel from '../communication/BroadcastPanel'
 const MAINTENANCE_COMMS_ROLES = ['super_admin', 'org_admin', 'ceo', 'supervisor', 'manager', 'maintenance']
 
 const STATUSES = [
-  { key: 'open',             label: 'Open',             color: 'bg-blue-50 text-blue-700 border-blue-200',     dot: 'bg-blue-500' },
-  { key: 'pending_approval', label: 'Pending Approval', color: 'bg-yellow-50 text-yellow-700 border-yellow-200', dot: 'bg-yellow-500' },
-  { key: 'assigned',         label: 'Assigned',         color: 'bg-indigo-50 text-indigo-700 border-indigo-200', dot: 'bg-indigo-500' },
+  { key: 'open',             label: 'Open',             color: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-900',     dot: 'bg-blue-500' },
+  { key: 'pending_approval', label: 'Pending Approval', color: 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950/50 dark:text-yellow-400 dark:border-yellow-900', dot: 'bg-yellow-500' },
+  { key: 'assigned',         label: 'Assigned',         color: 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/50 dark:text-indigo-400 dark:border-indigo-900', dot: 'bg-indigo-500' },
   { key: 'in_progress',      label: 'In Progress',      color: 'bg-brand-50 text-brand-700 border-brand-200',  dot: 'bg-brand-500' },
-  { key: 'awaiting_vendor',  label: 'Awaiting Vendor',  color: 'bg-orange-50 text-orange-700 border-orange-200', dot: 'bg-orange-500' },
-  { key: 'on_hold',          label: 'On Hold',          color: 'bg-slate-100 text-slate-600 border-slate-300', dot: 'bg-slate-400' },
-  { key: 'cancelled',        label: 'Cancelled',        color: 'bg-red-50 text-red-700 border-red-200',        dot: 'bg-red-400' },
-  { key: 'closed',           label: 'Closed',           color: 'bg-green-50 text-green-700 border-green-200',  dot: 'bg-green-500' },
+  { key: 'awaiting_vendor',  label: 'Awaiting Vendor',  color: 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/50 dark:text-orange-400 dark:border-orange-900', dot: 'bg-orange-500' },
+  { key: 'on_hold',          label: 'On Hold',          color: 'bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700', dot: 'bg-slate-400' },
+  { key: 'cancelled',        label: 'Cancelled',        color: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/50 dark:text-red-400 dark:border-red-900',        dot: 'bg-red-400' },
+  { key: 'closed',           label: 'Closed',           color: 'bg-green-50 text-green-700 border-green-200 dark:bg-green-950/50 dark:text-green-400 dark:border-green-900',  dot: 'bg-green-500' },
 ]
 
 const PRIORITIES = [
@@ -106,21 +106,21 @@ function WORow({ wo, onClick }) {
   const isOverdue = wo.due_date && new Date(wo.due_date) < new Date() && wo.status !== 'closed' && wo.status !== 'cancelled'
 
   return (
-    <tr onClick={onClick} className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors">
+    <tr onClick={onClick} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors">
       <td className="px-4 py-3">
         <div className="flex items-center gap-2">
           {wo.priority === 'urgent' && <AlertTriangle size={14} className="text-red-500 flex-shrink-0" />}
           {wo.is_recurring && <RefreshCw size={12} className="text-brand-400 flex-shrink-0" />}
           <div>
-            <div className="font-medium text-slate-800 text-sm">{wo.title}</div>
+            <div className="font-medium text-slate-800 dark:text-slate-100 text-sm">{wo.title}</div>
             <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
               {wo.source === 'family' && (
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-purple-100 text-purple-700 text-xs font-semibold rounded-full">
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-400 text-xs font-semibold rounded-full">
                   👨‍👩‍👧 Family
                 </span>
               )}
               {wo.source === 'resident' && (
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-400 text-xs font-semibold rounded-full">
                   🏠 Resident
                 </span>
               )}
@@ -134,7 +134,7 @@ function WORow({ wo, onClick }) {
           </div>
         </div>
       </td>
-      <td className="px-4 py-3 text-sm text-slate-600">
+      <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">
         {(wo.location_path || wo.unit || wo.building) ? (
           <div className="flex items-center gap-1 text-xs">
             <MapPin size={12} className="text-slate-400 flex-shrink-0" />
@@ -180,7 +180,7 @@ function LocationPickerButton({ value, onChange }) {
         type="button"
         onClick={() => setOpen(true)}
         className={`w-full flex items-center gap-2 px-3 py-2.5 border rounded-lg text-sm transition-all text-left
-          ${value ? 'border-brand-300 bg-brand-50 text-brand-800' : 'border-slate-200 text-slate-400 hover:border-brand-400 hover:text-slate-600'}`}>
+          ${value ? 'border-brand-300 bg-brand-50 text-brand-800' : 'border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-slate-400 hover:border-brand-400 hover:text-slate-600 dark:hover:text-slate-300'}`}>
         <MapPin size={14} className={value ? 'text-brand-500 flex-shrink-0' : 'text-slate-400 flex-shrink-0'} />
         <span className="flex-1 truncate">{value?.path || 'Select location...'}</span>
         {value && (
@@ -425,12 +425,12 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div className="flex items-center gap-3">
             <Wrench size={18} className="text-brand-600" />
-            <h2 className="font-display font-semibold text-slate-800">
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">
               {isNew ? 'New Work Order' : editing ? 'Edit Work Order' : wo.title}
             </h2>
             {!isNew && <StatusBadge status={form.status} />}
@@ -438,7 +438,7 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
           <div className="flex items-center gap-2">
             {!isNew && canEdit && !editing && (
               <button onClick={() => setEditing(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 hover:text-brand-600 border border-slate-200 hover:border-brand-300 rounded-lg transition-colors">
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 dark:text-slate-300 hover:text-brand-600 border border-slate-200 dark:border-slate-700 hover:border-brand-300 rounded-lg transition-colors">
                 <Edit2 size={14} /> Edit
               </button>
             )}
@@ -463,7 +463,7 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
                   {showTemplates ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                 </button>
                 {showTemplates && (
-                  <div className="mt-1 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden max-h-56 overflow-y-auto">
+                  <div className="mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg overflow-hidden max-h-56 overflow-y-auto">
                     {TEMPLATES.map(t => (
                       <button
                         key={t.label}
@@ -478,9 +478,9 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
                           }))
                           setShowTemplates(false)
                         }}
-                        className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-50 transition-colors text-left border-b border-slate-50 last:border-0">
+                        className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left border-b border-slate-50 dark:border-slate-800 last:border-0">
                         <div>
-                          <div className="text-sm font-medium text-slate-800">{t.label}</div>
+                          <div className="text-sm font-medium text-slate-800 dark:text-slate-100">{t.label}</div>
                           <div className="text-xs text-slate-400 capitalize">
                             {CATEGORIES.find(c => c.key === t.category)?.label} · {t.priority}
                           </div>
@@ -516,14 +516,14 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Title *</label>
               {editing
                 ? <input value={form.title} onChange={e => set('title', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                     placeholder="Describe the issue..." />
-                : <p className="text-slate-800 font-medium">{wo.title}</p>}
+                : <p className="text-slate-800 dark:text-slate-100 font-medium">{wo.title}</p>}
               {!editing && wo.source && wo.source !== 'staff' && (
                 <div className="mt-2 flex items-center gap-2 text-xs">
                   <span className={`px-2 py-0.5 rounded-full font-semibold ${
-                    wo.source === 'family'   ? 'bg-purple-100 text-purple-700' :
-                    wo.source === 'resident' ? 'bg-green-100 text-green-700'   : ''
+                    wo.source === 'family'   ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-400' :
+                    wo.source === 'resident' ? 'bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-400'   : ''
                   }`}>
                     {wo.source === 'family' ? '👨‍👩‍👧 Submitted by Family' : '🏠 Submitted by Resident'}
                   </span>
@@ -538,16 +538,16 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Category</label>
                 {editing
                   ? <select value={form.category} onChange={e => set('category', e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                      className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                       {CATEGORIES.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
                     </select>
-                  : <p className="text-sm text-slate-700">{CATEGORIES.find(c => c.key === wo.category)?.label}</p>}
+                  : <p className="text-sm text-slate-700 dark:text-slate-300">{CATEGORIES.find(c => c.key === wo.category)?.label}</p>}
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Priority</label>
                 {editing
                   ? <select value={form.priority} onChange={e => set('priority', e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                      className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                       {PRIORITIES.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
                     </select>
                   : <span className={`text-sm font-medium ${getPriority(wo.priority).color}`}>{getPriority(wo.priority).label}</span>}
@@ -557,7 +557,7 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Status</label>
                   {editing
                     ? <select value={form.status} onChange={e => set('status', e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                         {STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
                       </select>
                     : <StatusBadge status={wo.status} />}
@@ -578,7 +578,7 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
                   }))}
                 />
               ) : (
-                <p className="text-sm text-slate-700 flex items-center gap-1.5">
+                <p className="text-sm text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                   <MapPin size={14} className="text-slate-400" />
                   {form.location_path || [wo.building, wo.unit, wo.location_detail].filter(Boolean).join(' · ') || '—'}
                 </p>
@@ -591,11 +591,11 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Linked Asset</label>
                 {editing
                   ? <select value={form.asset_id || ''} onChange={e => set('asset_id', e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                      className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                       <option value="">No specific asset</option>
                       {assets.map(a => <option key={a.id} value={a.id}>{a.name}{a.asset_number ? ` (${a.asset_number})` : ''}</option>)}
                     </select>
-                  : <p className="text-sm text-slate-700">
+                  : <p className="text-sm text-slate-700 dark:text-slate-300">
                       {wo?.asset_id ? (assets.find(a => a.id === wo.asset_id)?.name || '—') : '—'}
                     </p>}
               </div>
@@ -603,9 +603,9 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Est. Hours</label>
                 {editing
                   ? <input type="number" step="0.5" value={form.estimated_hours} onChange={e => set('estimated_hours', e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                      className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                       placeholder="e.g. 2.0" />
-                  : <p className="text-sm text-slate-700">{wo?.estimated_hours ? `${wo.estimated_hours}h` : '—'}</p>}
+                  : <p className="text-sm text-slate-700 dark:text-slate-300">{wo?.estimated_hours ? `${wo.estimated_hours}h` : '—'}</p>}
               </div>
             </div>
 
@@ -614,11 +614,11 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Resident</label>
               {editing
                 ? <select value={form.resident_id} onChange={e => set('resident_id', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                     <option value="">No specific resident</option>
                     {residentList.map(r => <option key={r.id} value={r.id}>{r.first_name} {r.last_name} — Unit {r.unit}</option>)}
                   </select>
-                : <p className="text-sm text-slate-700">
+                : <p className="text-sm text-slate-700 dark:text-slate-300">
                     {wo.residents ? `${wo.residents.first_name} ${wo.residents.last_name} — Unit ${wo.residents.unit}` : '—'}
                   </p>}
             </div>
@@ -629,11 +629,11 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Assigned To</label>
                 {editing && canAssign
                   ? <select value={form.assigned_to} onChange={e => set('assigned_to', e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                      className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                       <option value="">Unassigned</option>
                       {staffList.map(s => <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>)}
                     </select>
-                  : <p className="text-sm text-slate-700">
+                  : <p className="text-sm text-slate-700 dark:text-slate-300">
                       {wo?.assigned_profiles ? `${wo.assigned_profiles.first_name} ${wo.assigned_profiles.last_name}` : '—'}
                     </p>}
               </div>
@@ -641,8 +641,8 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Due Date</label>
                 {editing
                   ? <input type="date" value={form.due_date} onChange={e => set('due_date', e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
-                  : <p className="text-sm text-slate-700">{wo.due_date ? new Date(wo.due_date).toLocaleDateString() : '—'}</p>}
+                      className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                  : <p className="text-sm text-slate-700 dark:text-slate-300">{wo.due_date ? new Date(wo.due_date).toLocaleDateString() : '—'}</p>}
               </div>
             </div>
 
@@ -651,30 +651,30 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Description</label>
               {editing
                 ? <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={3}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
                     placeholder="Details about the issue..." />
-                : <p className="text-sm text-slate-700 whitespace-pre-wrap">{wo.description || '—'}</p>}
+                : <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{wo.description || '—'}</p>}
             </div>
 
             {/* Vendor Info — show when status is awaiting_vendor or editing */}
             {(editing || form.status === 'awaiting_vendor' || wo?.vendor_name) && (
-              <div className="p-4 bg-orange-50 border border-orange-100 rounded-xl">
-                <label className="block text-xs font-semibold text-orange-700 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+              <div className="p-4 bg-orange-50 dark:bg-orange-950/30 border border-orange-100 dark:border-orange-900 rounded-xl">
+                <label className="block text-xs font-semibold text-orange-700 dark:text-orange-400 uppercase tracking-wide mb-2 flex items-center gap-1.5">
                   <Truck size={13} /> Vendor Information
                 </label>
                 {editing ? (
                   <div className="grid grid-cols-2 gap-2">
                     <input value={form.vendor_name} onChange={e => set('vendor_name', e.target.value)}
-                      className="px-3 py-2 border border-orange-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white"
+                      className="px-3 py-2 border border-orange-200 dark:border-orange-900 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white dark:bg-slate-800 dark:text-slate-100"
                       placeholder="Vendor / Company name" />
                     <input value={form.vendor_phone} onChange={e => set('vendor_phone', e.target.value)}
-                      className="px-3 py-2 border border-orange-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white"
+                      className="px-3 py-2 border border-orange-200 dark:border-orange-900 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white dark:bg-slate-800 dark:text-slate-100"
                       placeholder="Phone" />
                     <input type="datetime-local" value={form.vendor_eta} onChange={e => set('vendor_eta', e.target.value)}
-                      className="col-span-2 px-3 py-2 border border-orange-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white" />
+                      className="col-span-2 px-3 py-2 border border-orange-200 dark:border-orange-900 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white dark:bg-slate-800 dark:text-slate-100" />
                   </div>
                 ) : (
-                  <div className="text-sm text-slate-700 space-y-0.5">
+                  <div className="text-sm text-slate-700 dark:text-slate-300 space-y-0.5">
                     {wo.vendor_name && <div><span className="font-medium">Vendor:</span> {wo.vendor_name}</div>}
                     {wo.vendor_phone && <div><span className="font-medium">Phone:</span> {wo.vendor_phone}</div>}
                     {wo.vendor_eta && <div><span className="font-medium">ETA:</span> {new Date(wo.vendor_eta).toLocaleString()}</div>}
@@ -685,11 +685,11 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
 
             {/* Recurring */}
             {editing && (
-              <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
+              <div className="p-4 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl">
                 <label className="flex items-center gap-2 cursor-pointer mb-3">
                   <input type="checkbox" checked={form.is_recurring} onChange={e => set('is_recurring', e.target.checked)}
                     className="w-4 h-4 rounded text-brand-600" />
-                  <span className="text-sm font-medium text-slate-700 flex items-center gap-1.5">
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                     <RefreshCw size={14} /> Recurring Task
                   </span>
                 </label>
@@ -698,28 +698,28 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
                     <div className="flex gap-3">
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input type="radio" checked={form.recur_type === 'interval'} onChange={() => set('recur_type', 'interval')} />
-                        <span className="text-sm text-slate-700">Every X days</span>
+                        <span className="text-sm text-slate-700 dark:text-slate-300">Every X days</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input type="radio" checked={form.recur_type === 'scheduled'} onChange={() => set('recur_type', 'scheduled')} />
-                        <span className="text-sm text-slate-700">Specific date</span>
+                        <span className="text-sm text-slate-700 dark:text-slate-300">Specific date</span>
                       </label>
                     </div>
                     {form.recur_type === 'interval' ? (
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-slate-600">Every</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-300">Every</span>
                         <input type="number" min={1} value={form.recur_interval_days} onChange={e => set('recur_interval_days', parseInt(e.target.value))}
-                          className="w-20 px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
-                        <span className="text-sm text-slate-600">days</span>
+                          className="w-20 px-3 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                        <span className="text-sm text-slate-600 dark:text-slate-300">days</span>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-slate-600">Day</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-300">Day</span>
                         <input type="number" min={1} max={31} value={form.recur_day} onChange={e => set('recur_day', parseInt(e.target.value))}
-                          className="w-16 px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
-                        <span className="text-sm text-slate-600">of</span>
+                          className="w-16 px-3 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                        <span className="text-sm text-slate-600 dark:text-slate-300">of</span>
                         <select value={form.recur_month} onChange={e => set('recur_month', e.target.value)}
-                          className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                          className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                           <option value="">Every month</option>
                           {['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].map((m,i) =>
                             <option key={i+1} value={i+1}>{m}</option>)}
@@ -736,9 +736,9 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Internal Notes</label>
               {editing
                 ? <textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows={2}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
                     placeholder="Internal notes (not visible to residents)..." />
-                : wo.notes && <p className="text-sm text-slate-600 italic">{wo.notes}</p>}
+                : wo.notes && <p className="text-sm text-slate-600 dark:text-slate-300 italic">{wo.notes}</p>}
             </div>
 
             {/* Photos — staged on new tickets, live upload on existing */}
@@ -759,7 +759,7 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
               {isNew && pendingPhotos.length > 0 && (
                 <div className="flex gap-2 flex-wrap mb-2">
                   {pendingPhotos.map((file, i) => (
-                    <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 group">
+                    <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 group">
                       <img src={URL.createObjectURL(file)} alt="" className="w-full h-full object-cover" />
                       <button
                         type="button"
@@ -777,7 +777,7 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
                 <div className="flex gap-2 flex-wrap mb-2">
                   {photos.map(p => (
                     <a key={p.id} href={p.photo_url} target="_blank" rel="noopener noreferrer"
-                      className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 hover:border-brand-300 transition-all group">
+                      className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 hover:border-brand-300 transition-all group">
                       <img src={p.photo_url} alt={p.caption || ''} className="w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all" />
                     </a>
@@ -787,7 +787,7 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
 
               {/* Upload button — staging for new, live for existing */}
               <label className={`flex items-center gap-2 px-3 py-2.5 border-2 border-dashed rounded-xl cursor-pointer transition-colors
-                ${uploading ? 'border-brand-300 bg-brand-50' : 'border-slate-200 hover:border-brand-400 hover:bg-slate-50'}`}>
+                ${uploading ? 'border-brand-300 bg-brand-50' : 'border-slate-200 dark:border-slate-700 hover:border-brand-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
                 <Camera size={14} className="text-slate-400" />
                 <span className="text-xs text-slate-500">
                   {isNew
@@ -821,10 +821,10 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
                 <div className="flex flex-wrap gap-2">
                   {[
                     { status: 'in_progress',     label: 'Start Working',   color: 'bg-brand-600 hover:bg-brand-700 text-white',         show: ['open','assigned'] },
-                    { status: 'on_hold',          label: 'Put On Hold',     color: 'bg-slate-200 hover:bg-slate-300 text-slate-700',      show: ['open','assigned','in_progress'] },
-                    { status: 'awaiting_vendor',  label: 'Awaiting Vendor', color: 'bg-orange-100 hover:bg-orange-200 text-orange-700',   show: ['open','assigned','in_progress'] },
+                    { status: 'on_hold',          label: 'Put On Hold',     color: 'bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-slate-200',      show: ['open','assigned','in_progress'] },
+                    { status: 'awaiting_vendor',  label: 'Awaiting Vendor', color: 'bg-orange-100 hover:bg-orange-200 text-orange-700 dark:bg-orange-950/50 dark:hover:bg-orange-900/50 dark:text-orange-400',   show: ['open','assigned','in_progress'] },
                     { status: 'closed',           label: 'Mark Complete',   color: 'bg-green-600 hover:bg-green-700 text-white',          show: ['open','assigned','in_progress','on_hold','awaiting_vendor'] },
-                    { status: 'cancelled',        label: 'Cancel Ticket',   color: 'bg-red-100 hover:bg-red-200 text-red-700',            show: ['open','pending_approval'] },
+                    { status: 'cancelled',        label: 'Cancel Ticket',   color: 'bg-red-100 hover:bg-red-200 text-red-700 dark:bg-red-950/50 dark:hover:bg-red-900/50 dark:text-red-400',            show: ['open','pending_approval'] },
                   ]
                   .filter(a => a.show.includes(wo.status) && canClose)
                   .map(action => (
@@ -872,11 +872,11 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
                         <div key={a.id} className="flex gap-2.5 text-xs">
                           <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${dotColor}`} />
                           <div className="flex-1">
-                            <span className="text-slate-700 font-medium">{a.action}</span>
-                            {a.note && <p className="text-slate-500 mt-0.5 bg-slate-50 px-2 py-1 rounded-lg">{a.note}</p>}
+                            <span className="text-slate-700 dark:text-slate-300 font-medium">{a.action}</span>
+                            {a.note && <p className="text-slate-500 dark:text-slate-400 mt-0.5 bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded-lg">{a.note}</p>}
                             {a.photo_url && (
                               <a href={a.photo_url} target="_blank" rel="noopener noreferrer">
-                                <img src={a.photo_url} alt="" className="mt-1 w-24 h-16 object-cover rounded-lg border border-slate-200 hover:border-brand-300 transition-all" />
+                                <img src={a.photo_url} alt="" className="mt-1 w-24 h-16 object-cover rounded-lg border border-slate-200 dark:border-slate-700 hover:border-brand-300 transition-all" />
                               </a>
                             )}
                             <div className="text-slate-400 mt-0.5">
@@ -892,7 +892,7 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
                   <div className="flex gap-2">
                     <input value={note} onChange={e => setNote(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && !e.shiftKey && addNote()}
-                      className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                      className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                       placeholder="Add a comment..." />
                     <button onClick={addNote} className="px-3 py-2 bg-brand-600 text-white rounded-lg text-sm hover:bg-brand-700 transition-colors">Add</button>
                   </div>
@@ -911,9 +911,9 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
 
         {/* Footer */}
         {editing && (
-          <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
+          <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
             <button onClick={isNew ? onClose : () => setEditing(false)}
-              className="px-4 py-2 text-sm text-slate-600 hover:text-slate-800 font-medium">Cancel</button>
+              className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-slate-100 font-medium">Cancel</button>
             <button onClick={handleSave} disabled={saving}
               className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
               {saving ? 'Saving...' : isNew ? 'Create Work Order' : 'Save Changes'}
@@ -1002,7 +1002,7 @@ export default function WorkOrders() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-slate-800">Maintenance</h1>
+          <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Maintenance</h1>
           <p className="text-slate-500 text-sm mt-0.5">Work orders, inspections, and Life Safety compliance</p>
         </div>
         {mainView === 'work_orders' && canCreate && (
@@ -1014,7 +1014,7 @@ export default function WorkOrders() {
       </div>
 
       {/* Main view tabs */}
-      <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mb-6 w-fit flex-wrap">
+      <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl mb-6 w-fit flex-wrap">
         {[
           { key: 'work_orders', label: 'Work Orders', icon: Wrench },
           { key: 'assets',      label: 'Assets',      icon: Package },
@@ -1026,7 +1026,7 @@ export default function WorkOrders() {
           const Icon = v.icon
           return (
             <button key={v.key} onClick={() => setMainView(v.key)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${mainView === v.key ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${mainView === v.key ? 'bg-white dark:bg-slate-900 text-brand-700 dark:text-brand-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
               <Icon size={14} /> {v.label}
             </button>
           )
@@ -1062,9 +1062,9 @@ export default function WorkOrders() {
         )
         if (overdue.length === 0 && slaBreached.length === 0) return null
         return (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-3">
+          <div className="mb-4 p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-2xl flex items-center gap-3">
             <AlertTriangle size={16} className="text-red-500 flex-shrink-0" />
-            <div className="flex-1 text-sm text-red-700">
+            <div className="flex-1 text-sm text-red-700 dark:text-red-400">
               {overdue.length > 0 && <span className="font-medium">{overdue.length} overdue work order{overdue.length > 1 ? 's' : ''}</span>}
               {overdue.length > 0 && slaBreached.length > 0 && <span className="mx-2">·</span>}
               {slaBreached.length > 0 && <span className="font-medium">{slaBreached.length} SLA breach{slaBreached.length > 1 ? 'es' : ''}</span>}
@@ -1082,9 +1082,9 @@ export default function WorkOrders() {
           { label: 'Awaiting Vendor', value: stats.vendor, color: 'text-orange-600', bg: 'bg-orange-50' },
           { label: 'Urgent',      value: stats.urgent,   color: 'text-red-600',    bg: 'bg-red-50' },
         ].map(s => (
-          <div key={s.label} className={`${s.bg} rounded-2xl p-4 border border-white`}>
+          <div key={s.label} className={`${s.bg} dark:bg-slate-900 rounded-2xl p-4 border border-white dark:border-slate-800`}>
             <div className={`text-3xl font-display font-bold ${s.color}`}>{s.value}</div>
-            <div className="text-slate-500 text-xs mt-1">{s.label}</div>
+            <div className="text-slate-500 dark:text-slate-400 text-xs mt-1">{s.label}</div>
           </div>
         ))}
       </div>
@@ -1095,27 +1095,27 @@ export default function WorkOrders() {
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Search by title, unit, building, resident..."
-            className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
         </div>
         <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-          className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+          className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100">
           <option value="all">All Statuses</option>
           {STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
         </select>
         <select value={filterCat} onChange={e => setFilterCat(e.target.value)}
-          className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+          className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100">
           <option value="all">All Categories</option>
           {CATEGORIES.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
         </select>
         <select value={filterPriority} onChange={e => setFilterPriority(e.target.value)}
-          className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+          className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100">
           <option value="all">All Priorities</option>
           {PRIORITIES.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
         </select>
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
         {loading ? (
           <div className="text-center py-16 text-slate-400">Loading work orders...</div>
         ) : filtered.length === 0 ? (
@@ -1128,14 +1128,14 @@ export default function WorkOrders() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-slate-100 bg-slate-50">
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Issue</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Location</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Status</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Priority</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Assigned</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Due</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Created</th>
+                <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Issue</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Location</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Priority</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Assigned</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Due</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Created</th>
                 </tr>
               </thead>
               <tbody>

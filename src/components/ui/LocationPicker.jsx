@@ -104,8 +104,8 @@ function TreeNode({ node, selected, onSelect, searchQuery, depth = 0 }) {
           ${isSelected
             ? 'bg-brand-600 text-white'
             : matchesSearch && searchQuery
-              ? 'bg-amber-50 hover:bg-amber-100'
-              : 'hover:bg-slate-100'
+              ? 'bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/50'
+              : 'hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         style={{ paddingLeft: `${12 + depth * 20}px` }}
         onClick={() => onSelect(node)}
@@ -114,7 +114,7 @@ function TreeNode({ node, selected, onSelect, searchQuery, depth = 0 }) {
         {hasChildren ? (
           <button
             onClick={e => { e.stopPropagation(); setOpen(o => !o) }}
-            className={`flex-shrink-0 p-0.5 rounded transition-colors ${isSelected ? 'text-brand-200 hover:text-white' : 'text-slate-400 hover:text-slate-600'}`}>
+            className={`flex-shrink-0 p-0.5 rounded transition-colors ${isSelected ? 'text-brand-200 hover:text-white' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}>
             {open
               ? <ChevronDown size={13} />
               : <ChevronRight size={13} />}
@@ -124,7 +124,7 @@ function TreeNode({ node, selected, onSelect, searchQuery, depth = 0 }) {
         )}
 
         <Icon size={14} className={`flex-shrink-0 ${isSelected ? 'text-brand-200' : iconColor}`} />
-        <span className={`flex-1 text-sm truncate ${isSelected ? 'text-white font-medium' : matchesSearch && searchQuery ? 'text-amber-900 font-medium' : 'text-slate-700'}`}>
+        <span className={`flex-1 text-sm truncate ${isSelected ? 'text-white font-medium' : matchesSearch && searchQuery ? 'text-amber-900 dark:text-amber-300 font-medium' : 'text-slate-700 dark:text-slate-300'}`}>
           {node.name}
         </span>
         {isSelected && <Check size={14} className="text-white flex-shrink-0" />}
@@ -190,22 +190,22 @@ export default function LocationPicker({ value, onChange, onClose }) {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col" style={{ maxHeight: '85vh' }}>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg flex flex-col" style={{ maxHeight: '85vh' }}>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 flex-shrink-0">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div className="flex items-center gap-2">
             <MapPin size={18} className="text-brand-600" />
-            <h2 className="font-display font-semibold text-slate-800">Select Location</h2>
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Select Location</h2>
             <span className="text-xs text-slate-400">{total} locations</span>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
+          <button onClick={onClose} className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
             <X size={20} />
           </button>
         </div>
 
         {/* Search */}
-        <div className="px-4 py-3 border-b border-slate-100 flex-shrink-0">
+        <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div className="relative">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
@@ -213,10 +213,10 @@ export default function LocationPicker({ value, onChange, onClose }) {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search locations..."
-              className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-slate-50"
+              className="w-full pl-9 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-slate-50 dark:bg-slate-800 dark:text-slate-100"
             />
             {search && (
-              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300">
                 <X size={13} />
               </button>
             )}
@@ -256,15 +256,15 @@ export default function LocationPicker({ value, onChange, onClose }) {
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-3 border-t border-slate-100 flex items-center justify-between gap-3 flex-shrink-0">
+        <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 flex-shrink-0">
           <button
             onClick={handleClear}
-            className="text-sm text-slate-400 hover:text-slate-600 transition-colors">
+            className="text-sm text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
             Clear location
           </button>
           <div className="flex gap-2">
             <button onClick={onClose}
-              className="px-4 py-2 text-sm text-slate-600 font-medium border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
+              className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
               Cancel
             </button>
             <button
