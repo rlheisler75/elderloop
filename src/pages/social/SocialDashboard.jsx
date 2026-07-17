@@ -348,9 +348,9 @@ export default function SocialDashboard() {
               <div className={`text-3xl font-bold font-display ${+compliance.overdue_review > 0 ? 'text-amber-600' : 'text-green-600'}`}>
                 {compliance.overdue_review}
               </div>
-              <div className="text-xs text-slate-500 mt-0.5 leading-tight">Annual Review Overdue</div>
+              <div className="text-xs text-slate-500 mt-0.5 leading-tight">Review Overdue</div>
               {+compliance.overdue_review > 0 && (
-                <div className="text-xs text-amber-600 font-medium mt-1">{'>'} 365 days</div>
+                <div className="text-xs text-amber-600 font-medium mt-1">Past review due date</div>
               )}
             </div>
 
@@ -385,6 +385,16 @@ export default function SocialDashboard() {
               }`} style={{ width: `${profilePct}%` }} />
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ── 1b. CARE COORDINATION SNAPSHOT ────────────────────────── */}
+      {compliance && (
+        <div className="grid grid-cols-2 gap-3">
+          <StatCard label="Open Referrals" sub="Pending, contacted or scheduled" value={compliance.open_referrals ?? 0}
+            icon={FileText} color="text-blue-600" bg="bg-blue-50 dark:bg-blue-950/50" />
+          <StatCard label="Upcoming Discharges" sub="Within next 14 days" value={compliance.upcoming_discharges ?? 0}
+            icon={TrendingUp} color="text-purple-600" bg="bg-purple-50 dark:bg-purple-950/50" />
         </div>
       )}
 

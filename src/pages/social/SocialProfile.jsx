@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { Search, Plus, ChevronRight, User, Save, X, Check,
-         Shield, Heart, Book, Loader2, AlertCircle } from 'lucide-react'
+         Shield, Heart, Book, Loader2, AlertCircle, UserCheck, CalendarCheck, ClipboardCheck } from 'lucide-react'
 
 const COGNITIVE_LEVELS = [
   { key: 'intact',              label: 'Intact' },
@@ -43,7 +43,7 @@ function FieldGroup({ title, icon: Icon, children }) {
   )
 }
 
-function ProfileEditor({ resident, orgId, profile: existingProfile, canWrite, onSaved, onCancel }) {
+function ProfileEditor({ resident, orgId, profile: existingProfile, staff, canWrite, onSaved, onCancel }) {
   const { profile: authProfile } = useAuth()
   const [form, setForm] = useState({
     cognitive_level:             existingProfile?.cognitive_level || '',
@@ -64,6 +64,9 @@ function ProfileEditor({ resident, orgId, profile: existingProfile, canWrite, on
     legal_guardian:              existingProfile?.legal_guardian || '',
     legal_guardian_phone:        existingProfile?.legal_guardian_phone || '',
     legal_guardian_relationship: existingProfile?.legal_guardian_relationship || '',
+    assigned_to:                 existingProfile?.assigned_to || '',
+    last_reviewed_at:            existingProfile?.last_reviewed_at || '',
+    review_due_date:             existingProfile?.review_due_date || '',
   })
   const [saving, setSaving] = useState(false)
   const [error, setError]   = useState('')
@@ -73,10 +76,22 @@ function ProfileEditor({ resident, orgId, profile: existingProfile, canWrite, on
     set('advance_directive_types', current.includes(key) ? current.filter(k => k !== key) : [...current, key])
   }
 
+  const readOnly = !canWrite
+
+  const markReviewed = () => {
+    if (readOnly) return
+    const today = new Date()
+    const due = new Date(today); due.setDate(due.getDate() + 365)
+    setForm(f => ({ ...f, last_reviewed_at: today.toISOString().split('T')[0], review_due_date: due.toISOString().split('T')[0] }))
+  }
+
   const handleSave = async () => {
     setSaving(true); setError('')
     const payload = {
       ...form,
+      assigned_to:      form.assigned_to || null,
+      last_reviewed_at: form.last_reviewed_at || null,
+      review_due_date:  form.review_due_date || null,
       organization_id: orgId,
       resident_id:     resident.id,
       updated_by:      authProfile?.id,
@@ -95,8 +110,6 @@ function ProfileEditor({ resident, orgId, profile: existingProfile, canWrite, on
     onSaved()
   }
 
-  const readOnly = !canWrite
-
   return (
     <div className="space-y-4">
       {error && (
@@ -104,6 +117,40 @@ function ProfileEditor({ resident, orgId, profile: existingProfile, canWrite, on
           <AlertCircle size={15} /> {error}
         </div>
       )}
+
+      {/* Case Management */}
+      <FieldGroup title="Case Management & Review" icon={ClipboardCheck}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+              <UserCheck size={12} /> Assigned Social Worker
+            </label>
+            <select value={form.assigned_to} onChange={e => set('assigned_to', e.target.value)} disabled={readOnly}
+              className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100">
+              <option value="">Unassigned</option>
+              {(staff || []).map(s => <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+              <CalendarCheck size={12} /> Review Due Date
+            </label>
+            <input type="date" value={form.review_due_date} onChange={e => set('review_due_date', e.target.value)} disabled={readOnly}
+              className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100" />
+          </div>
+        </div>
+        <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+          <div className="text-xs text-slate-400">
+            {form.last_reviewed_at ? `Last reviewed ${new Date(form.last_reviewed_at + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : 'Not yet reviewed'}
+          </div>
+          {!readOnly && (
+            <button onClick={markReviewed} type="button"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900 rounded-lg text-xs font-semibold hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors">
+              <Check size={12} /> Mark Reviewed Today
+            </button>
+          )}
+        </div>
+      </FieldGroup>
 
       {/* Cognitive */}
       <FieldGroup title="Cognitive & Functional Status" icon={Book}>
@@ -221,6 +268,7 @@ function ProfileEditor({ resident, orgId, profile: existingProfile, canWrite, on
 export default function SocialProfile({ canWrite }) {
   const { organization } = useAuth()
   const [residents,  setResidents]  = useState([])
+  const [staff,      setStaff]      = useState([])
   const [search,     setSearch]     = useState('')
   const [selected,   setSelected]   = useState(null)
   const [ssProfile,  setSsProfile]  = useState(null)
@@ -231,11 +279,18 @@ export default function SocialProfile({ canWrite }) {
 
   async function fetchResidents() {
     setLoading(true)
-    const { data } = await supabase.from('residents')
-      .select('id, first_name, last_name, room, care_level')
-      .eq('organization_id', organization.id)
-      .eq('is_active', true)
-      .order('last_name')
+    const [{ data }, { data: staffData }] = await Promise.all([
+      supabase.from('residents')
+        .select('id, first_name, last_name, room, care_level')
+        .eq('organization_id', organization.id)
+        .eq('is_active', true)
+        .order('last_name'),
+      supabase.from('profiles').select('id, first_name, last_name')
+        .eq('organization_id', organization.id)
+        .not('role', 'in', '(resident,family)')
+        .order('last_name'),
+    ])
+    setStaff(staffData || [])
     setResidents(data || [])
     setLoading(false)
   }
@@ -328,6 +383,12 @@ export default function SocialProfile({ canWrite }) {
                   ) : (
                     <span className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/50 dark:text-amber-400 px-2 py-0.5 rounded-full font-medium">No profile yet</span>
                   )}
+                  {ssProfile?.review_due_date && (() => {
+                    const days = Math.floor((new Date(ssProfile.review_due_date) - new Date()) / (1000 * 60 * 60 * 24))
+                    if (days < 0) return <span className="text-xs text-red-600 bg-red-50 dark:bg-red-950/50 dark:text-red-400 px-2 py-0.5 rounded-full font-medium">Review overdue</span>
+                    if (days <= 30) return <span className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/50 dark:text-amber-400 px-2 py-0.5 rounded-full font-medium">Review due in {days}d</span>
+                    return null
+                  })()}
                 </div>
               </div>
             </div>
@@ -336,6 +397,7 @@ export default function SocialProfile({ canWrite }) {
               resident={selected}
               orgId={organization.id}
               profile={ssProfile}
+              staff={staff}
               canWrite={canWrite}
               onSaved={() => selectResident(selected)}
             />

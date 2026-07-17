@@ -1,17 +1,23 @@
 import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
-import { Heart, ClipboardList, AlertTriangle, Users, FileText, BarChart3 } from 'lucide-react'
-import SocialProfile    from './SocialProfile'
-import MoodTracker      from './MoodTracker'
-import Grievances       from './Grievances'
-import CareConferences  from './CareConferences'
-import SocialDashboard  from './SocialDashboard'
+import { Heart, ClipboardList, AlertTriangle, Users, FileText, BarChart3, BookOpen, LogOut } from 'lucide-react'
+import SocialProfile     from './SocialProfile'
+import MoodTracker       from './MoodTracker'
+import Grievances        from './Grievances'
+import CareConferences   from './CareConferences'
+import SocialDashboard   from './SocialDashboard'
+import Resources         from './Resources'
+import CaseNotes         from './CaseNotes'
+import DischargePlanning from './DischargePlanning'
 
 const TABS = [
   { key: 'profiles',     label: 'Social Profiles',   icon: FileText,     desc: 'Psycho-social history & advance directives' },
   { key: 'mood',         label: 'Mood & Behavior',   icon: Heart,        desc: 'Daily mood tracking & behavioral logs' },
+  { key: 'casenotes',    label: 'Case Notes',        icon: ClipboardList,desc: 'Contact log & follow-ups' },
   { key: 'grievances',   label: 'Grievances',        icon: AlertTriangle,desc: 'Complaints, investigations & resolutions' },
   { key: 'conferences',  label: 'Care Conferences',  icon: Users,        desc: 'Scheduled conferences & meeting notes' },
+  { key: 'discharge',    label: 'Discharge Planning',icon: LogOut,       desc: 'Discharge plans & post-acute coordination' },
+  { key: 'resources',    label: 'Resources',         icon: BookOpen,     desc: 'Community resource directory & referrals' },
   { key: 'dashboard',    label: 'Director Dashboard', icon: BarChart3,   desc: 'Compliance alerts and facility-wide analytics', directorOnly: true },
 ]
 
@@ -55,11 +61,14 @@ export default function SocialServices() {
 
       {/* Tab content */}
       <div>
-        {tab === 'profiles'    && <SocialProfile    canWrite={canWrite} />}
-        {tab === 'mood'        && <MoodTracker      canWrite={canWrite} />}
-        {tab === 'grievances'  && <Grievances       canWrite={canWrite} />}
-        {tab === 'conferences' && <CareConferences  canWrite={canWrite} />}
-        {tab === 'dashboard'    && <SocialDashboard />}
+        {tab === 'profiles'    && <SocialProfile     canWrite={canWrite} />}
+        {tab === 'mood'        && <MoodTracker       canWrite={canWrite} />}
+        {tab === 'casenotes'   && <CaseNotes         canWrite={canWrite} />}
+        {tab === 'grievances'  && <Grievances        canWrite={canWrite} />}
+        {tab === 'conferences' && <CareConferences   canWrite={canWrite} />}
+        {tab === 'discharge'   && <DischargePlanning canWrite={canWrite} />}
+        {tab === 'resources'   && <Resources         canWrite={canWrite} />}
+        {tab === 'dashboard'   && <SocialDashboard />}
       </div>
     </div>
   )
