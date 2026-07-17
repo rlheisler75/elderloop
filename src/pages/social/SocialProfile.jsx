@@ -287,7 +287,8 @@ export default function SocialProfile({ canWrite }) {
         .order('last_name'),
       supabase.from('profiles').select('id, first_name, last_name')
         .eq('organization_id', organization.id)
-        .not('role', 'in', '(resident,family)')
+        .eq('is_active', true)
+        .in('role', ['social_services', 'supervisor', 'manager', 'org_admin', 'ceo'])
         .order('last_name'),
     ])
     setStaff(staffData || [])
