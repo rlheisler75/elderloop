@@ -89,6 +89,7 @@ function ProfileEditor({ resident, orgId, profile: existingProfile, staff, canWr
     setSaving(true); setError('')
     const payload = {
       ...form,
+      cognitive_level:  form.cognitive_level || null,
       assigned_to:      form.assigned_to || null,
       last_reviewed_at: form.last_reviewed_at || null,
       review_due_date:  form.review_due_date || null,
