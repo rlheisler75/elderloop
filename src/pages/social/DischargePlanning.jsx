@@ -70,9 +70,14 @@ function DischargeModal({ plan, residents, orgId, canWrite, onClose, onSaved }) 
     const payload = {
       ...form,
       organization_id: orgId,
-      anticipated_discharge_date: form.anticipated_discharge_date || null,
-      actual_discharge_date:      form.status === 'discharged' ? (form.actual_discharge_date || null) : null,
-      discharge_destination:      form.discharge_destination || null,
+      anticipated_discharge_date:    form.anticipated_discharge_date    || null,
+      actual_discharge_date:         form.status === 'discharged' ? (form.actual_discharge_date || null) : null,
+      discharge_destination:         form.discharge_destination         || null,
+      discharge_destination_details: form.discharge_destination_details || null,
+      barriers:                      form.barriers                      || null,
+      family_involvement:            form.family_involvement            || null,
+      resources_arranged:            form.resources_arranged            || null,
+      discharge_summary:             form.discharge_summary             || null,
       planned_by: profile?.id,
       updated_at: new Date().toISOString(),
     }
