@@ -613,6 +613,8 @@ export default function SuperAdminDashboard() {
             <div className="text-center py-20 text-slate-500">Loading platform data...</div>
           ) : (
             <>
+              {(activeTab === 'overview' || activeTab === 'organizations') && (
+              <>
               {/* Stats */}
               <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
                 {[
@@ -785,6 +787,17 @@ export default function SuperAdminDashboard() {
                   )
                 })}
               </div>
+              </>
+              )}
+
+              {activeTab === 'activity' && (
+                <div className="text-center py-20 text-slate-600">
+                  <Activity size={40} className="mx-auto mb-4 opacity-30" />
+                  <p className="text-slate-400 font-medium mb-1">Platform activity log coming soon</p>
+                  <p className="text-sm">A cross-org audit trail isn't wired up yet.</p>
+                </div>
+              )}
+
               {/* ── REP TRACKING TAB ── */}
             {activeTab === 'reps' && (
               <div>
@@ -931,49 +944,6 @@ export default function SuperAdminDashboard() {
               </div>
             </div>
           )}
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 style={{ fontFamily: '"Playfair Display", serif' }} className="text-white font-semibold flex items-center gap-2">
-                    <ClipboardList size={16} className="text-brand-400" /> Platform Feedback Surveys
-                  </h2>
-                  <button onClick={() => setActiveTab('surveys')}
-                    className="text-xs text-brand-400 hover:text-brand-300 transition-colors flex items-center gap-1">
-                    Manage all <ChevronRight size={12} />
-                  </button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {platformSurveys.map(s => (
-                    <div key={s.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-                      <div className="flex items-start justify-between gap-3 mb-3">
-                        <div>
-                          <div className="text-white font-medium text-sm">{s.title}</div>
-                          <div className="text-slate-500 text-xs mt-0.5 line-clamp-2">{s.description}</div>
-                        </div>
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${s.is_published ? 'bg-green-900/50 text-green-400' : 'bg-slate-800 text-slate-500'}`}>
-                          {s.is_published ? 'Live' : 'Draft'}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between text-xs text-slate-400 mb-4">
-                        <span className="flex items-center gap-1">
-                          <Users size={11} /> {surveyResponses[s.id] || 0} response{(surveyResponses[s.id] || 0) !== 1 ? 's' : ''}
-                        </span>
-                        <span className="capitalize">{s.survey_type?.replace('_', ' ')}</span>
-                      </div>
-                      {s.is_published && (
-                        <button onClick={() => copyLink(s.public_token)}
-                          className={`w-full flex items-center justify-center gap-2 py-2 rounded-xl border text-xs font-medium transition-all ${copiedToken === s.public_token ? 'border-green-700 text-green-400 bg-green-900/20' : 'border-slate-700 text-slate-400 hover:border-brand-600 hover:text-brand-400'}`}>
-                          {copiedToken === s.public_token ? <><Check size={12} /> Copied!</> : <><Link size={12} /> Copy Survey Link</>}
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                  {platformSurveys.length === 0 && (
-                    <div className="col-span-2 text-center py-8 text-slate-600 text-sm">
-                      No platform surveys yet. Go to Platform Surveys tab to create one.
-                    </div>
-                  )}
-                </div>
-              </div>
             </>
           )}
         </div>

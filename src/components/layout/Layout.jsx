@@ -71,7 +71,7 @@ const NAV_GROUPS = [
 ]
 
 export default function Layout() {
-  const { profile, organization, hasModule, isOrgAdmin, isSuperAdmin, signOut } = useAuth()
+  const { profile, organization, hasModule, isOrgAdmin, isSuperAdmin, signOut, impersonating, exitImpersonation } = useAuth()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [notifs, setNotifs]       = useState([])
   const [showNotifs, setShowNotifs] = useState(false)
@@ -295,6 +295,18 @@ export default function Layout() {
             )}
           </div>
         </div>
+        {impersonating && (
+          <div className="flex items-center justify-between gap-3 px-4 py-2 bg-purple-700 text-white text-sm">
+            <span className="flex items-center gap-2 min-w-0">
+              <Shield size={14} className="flex-shrink-0" />
+              <span className="truncate">Super Admin — viewing <strong>{organization?.name ?? 'this org'}</strong></span>
+            </span>
+            <button onClick={exitImpersonation}
+              className="flex-shrink-0 px-3 py-1 bg-purple-800 hover:bg-purple-900 rounded-lg text-xs font-semibold transition-colors">
+              Exit to Super Admin
+            </button>
+          </div>
+        )}
         <main className="flex-1 overflow-y-auto p-6"><Outlet /></main>
       </div>
     </div>
