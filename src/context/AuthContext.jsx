@@ -149,6 +149,9 @@ export function AuthProvider({ children }) {
         p_notes:  'User initiated sign-out'
       })
     } catch (_) { /* non-blocking */ }
+    // Otherwise a super admin who signs out mid-impersonation (instead of using
+    // "Exit to Super Admin") would silently land back in that org on next login.
+    localStorage.removeItem('elderloop_super_admin_org')
     await supabase.auth.signOut()
   }
 
@@ -189,7 +192,7 @@ export function AuthProvider({ children }) {
     setImpersonating(false)
     setOrg(null)
     setOrgModules([])
-    navigate('/app/superadmin')
+    navigate('/superadmin')
   }
 
   return (

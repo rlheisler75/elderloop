@@ -148,7 +148,11 @@ function SuspendedWall() {
 // ── App ───────────────────────────────────────────────────────
 
 export default function App() {
-  const { user, loading, profile, isSuperAdmin } = useAuth()
+  const { user, loading, profile, isSuperAdmin, impersonating } = useAuth()
+
+  // A super admin with no org actively impersonated has nothing to see in the
+  // staff dashboard shell — send them to the platform Super Admin Dashboard instead.
+  const defaultAppRoute = (isSuperAdmin && !impersonating) ? '/superadmin' : '/app/dashboard'
 
   if (loading) return (
     <div className="flex h-screen items-center justify-center bg-brand-950">
@@ -199,22 +203,22 @@ export default function App() {
         <Route path="/resident"       element={user ? <ResidentPortal /> : <Navigate to="/login" replace />} />
         <Route path="/family-portal"  element={user ? <FamilyPortal />  : <Navigate to="/login" replace />} />
         <Route path="/rep"            element={!user ? <Navigate to="/login" replace /> : isSuperAdmin ? <Lazy><RepPortal /></Lazy> : <Navigate to="/app/dashboard" replace />} />
+        <Route path="/superadmin"     element={<SuperAdminRoute><Lazy><SuperAdmin /></Lazy></SuperAdminRoute>} />
 
         {/* ── Auth ── */}
-        <Route path="/login"           element={user ? <Navigate to="/app/dashboard" replace /> : <Login />} />
-        <Route path="/signup"          element={user ? <Navigate to="/app/dashboard" replace /> : <Signup />} />
+        <Route path="/login"           element={user ? <Navigate to={defaultAppRoute} replace /> : <Login />} />
+        <Route path="/signup"          element={user ? <Navigate to={defaultAppRoute} replace /> : <Signup />} />
         <Route path="/forgot-password" element={<Lazy><ForgotPassword /></Lazy>} />
         <Route path="/reset-password"  element={<Lazy><ResetPassword /></Lazy>} />
 
         {/* ── Protected app shell ── */}
         <Route path="/app" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-          <Route index element={<Navigate to="/app/dashboard" replace />} />
+          <Route index element={<Navigate to={defaultAppRoute} replace />} />
 
           <Route path="dashboard"  element={<Dashboard />} />
           <Route path="settings"   element={<Lazy><UserSettings /></Lazy>} />
           <Route path="admin"      element={<AdminRoute><AdminPanel /></AdminRoute>} />
           <Route path="ceo"        element={<Lazy><CEODashboard /></Lazy>} />
-          <Route path="superadmin" element={<SuperAdminRoute><Lazy><SuperAdmin /></Lazy></SuperAdminRoute>} />
 
           {/* Core modules */}
           <Route path="communication"

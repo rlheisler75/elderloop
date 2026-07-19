@@ -192,7 +192,7 @@ export default function Layout() {
           )}
 
           {isSuperAdmin && (
-            <NavLink to="/app/superadmin"
+            <NavLink to="/superadmin"
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${isActive ? 'bg-purple-700 text-white' : 'text-purple-400 hover:bg-purple-900/50 hover:text-white'}`}>
               <Shield size={18} /><span>Super Admin</span>
