@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { HeartHandshake, ArrowRight } from 'lucide-react'
+import { HeartHandshake, ArrowRight, UtensilsCrossed } from 'lucide-react'
 
 const GUIDES = [
   {
@@ -8,6 +8,13 @@ const GUIDES = [
     title: 'Social Services',
     desc: 'Social profiles, mood & behavior tracking, case notes, grievances, care conferences, discharge planning, and the community resource directory.',
     tag: '8 sections',
+  },
+  {
+    to: '/training/dietary',
+    icon: UtensilsCrossed,
+    title: 'Dietary',
+    desc: 'Resident dietary profiles, meal ticket printing, cycle menu building, Cook’s Count, and the menu items catalog behind automatic substitutions.',
+    tag: '7 sections',
   },
 ]
 
