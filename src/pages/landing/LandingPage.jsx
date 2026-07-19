@@ -565,6 +565,7 @@ export default function LandingPage() {
             <button onClick={() => navigate('/login')} className="text-slate-500 hover:text-white text-sm transition-colors">Sign In</button>
             <a href="mailto:info@loopwaresolutions.com" className="text-slate-500 hover:text-white text-sm transition-colors">Contact</a>
             <a href="#pricing" className="text-slate-500 hover:text-white text-sm transition-colors">Pricing</a>
+            <button onClick={() => navigate('/training')} className="text-slate-500 hover:text-white text-sm transition-colors">Training</button>
             <button onClick={() => navigate('/terms')} className="text-slate-500 hover:text-white text-sm transition-colors">Terms</button>
             <button onClick={() => navigate('/privacy')} className="text-slate-500 hover:text-white text-sm transition-colors">Privacy</button>
           </div>

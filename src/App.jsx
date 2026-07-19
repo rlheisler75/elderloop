@@ -45,6 +45,8 @@ const CEODashboard   = lazy(() => import('./pages/ceo/CEODashboard'))
 const UserSettings   = lazy(() => import('./pages/settings/UserSettings'))
 const SuperAdmin     = lazy(() => import('./pages/superadmin/SuperAdminDashboard'))
 const RepPortal      = lazy(() => import('./pages/rep/RepPortal'))
+const TrainingHub    = lazy(() => import('./pages/training/TrainingHub'))
+const SocialServicesGuide = lazy(() => import('./pages/training/SocialServicesGuide'))
 
 // Public TV & role-specific portals (outside the staff Layout)
 import TV            from './pages/tv/TV'
@@ -200,6 +202,8 @@ export default function App() {
         <Route path="/survey/:token"  element={<SurveyPublic />} />
         <Route path="/terms"           element={<Terms />} />
         <Route path="/privacy"         element={<Privacy />} />
+        <Route path="/training"                    element={<Lazy><TrainingHub /></Lazy>} />
+        <Route path="/training/social-services"     element={<Lazy><SocialServicesGuide /></Lazy>} />
         <Route path="/resident"       element={user ? <ResidentPortal /> : <Navigate to="/login" replace />} />
         <Route path="/family-portal"  element={user ? <FamilyPortal />  : <Navigate to="/login" replace />} />
         <Route path="/rep"            element={!user ? <Navigate to="/login" replace /> : isSuperAdmin ? <Lazy><RepPortal /></Lazy> : <Navigate to="/app/dashboard" replace />} />
