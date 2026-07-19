@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { HeartHandshake, ArrowRight, UtensilsCrossed } from 'lucide-react'
+import { HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope } from 'lucide-react'
 
 const GUIDES = [
   {
@@ -15,6 +15,13 @@ const GUIDES = [
     title: 'Dietary',
     desc: 'Resident dietary profiles, meal ticket printing, cycle menu building, Cook’s Count, and the menu items catalog behind automatic substitutions.',
     tag: '7 sections',
+  },
+  {
+    to: '/training/nursing',
+    icon: Stethoscope,
+    title: 'Nursing Notes',
+    desc: 'Resident vitals with automatic BP classification, scheduled and PRN medications, and shift-by-shift care notes with supervisor flagging.',
+    tag: '4 sections',
   },
 ]
 
