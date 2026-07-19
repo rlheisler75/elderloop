@@ -520,9 +520,7 @@ export default function SuperAdminDashboard() {
       <aside className="w-60 bg-slate-900 border-r border-slate-800 flex flex-col flex-shrink-0">
         <div className="px-5 py-5 border-b border-slate-800">
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-7 h-7 bg-brand-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xs">EL</span>
-            </div>
+            <img src="/icon-96.png" alt="ElderLoop" className="w-7 h-7 rounded-lg" />
             <span className="text-white font-semibold" style={{ fontFamily: '"Playfair Display", serif' }}>ElderLoop</span>
           </div>
           <div className="flex items-center gap-1.5 mt-1">

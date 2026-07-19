@@ -229,7 +229,7 @@ export default function CEODashboard() {
             <div className="flex items-center gap-3 mb-1">
               {organization?.logo_url
                 ? <img src={organization.logo_url} alt="" className="w-10 h-10 rounded-xl object-cover flex-shrink-0" />
-                : <div className="w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center flex-shrink-0"><span className="text-white font-bold text-sm">EL</span></div>
+                : <img src="/icon-96.png" alt="ElderLoop" className="w-10 h-10 rounded-xl flex-shrink-0" />
               }
               <div>
                 <div className="text-white font-semibold leading-tight" style={{ fontFamily: '"Playfair Display", serif' }}>

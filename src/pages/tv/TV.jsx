@@ -310,7 +310,7 @@ export default function TV() {
   if (loading) return (
     <div style={styles.fullscreen}>
       <div style={{ textAlign: 'center' }}>
-        <div style={{ ...styles.logoCircle, background: '#0c90e1', width: 56, height: 56, fontSize: 20, margin: '0 auto 16px' }}>EL</div>
+        <img src="/icon-96.png" alt="ElderLoop" style={{ width: 56, height: 56, borderRadius: 12, margin: '0 auto 16px' }} />
         <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14 }}>Loading signage…</p>
       </div>
     </div>
