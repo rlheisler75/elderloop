@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan } from 'lucide-react'
+import { HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays } from 'lucide-react'
 
 const GUIDES = [
   {
@@ -36,6 +36,13 @@ const GUIDES = [
     title: 'Housekeeping',
     desc: 'LTC room and common-area inspection checklists, plus booking, completing, and billing independent living cleaning requests.',
     tag: '2 sections',
+  },
+  {
+    to: '/training/activities',
+    icon: CalendarDays,
+    title: 'Activities',
+    desc: 'Building the activity calendar, setting up recurring classes, the Upcoming list view, and printing a monthly schedule.',
+    tag: '4 sections',
   },
 ]
 

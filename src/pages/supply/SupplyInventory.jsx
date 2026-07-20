@@ -148,7 +148,8 @@ function ItemModal({ item, vendors, orgId, profileId, canEdit, onClose, onSaved 
         </div>
 
         {/* Body */}
-        <fieldset disabled={readOnly} className="flex-1 overflow-y-auto px-6 py-5 disabled:opacity-75">
+        <div className="flex-1 overflow-y-auto px-6 py-5">
+        <fieldset disabled={readOnly} className="disabled:opacity-75">
           {error && (
             <div className="mb-4 px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">
               {error}
@@ -346,6 +347,7 @@ function ItemModal({ item, vendors, orgId, profileId, canEdit, onClose, onSaved 
             </div>
           )}
         </fieldset>
+        </div>
 
         {/* Footer */}
         <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between flex-shrink-0">
