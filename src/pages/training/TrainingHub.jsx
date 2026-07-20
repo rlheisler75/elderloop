@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench } from 'lucide-react'
+import { HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan } from 'lucide-react'
 
 const GUIDES = [
   {
@@ -29,6 +29,13 @@ const GUIDES = [
     title: 'Maintenance',
     desc: 'Work orders with SLA tracking, the asset registry, preventive maintenance schedules, and Life Safety compliance with a one-click surveyor report.',
     tag: '5 sections',
+  },
+  {
+    to: '/training/housekeeping',
+    icon: SprayCan,
+    title: 'Housekeeping',
+    desc: 'LTC room and common-area inspection checklists, plus booking, completing, and billing independent living cleaning requests.',
+    tag: '2 sections',
   },
 ]
 
