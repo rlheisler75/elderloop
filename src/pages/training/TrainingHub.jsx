@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays, Church, Megaphone, MessageSquare, Car } from 'lucide-react'
+import { HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays, Church, Megaphone, MessageSquare, Car, Building2 } from 'lucide-react'
 
 const GUIDES = [
   {
@@ -71,6 +71,13 @@ const GUIDES = [
     title: 'Transportation',
     desc: 'Medical transport scheduling by month or day, the trip log for actual times and mileage, and printing a daily driver trip sheet.',
     tag: '5 sections',
+  },
+  {
+    to: '/training/property-management',
+    icon: Building2,
+    title: 'Property Management',
+    desc: 'Independent living units, tenants, leases and the rent ledger, key tracking, move-in/move-out walkthroughs, and legal notices.',
+    tag: '6 sections',
   },
 ]
 
