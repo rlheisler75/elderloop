@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays, Church } from 'lucide-react'
+import { HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays, Church, Megaphone } from 'lucide-react'
 
 const GUIDES = [
   {
@@ -50,6 +50,13 @@ const GUIDES = [
     title: 'Chapel',
     desc: 'The Chaplain Portal — scheduling services, streaming them live to YouTube, and keeping a record of attendance and recordings.',
     tag: '4 sections',
+  },
+  {
+    to: '/training/marketing',
+    icon: Megaphone,
+    title: 'Marketing',
+    desc: 'The lead pipeline, activity logging, campaign budget and goal tracking, and referral source management.',
+    tag: '5 sections',
   },
 ]
 
