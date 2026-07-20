@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays, Church, Megaphone } from 'lucide-react'
+import { HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays, Church, Megaphone, MessageSquare } from 'lucide-react'
 
 const GUIDES = [
   {
@@ -57,6 +57,13 @@ const GUIDES = [
     title: 'Marketing',
     desc: 'The lead pipeline, activity logging, campaign budget and goal tracking, and referral source management.',
     tag: '5 sections',
+  },
+  {
+    to: '/training/communication',
+    icon: MessageSquare,
+    title: 'Communication',
+    desc: 'The announcements board and Digital Signage, plus broadcast messaging over push, email, and SMS to residents, family, and staff.',
+    tag: '4 sections',
   },
 ]
 
