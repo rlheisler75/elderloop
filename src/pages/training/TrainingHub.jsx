@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays, Church, Megaphone, MessageSquare, Car, Building2, Package } from 'lucide-react'
+import { HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays, Church, Megaphone, MessageSquare, Car, Building2, Package, ShieldCheck } from 'lucide-react'
 
 const GUIDES = [
   {
@@ -85,6 +85,13 @@ const GUIDES = [
     title: 'Central Supply',
     desc: 'The supply catalog, receiving stock, issuing to departments or residents, cash sales, purchase orders, vendors, and usage reports.',
     tag: '7 sections',
+  },
+  {
+    to: '/training/security',
+    icon: ShieldCheck,
+    title: 'Security',
+    desc: 'GPS-verified guard rounds and checkpoints, starting and completing a round, filing security reports, and round history.',
+    tag: '5 sections',
   },
 ]
 

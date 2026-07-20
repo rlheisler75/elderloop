@@ -58,6 +58,7 @@ const CommunicationGuide = lazy(() => import('./pages/training/CommunicationGuid
 const TransportationGuide = lazy(() => import('./pages/training/TransportationGuide'))
 const PropertyGuide = lazy(() => import('./pages/training/PropertyGuide'))
 const SupplyGuide = lazy(() => import('./pages/training/SupplyGuide'))
+const SecurityGuide = lazy(() => import('./pages/training/SecurityGuide'))
 
 // Public TV & role-specific portals (outside the staff Layout)
 import TV            from './pages/tv/TV'
@@ -226,6 +227,7 @@ export default function App() {
         <Route path="/training/transportation"      element={<Lazy><TransportationGuide /></Lazy>} />
         <Route path="/training/property-management" element={<Lazy><PropertyGuide /></Lazy>} />
         <Route path="/training/central-supply"      element={<Lazy><SupplyGuide /></Lazy>} />
+        <Route path="/training/security"            element={<Lazy><SecurityGuide /></Lazy>} />
         <Route path="/resident"       element={user ? <ResidentPortal /> : <Navigate to="/login" replace />} />
         <Route path="/family-portal"  element={user ? <FamilyPortal />  : <Navigate to="/login" replace />} />
         <Route path="/rep"            element={!user ? <Navigate to="/login" replace /> : isSuperAdmin ? <Lazy><RepPortal /></Lazy> : <Navigate to="/app/dashboard" replace />} />
