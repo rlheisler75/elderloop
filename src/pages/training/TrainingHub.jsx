@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays } from 'lucide-react'
+import { HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays, Church } from 'lucide-react'
 
 const GUIDES = [
   {
@@ -42,6 +42,13 @@ const GUIDES = [
     icon: CalendarDays,
     title: 'Activities',
     desc: 'Building the activity calendar, setting up recurring classes, the Upcoming list view, and printing a monthly schedule.',
+    tag: '4 sections',
+  },
+  {
+    to: '/training/chapel',
+    icon: Church,
+    title: 'Chapel',
+    desc: 'The Chaplain Portal — scheduling services, streaming them live to YouTube, and keeping a record of attendance and recordings.',
     tag: '4 sections',
   },
 ]
