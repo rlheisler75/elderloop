@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays, Church, Megaphone, MessageSquare, Car, Building2 } from 'lucide-react'
+import { HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays, Church, Megaphone, MessageSquare, Car, Building2, Package } from 'lucide-react'
 
 const GUIDES = [
   {
@@ -78,6 +78,13 @@ const GUIDES = [
     title: 'Property Management',
     desc: 'Independent living units, tenants, leases and the rent ledger, key tracking, move-in/move-out walkthroughs, and legal notices.',
     tag: '6 sections',
+  },
+  {
+    to: '/training/central-supply',
+    icon: Package,
+    title: 'Central Supply',
+    desc: 'The supply catalog, receiving stock, issuing to departments or residents, cash sales, purchase orders, vendors, and usage reports.',
+    tag: '7 sections',
   },
 ]
 
