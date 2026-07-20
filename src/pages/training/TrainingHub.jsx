@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays, Church, Megaphone, MessageSquare } from 'lucide-react'
+import { HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays, Church, Megaphone, MessageSquare, Car } from 'lucide-react'
 
 const GUIDES = [
   {
@@ -64,6 +64,13 @@ const GUIDES = [
     title: 'Communication',
     desc: 'The announcements board and Digital Signage, plus broadcast messaging over push, email, and SMS to residents, family, and staff.',
     tag: '4 sections',
+  },
+  {
+    to: '/training/transportation',
+    icon: Car,
+    title: 'Transportation',
+    desc: 'Medical transport scheduling by month or day, the trip log for actual times and mileage, and printing a daily driver trip sheet.',
+    tag: '5 sections',
   },
 ]
 

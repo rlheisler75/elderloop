@@ -652,7 +652,8 @@ export default function Transportation() {
         </>
       )}
 
-
+      {/* DAY VIEW */}
+      {view === 'day' && (
         <>
           {/* Date nav */}
           <div className="flex items-center gap-3 mb-4">
@@ -757,7 +758,7 @@ export default function Transportation() {
             </div>
           )}
         </>
-      
+      )}
 
       {/* LIST VIEW */}
       {view === 'list' && (
