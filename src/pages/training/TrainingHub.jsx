@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays, Church, Megaphone, MessageSquare, Car, Building2, Package, ShieldCheck } from 'lucide-react'
+import { HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays, Church, Megaphone, MessageSquare, Car, Building2, Package, ShieldCheck, Gauge } from 'lucide-react'
 
 const GUIDES = [
   {
@@ -91,6 +91,13 @@ const GUIDES = [
     icon: ShieldCheck,
     title: 'Security',
     desc: 'GPS-verified guard rounds and checkpoints, starting and completing a round, filing security reports, and round history.',
+    tag: '5 sections',
+  },
+  {
+    to: '/training/meters',
+    icon: Gauge,
+    title: 'Meter Readings',
+    desc: 'Tracking resident utility meters by type, entering readings with automatic usage and cost calculation, and per-meter history.',
     tag: '5 sections',
   },
 ]
