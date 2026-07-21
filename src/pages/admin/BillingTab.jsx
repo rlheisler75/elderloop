@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import {
   CreditCard, CheckCircle, AlertTriangle, XCircle, Clock,
   Zap, Building2, ChevronRight, ExternalLink, RefreshCw,
-  Star, Shield, Infinity
+  Star, Shield, Infinity, UserCircle2, Mail, Phone
 } from 'lucide-react'
 
 // ── Plan definitions — update price IDs after creating in Stripe ──
@@ -93,6 +93,7 @@ const fmtMoney = (n) => n != null ? `$${Number(n).toLocaleString()}` : '—'
 export default function BillingTab() {
   const { profile, organization } = useAuth()
   const [org, setOrg]           = useState(null)
+  const [repInfo, setRepInfo]   = useState(null)
   const [loading, setLoading]   = useState(true)
   const [actionLoading, setActionLoading] = useState(null)
   const [message, setMessage]   = useState(null)
@@ -114,10 +115,22 @@ export default function BillingTab() {
     setLoading(true)
     const { data } = await supabase
       .from('organizations')
-      .select('*, subscription_status, stripe_customer_id, stripe_subscription_id, current_period_end, trial_end, cancel_at_period_end, plan, plan_price')
+      .select('*, subscription_status, stripe_customer_id, stripe_subscription_id, current_period_end, trial_end, cancel_at_period_end, plan, plan_price, rep_id')
       .eq('id', profile.organization_id)
       .single()
     setOrg(data)
+
+    if (data?.rep_id) {
+      const { data: rep } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, email, phone')
+        .eq('id', data.rep_id)
+        .single()
+      setRepInfo(rep || null)
+    } else {
+      setRepInfo(null)
+    }
+
     setLoading(false)
   }
 
@@ -250,6 +263,35 @@ export default function BillingTab() {
           </button>
         </div>
       </div>
+
+      {/* Your account rep */}
+      {repInfo && (
+        <div className="mb-8 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 flex items-center gap-4 flex-wrap">
+          <div className="w-11 h-11 rounded-full bg-brand-50 dark:bg-brand-950/40 flex items-center justify-center flex-shrink-0">
+            <UserCircle2 size={22} className="text-brand-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Your Account Rep</p>
+            <p className="font-semibold text-slate-800 dark:text-slate-100">
+              {repInfo.first_name} {repInfo.last_name}
+            </p>
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            {repInfo.email && (
+              <a href={`mailto:${repInfo.email}`}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-brand-300 hover:text-brand-600 transition-colors">
+                <Mail size={13} /> {repInfo.email}
+              </a>
+            )}
+            {repInfo.phone && (
+              <a href={`tel:${repInfo.phone}`}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-brand-300 hover:text-brand-600 transition-colors">
+                <Phone size={13} /> {repInfo.phone}
+              </a>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Plans */}
       {!hasActiveSub && (
