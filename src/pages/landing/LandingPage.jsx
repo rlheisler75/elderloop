@@ -151,6 +151,10 @@ export default function LandingPage() {
                 {item}
               </a>
             ))}
+            <button onClick={() => navigate('/training')}
+              className={`text-sm font-medium transition-colors hover:text-brand-500 ${scrolled ? 'text-slate-600' : 'text-white/80'}`}>
+              Training
+            </button>
           </div>
           <div className="hidden md:flex items-center gap-3">
             <button onClick={() => navigate('/login')}
@@ -172,6 +176,8 @@ export default function LandingPage() {
               <a key={item} href={`#${item.toLowerCase()}`} onClick={() => setMenuOpen(false)}
                 className="block text-slate-700 font-medium py-1.5 text-sm">{item}</a>
             ))}
+            <button onClick={() => { setMenuOpen(false); navigate('/training') }}
+              className="block text-slate-700 font-medium py-1.5 text-sm">Training</button>
              <div className="flex flex-col gap-2 mt-2">
               <button onClick={() => navigate('/signup')}
                 className="w-full py-3 bg-brand-600 text-white font-semibold rounded-xl text-sm">
