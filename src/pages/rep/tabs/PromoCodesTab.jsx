@@ -1,5 +1,46 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../../lib/supabase'
+import { useAuth } from '../../../context/AuthContext'
+import { Copy, Check, Link as LinkIcon } from 'lucide-react'
+
+function MyLinkCard() {
+  const { profile } = useAuth()
+  const [repCode, setRepCode] = useState(null)
+  const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    if (!profile?.id) return
+    supabase.from('rep_codes').select('code').eq('rep_id', profile.id).single()
+      .then(({ data }) => setRepCode(data?.code || null))
+  }, [profile?.id])
+
+  const link = repCode ? `https://elderloop.xyz/signup?rep=${repCode}` : ''
+
+  const handleCopy = async () => {
+    if (!link) return
+    await navigator.clipboard.writeText(link)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div className="bg-brand-950 rounded-xl p-5 mb-6 flex items-center justify-between gap-4 flex-wrap">
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="w-9 h-9 bg-brand-600 rounded-xl flex items-center justify-center flex-shrink-0">
+          <LinkIcon size={16} className="text-white" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-brand-300 text-xs font-medium uppercase tracking-wide">Your Signup Link</p>
+          <p className="text-white font-mono text-sm truncate">{link || 'Loading...'}</p>
+        </div>
+      </div>
+      <button onClick={handleCopy} disabled={!link}
+        className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50">
+        {copied ? <><Check size={14} /> Copied!</> : <><Copy size={14} /> Copy Link</>}
+      </button>
+    </div>
+  )
+}
 
 const PLAN_OPTIONS = [
   { value: '', label: 'Any' },
@@ -135,6 +176,8 @@ export default function PromoCodesTab() {
           + New Promo Code
         </button>
       </div>
+
+      <MyLinkCard />
 
       <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
         <table className="w-full text-sm">

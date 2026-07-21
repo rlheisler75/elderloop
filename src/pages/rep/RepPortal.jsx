@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
 import {
-  Building2, DollarSign, Megaphone, FileText, Tag,
+  Building2, DollarSign, Megaphone, FileText, Tag, Mail,
   LogOut, Eye, EyeOff, Loader2, AlertCircle, KeyRound
 } from 'lucide-react'
 import AccountsTab from './tabs/AccountsTab'
@@ -11,6 +11,7 @@ import CommissionsTab from './tabs/CommissionsTab'
 import ProspectsTab from './tabs/ProspectsTab'
 import MaterialsTab from './tabs/MaterialsTab'
 import PromoCodesTab from './tabs/PromoCodesTab'
+import EmailTemplatesTab from './tabs/EmailTemplatesTab'
 
 // ── Mandatory password change (first login on an admin-created rep account) ──
 function MustChangePasswordGate({ onDone }) {
@@ -112,6 +113,7 @@ const TABS = [
   { key: 'commissions', label: 'Commissions & Residuals', icon: DollarSign },
   { key: 'prospects',   label: 'Marketing',              icon: Megaphone },
   { key: 'materials',   label: 'Promo Materials',        icon: FileText },
+  { key: 'templates',   label: 'Email Templates',        icon: Mail },
   { key: 'promocodes',  label: 'Promo Codes & My Link',  icon: Tag },
 ]
 
@@ -191,6 +193,7 @@ export default function RepPortal() {
         {tab === 'commissions' && <CommissionsTab />}
         {tab === 'prospects'   && <ProspectsTab />}
         {tab === 'materials'   && <MaterialsTab />}
+        {tab === 'templates'   && <EmailTemplatesTab />}
         {tab === 'promocodes'  && <PromoCodesTab />}
       </div>
     </div>
