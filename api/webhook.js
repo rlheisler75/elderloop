@@ -68,7 +68,7 @@ export default async function handler(req, res) {
           ...PLAN_LIMITS[plan],
         }).eq('id', orgId)
         await enableModulesForPlan(orgId, plan)
-        await redeemPromoCodeIfUsed(session.id)
+        await redeemPromoCodeIfUsed(session.id, orgId)
         break
       }
 
@@ -183,7 +183,11 @@ async function enableModulesForPlan(orgId, plan) {
 }
 
 // If the checkout session redeemed a rep promotion code, credit the redemption
-async function redeemPromoCodeIfUsed(sessionId) {
+// and — if this org isn't already attributed to a rep — attribute it to whichever
+// rep owns that code. This covers signups that only ever used a promo code (typed
+// straight into Stripe Checkout, or passed via ?promo=) with no ?rep= link click,
+// which would otherwise never show up in that rep's Accounts/Commissions tabs.
+async function redeemPromoCodeIfUsed(sessionId, orgId) {
   try {
     const fullSession = await stripe.checkout.sessions.retrieve(sessionId, {
       expand: ['discounts.promotion_code'],
@@ -194,6 +198,25 @@ async function redeemPromoCodeIfUsed(sessionId) {
       : promo?.code
     if (!code) return
     await supabase.rpc('increment_promo_redemption', { p_code: code })
+
+    const { data: promoRow } = await supabase
+      .from('rep_promo_codes')
+      .select('rep_id')
+      .eq('code', code)
+      .single()
+    if (!promoRow?.rep_id) return
+
+    const { data: repCodeRow } = await supabase
+      .from('rep_codes')
+      .select('code')
+      .eq('rep_id', promoRow.rep_id)
+      .maybeSingle()
+
+    await supabase
+      .from('organizations')
+      .update({ rep_id: promoRow.rep_id, ...(repCodeRow?.code ? { rep_code: repCodeRow.code } : {}) })
+      .eq('id', orgId)
+      .is('rep_id', null)
   } catch (err) {
     console.error('redeemPromoCodeIfUsed error:', err.message)
   }
