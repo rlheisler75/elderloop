@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays, Church, Megaphone, MessageSquare, Car, Building2, Package, ShieldCheck, Gauge } from 'lucide-react'
+import { HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays, Church, Megaphone, MessageSquare, Car, Building2, Package, ShieldCheck, Gauge, Laptop } from 'lucide-react'
 
 const GUIDES = [
   {
@@ -98,6 +98,13 @@ const GUIDES = [
     icon: Gauge,
     title: 'Meter Readings',
     desc: 'Tracking resident utility meters by type, entering readings with automatic usage and cost calculation, and per-meter history.',
+    tag: '5 sections',
+  },
+  {
+    to: '/training/it',
+    icon: Laptop,
+    title: 'IT & Technology',
+    desc: 'Submitting and managing support tickets, and tracking every computer, printer, and piece of equipment in the building.',
     tag: '5 sections',
   },
 ]
