@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import {
-  Users, DollarSign, TrendingUp, Plus, Copy, Check,
+  Users, DollarSign, TrendingUp, Copy, Check,
   ChevronDown, ChevronRight, Building2, Calendar,
-  Loader2, AlertCircle, Edit2, Save, X
+  Loader2, Edit2, Save, X
 } from 'lucide-react'
 
 const PLAN_MRR = { starter: 0, essential: 299, professional: 999, pilot: 0 }
@@ -108,83 +108,6 @@ function RepRow({ repCode, orgs, onOrgRepChange, repMeta = {} }) {
   )
 }
 
-// ── New Rep Code Form ─────────────────────────────────────────
-function NewRepCodeModal({ existingCodes, onClose, onCreated }) {
-  const [code, setCode] = useState('')
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [error, setError] = useState('')
-
-  const generate = () => {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-    setCode(Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join(''))
-  }
-
-  const handleCreate = () => {
-    const upper = code.toUpperCase().trim()
-    if (!upper) { setError('Rep code is required.'); return }
-    if (upper.length < 3) { setError('Code must be at least 3 characters.'); return }
-    if (existingCodes.includes(upper)) { setError('This code already exists.'); return }
-    onCreated({ code: upper, name, email })
-    onClose()
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
-          <h3 className="font-display font-bold text-slate-800 dark:text-slate-100">Create Rep Code</h3>
-          <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
-            <X size={16} />
-          </button>
-        </div>
-        <div className="px-6 py-5 space-y-4">
-          {error && (
-            <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/50 px-3 py-2 rounded-lg">
-              <AlertCircle size={14} /> {error}
-            </div>
-          )}
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Rep Code *</label>
-            <div className="flex gap-2">
-              <input
-                value={code}
-                onChange={e => setCode(e.target.value.toUpperCase())}
-                placeholder="e.g. SMITH25"
-                maxLength={10}
-                className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-mono text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500" />
-              <button onClick={generate}
-                className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 transition-colors">
-                Generate
-              </button>
-            </div>
-            <p className="text-xs text-slate-400 mt-1">Share this as: elderloop.xyz/signup?rep={code || 'CODE'}</p>
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Rep Name</label>
-            <input value={name} onChange={e => setName(e.target.value)}
-              placeholder="Full name of rep"
-              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500" />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Rep Email</label>
-            <input value={email} onChange={e => setEmail(e.target.value)}
-              placeholder="rep@example.com" type="email"
-              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500" />
-          </div>
-        </div>
-        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300">Cancel</button>
-          <button onClick={handleCreate}
-            className="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl transition-colors">
-            Create Code
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 // ── Assign Rep Modal ──────────────────────────────────────────
 function AssignRepModal({ org, repCodes, onClose, onSaved }) {
   const [code, setCode] = useState(org.rep_code || '')
@@ -237,7 +160,6 @@ export default function RepTracker() {
   const [repMeta,    setRepMeta]    = useState({}) // { CODE: { name, email } }
   const [repCodes,   setRepCodes]   = useState([])
   const [loading,    setLoading]    = useState(true)
-  const [showNew,    setShowNew]    = useState(false)
   const [assigning,  setAssigning]  = useState(null) // org being assigned
   const [copied,     setCopied]     = useState(null)
 
@@ -282,16 +204,6 @@ export default function RepTracker() {
   const repMRR   = orgs.filter(o => o.rep_code).reduce((s, o) => s + (PLAN_MRR[o.plan] || 0), 0)
   const repCount = Object.keys(grouped).length
 
-  const handleNewRepCreated = async ({ code, name, email }) => {
-    // Save to rep_codes table for persistence
-    await supabase.from('rep_codes').upsert(
-      { code, name: name || null, email: email || null },
-      { onConflict: 'code' }
-    )
-    setRepMeta(prev => ({ ...prev, [code]: { name, email } }))
-    setRepCodes(prev => [...new Set([...prev, code])].sort())
-  }
-
   const copySignupLink = (code) => {
     navigator.clipboard.writeText(`https://elderloop.xyz/signup?rep=${code}`)
     setCopied(code)
@@ -312,10 +224,7 @@ export default function RepTracker() {
           <h2 className="font-display font-bold text-slate-800 dark:text-slate-100 text-lg">Rep Tracking</h2>
           <p className="text-xs text-slate-400 mt-0.5">Signups and MRR attributed to sales reps by code</p>
         </div>
-        <button onClick={() => setShowNew(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl shadow-sm transition-colors">
-          <Plus size={15} /> New Rep Code
-        </button>
+        <p className="text-xs text-slate-400">To create or manage a rep's login, use the <span className="font-medium text-slate-600 dark:text-slate-300">Rep Accounts</span> tab.</p>
       </div>
 
       {/* Summary stats */}
@@ -462,13 +371,6 @@ export default function RepTracker() {
       </div>
 
       {/* Modals */}
-      {showNew && (
-        <NewRepCodeModal
-          existingCodes={repCodes}
-          onClose={() => setShowNew(false)}
-          onCreated={handleNewRepCreated}
-        />
-      )}
       {assigning && (
         <AssignRepModal
           org={assigning}
