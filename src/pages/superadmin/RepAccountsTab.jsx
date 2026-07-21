@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import {
   UserPlus, Copy, Check, Loader2, AlertCircle, Edit2, Save, X,
-  Power, PowerOff, RefreshCw, Eye, EyeOff
+  Power, PowerOff, RefreshCw, Eye, EyeOff, KeyRound
 } from 'lucide-react'
 
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
@@ -260,7 +260,9 @@ export default function RepAccountsTab() {
   const [showNew, setShowNew] = useState(false)
   const [editing, setEditing] = useState(null)
   const [toggling, setToggling] = useState(null)
+  const [sendingReset, setSendingReset] = useState(null)
   const [justCreatedCode, setJustCreatedCode] = useState(null)
+  const [resetSentFor, setResetSentFor] = useState(null)
 
   useEffect(() => { fetchAll() }, [])
 
@@ -285,6 +287,23 @@ export default function RepAccountsTab() {
     }
     await fetchAll()
     setToggling(null)
+  }
+
+  const sendResetLink = async (rep) => {
+    setSendingReset(rep.id)
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      await fetch(`${supabaseUrl}/functions/v1/send-password-reset`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: rep.email }),
+      })
+      setResetSentFor(rep.id)
+      setTimeout(() => setResetSentFor(null), 4000)
+    } catch (err) {
+      // best-effort — nothing sensitive to report either way
+    }
+    setSendingReset(null)
   }
 
   if (loading) return (
@@ -359,6 +378,13 @@ export default function RepAccountsTab() {
                   <td className="px-5 py-3 text-xs text-slate-400">{fmtDate(rep.created_at)}</td>
                   <td className="px-5 py-3">
                     <div className="flex items-center gap-1 justify-end">
+                      {resetSentFor === rep.id && (
+                        <span className="text-xs text-green-600 dark:text-green-400 mr-1">Sent!</span>
+                      )}
+                      <button onClick={() => sendResetLink(rep)} disabled={sendingReset === rep.id} title="Send password reset link"
+                        className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/30 rounded-lg transition-colors">
+                        {sendingReset === rep.id ? <Loader2 size={14} className="animate-spin" /> : <KeyRound size={14} />}
+                      </button>
                       <button onClick={() => setEditing(rep)} title="Edit"
                         className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/30 rounded-lg transition-colors">
                         <Edit2 size={14} />

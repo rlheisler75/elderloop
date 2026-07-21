@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { supabase } from '../../lib/supabase'
 import { ArrowLeft, Loader2, CheckCircle } from 'lucide-react'
 
 export default function ForgotPassword() {
@@ -14,16 +13,26 @@ export default function ForgotPassword() {
     if (!email.trim()) { setError('Please enter your email address.'); return }
     setLoading(true); setError('')
 
-    const { error: err } = await supabase.auth.resetPasswordForEmail(
-      email.trim().toLowerCase(),
-      { redirectTo: `${window.location.origin}/reset-password` }
-    )
-
-    setLoading(false)
-    if (err) {
-      setError(err.message)
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const res = await fetch(`${supabaseUrl}/functions/v1/send-password-reset`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim().toLowerCase() }),
+      })
+      const data = await res.json()
+      if (!data.success) {
+        setError(data.error || 'Something went wrong. Please try again.')
+        setLoading(false)
+        return
+      }
+    } catch (err) {
+      setError('Something went wrong. Please try again.')
+      setLoading(false)
       return
     }
+
+    setLoading(false)
     setSent(true)
   }
 
