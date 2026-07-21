@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-ElderLoop is a multi-tenant senior living management platform (elderloop.xyz), built by Loopware Solutions LLC. It's a single-page React app (plain JSX, not TypeScript) built with Vite, backed by Supabase (Postgres + Auth + RLS), styled with Tailwind CSS, and deployed on Vercel. A small set of Vercel serverless functions in `api/` handle Stripe billing operations that require secret keys.
+ElderLoop is a multi-tenant senior living management platform (elderloop.xyz), built by Loopware Solutions LLC. It's a single-page React app (plain JSX, not TypeScript) built with Vite, backed by Supabase (Postgres + Auth + RLS), styled with Tailwind CSS, and deployed on Vercel. Server-side logic that needs a secret key lives in two places: a small set of Vercel serverless functions in `api/` (Stripe billing + the Stripe webhook), and a set of Supabase Edge Functions (account/org creation, checkout, rep promo codes, transactional email) deployed straight to the hosted Supabase project — see "Data access" below.
 
 ElderLoop has a sibling product, **littleloop** (childcare management, same company), built on similar architecture (Supabase + Vercel). When a pattern here seems ad hoc or you want precedent for how a cross-cutting concern was solved, it may be worth checking how littleloop handled it.
 
@@ -20,10 +20,11 @@ npm run preview   # preview the production build
 There is no lint, typecheck, or test tooling configured in this repo (no ESLint/Prettier config, no `tsconfig.json`, no Jest/Vitest/Playwright, no test files). Don't invent commands for these — verify changes by running `npm run dev` and exercising the affected page/flow manually.
 
 Local env setup: `cp .env.example .env.local` and fill in `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`. Other env vars referenced in code but not in `.env.example`:
-- Client (Vite, must be prefixed `VITE_`): `VITE_STRIPE_PRICE_STARTER`, `VITE_STRIPE_PRICE_COMMUNITY`, `VITE_VAPID_PUBLIC_KEY` (web push)
-- Server (Vercel env, used only by `api/*.js`): `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_STARTER`, `STRIPE_PRICE_ESSENTIAL`/`STRIPE_PRICE_COMMUNITY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_APP_URL`
+- Client (Vite, must be prefixed `VITE_`): `VITE_STRIPE_PRICE_ESSENTIAL`, `VITE_STRIPE_PRICE_PROFESSIONAL` (read by `src/pages/admin/BillingTab.jsx` only to gray out/label upgrade buttons — the real price ID resolution happens server-side), `VITE_VAPID_PUBLIC_KEY` (web push)
+- Server, Vercel env (used only by `api/*.js`): `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_STARTER`, `STRIPE_PRICE_ESSENTIAL`/`STRIPE_PRICE_PROFESSIONAL`/`STRIPE_PRICE_COMMUNITY` (legacy alias, maps to professional), `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
+- Server, **Supabase Edge Function secrets** (a separate store from Vercel's env — set via the Supabase dashboard or `supabase secrets set`, not `.env`): `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ESSENTIAL`, `STRIPE_PRICE_PROFESSIONAL`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_ANON_KEY`, `RESEND_API_KEY`, `SITE_URL` (optional — functions that read it fall back to `https://elderloop.xyz` if unset)
 
-There is no local `supabase/` directory (no `config.toml`, no migrations, no local edge functions) — the schema lives only in the hosted Supabase project. Use the Supabase MCP tools (`list_tables`, `execute_sql`, `get_advisors`, etc.) to inspect schema/data rather than looking for local migration files.
+There is no local `supabase/` directory (no `config.toml`, no migrations, no local edge function source) — the schema and edge functions live only in the hosted Supabase project. Use the Supabase MCP tools (`list_tables`, `execute_sql`, `get_advisors`, `list_edge_functions`, `get_edge_function`, etc.) to inspect schema/data/function source rather than looking for local files.
 
 ## Architecture
 
@@ -51,14 +52,24 @@ Each org has a `plan` (`starter`/`essential`/`professional`) and `billing_status
 3. Supabase — the `module_key` must exist in `modules` and be enabled in `organization_modules` for orgs that should see it
 
 ### Data access — no backend framework
-Nearly all reads/writes go directly from the browser to Supabase (`supabase.from(...)`), authorized by Postgres RLS using the anon key (`src/lib/supabase.js`, HMR-safe singleton via `globalThis`). The only server-side code is `api/`, used exclusively where a secret is required:
-- `api/create-checkout.js` — creates/upserts Stripe customer on `organizations`, creates a Checkout Session (14-day trial)
+Nearly all reads/writes go directly from the browser to Supabase (`supabase.from(...)`), authorized by Postgres RLS using the anon key (`src/lib/supabase.js`, HMR-safe singleton via `globalThis`). Server-side code (secret-key operations) is split across two layers — check both before assuming a flow is dead code, and check both when fixing a bug in one of these areas:
+
+**Vercel serverless functions (`api/`)**, deployed automatically from this repo:
 - `api/create-portal.js` — creates a Stripe Billing Portal session
 - `api/invoices.js` — lists Stripe invoices for a customer
-- `api/webhook.js` — Stripe webhook → mutates `organization_modules` (see above)
-- `api/rep/create-promo-code.js` — validates a Supabase JWT (`supabase.auth.getUser(token)`), requires role `sales_rep`/`super_admin`, creates a Stripe Coupon + Promotion Code, inserts into `rep_promo_codes` (rolls back the Stripe objects if the Supabase insert fails)
+- `api/webhook.js` — the live Stripe webhook target → mutates `organizations` billing fields and `organization_modules` on `checkout.session.completed`/`customer.subscription.*`/`invoice.payment_*`; also backfills `organizations.rep_id` when a redeemed promo code belongs to a rep and the org isn't already attributed
+- `api/rep/create-promo-code.js` — the **actively-used** promo-code creator: validates a Supabase JWT, requires role `sales_rep`/`super_admin`, creates a Stripe Coupon + Promotion Code, inserts into `rep_promo_codes` (rolls back the Stripe objects if the Supabase insert fails); called from `PromoCodesTab.jsx`
 
-These functions use the Supabase **service-role** key (bypasses RLS) — never expose that key or `STRIPE_SECRET_KEY` to client-side code.
+**Supabase Edge Functions**, deployed straight to the hosted project (no local source checked in — use `list_edge_functions`/`get_edge_function` to read them, `deploy_edge_function` to update):
+- `create-org` — signup: creates the auth user + `organizations` row + `org_admin` profile for a new community (called from `Signup.jsx`)
+- `create-checkout` — the **actively-used** Stripe Checkout creator (called from `Signup.jsx` and `BillingTab.jsx`); resolves price IDs server-side, applies a `rep_promo_codes` promo code if valid, handles prorated in-place plan upgrades
+- `create-rep-account` — creates a sales rep's login (org-less `profiles` row, role `sales_rep`) plus its linked `rep_codes` row in one atomic operation; only caller is the Super Admin "Rep Accounts" tab
+- `create-user` — org admin/super admin creating a staff account (requires `organization_id`, so it can't be reused for reps)
+- `enable-family-portal` / `enable-resident-portal` — grants family/resident portal login access, emails a password-setup link via Resend
+- `send-broadcast` / `send-push` — Communication module's broadcast messaging
+- `waitlist-confirm` — public landing-page waitlist form confirmation + internal lead notification emails
+
+These all use the Supabase **service-role** key (bypasses RLS) — never expose that key or `STRIPE_SECRET_KEY` to client-side code. Note: `api/create-checkout.js` (Vercel) was a legacy, entirely unused duplicate of the `create-checkout` Edge Function and has been removed — if you ever see two implementations of the same operation again (one Vercel, one Edge Function), grep `src/` for the actual caller before touching either.
 
 ### Feature modules (`src/pages/`)
 One folder per business module (activities, admin, ceo, chapel, communication, dashboard, dietary, directory, family, housekeeping, incidents, it, landing, marketing, meters, nursing, property, rep, resident, security, signage, social, staff, superadmin, supply, surveys, timeclock, transportation, tv, workorders). Each is largely self-contained and queries Supabase directly; there's no shared API-client abstraction beyond `src/lib/supabase.js`. Notable ones:
