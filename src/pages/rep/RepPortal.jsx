@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
 import {
@@ -124,7 +124,9 @@ const TABS = [
 export default function RepPortal() {
   const { profile, signOut, refreshProfile } = useAuth()
   const navigate = useNavigate()
-  const [tab, setTab]         = useState('accounts')
+  const [searchParams] = useSearchParams()
+  const initialTab = TABS.some(t => t.key === searchParams.get('tab')) ? searchParams.get('tab') : 'accounts'
+  const [tab, setTab]         = useState(initialTab)
   const [repCode, setRepCode] = useState(null)
 
   useEffect(() => {
