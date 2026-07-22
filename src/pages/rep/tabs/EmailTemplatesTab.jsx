@@ -11,7 +11,7 @@ const TEMPLATES = [
     subject: 'A quicker way to run {{community_placeholder}}',
     body: `Hi {{contact_first_name}},
 
-I work with ElderLoop, software built specifically for senior living communities — resident records, staff scheduling, incident reports, family communication, and billing all in one place instead of five different logins.
+I work with ElderLoop, software built specifically for senior living communities — resident records, staff scheduling, incident reports, and family communication all in one place instead of five different logins, working right alongside whatever EMR you already use for clinical billing.
 
 I don't know what you're using today, but if it's a mix of paper, spreadsheets, and a system that wasn't built for senior living, I'd like to show you what a single afternoon on ElderLoop looks like.
 
