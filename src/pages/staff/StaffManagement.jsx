@@ -484,7 +484,7 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
 // ── Create Staff Modal ─────────────────────────────────────────
 function CreateStaffModal({ orgId, departments, onClose, onSave }) {
   const [form, setForm] = useState({
-    first_name: '', last_name: '', email: '', password: '',
+    first_name: '', last_name: '', email: '',
     job_title: '', department: '', phone: '', role: 'staff',
   })
   const [saving, setSaving] = useState(false)
@@ -492,16 +492,14 @@ function CreateStaffModal({ orgId, departments, onClose, onSave }) {
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
   const handleSave = async () => {
-    if (!form.first_name.trim() || !form.email.trim() || !form.password.trim()) {
-      setError('First name, email, and password are required'); return
+    if (!form.first_name.trim() || !form.email.trim()) {
+      setError('First name and email are required'); return
     }
-    if (form.password.length < 8) { setError('Password must be at least 8 characters'); return }
     setSaving(true); setError('')
 
     const { data, error: fnErr } = await supabase.functions.invoke('create-user', {
       body: {
         email:           form.email.trim(),
-        password:        form.password,
         first_name:      form.first_name.trim(),
         last_name:       form.last_name.trim(),
         phone:           form.phone || null,
@@ -556,12 +554,7 @@ function CreateStaffModal({ orgId, departments, onClose, onSave }) {
               className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Password *</label>
-            <input type="password" value={form.password} onChange={e => set('password', e.target.value)}
-              placeholder="Min. 8 characters"
-              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
-          </div>
+          <p className="text-xs text-slate-400 -mt-1">They'll get an email to set their own password — no temp password to hand off.</p>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
