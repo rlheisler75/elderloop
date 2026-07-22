@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays, Church, Megaphone, MessageSquare, Car, Building2, Package, ShieldCheck, Gauge, Laptop } from 'lucide-react'
+import { HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays, Church, Megaphone, MessageSquare, Car, Building2, Package, ShieldCheck, Gauge, Laptop, Contact, Heart, AlertTriangle, CalendarClock, Users, Clock, ClipboardList } from 'lucide-react'
 
 const GUIDES = [
   {
@@ -106,6 +106,55 @@ const GUIDES = [
     title: 'IT & Technology',
     desc: 'Submitting and managing support tickets, and tracking every computer, printer, and piece of equipment in the building.',
     tag: '5 sections',
+  },
+  {
+    to: '/training/directory',
+    icon: Contact,
+    title: 'Directory',
+    desc: 'The resident directory with emergency and medical contacts, plus the staff directory for finding a coworker fast.',
+    tag: '3 sections',
+  },
+  {
+    to: '/training/family',
+    icon: Heart,
+    title: 'Family Messaging',
+    desc: 'Two-way family threads, posting resident updates, and granting Family Portal access from a resident’s profile.',
+    tag: '3 sections',
+  },
+  {
+    to: '/training/incidents',
+    icon: AlertTriangle,
+    title: 'Incident Reports',
+    desc: 'Filing an incident report of any type, and the manager review workflow from Submitted through Closed.',
+    tag: '3 sections',
+  },
+  {
+    to: '/training/scheduling',
+    icon: CalendarClock,
+    title: 'Scheduling',
+    desc: 'The shift calendar, creating and repeating shifts with overlap/overtime warnings, and shift swap requests.',
+    tag: '3 sections',
+  },
+  {
+    to: '/training/staff',
+    icon: Users,
+    title: 'Staff Management',
+    desc: 'Creating staff logins with role-based permissions, and tracking certification compliance across the team.',
+    tag: '3 sections',
+  },
+  {
+    to: '/training/timeclock',
+    icon: Clock,
+    title: 'Time Clock',
+    desc: 'GPS-verified clock in/out, the team and payroll export views, and configuring the facility geofence.',
+    tag: '3 sections',
+  },
+  {
+    to: '/training/surveys',
+    icon: ClipboardList,
+    title: 'Surveys',
+    desc: 'Building a survey with seven question types, sharing the public link, and reading auto-aggregated results.',
+    tag: '3 sections',
   },
 ]
 

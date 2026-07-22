@@ -61,6 +61,13 @@ const SupplyGuide = lazy(() => import('./pages/training/SupplyGuide'))
 const SecurityGuide = lazy(() => import('./pages/training/SecurityGuide'))
 const MeterGuide = lazy(() => import('./pages/training/MeterGuide'))
 const ITGuide = lazy(() => import('./pages/training/ITGuide'))
+const DirectoryGuide = lazy(() => import('./pages/training/DirectoryGuide'))
+const FamilyGuide = lazy(() => import('./pages/training/FamilyGuide'))
+const IncidentsGuide = lazy(() => import('./pages/training/IncidentsGuide'))
+const SchedulingGuide = lazy(() => import('./pages/training/SchedulingGuide'))
+const StaffGuide = lazy(() => import('./pages/training/StaffGuide'))
+const TimeClockGuide = lazy(() => import('./pages/training/TimeClockGuide'))
+const SurveysGuide = lazy(() => import('./pages/training/SurveysGuide'))
 
 // Public TV & role-specific portals (outside the staff Layout)
 import TV            from './pages/tv/TV'
@@ -232,6 +239,13 @@ export default function App() {
         <Route path="/training/security"            element={<Lazy><SecurityGuide /></Lazy>} />
         <Route path="/training/meters"               element={<Lazy><MeterGuide /></Lazy>} />
         <Route path="/training/it"                   element={<Lazy><ITGuide /></Lazy>} />
+        <Route path="/training/directory"            element={<Lazy><DirectoryGuide /></Lazy>} />
+        <Route path="/training/family"               element={<Lazy><FamilyGuide /></Lazy>} />
+        <Route path="/training/incidents"            element={<Lazy><IncidentsGuide /></Lazy>} />
+        <Route path="/training/scheduling"           element={<Lazy><SchedulingGuide /></Lazy>} />
+        <Route path="/training/staff"                element={<Lazy><StaffGuide /></Lazy>} />
+        <Route path="/training/timeclock"            element={<Lazy><TimeClockGuide /></Lazy>} />
+        <Route path="/training/surveys"              element={<Lazy><SurveysGuide /></Lazy>} />
         <Route path="/resident"       element={user ? <ResidentPortal /> : <Navigate to="/login" replace />} />
         <Route path="/family-portal"  element={user ? <FamilyPortal />  : <Navigate to="/login" replace />} />
         <Route path="/rep"            element={!user ? <Navigate to="/login" replace /> : isSuperAdmin ? <Lazy><RepPortal /></Lazy> : <Navigate to="/app/dashboard" replace />} />
