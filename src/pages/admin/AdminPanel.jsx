@@ -6,11 +6,12 @@ import {
   Users, Building2, Settings, Plus, X, Edit2, Trash2,
   Search, Shield, Check, Mail, Key, ToggleLeft, ToggleRight,
   ChevronRight, AlertCircle, CheckCircle2, Clock, Ban,
-  Save, Eye, EyeOff, Globe, Phone, MapPin, User, List
+  Save, Eye, EyeOff, Globe, Phone, MapPin, User, List, Plug, FileText
 } from 'lucide-react'
 import AdminLists from './AdminLists'
 import UserPermissions from './UserPermissions'
 import BillingTab from './BillingTab'
+import PccAuthorizationLetter from './PccAuthorizationLetter'
 import { CreditCard } from 'lucide-react'
 
 const ALL_ROLES = [
@@ -322,6 +323,7 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
     zip:     org.zip     || '',
     phone:   org.phone   || '',
     website: org.website || '',
+    pcc_facility_id: org.pcc_facility_id || '',
   })
   const [enabledModules, setEnabledModules] = useState(
     modules.filter(m => m.is_enabled !== false).map(m => m.module_key)
@@ -353,6 +355,7 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
       name: form.name, address: form.address, city: form.city,
       state: form.state, zip: form.zip, phone: form.phone,
       website: form.website, logo_url: logoUrl || null,
+      pcc_facility_id: form.pcc_facility_id.trim() || null,
       updated_at: new Date().toISOString()
     }).eq('id', org.id)
 
@@ -427,6 +430,14 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
                 className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="https://..." />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">PointClickCare Facility ID</label>
+            <input value={form.pcc_facility_id} onChange={e => set('pcc_facility_id', e.target.value)}
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-brand-500"
+              placeholder="Leave blank if this community doesn't use PointClickCare" />
+            <p className="text-xs text-slate-400 mt-1">Enables a "Sync Now" button on the Import Residents screen. Optional — communities without an EMR integration can leave this blank.</p>
           </div>
 
           <div>
@@ -552,6 +563,7 @@ export default function AdminPanel() {
   const [showOrgSettings, setShowOrgSettings] = useState(false)
   const [editingOrg, setEditingOrg]           = useState(null)
   const [showNewOrg, setShowNewOrg]           = useState(false)
+  const [showPccLetter, setShowPccLetter]     = useState(false)
 
   const superAdmin = isSuperAdmin
   const currentOrgId = selectedOrg?.id || organization?.id
@@ -604,6 +616,7 @@ export default function AdminPanel() {
     { key: 'permissions',  label: 'Module Access',      icon: Shield },
     { key: 'settings',     label: 'Org Settings',       icon: Settings },
     { key: 'lists',        label: 'Lists & Pick Lists', icon: List },
+    { key: 'pcc',          label: 'PointClickCare',     icon: Plug },
     { key: 'billing',      label: 'Billing',            icon: CreditCard },
   ]
 
@@ -818,6 +831,45 @@ export default function AdminPanel() {
         <AdminLists orgId={currentOrgId} />
       )}
 
+      {/* ── POINTCLICKCARE TAB ── */}
+      {tab === 'pcc' && selectedOrg && (
+        <div className="space-y-6">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6">
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 text-lg">PointClickCare Integration</h2>
+                <p className="text-slate-400 text-sm mt-0.5">Sync residents directly from PointClickCare, or request the connection be enabled.</p>
+              </div>
+              {selectedOrg.pcc_facility_id ? (
+                <span className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-green-50 dark:bg-green-950/50 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-900 font-medium flex-shrink-0">
+                  <Check size={12} /> Connected
+                </span>
+              ) : (
+                <span className="text-xs px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 font-medium flex-shrink-0">
+                  Not connected
+                </span>
+              )}
+            </div>
+
+            {selectedOrg.pcc_facility_id ? (
+              <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
+                Facility ID: <span className="font-mono text-slate-800 dark:text-slate-100">{selectedOrg.pcc_facility_id}</span>
+                <span className="block text-xs text-slate-400 mt-1">To sync residents: Lists &amp; Pick Lists → Residents → Import from CSV/Excel → Sync Now.</span>
+              </p>
+            ) : (
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                Not yet connected. Once PointClickCare confirms the connection, set the Facility ID in the Org Settings tab. In the meantime, send them the authorization letter below to request it be enabled.
+              </p>
+            )}
+
+            <button onClick={() => setShowPccLetter(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl transition-colors">
+              <FileText size={15} /> Download Authorization Letter
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Modals */}
       {showCreateUser && (
         <CreateUserModal
@@ -845,6 +897,9 @@ export default function AdminPanel() {
           allModules={allModules}
           onClose={() => setShowNewOrg(false)}
           onSave={() => { setShowNewOrg(false); fetchAll() }} />
+      )}
+      {showPccLetter && currentOrgId && (
+        <PccAuthorizationLetter orgId={currentOrgId} onClose={() => setShowPccLetter(false)} />
       )}
     </div>
   )

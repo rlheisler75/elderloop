@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import {
   Upload, X, Check, AlertTriangle, Download, ChevronRight,
@@ -103,6 +103,39 @@ export default function ResidentImport({ orgId, onImported, onClose }) {
   const [importing, setImporting] = useState(false)
   const [results, setResults]   = useState(null)       // { imported, skipped, errors }
   const [duplicateMode, setDuplicateMode] = useState('skip') // skip | update
+
+  // ── PointClickCare sync ──────────────────────────────────────
+  const [pccFacilityId, setPccFacilityId] = useState(null)
+  const [pccLoading, setPccLoading]       = useState(true)
+  const [syncing, setSyncing]             = useState(false)
+  const [syncResult, setSyncResult]       = useState(null) // { synced, failed, errors }
+  const [syncError, setSyncError]         = useState('')
+
+  useEffect(() => {
+    let cancelled = false
+    supabase.from('organizations').select('pcc_facility_id').eq('id', orgId).single()
+      .then(({ data }) => {
+        if (cancelled) return
+        setPccFacilityId(data?.pcc_facility_id || null)
+        setPccLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [orgId])
+
+  const handlePccSync = async () => {
+    setSyncing(true); setSyncError(''); setSyncResult(null)
+    const { data, error: fnErr } = await supabase.functions.invoke('sync-pcc-residents', {
+      body: { organization_id: orgId },
+    })
+    if (fnErr || data?.success === false) {
+      setSyncError(fnErr?.message || data?.error || 'Sync failed')
+      setSyncing(false)
+      return
+    }
+    setSyncResult(data)
+    setSyncing(false)
+    if (data.synced > 0) onImported()
+  }
 
   // ── Step 1: File upload ──────────────────────────────────────
   const handleFile = (e) => {
@@ -328,20 +361,50 @@ export default function ResidentImport({ orgId, onImported, onClose }) {
                   }} />
               </div>
 
-              {/* EMR placeholder */}
+              {/* EMR import */}
               <div className="border border-slate-100 dark:border-slate-800 rounded-2xl p-5 bg-slate-50 dark:bg-slate-800">
                 <h3 className="font-semibold text-slate-700 dark:text-slate-300 text-sm mb-3 flex items-center gap-2">
                   <Users size={15} className="text-brand-600" /> Import from EMR
                 </h3>
+
+                {!pccLoading && pccFacilityId && (
+                  <div className="mb-3 p-3 bg-white dark:bg-slate-900 border border-brand-100 dark:border-brand-900 rounded-xl">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="text-xs min-w-0">
+                        <span className="font-medium text-slate-700 dark:text-slate-300">PointClickCare connected</span>
+                        <span className="block text-slate-400 font-mono truncate">Facility ID: {pccFacilityId}</span>
+                      </div>
+                      <button onClick={handlePccSync} disabled={syncing}
+                        className="flex items-center gap-1.5 px-3 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-xs font-medium rounded-lg transition-colors flex-shrink-0">
+                        {syncing ? <><RefreshCw size={13} className="animate-spin" /> Syncing...</> : <><RefreshCw size={13} /> Sync Now</>}
+                      </button>
+                    </div>
+                    {syncError && <div className="mt-2 text-xs text-red-600 dark:text-red-400">{syncError}</div>}
+                    {syncResult && (
+                      <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                        Synced {syncResult.synced} resident{syncResult.synced === 1 ? '' : 's'}
+                        {syncResult.failed > 0 ? `, ${syncResult.failed} failed` : ''}.
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="grid grid-cols-3 gap-2">
-                  {['PointClickCare','MatrixCare','Yardi'].map(emr => (
-                    <button key={emr} disabled
-                      className="px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-400 bg-white dark:bg-slate-900 cursor-not-allowed flex items-center justify-center gap-1.5">
-                      {emr} <span className="text-xs text-slate-300">(coming soon)</span>
-                    </button>
-                  ))}
+                  {['PointClickCare','MatrixCare','Yardi'].map(emr => {
+                    if (emr === 'PointClickCare' && pccFacilityId) return null // shown above instead
+                    return (
+                      <button key={emr} disabled
+                        className="px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-400 bg-white dark:bg-slate-900 cursor-not-allowed flex items-center justify-center gap-1.5">
+                        {emr} <span className="text-xs text-slate-300">{emr === 'PointClickCare' ? '(not connected)' : '(coming soon)'}</span>
+                      </button>
+                    )
+                  })}
                 </div>
-                <p className="text-xs text-slate-400 mt-3">Direct EMR integration coming in a future release. For now, export a CSV from your EMR and import it here.</p>
+                <p className="text-xs text-slate-400 mt-3">
+                  {pccFacilityId
+                    ? 'MatrixCare and Yardi integrations are coming in a future release.'
+                    : "Set a PointClickCare Facility ID in Admin Panel → Org Settings to enable direct sync. For now, export a CSV from your EMR and import it here."}
+                </p>
               </div>
 
               {/* Template download */}
