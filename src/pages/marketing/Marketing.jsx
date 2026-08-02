@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
-import { Users, Megaphone, TrendingUp, Calendar, CheckCircle, Tag, UserPlus, FileText, BarChart3, CalendarClock, Zap } from 'lucide-react'
+import { Users, Megaphone, TrendingUp, Calendar, CheckCircle, Tag, UserPlus, FileText, BarChart3, CalendarClock, Zap, Mail } from 'lucide-react'
 import { StatCard, Modal } from './ui'
 import PipelineTab, { LeadForm, ActivityModal } from './tabs/PipelineTab'
 import CampaignsTab from './tabs/CampaignsTab'
@@ -10,6 +10,7 @@ import LandingPagesTab from './tabs/LandingPagesTab'
 import FunnelTab from './tabs/FunnelTab'
 import FollowUpsTab from './tabs/FollowUpsTab'
 import SequencesTab from './tabs/SequencesTab'
+import TemplatesTab from './tabs/TemplatesTab'
 import SequenceEnrollModal from './SequenceEnrollModal'
 
 export default function Marketing() {
@@ -60,6 +61,7 @@ export default function Marketing() {
     { key: 'sequences',     label: 'Sequences',       icon: Zap },
     { key: 'funnel',        label: 'Funnel',          icon: BarChart3 },
     { key: 'campaigns',     label: 'Campaigns',       icon: Megaphone },
+    { key: 'templates',     label: 'Templates',       icon: Mail },
     { key: 'landing_pages', label: 'Landing Pages',   icon: FileText },
     { key: 'sources',       label: 'Referral Sources', icon: Tag },
   ]
@@ -121,6 +123,8 @@ export default function Marketing() {
       {tab === 'campaigns' && (
         <CampaignsTab campaigns={campaigns} leads={leads} onRefetch={fetchAll} />
       )}
+
+      {tab === 'templates' && <TemplatesTab orgId={orgId} />}
 
       {tab === 'landing_pages' && (
         <LandingPagesTab orgId={orgId} campaigns={campaigns} leads={leads} />

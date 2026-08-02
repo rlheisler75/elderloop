@@ -170,9 +170,6 @@ export default function CampaignsTab({ campaigns, leads, onRefetch }) {
     onRefetch()
   }
 
-  const recipientCount = (campaignId) =>
-    leads.filter(l => l.campaign_id === campaignId && l.email && !l.email_opt_out).length
-
   const campaignPerformance = (campaignId) => {
     const campLeads = leads.filter(l => l.campaign_id === campaignId)
     const tours = campLeads.filter(l => ['tour_scheduled', 'tour_completed'].includes(l.status)).length
@@ -313,7 +310,7 @@ export default function CampaignsTab({ campaigns, leads, onRefetch }) {
       )}
 
       {emailCampaign && (
-        <EmailComposerModal campaign={emailCampaign} recipientCount={recipientCount(emailCampaign.id)}
+        <EmailComposerModal campaign={emailCampaign} leads={leads.filter(l => l.campaign_id === emailCampaign.id)}
           onClose={() => setEmailCampaign(null)} />
       )}
 
