@@ -20,7 +20,7 @@ export default function PccAuthorizationLetter({ orgId, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 print:bg-transparent print:p-0">
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[92vh] flex flex-col print:max-w-none print:max-h-none print:rounded-none print:shadow-none">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-[900px] max-h-[92vh] flex flex-col print:max-w-none print:max-h-none print:rounded-none print:shadow-none">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0 print:hidden">
           <div>
             <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">PointClickCare Authorization Letter</h2>
