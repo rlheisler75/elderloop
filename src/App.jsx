@@ -78,6 +78,8 @@ import EarlyAccess   from './pages/landing/EarlyAccess'
 import SurveyPublic  from './pages/surveys/SurveyPublic'
 import Terms            from './pages/landing/Terms'
 import Privacy          from './pages/landing/Privacy'
+import CampaignLandingPage from './pages/landing/CampaignLandingPage'
+import EmailOptOut         from './pages/landing/EmailOptOut'
 
 // Upgrade wall
 import UpgradeWall from './components/ui/UpgradeWall'
@@ -221,6 +223,8 @@ export default function App() {
         <Route path="/signage"        element={<Signage />} />
         <Route path="/early-access"   element={<EarlyAccess />} />
         <Route path="/survey/:token"  element={<SurveyPublic />} />
+        <Route path="/lp/:slug"       element={<CampaignLandingPage />} />
+        <Route path="/email-optout"   element={<EmailOptOut />} />
         <Route path="/terms"           element={<Terms />} />
         <Route path="/privacy"         element={<Privacy />} />
         <Route path="/training"                    element={<Lazy><TrainingHub /></Lazy>} />
