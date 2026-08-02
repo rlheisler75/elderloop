@@ -109,7 +109,7 @@ export default function Marketing() {
         <LandingPagesTab orgId={orgId} campaigns={campaigns} leads={leads} />
       )}
 
-      {tab === 'sources' && <SourcesTab orgId={orgId} />}
+      {tab === 'sources' && <SourcesTab orgId={orgId} leads={leads} />}
 
       {/* Modals */}
       {showLeadForm && (
