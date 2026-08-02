@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
-import { Users, Megaphone, TrendingUp, Calendar, CheckCircle, Tag, UserPlus, FileText } from 'lucide-react'
+import { Users, Megaphone, TrendingUp, Calendar, CheckCircle, Tag, UserPlus, FileText, BarChart3 } from 'lucide-react'
 import { StatCard, Modal } from './ui'
 import PipelineTab, { LeadForm, ActivityModal } from './tabs/PipelineTab'
 import CampaignsTab from './tabs/CampaignsTab'
 import SourcesTab from './tabs/SourcesTab'
 import LandingPagesTab from './tabs/LandingPagesTab'
+import FunnelTab from './tabs/FunnelTab'
 
 export default function Marketing() {
   const { profile } = useAuth()
@@ -51,6 +52,7 @@ export default function Marketing() {
 
   const tabs = [
     { key: 'pipeline',      label: 'Lead Pipeline',   icon: Users },
+    { key: 'funnel',        label: 'Funnel',          icon: BarChart3 },
     { key: 'campaigns',     label: 'Campaigns',       icon: Megaphone },
     { key: 'landing_pages', label: 'Landing Pages',   icon: FileText },
     { key: 'sources',       label: 'Referral Sources', icon: Tag },
@@ -99,6 +101,10 @@ export default function Marketing() {
           onLogActivity={(lead) => setActivityLead(lead)}
           onDeleted={fetchAll}
         />
+      )}
+
+      {tab === 'funnel' && (
+        <FunnelTab leads={leads} campaigns={campaigns} sources={sources} />
       )}
 
       {tab === 'campaigns' && (
