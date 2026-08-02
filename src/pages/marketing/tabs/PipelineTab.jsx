@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../../lib/supabase'
 import { useAuth } from '../../../context/AuthContext'
-import { Search, Edit2, Trash2, Clock } from 'lucide-react'
+import { Search, Edit2, Trash2, Clock, Zap } from 'lucide-react'
 import { Badge, Modal, Field, inputCls, selectCls } from '../ui'
 import {
   LEAD_STATUSES, INQUIRY_TYPES, CARE_LEVELS, UNIT_TYPES, ACTIVITY_TYPES,
@@ -284,7 +284,7 @@ export function ActivityModal({ lead, onClose }) {
 
 // ── Pipeline Tab ──────────────────────────────────────────────
 
-export default function PipelineTab({ leads, loading, onEditLead, onLogActivity, onDeleted }) {
+export default function PipelineTab({ leads, loading, onEditLead, onLogActivity, onEnroll, onDeleted }) {
   const [leadSearch, setLeadSearch] = useState('')
   const [leadStatusFilter, setLeadStatusFilter] = useState('all')
 
@@ -380,6 +380,10 @@ export default function PipelineTab({ leads, loading, onEditLead, onLogActivity,
                         <button onClick={() => onLogActivity(lead)}
                           className="p-1.5 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors text-slate-400" title="Log Activity">
                           <Clock size={14} />
+                        </button>
+                        <button onClick={() => onEnroll(lead)}
+                          className="p-1.5 hover:bg-brand-50 hover:text-brand-600 rounded-lg transition-colors text-slate-400" title="Nurture Sequences">
+                          <Zap size={14} />
                         </button>
                         <button onClick={() => onEditLead(lead)}
                           className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-400">

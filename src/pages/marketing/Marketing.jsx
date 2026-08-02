@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
-import { Users, Megaphone, TrendingUp, Calendar, CheckCircle, Tag, UserPlus, FileText, BarChart3, CalendarClock } from 'lucide-react'
+import { Users, Megaphone, TrendingUp, Calendar, CheckCircle, Tag, UserPlus, FileText, BarChart3, CalendarClock, Zap } from 'lucide-react'
 import { StatCard, Modal } from './ui'
 import PipelineTab, { LeadForm, ActivityModal } from './tabs/PipelineTab'
 import CampaignsTab from './tabs/CampaignsTab'
@@ -9,6 +9,8 @@ import SourcesTab from './tabs/SourcesTab'
 import LandingPagesTab from './tabs/LandingPagesTab'
 import FunnelTab from './tabs/FunnelTab'
 import FollowUpsTab from './tabs/FollowUpsTab'
+import SequencesTab from './tabs/SequencesTab'
+import SequenceEnrollModal from './SequenceEnrollModal'
 
 export default function Marketing() {
   const { profile, organization } = useAuth()
@@ -24,6 +26,7 @@ export default function Marketing() {
   const [showLeadForm, setShowLeadForm] = useState(false)
   const [editLead, setEditLead] = useState(null)
   const [activityLead, setActivityLead] = useState(null)
+  const [enrollLead, setEnrollLead] = useState(null)
 
   const fetchAll = useCallback(async () => {
     if (!orgId) { setLoading(false); return }
@@ -54,6 +57,7 @@ export default function Marketing() {
   const tabs = [
     { key: 'pipeline',      label: 'Lead Pipeline',   icon: Users },
     { key: 'followups',     label: 'Follow-Ups',      icon: CalendarClock },
+    { key: 'sequences',     label: 'Sequences',       icon: Zap },
     { key: 'funnel',        label: 'Funnel',          icon: BarChart3 },
     { key: 'campaigns',     label: 'Campaigns',       icon: Megaphone },
     { key: 'landing_pages', label: 'Landing Pages',   icon: FileText },
@@ -101,11 +105,14 @@ export default function Marketing() {
           loading={loading}
           onEditLead={(lead) => { setEditLead(lead); setShowLeadForm(true) }}
           onLogActivity={(lead) => setActivityLead(lead)}
+          onEnroll={(lead) => setEnrollLead(lead)}
           onDeleted={fetchAll}
         />
       )}
 
       {tab === 'followups' && <FollowUpsTab orgId={orgId} />}
+
+      {tab === 'sequences' && <SequencesTab orgId={orgId} />}
 
       {tab === 'funnel' && (
         <FunnelTab leads={leads} campaigns={campaigns} sources={sources} />
@@ -129,6 +136,7 @@ export default function Marketing() {
         </Modal>
       )}
       {activityLead && <ActivityModal lead={activityLead} onClose={() => setActivityLead(null)} />}
+      {enrollLead && <SequenceEnrollModal lead={enrollLead} onClose={() => setEnrollLead(null)} />}
     </div>
   )
 }
