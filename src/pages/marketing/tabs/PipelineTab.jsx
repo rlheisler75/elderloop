@@ -169,43 +169,61 @@ export function LeadForm({ lead, sources, staff, onSave, onClose }) {
 export function ActivityModal({ lead, onClose }) {
   const { profile } = useAuth()
   const [activities, setActivities] = useState([])
-  const [form, setForm] = useState({ activity_type: 'call', subject: '', body: '', outcome: '', completed_at: new Date().toISOString().slice(0,16) })
+  const [form, setForm] = useState({
+    activity_type: 'call', subject: '', body: '', outcome: '',
+    mode: 'completed', when: new Date().toISOString().slice(0,16),
+  })
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
+  const refetch = () =>
     supabase.from('lead_activities').select('*, performed_by:profiles(first_name,last_name)')
       .eq('lead_id', lead.id).order('created_at', { ascending: false })
       .then(({ data }) => setActivities(data || []))
-  }, [lead.id])
+
+  useEffect(() => { refetch() }, [lead.id])
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
   const addActivity = async () => {
     setSaving(true)
+    const { activity_type, subject, body, outcome, mode, when } = form
     await supabase.from('lead_activities').insert({
-      ...form,
+      activity_type, subject, body, outcome,
       lead_id: lead.id,
       organization_id: lead.organization_id,
       performed_by: profile?.id,
-      completed_at: form.completed_at || null,
+      completed_at: mode === 'completed' ? (when || null) : null,
+      scheduled_at: mode === 'scheduled' ? (when || null) : null,
     })
-    const { data } = await supabase.from('lead_activities').select('*, performed_by:profiles(first_name,last_name)')
-      .eq('lead_id', lead.id).order('created_at', { ascending: false })
-    setActivities(data || [])
-    setForm({ activity_type: 'call', subject: '', body: '', outcome: '', completed_at: new Date().toISOString().slice(0,16) })
+    await refetch()
+    setForm({ activity_type: 'call', subject: '', body: '', outcome: '', mode: 'completed', when: new Date().toISOString().slice(0,16) })
     setSaving(false)
+  }
+
+  const markDone = async (id) => {
+    await supabase.from('lead_activities').update({ completed_at: new Date().toISOString() }).eq('id', id)
+    refetch()
   }
 
   return (
     <Modal title={`Activity — ${lead.first_name} ${lead.last_name}`} onClose={onClose} wide>
+      <div className="flex gap-1 mb-4 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit">
+        {[{ key: 'completed', label: 'Log Completed Activity' }, { key: 'scheduled', label: 'Schedule Follow-Up' }].map(m => (
+          <button key={m.key} type="button" onClick={() => set('mode', m.key)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${form.mode === m.key ? 'bg-white dark:bg-slate-700 text-brand-700 dark:text-brand-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
+            {m.label}
+          </button>
+        ))}
+      </div>
+
       <div className="grid grid-cols-2 gap-4 mb-4">
         <Field label="Type">
           <select className={selectCls} value={form.activity_type} onChange={e=>set('activity_type',e.target.value)}>
             {ACTIVITY_TYPES.map(t => <option key={t} value={t}>{fmt(t)}</option>)}
           </select>
         </Field>
-        <Field label="Date/Time">
-          <input className={inputCls} type="datetime-local" value={form.completed_at} onChange={e=>set('completed_at',e.target.value)} />
+        <Field label={form.mode === 'scheduled' ? 'Follow-Up Date/Time' : 'Date/Time'}>
+          <input className={inputCls} type="datetime-local" value={form.when} onChange={e=>set('when',e.target.value)} />
         </Field>
         <div className="col-span-2">
           <Field label="Subject">
@@ -217,31 +235,48 @@ export function ActivityModal({ lead, onClose }) {
             <textarea className={inputCls} rows={2} value={form.body} onChange={e=>set('body',e.target.value)} />
           </Field>
         </div>
-        <Field label="Outcome">
-          <input className={inputCls} value={form.outcome} onChange={e=>set('outcome',e.target.value)} placeholder="Left voicemail, call back Friday" />
-        </Field>
+        {form.mode === 'completed' && (
+          <Field label="Outcome">
+            <input className={inputCls} value={form.outcome} onChange={e=>set('outcome',e.target.value)} placeholder="Left voicemail, call back Friday" />
+          </Field>
+        )}
       </div>
       <button onClick={addActivity} disabled={saving}
         className="w-full py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors mb-6 disabled:opacity-50">
-        {saving ? 'Logging…' : '+ Log Activity'}
+        {saving ? 'Saving…' : form.mode === 'scheduled' ? '+ Schedule Follow-Up' : '+ Log Activity'}
       </button>
 
       <div className="space-y-3">
         {activities.length === 0 && <p className="text-sm text-slate-400 text-center py-4">No activity logged yet.</p>}
-        {activities.map(a => (
-          <div key={a.id} className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-800">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-semibold text-brand-600">{fmt(a.activity_type)}</span>
-              <span className="text-xs text-slate-400">{a.completed_at ? new Date(a.completed_at).toLocaleString() : '—'}</span>
+        {activities.map(a => {
+          const isPendingFollowUp = !a.completed_at && a.scheduled_at
+          return (
+            <div key={a.id} className={`p-3 rounded-xl border ${isPendingFollowUp ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900' : 'bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-800'}`}>
+              <div className="flex items-center justify-between mb-1">
+                <span className={`text-xs font-semibold ${isPendingFollowUp ? 'text-amber-700 dark:text-amber-400' : 'text-brand-600'}`}>{fmt(a.activity_type)}</span>
+                <span className="text-xs text-slate-400">
+                  {isPendingFollowUp
+                    ? `Scheduled ${new Date(a.scheduled_at).toLocaleString()}`
+                    : a.completed_at ? new Date(a.completed_at).toLocaleString() : '—'}
+                </span>
+              </div>
+              {a.subject && <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{a.subject}</p>}
+              {a.body    && <p className="text-sm text-slate-500 mt-0.5">{a.body}</p>}
+              {a.outcome && <p className="text-xs text-slate-400 mt-1 italic">{a.outcome}</p>}
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-xs text-slate-400">
+                  By {a.performed_by?.first_name} {a.performed_by?.last_name}
+                </p>
+                {isPendingFollowUp && (
+                  <button onClick={() => markDone(a.id)}
+                    className="text-xs px-2 py-0.5 rounded-full border font-medium text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900 bg-amber-100/50 dark:bg-amber-950/50 hover:bg-green-50 hover:text-green-600 hover:border-green-200 transition-colors">
+                    Mark Done
+                  </button>
+                )}
+              </div>
             </div>
-            {a.subject && <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{a.subject}</p>}
-            {a.body    && <p className="text-sm text-slate-500 mt-0.5">{a.body}</p>}
-            {a.outcome && <p className="text-xs text-slate-400 mt-1 italic">{a.outcome}</p>}
-            <p className="text-xs text-slate-400 mt-1">
-              By {a.performed_by?.first_name} {a.performed_by?.last_name}
-            </p>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </Modal>
   )
