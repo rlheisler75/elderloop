@@ -11,8 +11,8 @@ import FunnelTab from './tabs/FunnelTab'
 import FollowUpsTab from './tabs/FollowUpsTab'
 
 export default function Marketing() {
-  const { profile } = useAuth()
-  const orgId = profile?.organization_id
+  const { profile, organization } = useAuth()
+  const orgId = organization?.id || profile?.organization_id
   const [tab, setTab] = useState('pipeline')
 
   const [leads, setLeads] = useState([])
@@ -26,7 +26,7 @@ export default function Marketing() {
   const [activityLead, setActivityLead] = useState(null)
 
   const fetchAll = useCallback(async () => {
-    if (!orgId) return
+    if (!orgId) { setLoading(false); return }
     setLoading(true)
     const [leadsR, sourcesR, staffR, campsR] = await Promise.all([
       supabase.from('leads').select('*, referral_source:referral_sources(name), assigned:profiles!leads_assigned_to_fkey(first_name,last_name)')
