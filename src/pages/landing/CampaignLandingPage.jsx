@@ -21,6 +21,7 @@ export default function CampaignLandingPage() {
     if (!data) { setNotFound(true); setLoading(false); return }
     setPage(data)
     setLoading(false)
+    await supabase.rpc('increment_landing_page_view', { p_slug: slug })
   }
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))

@@ -208,10 +208,20 @@ export default function LandingPagesTab({ orgId, campaigns, leads }) {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <p className="text-xs text-slate-400">
-                    <span className="font-semibold text-slate-600 dark:text-slate-300">{leadCount(page.id)}</span> lead{leadCount(page.id) === 1 ? '' : 's'} captured
-                  </p>
+                <div className="grid grid-cols-3 gap-2 mb-3">
+                  {[
+                    { label: 'Views', value: page.view_count || 0 },
+                    { label: 'Leads', value: leadCount(page.id) },
+                    { label: 'Convert', value: page.view_count ? `${Math.round((leadCount(page.id) / page.view_count) * 100)}%` : '—' },
+                  ].map(m => (
+                    <div key={m.label} className="bg-slate-50 dark:bg-slate-800 rounded-lg p-2 text-center">
+                      <p className="text-[10px] text-slate-400 uppercase tracking-wide">{m.label}</p>
+                      <p className="font-semibold text-slate-700 dark:text-slate-300 text-sm mt-0.5">{m.value}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex items-center justify-end">
                   <button onClick={() => togglePublish(page)}
                     className="text-xs px-2.5 py-1 rounded-full border font-medium transition-colors text-slate-500 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800">
                     {page.is_published ? 'Unpublish' : 'Publish'}
