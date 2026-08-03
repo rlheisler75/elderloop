@@ -913,8 +913,8 @@ function KeysTab({ orgId, units, leases, tenants, staff }) {
 // ── Main Component ────────────────────────────────────────────
 
 export default function PropertyManagement() {
-  const { profile } = useAuth()
-  const orgId = profile?.organization_id
+  const { profile, organization } = useAuth()
+  const orgId = organization?.id || profile?.organization_id
   const [tab, setTab] = useState('units')
 
   // Data
@@ -952,7 +952,7 @@ export default function PropertyManagement() {
   const [showWTForm, setShowWTForm]         = useState(false)
 
   const fetchAll = useCallback(async () => {
-    if (!orgId) return
+    if (!orgId) { setLoading(false); return }
     setLoading(true)
     const [uR, tR, lR, nR, wR, sR] = await Promise.all([
       supabase.from('il_units').select('*').eq('organization_id', orgId).eq('is_active', true).order('unit_number'),

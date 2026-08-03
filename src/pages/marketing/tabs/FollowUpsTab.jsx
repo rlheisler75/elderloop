@@ -26,7 +26,7 @@ export default function FollowUpsTab({ orgId }) {
   const [activityLead, setActivityLead] = useState(null)
 
   const fetchItems = useCallback(async () => {
-    if (!orgId) return
+    if (!orgId) { setLoading(false); return }
     setLoading(true)
     const { data } = await supabase.from('lead_activities')
       .select('*, lead:leads(id,first_name,last_name,email,phone,status,organization_id)')

@@ -120,7 +120,7 @@ export default function LandingPagesTab({ orgId, campaigns, leads }) {
   const [copiedId, setCopiedId] = useState(null)
 
   const fetchPages = useCallback(async () => {
-    if (!orgId) return
+    if (!orgId) { setLoading(false); return }
     setLoading(true)
     const { data } = await supabase.from('landing_pages').select('*').eq('organization_id', orgId).order('created_at', { ascending: false })
     setPages(data || [])
