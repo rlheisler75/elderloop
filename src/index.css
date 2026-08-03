@@ -76,3 +76,15 @@
   }
   h1, h2, h3 { @apply font-display; }
 }
+
+@layer utilities {
+  /* Used by horizontally-scrollable tab strips (RepPortal, FamilyPortal,
+     ResidentPortal, Marketing) to hide the scrollbar while keeping scroll. */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
