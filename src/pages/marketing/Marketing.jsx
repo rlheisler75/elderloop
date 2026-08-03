@@ -22,6 +22,7 @@ export default function Marketing() {
   const [sources, setSources] = useState([])
   const [staff, setStaff] = useState([])
   const [campaigns, setCampaigns] = useState([])
+  const [units, setUnits] = useState([])
   const [loading, setLoading] = useState(true)
 
   const [showLeadForm, setShowLeadForm] = useState(false)
@@ -32,17 +33,19 @@ export default function Marketing() {
   const fetchAll = useCallback(async () => {
     if (!orgId) { setLoading(false); return }
     setLoading(true)
-    const [leadsR, sourcesR, staffR, campsR] = await Promise.all([
-      supabase.from('leads').select('*, referral_source:referral_sources(name), assigned:profiles!leads_assigned_to_fkey(first_name,last_name)')
+    const [leadsR, sourcesR, staffR, campsR, unitsR] = await Promise.all([
+      supabase.from('leads').select('*, referral_source:referral_sources(name), assigned:profiles!leads_assigned_to_fkey(first_name,last_name), interested_unit:il_units(unit_number,building,unit_type)')
         .eq('organization_id', orgId).order('inquiry_date', { ascending: false }),
       supabase.from('referral_sources').select('*').eq('organization_id', orgId).eq('is_active', true).order('name'),
       supabase.from('profiles').select('id,first_name,last_name').eq('organization_id', orgId).order('first_name'),
       supabase.from('marketing_campaigns').select('*').eq('organization_id', orgId).order('created_at', { ascending: false }),
+      supabase.from('il_units').select('id,unit_number,building,unit_type,status').eq('organization_id', orgId).eq('is_active', true).order('unit_number'),
     ])
     setLeads(leadsR.data || [])
     setSources(sourcesR.data || [])
     setStaff(staffR.data || [])
     setCampaigns(campsR.data || [])
+    setUnits(unitsR.data || [])
     setLoading(false)
   }, [orgId])
 
@@ -135,7 +138,7 @@ export default function Marketing() {
       {/* Modals */}
       {showLeadForm && (
         <Modal title={editLead ? 'Edit Lead' : 'Add Lead'} onClose={() => setShowLeadForm(false)} wide>
-          <LeadForm lead={editLead} sources={sources} staff={staff}
+          <LeadForm lead={editLead} sources={sources} staff={staff} units={units}
             onSave={() => { setShowLeadForm(false); fetchAll() }} onClose={() => setShowLeadForm(false)} />
         </Modal>
       )}

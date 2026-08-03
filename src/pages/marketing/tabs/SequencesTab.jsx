@@ -11,6 +11,8 @@ function SequenceForm({ sequence, onSave, onClose }) {
   const [name, setName] = useState(sequence?.name || '')
   const [description, setDescription] = useState(sequence?.description || '')
   const [isActive, setIsActive] = useState(sequence?.is_active ?? true)
+  const [isRepeating, setIsRepeating] = useState(sequence?.is_repeating ?? false)
+  const [repeatIntervalDays, setRepeatIntervalDays] = useState(sequence?.repeat_interval_days || 30)
   const [steps, setSteps] = useState(sequence?.id ? [] : [{ delay_days: 0, subject: '', body: '' }])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -33,7 +35,11 @@ function SequenceForm({ sequence, onSave, onClose }) {
     setSaving(true)
     setError('')
     const orgId = profile?.organization_id
-    const payload = { name, description: description || null, is_active: isActive, organization_id: orgId, created_by: profile?.id }
+    const payload = {
+      name, description: description || null, is_active: isActive,
+      is_repeating: isRepeating, repeat_interval_days: isRepeating ? (Number(repeatIntervalDays) || 30) : null,
+      organization_id: orgId, created_by: profile?.id,
+    }
     const { data: seq, error: seqErr } = sequence?.id
       ? await supabase.from('nurture_sequences').update(payload).eq('id', sequence.id).select().single()
       : await supabase.from('nurture_sequences').insert(payload).select().single()
@@ -63,11 +69,26 @@ function SequenceForm({ sequence, onSave, onClose }) {
           <input className={inputCls} value={description} onChange={e => setDescription(e.target.value)} placeholder="Nudges leads who haven't booked a tour" />
         </Field>
       </div>
-      <div className="flex items-center gap-2 mb-5">
+      <div className="flex items-center gap-2 mb-3">
         <input type="checkbox" id="seq_active" checked={isActive} onChange={e => setIsActive(e.target.checked)}
           className="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" />
         <label htmlFor="seq_active" className="text-sm text-slate-600 dark:text-slate-300">Active (enrolled leads will receive sends)</label>
       </div>
+      <div className="flex items-center gap-2 mb-2">
+        <input type="checkbox" id="seq_repeating" checked={isRepeating} onChange={e => setIsRepeating(e.target.checked)}
+          className="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" />
+        <label htmlFor="seq_repeating" className="text-sm text-slate-600 dark:text-slate-300">Repeat the last step indefinitely (e.g. a recurring waitlist check-in)</label>
+      </div>
+      {isRepeating && (
+        <div className="mb-5 ml-6">
+          <Field label="Repeat every (days)">
+            <input className={`${inputCls} w-32`} type="number" min="1" value={repeatIntervalDays} onChange={e => setRepeatIntervalDays(e.target.value)} />
+          </Field>
+          <p className="text-xs text-slate-400 mt-1.5">
+            After the last step below, it keeps resending that same step on this interval until the lead converts, is lost/disqualified, or opts out.
+          </p>
+        </div>
+      )}
 
       <div className="space-y-4">
         {steps.map((step, i) => (
@@ -186,6 +207,11 @@ export default function SequencesTab({ orgId }) {
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'}>
                       {seq.is_active ? 'Active' : 'Paused'}
                     </Badge>
+                    {seq.is_repeating && (
+                      <Badge color="bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-900">
+                        Repeats every {seq.repeat_interval_days}d
+                      </Badge>
+                    )}
                   </div>
                   <h3 className="font-semibold text-slate-800 dark:text-slate-100 truncate">{seq.name}</h3>
                   {seq.description && <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">{seq.description}</p>}

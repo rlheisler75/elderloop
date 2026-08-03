@@ -6,7 +6,7 @@ import {
   DollarSign, AlertTriangle, ClipboardCheck, ChevronDown,
   CheckCircle, XCircle, Clock, User, Building2, Filter,
   ArrowUpRight, ArrowDownRight, MoreHorizontal, Banknote,
-  Bell, Calendar, ShieldAlert, RotateCcw, Eye
+  Bell, Calendar, ShieldAlert, RotateCcw, Eye, Heart
 } from 'lucide-react'
 
 // ── Constants ────────────────────────────────────────────────
@@ -923,6 +923,7 @@ export default function PropertyManagement() {
   const [leases, setLeases]   = useState([])
   const [notices, setNotices] = useState([])
   const [staff, setStaff]     = useState([])
+  const [interestedLeads, setInterestedLeads] = useState([])
   const [loading, setLoading] = useState(true)
 
   // Unit tab state
@@ -954,13 +955,19 @@ export default function PropertyManagement() {
   const fetchAll = useCallback(async () => {
     if (!orgId) { setLoading(false); return }
     setLoading(true)
-    const [uR, tR, lR, nR, wR, sR] = await Promise.all([
+    const [uR, tR, lR, nR, wR, sR, ilR] = await Promise.all([
       supabase.from('il_units').select('*').eq('organization_id', orgId).eq('is_active', true).order('unit_number'),
       supabase.from('il_tenants').select('*').eq('organization_id', orgId).eq('is_active', true).order('last_name'),
       supabase.from('il_leases').select('*, unit:il_units(unit_number,building), tenant:il_tenants!il_leases_primary_tenant_id_fkey(first_name,last_name)').eq('organization_id', orgId).order('created_at', { ascending: false }),
       supabase.from('il_notices').select('*, unit:il_units(unit_number), tenant:il_tenants(first_name,last_name)').eq('organization_id', orgId).order('issued_date', { ascending: false }),
       supabase.from('il_walkthroughs').select('*, unit:il_units(unit_number)').eq('organization_id', orgId).order('created_at', { ascending: false }),
       supabase.from('profiles').select('id,first_name,last_name').eq('organization_id', orgId).order('first_name'),
+      // Marketing leads that named a specific unit as their interest — read-only here,
+      // Marketing owns editing it. Excludes leads that already converted, were lost, or
+      // opted out of the pipeline since they're no longer meaningfully "interested".
+      supabase.from('leads').select('id,first_name,last_name,phone,email,status,interested_unit_id')
+        .eq('organization_id', orgId).not('interested_unit_id', 'is', null)
+        .not('status', 'in', '(move_in,lost,disqualified)'),
     ])
     setUnits(uR.data || [])
     setTenants(tR.data || [])
@@ -968,6 +975,7 @@ export default function PropertyManagement() {
     setNotices(nR.data || [])
     setWalkthroughs(wR.data || [])
     setStaff(sR.data || [])
+    setInterestedLeads(ilR.data || [])
     setLoading(false)
   }, [orgId])
 
@@ -1077,6 +1085,7 @@ export default function PropertyManagement() {
               {filteredUnits.map(unit => {
                 const st = getUnitStatus(unit.status)
                 const activeLease = leases.find(l=>l.unit_id===unit.id && l.status==='active')
+                const interested = interestedLeads.filter(l => l.interested_unit_id === unit.id)
                 return (
                   <div key={unit.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5 hover:shadow-md transition-all">
                     <div className="flex items-start justify-between mb-3">
@@ -1125,6 +1134,15 @@ export default function PropertyManagement() {
                         <button onClick={()=>setLedgerLease(activeLease)} className="ml-auto p-1 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg transition-colors" title="View Ledger">
                           <DollarSign size={11} className="text-blue-600" />
                         </button>
+                      </div>
+                    )}
+
+                    {interested.length > 0 && (
+                      <div className="flex items-center gap-2 p-2 mt-2 bg-rose-50 dark:bg-rose-950/30 rounded-xl" title={interested.map(l => `${l.first_name} ${l.last_name}`).join(', ')}>
+                        <Heart size={12} className="text-rose-500 flex-shrink-0" />
+                        <span className="text-xs text-rose-700 dark:text-rose-400 font-medium truncate">
+                          {interested.length} lead{interested.length === 1 ? '' : 's'} interested — {interested.slice(0, 2).map(l => l.first_name).join(', ')}{interested.length > 2 ? ` +${interested.length - 2}` : ''}
+                        </span>
                       </div>
                     )}
                   </div>

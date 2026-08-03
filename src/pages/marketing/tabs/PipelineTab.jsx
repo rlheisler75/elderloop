@@ -10,8 +10,13 @@ import {
 
 // ── Lead Form ─────────────────────────────────────────────────
 
-export function LeadForm({ lead, sources, staff, onSave, onClose }) {
+export function LeadForm({ lead, sources, staff, units = [], onSave, onClose }) {
   const { profile } = useAuth()
+  // lead (when editing) comes from a select with joined relations aliased as
+  // referral_source/assigned/interested_unit — those aren't real leads columns,
+  // so they must be stripped before the row round-trips into an update payload
+  // (PostgREST 400s on unknown columns otherwise, and this form ate the error silently).
+  const { referral_source: _referralSource, assigned: _assigned, interested_unit: _interestedUnit, ...leadColumns } = lead || {}
   const [form, setForm] = useState({
     first_name: '', last_name: '', email: '', phone: '',
     city: '', state: '', zip: '',
@@ -19,6 +24,7 @@ export function LeadForm({ lead, sources, staff, onSave, onClose }) {
     prospect_first_name: '', prospect_last_name: '',
     care_level_interest: [],
     interested_unit_type: '',
+    interested_unit_id: '',
     status: 'new',
     referral_source_id: '',
     source_detail: '',
@@ -26,9 +32,10 @@ export function LeadForm({ lead, sources, staff, onSave, onClose }) {
     budget_min: '', budget_max: '',
     assigned_to: '',
     notes: '',
-    ...lead,
+    ...leadColumns,
   })
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const toggleCareLevel = (lvl) => set('care_level_interest',
@@ -40,23 +47,27 @@ export function LeadForm({ lead, sources, staff, onSave, onClose }) {
   const handleSave = async () => {
     if (!form.first_name || !form.last_name) return
     setSaving(true)
+    setError('')
     const payload = {
       ...form,
       budget_min: form.budget_min || null,
       budget_max: form.budget_max || null,
       referral_source_id: form.referral_source_id || null,
       assigned_to: form.assigned_to || null,
+      interested_unit_id: form.interested_unit_id || null,
       created_by: profile?.id,
     }
-    const { error } = lead?.id
+    const { error: err } = lead?.id
       ? await supabase.from('leads').update(payload).eq('id', lead.id)
       : await supabase.from('leads').insert(payload)
     setSaving(false)
-    if (!error) onSave()
+    if (err) { setError(err.message); return }
+    onSave()
   }
 
   return (
     <>
+      {error && <div className="mb-4 px-4 py-3 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-xl text-red-700 dark:text-red-400 text-sm">{error}</div>}
       <div className="grid grid-cols-2 gap-4">
         <Field label="First Name" required>
           <input className={inputCls} value={form.first_name} onChange={e=>set('first_name',e.target.value)} placeholder="Jane" />
@@ -138,13 +149,25 @@ export function LeadForm({ lead, sources, staff, onSave, onClose }) {
         </Field>
       </div>
 
-      <div className="mt-4">
+      <div className="mt-4 grid grid-cols-2 gap-4">
         <Field label="Unit Type Interest">
           <select className={selectCls} value={form.interested_unit_type} onChange={e=>set('interested_unit_type',e.target.value)}>
             <option value="">— Any —</option>
             {UNIT_TYPES.map(t => <option key={t} value={t}>{fmt(t)}</option>)}
           </select>
         </Field>
+        {units.length > 0 && (
+          <Field label="Interested In Specific Unit">
+            <select className={selectCls} value={form.interested_unit_id || ''} onChange={e=>set('interested_unit_id',e.target.value)}>
+              <option value="">— None —</option>
+              {units.map(u => (
+                <option key={u.id} value={u.id}>
+                  {u.unit_number}{u.building ? ` — ${u.building}` : ''} ({fmt(u.status)})
+                </option>
+              ))}
+            </select>
+          </Field>
+        )}
       </div>
 
       <div className="mt-4">
