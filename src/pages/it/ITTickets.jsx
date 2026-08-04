@@ -6,7 +6,7 @@ import {
   Printer, Phone, Server, Package, HelpCircle, Edit2,
   User, Calendar, Tag, MapPin, Wrench, Laptop, Tv,
   ToggleLeft, ToggleRight, ChevronRight, RefreshCw,
-  ClipboardList, Box, AlertCircle, Clock
+  ClipboardList, Box, AlertCircle, Clock, KeyRound
 } from 'lucide-react'
 
 // ── Helpers ────────────────────────────────────────────────────
@@ -41,6 +41,23 @@ const ASSET_STATUS_COLORS = {
   missing: 'bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-400',
   storage: 'bg-blue-100 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400',
 }
+const LICENSE_STATUS_COLORS = {
+  active:    'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400',
+  expired:   'bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-400',
+  cancelled: 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400',
+}
+const LICENSE_TYPES = [
+  { value: 'subscription', label: 'Subscription' },
+  { value: 'perpetual',    label: 'Perpetual' },
+  { value: 'volume',       label: 'Volume License' },
+  { value: 'trial',        label: 'Trial' },
+  { value: 'open_source',  label: 'Open Source / Free' },
+]
+const BILLING_CYCLES = [
+  { value: 'monthly',  label: 'Monthly' },
+  { value: 'annual',   label: 'Annual' },
+  { value: 'one_time', label: 'One-Time' },
+]
 
 // ── New Ticket Modal ───────────────────────────────────────────
 function NewTicketModal({ orgId, userId, categories, assets, staffList, onClose, onSave }) {
@@ -370,11 +387,157 @@ function AssetModal({ asset, orgId, assetTypes, locations, staffList, onClose, o
   )
 }
 
+// ── License Modal ────────────────────────────────────────────
+function LicenseModal({ license, orgId, staffList, onClose, onSave }) {
+  const isNew = !license
+  const [form, setForm] = useState(license || {
+    name: '', vendor: '', license_type: 'subscription', license_key: '',
+    seats_total: '', seats_used: '', cost: '', billing_cycle: 'annual',
+    purchase_date: '', renewal_date: '', assigned_to: '', status: 'active', notes: '',
+  })
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+  const handleSave = async () => {
+    if (!form.name.trim()) { setError('Name is required'); return }
+    setSaving(true)
+    setError('')
+    const payload = {
+      organization_id: orgId,
+      name:            form.name.trim(),
+      vendor:          form.vendor || null,
+      license_type:    form.license_type,
+      license_key:     form.license_key || null,
+      seats_total:     form.seats_total === '' ? null : Number(form.seats_total),
+      seats_used:      form.seats_used === '' ? null : Number(form.seats_used),
+      cost:            form.cost === '' ? null : Number(form.cost),
+      billing_cycle:   form.billing_cycle,
+      purchase_date:   form.purchase_date || null,
+      renewal_date:    form.renewal_date || null,
+      assigned_to:     form.assigned_to || null,
+      status:          form.status,
+      notes:           form.notes || null,
+      updated_at:      new Date().toISOString(),
+    }
+    const { error: err } = isNew
+      ? await supabase.from('it_licenses').insert(payload)
+      : await supabase.from('it_licenses').update(payload).eq('id', license.id)
+    setSaving(false)
+    if (err) { setError(err.message); return }
+    onSave()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-xl max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">{isNew ? 'Add License' : 'Edit License'}</h2>
+          <button onClick={onClose}><X size={20} className="text-slate-400" /></button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+          {error && <div className="px-4 py-3 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label">Software Name *</label>
+              <input value={form.name} onChange={e => set('name', e.target.value)}
+                placeholder="Microsoft 365, Adobe Acrobat..." className="input w-full" />
+            </div>
+            <div>
+              <label className="label">Vendor</label>
+              <input value={form.vendor || ''} onChange={e => set('vendor', e.target.value)}
+                placeholder="Microsoft, Adobe..." className="input w-full" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label">License Type</label>
+              <select value={form.license_type} onChange={e => set('license_type', e.target.value)} className="input w-full">
+                {LICENSE_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="label">Billing Cycle</label>
+              <select value={form.billing_cycle} onChange={e => set('billing_cycle', e.target.value)} className="input w-full">
+                {BILLING_CYCLES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="label">License Key</label>
+            <input value={form.license_key || ''} onChange={e => set('license_key', e.target.value)}
+              placeholder="Optional" className="input w-full" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label">Seats Total</label>
+              <input type="number" min="0" value={form.seats_total ?? ''} onChange={e => set('seats_total', e.target.value)}
+                className="input w-full" />
+            </div>
+            <div>
+              <label className="label">Seats Used</label>
+              <input type="number" min="0" value={form.seats_used ?? ''} onChange={e => set('seats_used', e.target.value)}
+                className="input w-full" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label">Cost</label>
+              <input type="number" min="0" step="0.01" value={form.cost ?? ''} onChange={e => set('cost', e.target.value)}
+                placeholder="Per billing cycle" className="input w-full" />
+            </div>
+            <div>
+              <label className="label">Status</label>
+              <select value={form.status} onChange={e => set('status', e.target.value)} className="input w-full">
+                <option value="active">Active</option>
+                <option value="expired">Expired</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label">Purchase Date</label>
+              <input type="date" value={form.purchase_date || ''} onChange={e => set('purchase_date', e.target.value)}
+                className="input w-full" />
+            </div>
+            <div>
+              <label className="label">Renewal / Expiration Date</label>
+              <input type="date" value={form.renewal_date || ''} onChange={e => set('renewal_date', e.target.value)}
+                className="input w-full" />
+            </div>
+          </div>
+          <div>
+            <label className="label">License Owner</label>
+            <select value={form.assigned_to || ''} onChange={e => set('assigned_to', e.target.value)} className="input w-full">
+              <option value="">Unassigned</option>
+              {staffList.map(s => <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="label">Notes</label>
+            <textarea value={form.notes || ''} onChange={e => set('notes', e.target.value)}
+              rows={2} className="input w-full resize-none" />
+          </div>
+        </div>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300">Cancel</button>
+          <button onClick={handleSave} disabled={saving}
+            className="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg transition-colors">
+            {saving ? 'Saving...' : isNew ? 'Add License' : 'Save Changes'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Main ───────────────────────────────────────────────────────
 export default function ITTickets() {
   const { profile, organization, isOrgAdmin } = useAuth()
   const [tickets, setTickets]       = useState([])
   const [assets, setAssets]         = useState([])
+  const [licenses, setLicenses]     = useState([])
   const [staffList, setStaffList]   = useState([])
   // Org-defined dropdowns
   const [categories, setCategories] = useState([])
@@ -392,21 +555,27 @@ export default function ITTickets() {
   const [newAsset, setNewAsset]     = useState(false)
   const [assetSearch, setAssetSearch] = useState('')
   const [assetTypeFilter, setAssetTypeFilter] = useState('all')
+  const [viewLicense, setViewLicense] = useState(null)
+  const [newLicense, setNewLicense]   = useState(false)
+  const [licenseSearch, setLicenseSearch] = useState('')
+  const [licenseStatusFilter, setLicenseStatusFilter] = useState('all')
 
   const admin  = isOrgAdmin  // boolean — not a function call
-  const orgId  = organization?.id
+  const orgId  = organization?.id || profile?.organization_id
   const userId = profile?.id
 
-  useEffect(() => { if (orgId) fetchAll() }, [orgId])
+  useEffect(() => { if (orgId) fetchAll() ; else setLoading(false) }, [orgId])
 
   async function fetchAll() {
     setLoading(true)
-    const [ticketRes, assetRes, staffRes, dropdownRes] = await Promise.all([
+    const [ticketRes, assetRes, licenseRes, staffRes, dropdownRes] = await Promise.all([
       supabase.from('it_tickets')
         .select('*, submitter:submitted_by(first_name,last_name), assignee:assigned_to(first_name,last_name)')
         .eq('organization_id', orgId).order('created_at', { ascending: false }),
       supabase.from('it_assets').select('*, assignee:assigned_to(first_name,last_name)')
         .eq('organization_id', orgId).eq('is_active', true).order('asset_tag'),
+      supabase.from('it_licenses').select('*, assignee:assigned_to(first_name,last_name)')
+        .eq('organization_id', orgId).eq('is_active', true).order('renewal_date', { ascending: true, nullsFirst: false }),
       supabase.from('profiles').select('id,first_name,last_name,role')
         .eq('organization_id', orgId).not('role','in','(resident,family)').order('last_name'),
       supabase.from('org_dropdown_items')
@@ -417,6 +586,7 @@ export default function ITTickets() {
 
     setTickets(ticketRes.data || [])
     setAssets(assetRes.data || [])
+    setLicenses(licenseRes.data || [])
     setStaffList(staffRes.data || [])
 
     const dropdowns = dropdownRes.data || []
@@ -441,6 +611,17 @@ export default function ITTickets() {
       .filter(Boolean).some(f => f.toLowerCase().includes(assetSearch.toLowerCase()))) return false
     return true
   })
+
+  const filteredLicenses = licenses.filter(l => {
+    if (licenseStatusFilter !== 'all' && l.status !== licenseStatusFilter) return false
+    if (licenseSearch && ![l.name, l.vendor].filter(Boolean).some(f => f.toLowerCase().includes(licenseSearch.toLowerCase()))) return false
+    return true
+  })
+  const licensesExpiringSoon = licenses.filter(l => {
+    if (l.status !== 'active' || !l.renewal_date) return false
+    const days = (new Date(l.renewal_date) - new Date()) / (24*60*60*1000)
+    return days >= 0 && days <= 30
+  }).length
 
   const counts = {
     open:        tickets.filter(t => t.status === 'open').length,
@@ -486,8 +667,9 @@ export default function ITTickets() {
       {/* Main tabs */}
       <div className="flex gap-1 mb-6 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit">
         {[
-          { key: 'tickets', label: 'Tickets',  icon: ClipboardList },
-          { key: 'assets',  label: 'Assets',   icon: Monitor },
+          { key: 'tickets',  label: 'Tickets',  icon: ClipboardList },
+          { key: 'assets',   label: 'Assets',   icon: Monitor },
+          { key: 'licenses', label: 'Licenses', icon: KeyRound },
         ].map(t => {
           const Icon = t.icon
           return (
@@ -675,6 +857,98 @@ export default function ITTickets() {
         </>
       )}
 
+      {/* ── LICENSES TAB ── */}
+      {tab === 'licenses' && (
+        <>
+          {licensesExpiringSoon > 0 && (
+            <div className="flex items-center gap-2 mb-4 px-4 py-3 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900 rounded-xl text-amber-700 dark:text-amber-400 text-sm">
+              <Clock size={15} className="flex-shrink-0" />
+              {licensesExpiringSoon} license{licensesExpiringSoon === 1 ? '' : 's'} renewing within 30 days
+            </div>
+          )}
+          <div className="flex flex-wrap items-center gap-3 mb-4">
+            <div className="relative flex-1 min-w-44">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input value={licenseSearch} onChange={e => setLicenseSearch(e.target.value)} placeholder="Search by name or vendor..."
+                className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            </div>
+            <select value={licenseStatusFilter} onChange={e => setLicenseStatusFilter(e.target.value)}
+              className="px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none">
+              <option value="all">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="expired">Expired</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+            {admin && (
+              <button onClick={() => setNewLicense(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-sm font-medium transition-colors">
+                <Plus size={15} /> Add License
+              </button>
+            )}
+          </div>
+
+          {filteredLicenses.length === 0 ? (
+            <div className="text-center py-16 text-slate-400">
+              <KeyRound size={36} className="mx-auto mb-3 opacity-30" />
+              <p className="font-display text-lg">No licenses found</p>
+            </div>
+          ) : (
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
+                    {['Software','Vendor','Type','Seats','Owner','Renewal','Status',''].map(h => (
+                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredLicenses.map(l => {
+                    const typeLabel = LICENSE_TYPES.find(t => t.value === l.license_type)?.label || l.license_type
+                    const now = new Date()
+                    const renewalPassed = l.renewal_date && new Date(l.renewal_date) < now
+                    const renewalSoon = l.renewal_date && !renewalPassed && new Date(l.renewal_date) < new Date(now.getTime() + 30*24*60*60*1000)
+                    return (
+                      <tr key={l.id} className="border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-100 max-w-48 truncate">{l.name}</td>
+                        <td className="px-4 py-3 text-slate-500 text-xs whitespace-nowrap">{l.vendor || '—'}</td>
+                        <td className="px-4 py-3 text-slate-500 text-xs whitespace-nowrap">{typeLabel}</td>
+                        <td className="px-4 py-3 text-slate-500 text-xs whitespace-nowrap">
+                          {l.seats_total != null ? `${l.seats_used ?? 0} / ${l.seats_total}` : '—'}
+                        </td>
+                        <td className="px-4 py-3 text-slate-500 text-xs whitespace-nowrap">
+                          {l.assignee ? `${l.assignee.first_name} ${l.assignee.last_name}` : <span className="text-slate-300">Unassigned</span>}
+                        </td>
+                        <td className="px-4 py-3 text-xs whitespace-nowrap">
+                          {l.renewal_date ? (
+                            <span className={renewalPassed ? 'text-red-500' : renewalSoon ? 'text-amber-600' : 'text-slate-400'}>
+                              {renewalPassed && l.status === 'active' ? '⚠ ' : ''}{fmtDate(l.renewal_date)}
+                            </span>
+                          ) : <span className="text-slate-300">—</span>}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${LICENSE_STATUS_COLORS[l.status]}`}>
+                            {l.status.charAt(0).toUpperCase() + l.status.slice(1)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          {admin && (
+                            <button onClick={() => setViewLicense(l)}
+                              className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors">
+                              <Edit2 size={14} />
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
+      )}
+
       {/* Modals */}
       {showNew && (
         <NewTicketModal orgId={orgId} userId={userId} categories={categories} assets={assets} staffList={staffList}
@@ -690,6 +964,12 @@ export default function ITTickets() {
           assetTypes={assetTypes} locations={assetLocations} staffList={staffList}
           onClose={() => { setViewAsset(null); setNewAsset(false) }}
           onSave={() => { setViewAsset(null); setNewAsset(false); fetchAll() }} />
+      )}
+      {(viewLicense || newLicense) && (
+        <LicenseModal
+          license={newLicense ? null : viewLicense} orgId={orgId} staffList={staffList}
+          onClose={() => { setViewLicense(null); setNewLicense(false) }}
+          onSave={() => { setViewLicense(null); setNewLicense(false); fetchAll() }} />
       )}
     </div>
   )
