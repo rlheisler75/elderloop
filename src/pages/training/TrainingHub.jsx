@@ -55,8 +55,8 @@ const GUIDES = [
     to: '/training/marketing',
     icon: Megaphone,
     title: 'Marketing',
-    desc: 'The lead pipeline, activity logging, campaign budget and goal tracking, and referral source management.',
-    tag: '5 sections',
+    desc: 'The lead pipeline, follow-up reminders, automated nurture sequences, the funnel dashboard, campaigns, templates, landing pages, and referral sources.',
+    tag: '9 sections',
   },
   {
     to: '/training/communication',
@@ -104,8 +104,8 @@ const GUIDES = [
     to: '/training/it',
     icon: Laptop,
     title: 'IT & Technology',
-    desc: 'Submitting and managing support tickets, and tracking every computer, printer, and piece of equipment in the building.',
-    tag: '5 sections',
+    desc: 'Submitting and managing support tickets, tracking every computer, printer, and piece of equipment, and every software license, in the building.',
+    tag: '6 sections',
   },
   {
     to: '/training/directory',

@@ -35,7 +35,9 @@ export default function PropertyGuide() {
               { k: 1, text: <>Click <b className="text-slate-900">Add Unit</b> to add a unit number, building, type, bedrooms/bathrooms, square footage, market rent, and amenities.</> },
               { k: 2, text: <>Set <b className="text-slate-900">Status</b> — Available, Occupied, Notice Given, On Hold, Maintenance, or Offline — to keep the occupancy stat accurate.</> },
               { k: 3, text: <>An occupied unit's card shows its current tenant and lease number, with a dollar-sign shortcut straight to that lease's rent ledger.</> },
+              { k: 4, text: <>If a Marketing lead has pointed at this exact unit as their interest, a rose-colored badge on the card shows who — a heads-up for which prospects to prioritize as a unit nears availability.</> },
             ]} />
+            <Tip>The interest badge is read-only here — it's set from the Marketing module's Add/Edit Lead form, under "Interested In Specific Unit."</Tip>
           </SectionBlock>
 
           <SectionBlock id="tenants" num="02" title="Tenants"

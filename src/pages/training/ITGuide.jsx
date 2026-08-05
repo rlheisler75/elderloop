@@ -8,6 +8,7 @@ const NAV = [
   { id: 'managing',   num: '03', label: 'Managing a Ticket' },
   { id: 'assets',     num: '04', label: 'Assets' },
   { id: 'adding',     num: '05', label: 'Adding an Asset' },
+  { id: 'licenses',   num: '06', label: 'Licenses' },
 ]
 
 export default function ITGuide() {
@@ -17,8 +18,8 @@ export default function ITGuide() {
       <GuideMasthead
         eyebrow="ElderLoop Staff Training"
         title="IT & Technology"
-        dek="A working guide to support ticketing and device inventory — submitting an issue, tracking it to resolution, and keeping tabs on every piece of equipment in the building."
-        chips={['For: All staff, IT staff, Admins', 'Where: Sidebar → IT', '5 sections']}
+        dek="A working guide to support ticketing, device inventory, and software license tracking — submitting an issue, tracking it to resolution, and keeping tabs on every piece of equipment and every license in the building."
+        chips={['For: All staff, IT staff, Admins', 'Where: Sidebar → IT', '6 sections']}
       />
 
       <div className="max-w-5xl mx-auto px-6 grid md:grid-cols-[200px_minmax(0,1fr)] gap-10 py-4">
@@ -82,6 +83,20 @@ export default function ITGuide() {
             <Tip>Status options include In Repair, In Storage, Retired, and Missing in addition to Active — updating status here keeps the Assets table an accurate picture of what's actually in service.</Tip>
           </SectionBlock>
 
+          <SectionBlock id="licenses" num="06" title="Licenses"
+            dek="Every piece of paid software — seats, cost, renewal date, and who owns it — so a subscription never lapses because nobody remembered it existed.">
+            <Frame src={SHOT('licenses.png')} alt="IT Licenses tab" caption="Renewal dates turn amber within 30 days and red once passed; a banner surfaces the count up top" />
+            <Frame src={SHOT('add-license-modal.png')} alt="Add License form" caption="Software Name is the only required field — everything else can be filled in as you know it" />
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
+            <Steps items={[
+              { k: 1, text: <>Click <b className="text-slate-900">Add License</b>, name the software, and set its Vendor, License Type (Subscription, Perpetual, Volume License, Trial, Open Source), and Billing Cycle.</> },
+              { k: 2, text: <>Fill in <b className="text-slate-900">Seats Total</b> and <b className="text-slate-900">Seats Used</b> to track utilization, and <b className="text-slate-900">Renewal / Expiration Date</b> so the table can flag it as it approaches.</> },
+              { k: 3, text: <>Set a <b className="text-slate-900">License Owner</b> — the staff member who should be the point of contact if a vendor has questions or the license needs renewing.</> },
+              { k: 4, text: <>Anything renewing within 30 days shows in amber and triggers the banner at the top of the tab; anything already past its renewal date while still marked Active shows in red.</> },
+            ]} />
+            <Tip>License Key is optional — use it for a serial number or activation code if you need one on hand, but plenty of subscriptions (Microsoft 365, Adobe) don't need one tracked here at all.</Tip>
+          </SectionBlock>
+
           <QuickRefTable rows={[
             ['Report a tech issue', 'New Ticket'],
             ['See only your own tickets', 'Tickets tab → My Tickets'],
@@ -89,6 +104,8 @@ export default function ITGuide() {
             ['Look up a device’s details', 'Assets tab → search'],
             ['Log a new piece of equipment', 'Assets tab → Add Asset'],
             ['Check what warranties are expiring soon', 'Assets tab → Warranty column'],
+            ['Track a new software subscription', 'Licenses tab → Add License'],
+            ['Check what licenses are renewing soon', 'Licenses tab → banner / Renewal column'],
           ]} />
 
           <GuideFooter label="IT & Technology Module" />
