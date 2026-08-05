@@ -170,6 +170,13 @@ export function AuthProvider({ children }) {
     if (data) setProfile(data)
   }
 
+  const refreshOrganization = async () => {
+    const orgId = organization?.id || profile?.organization_id
+    if (!orgId) return
+    const { data } = await supabase.from('organizations').select('*').eq('id', orgId).single()
+    if (data) setOrg(data)
+  }
+
   // ── Super Admin Org Impersonation ─────────────────────────────
   // Lets a super_admin "jump into" another org's Admin Panel / Dashboard
   // without actually belonging to it. Stashed in localStorage so it
@@ -199,7 +206,7 @@ export function AuthProvider({ children }) {
       <AuthContext.Provider value={{
       user, profile, organization, orgModules, userPerms,
       loading, suspended, hasModule, canEdit, accessibleModules,
-      isOrgAdmin, isSuperAdmin, isCEO, signOut, refreshModules, refreshProfile,
+      isOrgAdmin, isSuperAdmin, isCEO, signOut, refreshModules, refreshProfile, refreshOrganization,
       impersonating, impersonateOrg, exitImpersonation,
     }}>
       {children}
