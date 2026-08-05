@@ -1,106 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
+import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import {
   ShieldCheck, CheckCircle2, XCircle, AlertTriangle, Clock,
   ClipboardCheck, FileText, Eye, Upload, X, Plus, Info,
-  ChevronDown, ChevronUp, Edit2, Trash2, Check, Globe, Save, Printer
+  ChevronDown, ChevronUp, Edit2, Trash2, Globe, Printer, Settings
 } from 'lucide-react'
 import CompliancePrintReport from './CompliancePrintReport'
-
-// ── State compliance references ───────────────────────────────
-const STATE_REFS = {
-  MO: {
-    label: 'Missouri',
-    summary: 'Inspections follow NFPA 101 Life Safety Code (2012 edition), Missouri DHSS §19 CSR 30-85, NFPA 10/25/72/110, CMS Conditions of Participation, Missouri DOLIR elevator regulations, and §19 CSR 30-85.042(17) fire drill requirements.',
-    retention: 'Maintain all completed inspection records for a minimum of 3 years.',
-    authority: 'Missouri DHSS / CMS',
-  },
-  KS: {
-    label: 'Kansas',
-    summary: 'Inspections follow NFPA 101, Kansas KDHE K.A.R. 28-39, NFPA 10/25/72/110, and CMS Conditions of Participation.',
-    retention: 'Maintain all inspection records for a minimum of 5 years per KDHE requirements.',
-    authority: 'Kansas KDHE / CMS',
-  },
-  IL: {
-    label: 'Illinois',
-    summary: 'Inspections follow NFPA 101, Illinois IDPH 77 Ill. Adm. Code 300, NFPA 10/25/72/110, and CMS Conditions of Participation.',
-    retention: 'Maintain all inspection records for a minimum of 5 years.',
-    authority: 'Illinois IDPH / CMS',
-  },
-  AR: {
-    label: 'Arkansas',
-    summary: 'Inspections follow NFPA 101, Arkansas DPSQA Reg. 2000-F, NFPA 10/25/72/110, and CMS Conditions of Participation.',
-    retention: 'Maintain all completed inspection records for a minimum of 3 years.',
-    authority: 'Arkansas DPSQA / CMS',
-  },
-  OK: {
-    label: 'Oklahoma',
-    summary: 'Inspections follow NFPA 101, Oklahoma OSDH OAC 310:675, NFPA 10/25/72/110, and CMS Conditions of Participation.',
-    retention: 'Maintain all inspection records for a minimum of 3 years.',
-    authority: 'Oklahoma OSDH / CMS',
-  },
-  TX: {
-    label: 'Texas',
-    summary: 'Inspections follow NFPA 101, Texas HHSC 40 TAC §19, NFPA 10/25/72/110, and CMS Conditions of Participation.',
-    retention: 'Maintain all inspection records for a minimum of 5 years per HHSC.',
-    authority: 'Texas HHSC / CMS',
-  },
-  TN: {
-    label: 'Tennessee',
-    summary: 'Inspections follow NFPA 101, Tennessee TDH Rule 1200-08-06, NFPA 10/25/72/110, and CMS Conditions of Participation.',
-    retention: 'Maintain all inspection records for a minimum of 5 years.',
-    authority: 'Tennessee TDH / CMS',
-  },
-  IN: {
-    label: 'Indiana',
-    summary: 'Inspections follow NFPA 101, Indiana ISDH 410 IAC 16.2, NFPA 10/25/72/110, and CMS Conditions of Participation.',
-    retention: 'Maintain all inspection records for a minimum of 3 years.',
-    authority: 'Indiana ISDH / CMS',
-  },
-  OH: {
-    label: 'Ohio',
-    summary: 'Inspections follow NFPA 101, Ohio ODH OAC 3701-17, NFPA 10/25/72/110, and CMS Conditions of Participation.',
-    retention: 'Maintain all inspection records for a minimum of 5 years.',
-    authority: 'Ohio ODH / CMS',
-  },
-  FL: {
-    label: 'Florida',
-    summary: 'Inspections follow NFPA 101, Florida AHCA 59A-4 F.A.C., NFPA 10/25/72/110, and CMS Conditions of Participation.',
-    retention: 'Maintain all inspection records for a minimum of 5 years per AHCA.',
-    authority: 'Florida AHCA / CMS',
-  },
-  OTHER: {
-    label: 'Other / Federal Only',
-    summary: 'Inspections follow NFPA 101 Life Safety Code, NFPA 10/25/72/110, and CMS Conditions of Participation (42 CFR Part 483).',
-    retention: 'Maintain all completed inspection records for a minimum of 3 years per CMS requirements.',
-    authority: 'CMS Federal',
-  },
-}
-
-const ALL_STATES = [
-  { code: 'MO', label: 'Missouri' }, { code: 'KS', label: 'Kansas' },
-  { code: 'IL', label: 'Illinois' }, { code: 'AR', label: 'Arkansas' },
-  { code: 'OK', label: 'Oklahoma' }, { code: 'TX', label: 'Texas' },
-  { code: 'TN', label: 'Tennessee' }, { code: 'IN', label: 'Indiana' },
-  { code: 'OH', label: 'Ohio' }, { code: 'FL', label: 'Florida' },
-  { code: 'AL', label: 'Alabama' }, { code: 'GA', label: 'Georgia' },
-  { code: 'NC', label: 'North Carolina' }, { code: 'SC', label: 'South Carolina' },
-  { code: 'VA', label: 'Virginia' }, { code: 'WV', label: 'West Virginia' },
-  { code: 'KY', label: 'Kentucky' }, { code: 'MS', label: 'Mississippi' },
-  { code: 'LA', label: 'Louisiana' }, { code: 'CA', label: 'California' },
-  { code: 'AZ', label: 'Arizona' }, { code: 'CO', label: 'Colorado' },
-  { code: 'NM', label: 'New Mexico' }, { code: 'NV', label: 'Nevada' },
-  { code: 'WA', label: 'Washington' }, { code: 'OR', label: 'Oregon' },
-  { code: 'ID', label: 'Idaho' }, { code: 'MT', label: 'Montana' },
-  { code: 'WY', label: 'Wyoming' }, { code: 'UT', label: 'Utah' },
-  { code: 'ND', label: 'North Dakota' }, { code: 'SD', label: 'South Dakota' },
-  { code: 'NE', label: 'Nebraska' }, { code: 'MN', label: 'Minnesota' },
-  { code: 'IA', label: 'Iowa' }, { code: 'WI', label: 'Wisconsin' },
-  { code: 'MI', label: 'Michigan' }, { code: 'PA', label: 'Pennsylvania' },
-  { code: 'NY', label: 'New York' }, { code: 'NJ', label: 'New Jersey' },
-  { code: 'CT', label: 'Connecticut' }, { code: 'MA', label: 'Massachusetts' },
-  { code: 'OTHER', label: 'Other / Federal Only' },
-]
+import { STATE_REFS } from '../../lib/complianceStates'
 
 const FREQ_LABELS = {
   daily:     { label: 'Daily',     color: 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-400' },
@@ -579,8 +486,8 @@ export default function CompliancePanel({ orgId, profile }) {
   const [showStateInfo, setShowStateInfo]   = useState(false)
   const [showPrint, setShowPrint]           = useState(false)
   const [stateCode, setStateCode]           = useState('MO')
-  const [savingState, setSavingState]       = useState(false)
-  const [stateSaved, setStateSaved]         = useState(false)
+
+  const canEditOrgSettings = ['org_admin', 'ceo', 'super_admin'].includes(profile?.role)
 
   useEffect(() => { if (orgId) fetchAll() }, [orgId])
 
@@ -615,21 +522,6 @@ export default function CompliancePanel({ orgId, profile }) {
       )
       .order('sort_order')
     setCategories(data || [])
-  }
-
-  const handleSaveState = async () => {
-    setSavingState(true)
-    const { error } = await supabase.from('organizations')
-      .update({ compliance_state: stateCode })
-      .eq('id', orgId)
-    setSavingState(false)
-    if (error) { console.error('State save error:', error); return }
-    // Update local org without re-running fetchAll (which resets stateCode)
-    setOrg(o => ({ ...o, compliance_state: stateCode }))
-    setStateSaved(true)
-    setTimeout(() => setStateSaved(false), 2500)
-    // Refresh categories for the new state
-    await fetchCategories(stateCode)
   }
 
   const handleDeleteCustom = async (cat) => {
@@ -683,24 +575,19 @@ export default function CompliancePanel({ orgId, profile }) {
         ))}
       </div>
 
-      {/* State selector + reference banner */}
+      {/* State reference banner (read-only — set once for the whole org in Org Settings) */}
       <div className="mb-5 bg-blue-50 border border-blue-200 rounded-2xl overflow-hidden">
         <div className="flex items-center gap-3 px-4 py-3">
           <Globe size={16} className="text-blue-600 flex-shrink-0" />
           <div className="flex-1 flex items-center gap-2 flex-wrap">
             <span className="text-xs font-semibold text-blue-800">Compliance State:</span>
-            <select
-              value={stateCode}
-              onChange={e => setStateCode(e.target.value)}
-              className="px-2 py-1 border border-blue-300 rounded-lg text-xs font-medium text-blue-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
-              {ALL_STATES.map(s => <option key={s.code} value={s.code}>{s.label}</option>)}
-            </select>
-            <button
-              onClick={handleSaveState}
-              disabled={savingState || stateCode === org?.compliance_state}
-              className="flex items-center gap-1 px-2.5 py-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white text-xs font-medium rounded-lg transition-colors">
-              {stateSaved ? <><Check size={11} /> Saved</> : <><Save size={11} /> Save</>}
-            </button>
+            <span className="px-2 py-1 bg-white border border-blue-300 rounded-lg text-xs font-medium text-blue-800">{stateRef.label}</span>
+            {canEditOrgSettings && (
+              <Link to="/app/admin"
+                className="flex items-center gap-1 px-2.5 py-1 text-blue-700 hover:text-blue-900 hover:bg-blue-100 text-xs font-medium rounded-lg transition-colors">
+                <Settings size={11} /> Change in Org Settings
+              </Link>
+            )}
           </div>
           <button onClick={() => setShowStateInfo(s => !s)} className="text-blue-600 hover:text-blue-800 flex-shrink-0">
             {showStateInfo ? <ChevronUp size={16} /> : <Info size={16} />}

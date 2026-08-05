@@ -3,6 +3,8 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { Plus, X, AlertTriangle, Search, Loader2, AlertCircle,
          ChevronDown, Check, Flag } from 'lucide-react'
+import { SOCIAL_STATE_REFS } from '../../lib/socialStateRefs'
+import RegRefBanner from '../../components/ui/RegRefBanner'
 
 const CATEGORIES = [
   { key: 'care_quality',  label: 'Care Quality'   },
@@ -356,8 +358,18 @@ export default function Grievances({ canWrite }) {
   const urgent  = grievances.filter(g => g.priority === 'urgent' || g.priority === 'immediate').length
   const resolved = grievances.filter(g => g.status === 'resolved').length
 
+  const stateRef = SOCIAL_STATE_REFS[organization?.compliance_state] || SOCIAL_STATE_REFS.OTHER
+
   return (
     <div className="space-y-4">
+      <RegRefBanner
+        label={`${stateRef.label} Grievance Requirement`}
+        statute={stateRef.grievance.statute}
+        summary={stateRef.grievance.summary}
+        confidence={stateRef.grievance.confidence}
+        note={stateRef.grievance.note}
+      />
+
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
         {[

@@ -80,7 +80,7 @@ function QuickLogModal({ residents, orgId, onClose, onSaved }) {
           {/* Step 1 — Resident */}
           {step === 1 && (
             <div className="p-5 space-y-3">
-              <p className="text-sm text-slate-500 font-medium">Who are you logging for?</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Who are you logging for?</p>
               <div className="relative">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input value={search} onChange={e => setSearch(e.target.value)} autoFocus
@@ -150,15 +150,15 @@ function QuickLogModal({ residents, orgId, onClose, onSaved }) {
             <div className="p-5 space-y-4">
               {/* Mood score */}
               <div>
-                <p className="text-sm font-medium text-slate-600 mb-2">
-                  Mood selected: <span className="font-bold">{getMoodConfig(form.mood).emoji} {getMoodConfig(form.mood).label}</span>
+                <p className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
+                  Mood selected: <span className="font-bold text-slate-800 dark:text-slate-100">{getMoodConfig(form.mood).emoji} {getMoodConfig(form.mood).label}</span>
                 </p>
-                <p className="text-xs text-slate-500 mb-2">Mood Score (1 = very low · 5 = very high)</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">Mood Score (1 = very low · 5 = very high)</p>
                 <div className="flex gap-2">
                   {[1,2,3,4,5].map(n => (
                     <button key={n} onClick={() => set('mood_score', n)}
                       className={`flex-1 py-2.5 rounded-xl border text-sm font-bold transition-all
-                        ${form.mood_score === n ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-slate-400 border-slate-200 hover:border-brand-300'}`}>
+                        ${form.mood_score === n ? 'bg-brand-600 text-white border-brand-600' : 'bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700 hover:border-brand-300'}`}>
                       {n}
                     </button>
                   ))}
@@ -166,38 +166,38 @@ function QuickLogModal({ residents, orgId, onClose, onSaved }) {
               </div>
 
               {/* Behavioral concern flag */}
-              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                <span className="text-sm font-medium text-slate-700">Behavioral Concerns Noted</span>
+              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-xl">
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Behavioral Concerns Noted</span>
                 <button onClick={() => set('behavioral_concerns', !form.behavioral_concerns)}
-                  className={`w-11 h-6 rounded-full transition-colors relative ${form.behavioral_concerns ? 'bg-red-500' : 'bg-slate-300'}`}>
+                  className={`w-11 h-6 rounded-full transition-colors relative ${form.behavioral_concerns ? 'bg-red-500' : 'bg-slate-300 dark:bg-slate-700'}`}>
                   <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.behavioral_concerns ? 'translate-x-5' : ''}`} />
                 </button>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Triggers / Contributing Factors</label>
+                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Triggers / Contributing Factors</label>
                 <textarea value={form.triggers} onChange={e => set('triggers', e.target.value)} rows={2}
                   placeholder="What may have caused this mood or behavior?"
-                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none" />
+                  className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none" />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Interventions Used</label>
+                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Interventions Used</label>
                 <textarea value={form.interventions} onChange={e => set('interventions', e.target.value)} rows={2}
                   placeholder="What was done in response?"
-                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none" />
+                  className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none" />
               </div>
 
               {form.interventions && (
-                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-                  <span className="text-sm text-slate-600">Intervention effective?</span>
+                <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl">
+                  <span className="text-sm text-slate-600 dark:text-slate-300">Intervention effective?</span>
                   <div className="flex gap-2 ml-auto">
                     {[true, false].map(v => (
                       <button key={String(v)} onClick={() => set('intervention_effective', v)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all
                           ${form.intervention_effective === v
                             ? v ? 'bg-green-600 text-white border-green-600' : 'bg-red-500 text-white border-red-500'
-                            : 'bg-white text-slate-500 border-slate-200'}`}>
+                            : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'}`}>
                         {v ? 'Yes' : 'No'}
                       </button>
                     ))}
@@ -205,10 +205,10 @@ function QuickLogModal({ residents, orgId, onClose, onSaved }) {
                 </div>
               )}
 
-              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                <span className="text-sm font-medium text-slate-700">Follow-up Needed</span>
+              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-xl">
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Follow-up Needed</span>
                 <button onClick={() => set('follow_up_needed', !form.follow_up_needed)}
-                  className={`w-11 h-6 rounded-full transition-colors relative ${form.follow_up_needed ? 'bg-brand-600' : 'bg-slate-300'}`}>
+                  className={`w-11 h-6 rounded-full transition-colors relative ${form.follow_up_needed ? 'bg-brand-600' : 'bg-slate-300 dark:bg-slate-700'}`}>
                   <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.follow_up_needed ? 'translate-x-5' : ''}`} />
                 </button>
               </div>
@@ -216,25 +216,25 @@ function QuickLogModal({ residents, orgId, onClose, onSaved }) {
               {form.follow_up_needed && (
                 <textarea value={form.follow_up_notes} onChange={e => set('follow_up_notes', e.target.value)} rows={2}
                   placeholder="Describe follow-up needed..."
-                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none" />
+                  className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none" />
               )}
 
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Additional Notes</label>
+                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Additional Notes</label>
                 <textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows={2}
                   placeholder="Any other observations..."
-                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none" />
+                  className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none" />
               </div>
 
-              {error && <p className="text-sm text-red-500 flex items-center gap-1.5"><AlertCircle size={13} />{error}</p>}
+              {error && <p className="text-sm text-red-500 dark:text-red-400 flex items-center gap-1.5"><AlertCircle size={13} />{error}</p>}
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-4 border-t border-slate-100 flex gap-3 flex-shrink-0">
+        <div className="px-5 py-4 border-t border-slate-100 dark:border-slate-800 flex gap-3 flex-shrink-0">
           {step > 1 && (
-            <button onClick={() => setStep(s => s - 1)} className="px-4 py-2.5 text-sm text-slate-600 font-medium border border-slate-200 rounded-xl hover:bg-slate-50">
+            <button onClick={() => setStep(s => s - 1)} className="px-4 py-2.5 text-sm text-slate-600 dark:text-slate-300 font-medium border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800">
               ← Back
             </button>
           )}
@@ -313,22 +313,22 @@ export default function MoodTracker({ canWrite }) {
         )}
         {/* Filters */}
         <select value={filter.resident} onChange={e => setFilter(f => ({ ...f, resident: e.target.value }))}
-          className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+          className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-100">
           <option value="">All Residents</option>
           {residents.map(r => <option key={r.id} value={r.id}>{r.first_name} {r.last_name}</option>)}
         </select>
         <select value={filter.mood} onChange={e => setFilter(f => ({ ...f, mood: e.target.value }))}
-          className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+          className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-100">
           <option value="">All Moods</option>
           {MOODS.map(m => <option key={m.key} value={m.key}>{m.emoji} {m.label}</option>)}
         </select>
         <select value={filter.shift} onChange={e => setFilter(f => ({ ...f, shift: e.target.value }))}
-          className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+          className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-100">
           <option value="">All Shifts</option>
           {SHIFTS.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
         </select>
         <select value={filter.concerns} onChange={e => setFilter(f => ({ ...f, concerns: e.target.value }))}
-          className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+          className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-100">
           <option value="">All</option>
           <option value="yes">Concerns Only</option>
           <option value="no">No Concerns</option>
@@ -338,58 +338,58 @@ export default function MoodTracker({ canWrite }) {
 
       {/* Log table */}
       {loading ? (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm py-16 flex items-center justify-center">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm py-16 flex items-center justify-center">
           <Loader2 size={28} className="animate-spin text-brand-400" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm py-16 text-center text-slate-400">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm py-16 text-center text-slate-400">
           <p className="font-medium">No mood logs found</p>
           {canWrite && <p className="text-sm mt-1">Click "Quick Log Mood" to add the first entry</p>}
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
           <table className="w-full">
-            <thead className="bg-slate-50 border-b border-slate-100">
+            <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800">
               <tr>
                 {['Resident', 'Date / Shift', 'Mood', 'Score', 'Concerns', 'Triggers / Notes', 'Logged By'].map(h => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{h}</th>
+                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
               {filtered.map(log => (
-                <tr key={log.id} className="hover:bg-slate-50 transition-colors">
+                <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
                   <td className="px-4 py-3">
-                    <div className="font-medium text-slate-800 text-sm">{log.residents?.first_name} {log.residents?.last_name}</div>
+                    <div className="font-medium text-slate-800 dark:text-slate-100 text-sm">{log.residents?.first_name} {log.residents?.last_name}</div>
                     <div className="text-xs text-slate-400">Room {log.residents?.room}</div>
                   </td>
-                  <td className="px-4 py-3 text-xs text-slate-500">
+                  <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400">
                     <div>{formatDate(log.logged_at)}</div>
-                    {log.shift && <div className="capitalize font-medium text-slate-600">{log.shift}</div>}
+                    {log.shift && <div className="capitalize font-medium text-slate-600 dark:text-slate-300">{log.shift}</div>}
                   </td>
                   <td className="px-4 py-3"><MoodBadge mood={log.mood} /></td>
                   <td className="px-4 py-3">
                     {log.mood_score && (
                       <div className="flex gap-0.5">
                         {[1,2,3,4,5].map(n => (
-                          <div key={n} className={`w-3 h-3 rounded-full ${n <= log.mood_score ? 'bg-brand-500' : 'bg-slate-200'}`} />
+                          <div key={n} className={`w-3 h-3 rounded-full ${n <= log.mood_score ? 'bg-brand-500' : 'bg-slate-200 dark:bg-slate-700'}`} />
                         ))}
                       </div>
                     )}
                   </td>
                   <td className="px-4 py-3">
                     {log.behavioral_concerns
-                      ? <span className="text-xs text-red-600 bg-red-50 px-2 py-1 rounded-full font-semibold">⚠ Yes</span>
+                      ? <span className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/50 px-2 py-1 rounded-full font-semibold">⚠ Yes</span>
                       : <span className="text-xs text-slate-400">—</span>}
                     {log.follow_up_needed && (
-                      <div className="text-xs text-amber-600 mt-1">Follow-up needed</div>
+                      <div className="text-xs text-amber-600 dark:text-amber-400 mt-1">Follow-up needed</div>
                     )}
                   </td>
                   <td className="px-4 py-3 max-w-xs">
-                    {log.triggers && <p className="text-xs text-slate-600 truncate" title={log.triggers}>Trigger: {log.triggers}</p>}
+                    {log.triggers && <p className="text-xs text-slate-600 dark:text-slate-300 truncate" title={log.triggers}>Trigger: {log.triggers}</p>}
                     {log.notes    && <p className="text-xs text-slate-400 truncate" title={log.notes}>{log.notes}</p>}
                   </td>
-                  <td className="px-4 py-3 text-xs text-slate-500">
+                  <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400">
                     {log.profiles ? `${log.profiles.first_name} ${log.profiles.last_name}` : '—'}
                   </td>
                 </tr>

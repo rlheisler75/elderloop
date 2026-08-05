@@ -3,8 +3,9 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import {
   AlertTriangle, CheckCircle, Clock, Users, FileText,
-  TrendingUp, AlertCircle, Loader2, RefreshCw, Shield
+  TrendingUp, AlertCircle, Loader2, RefreshCw, Shield, Phone, Globe
 } from 'lucide-react'
+import { SOCIAL_STATE_REFS } from '../../lib/socialStateRefs'
 
 // ── Access guard — directors and admins only ──────────────────
 const DIRECTOR_ROLES = ['social_services','supervisor','manager','org_admin','ceo','super_admin']
@@ -306,6 +307,8 @@ export default function SocialDashboard() {
     ? Math.round((+compliance.total_with_profiles / +compliance.total_residents) * 100)
     : 0
 
+  const stateRef = SOCIAL_STATE_REFS[organization?.compliance_state] || SOCIAL_STATE_REFS.OTHER
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -319,6 +322,35 @@ export default function SocialDashboard() {
           <RefreshCw size={13} className={refreshing ? 'animate-spin' : ''} />
           Refresh
         </button>
+      </div>
+
+      {/* ── 0. REGULATORY QUICK REFERENCE ──────────────────────── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Phone size={14} className="text-brand-600 flex-shrink-0" />
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{stateRef.label} Long-Term Care Ombudsman</span>
+          </div>
+          <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{stateRef.ombudsman.programName}</p>
+          <div className="flex items-center gap-3 mt-1 text-xs text-slate-500">
+            <span className="font-mono">{stateRef.ombudsman.phone}</span>
+            {stateRef.ombudsman.website && (
+              <a href={stateRef.ombudsman.website} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-1 text-brand-600 hover:text-brand-700"><Globe size={11} /> Website</a>
+            )}
+          </div>
+        </div>
+        <div className="rounded-2xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/30 p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <AlertTriangle size={14} className="text-red-600 flex-shrink-0" />
+            <span className="text-xs font-semibold text-red-700 dark:text-red-400 uppercase tracking-wide">Mandatory Abuse Reporting</span>
+          </div>
+          <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{stateRef.abuseReporting.agency}</p>
+          <div className="flex items-center gap-3 mt-1 text-xs text-slate-600 dark:text-slate-300">
+            {stateRef.abuseReporting.phone && <span className="font-mono font-semibold">{stateRef.abuseReporting.phone}</span>}
+            <span>{stateRef.abuseReporting.window}</span>
+          </div>
+        </div>
       </div>
 
       {/* ── 1. COMPLIANCE ALERT BANNER ─────────────────────────── */}

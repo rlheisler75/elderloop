@@ -3,6 +3,8 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { Plus, X, LogOut, Search, Loader2, AlertCircle, Check,
          Home, Building2, ChevronDown, ShieldCheck, CalendarClock } from 'lucide-react'
+import { SOCIAL_STATE_REFS } from '../../lib/socialStateRefs'
+import RegRefBanner from '../../components/ui/RegRefBanner'
 
 const STATUSES = [
   { key: 'planning',  label: 'Planning',  light: 'bg-slate-100 text-slate-600',       dark: 'dark:bg-slate-800 dark:text-slate-300' },
@@ -258,8 +260,23 @@ export default function DischargePlanning({ canWrite }) {
   }).length
   const discharged = plans.filter(p => p.status === 'discharged').length
 
+  const stateRef = SOCIAL_STATE_REFS[organization?.compliance_state] || SOCIAL_STATE_REFS.OTHER
+  const { involuntaryDischarge: dischargeRef } = stateRef
+
   return (
     <div className="space-y-4">
+      <RegRefBanner
+        label={`${stateRef.label} Involuntary Discharge Notice`}
+        statute={dischargeRef.statute}
+        summary={dischargeRef.summary}
+        confidence={dischargeRef.confidence}
+        note={dischargeRef.note}
+      >
+        <div className="text-xs text-blue-700 dark:text-blue-400">
+          <span className="font-semibold">{dischargeRef.noticeDays} days’ notice required. Must be sent to:</span> {dischargeRef.recipients.join('; ')}
+        </div>
+      </RegRefBanner>
+
       <div className="grid grid-cols-3 gap-3">
         {[
           { label: 'Active Plans',       value: active,     color: 'text-brand-600 bg-brand-50 dark:bg-brand-950/40' },

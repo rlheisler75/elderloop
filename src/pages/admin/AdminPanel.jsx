@@ -13,6 +13,7 @@ import UserPermissions from './UserPermissions'
 import BillingTab from './BillingTab'
 import PccAuthorizationLetter from './PccAuthorizationLetter'
 import { CreditCard } from 'lucide-react'
+import { ALL_STATES } from '../../lib/complianceStates'
 
 const ALL_ROLES = [
   { key: 'ceo',         label: 'CEO',         desc: 'Executive dashboard + full access' },
@@ -324,6 +325,7 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
     phone:   org.phone   || '',
     website: org.website || '',
     pcc_facility_id: org.pcc_facility_id || '',
+    compliance_state: org.compliance_state || '',
   })
   const [enabledModules, setEnabledModules] = useState(
     modules.filter(m => m.is_enabled !== false).map(m => m.module_key)
@@ -356,6 +358,7 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
       state: form.state, zip: form.zip, phone: form.phone,
       website: form.website, logo_url: logoUrl || null,
       pcc_facility_id: form.pcc_facility_id.trim() || null,
+      compliance_state: form.compliance_state || null,
       updated_at: new Date().toISOString()
     }).eq('id', org.id)
 
@@ -438,6 +441,16 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
               className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="Leave blank if this community doesn't use PointClickCare" />
             <p className="text-xs text-slate-400 mt-1">Enables a "Sync Now" button on the Import Residents screen. Optional — communities without an EMR integration can leave this blank.</p>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Regulatory State</label>
+            <select value={form.compliance_state} onChange={e => set('compliance_state', e.target.value)}
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+              <option value="">Select state...</option>
+              {ALL_STATES.map(s => <option key={s.code} value={s.code}>{s.label}</option>)}
+            </select>
+            <p className="text-xs text-slate-400 mt-1">The state this community is licensed and inspected under. Drives the state-specific citations shown in Maintenance Compliance (and other regulated modules) — set once here for the whole organization.</p>
           </div>
 
           <div>
