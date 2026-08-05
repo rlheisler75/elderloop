@@ -333,6 +333,7 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
   const [logoUrl, setLogoUrl]   = useState(org.logo_url || '')
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving]     = useState(false)
+  const [error, setError]       = useState('')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
   const handleLogoUpload = async (e) => {
@@ -352,15 +353,15 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
     m.includes(key) ? m.filter(k => k !== key) : [...m, key])
 
   const handleSave = async () => {
-    setSaving(true)
-    await supabase.from('organizations').update({
+    setSaving(true); setError('')
+    const { error: err } = await supabase.from('organizations').update({
       name: form.name, address: form.address, city: form.city,
       state: form.state, zip: form.zip, phone: form.phone,
       website: form.website, logo_url: logoUrl || null,
       pcc_facility_id: form.pcc_facility_id.trim() || null,
       compliance_state: form.compliance_state || null,
-      updated_at: new Date().toISOString()
     }).eq('id', org.id)
+    if (err) { setError(err.message); setSaving(false); return }
 
     // Sync modules — update existing, insert new
     for (const mod of allModules) {
@@ -386,6 +387,7 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
           <button onClick={onClose} className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"><X size={20} /></button>
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+          {error && <div className="px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
 
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Organization Name</label>
@@ -589,16 +591,18 @@ export default function AdminPanel() {
     if (superAdmin) {
       const { data } = await supabase.from('organizations').select('*').eq('is_active', true).order('name')
       setOrgs(data || [])
-      if (!selectedOrg && data?.length) {
-        // Prefer URL param org, then current user's org, then first
+      setSelectedOrg(prev => {
+        if (prev) return data?.find(o => o.id === prev.id) || prev
+        // First load — prefer URL param org, then current user's org, then first
         const target = orgParam
-          ? data.find(o => o.id === orgParam)
-          : data.find(o => o.id === organization?.id) || data[0]
-        setSelectedOrg(target || data[0])
-      }
-    } else {
-      setOrgs([organization])
-      setSelectedOrg(organization)
+          ? data?.find(o => o.id === orgParam)
+          : data?.find(o => o.id === organization?.id) || data?.[0]
+        return target || data?.[0] || null
+      })
+    } else if (organization?.id) {
+      const { data } = await supabase.from('organizations').select('*').eq('id', organization.id).single()
+      setOrgs(data ? [data] : [])
+      setSelectedOrg(data || organization)
     }
     setLoading(false)
   }
