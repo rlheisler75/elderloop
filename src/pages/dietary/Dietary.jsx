@@ -7,6 +7,8 @@ import {
   ChevronLeft, ChevronRight, AlertTriangle, Check,
   UtensilsCrossed, RefreshCw, ArrowRight, Clipboard, Link2
 } from 'lucide-react'
+import { DIETARY_STATE_REFS } from '../../lib/dietaryStateRefs'
+import RegRefBanner from '../../components/ui/RegRefBanner'
 
 // ── Constants ─────────────────────────────────────────────────
 // Diet types — aligned with AND (Academy of Nutrition and Dietetics) current terminology
@@ -881,6 +883,8 @@ export default function Dietary() {
     { key: 'menus',     label: 'Cycle Menus',       icon: BookOpen },
   ]
 
+  const stateRef = DIETARY_STATE_REFS[organization?.compliance_state] || DIETARY_STATE_REFS.OTHER
+
   return (
     <div className="max-w-7xl mx-auto">
       {/* Header */}
@@ -955,14 +959,37 @@ export default function Dietary() {
 
       {/* MENUS TAB */}
       {tab === 'menus' && (
-        <CycleMenuBuilder
-          menus={menus}
-          items={menuItems}
-          onRefresh={fetchAll}
-          orgId={organization.id}
-          userId={profile.id}
-          canEdit={canEditDietary}
-        />
+        <>
+          <RegRefBanner
+            label={`${stateRef.label} Food Safety Code`}
+            statute={stateRef.foodCode.statute}
+            summary={stateRef.foodCode.summary}
+            confidence={stateRef.foodCode.confidence}
+            note={stateRef.foodCode.note}
+          />
+          <RegRefBanner
+            label={`${stateRef.label} Menu / Therapeutic Diet Requirements`}
+            statute={stateRef.menuRequirements.statute}
+            summary={stateRef.menuRequirements.summary}
+            confidence={stateRef.menuRequirements.confidence}
+            note={stateRef.menuRequirements.note}
+          />
+          <RegRefBanner
+            label={`${stateRef.label} Dietitian / CDM Oversight`}
+            statute={stateRef.dietitianOversight.statute}
+            summary={stateRef.dietitianOversight.summary}
+            confidence={stateRef.dietitianOversight.confidence}
+            note={stateRef.dietitianOversight.note}
+          />
+          <CycleMenuBuilder
+            menus={menus}
+            items={menuItems}
+            onRefresh={fetchAll}
+            orgId={organization.id}
+            userId={profile.id}
+            canEdit={canEditDietary}
+          />
+        </>
       )}
 
       {/* Modals */}

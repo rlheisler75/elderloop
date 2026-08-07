@@ -7,6 +7,8 @@ import {
   Building2, Home, AlertTriangle, Clock, DollarSign,
   Phone, User, CheckCircle2, Circle
 } from 'lucide-react'
+import { HOUSEKEEPING_STATE_REFS } from '../../lib/housekeepingStateRefs'
+import RegRefBanner from '../../components/ui/RegRefBanner'
 
 // ── Status helpers ─────────────────────────────────────────────
 const IL_STATUSES = [
@@ -449,6 +451,8 @@ export default function Housekeeping() {
   // Last inspection per area
   const lastInspection = (areaId) => inspections.find(i => i.area_id === areaId)
 
+  const stateRef = HOUSEKEEPING_STATE_REFS[organization?.compliance_state] || HOUSEKEEPING_STATE_REFS.OTHER
+
   return (
     <div className="max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
@@ -477,6 +481,27 @@ export default function Housekeeping() {
       {/* ── LTC TAB ── */}
       {tab === 'ltc' && (
         <div>
+          <RegRefBanner
+            label={`${stateRef.label} Infection Prevention & Control`}
+            statute={stateRef.infectionControl.statute}
+            summary={stateRef.infectionControl.summary}
+            confidence={stateRef.infectionControl.confidence}
+            note={stateRef.infectionControl.note}
+          />
+          <RegRefBanner
+            label={`${stateRef.label} Environmental Sanitation`}
+            statute={stateRef.sanitation.statute}
+            summary={stateRef.sanitation.summary}
+            confidence={stateRef.sanitation.confidence}
+            note={stateRef.sanitation.note}
+          />
+          <RegRefBanner
+            label={`${stateRef.label} Pest Control`}
+            statute={stateRef.pestControl.statute}
+            summary={stateRef.pestControl.summary}
+            confidence={stateRef.pestControl.confidence}
+            note={stateRef.pestControl.note}
+          />
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm text-slate-500">{areas.length} areas · {inspections.length} inspections logged</p>
             <button onClick={() => setShowAddArea(s => !s)}

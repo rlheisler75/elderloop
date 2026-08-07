@@ -7,6 +7,8 @@ import {
   ChevronLeft, ChevronRight, CheckCircle2,
   AlertCircle, XCircle, Navigation, FileText, Grid3x3
 } from 'lucide-react'
+import { TRANSPORTATION_STATE_REFS } from '../../lib/transportationStateRefs'
+import RegRefBanner from '../../components/ui/RegRefBanner'
 
 // ── Constants ─────────────────────────────────────────────────
 const TRIP_STATUSES = [
@@ -573,6 +575,8 @@ export default function Transportation() {
     return d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear()
   }).length
 
+  const stateRef = TRANSPORTATION_STATE_REFS[organization?.compliance_state] || TRANSPORTATION_STATE_REFS.OTHER
+
   return (
     <div className="max-w-6xl mx-auto">
       {/* Header */}
@@ -607,6 +611,28 @@ export default function Transportation() {
           </div>
         ))}
       </div>
+
+      <RegRefBanner
+        label={`${stateRef.label} Vehicle Accessibility`}
+        statute={stateRef.vehicleAccessibility.statute}
+        summary={stateRef.vehicleAccessibility.summary}
+        confidence={stateRef.vehicleAccessibility.confidence}
+        note={stateRef.vehicleAccessibility.note}
+      />
+      <RegRefBanner
+        label={`${stateRef.label} Driver Requirements`}
+        statute={stateRef.driverRequirements.statute}
+        summary={stateRef.driverRequirements.summary}
+        confidence={stateRef.driverRequirements.confidence}
+        note={stateRef.driverRequirements.note}
+      />
+      <RegRefBanner
+        label={`${stateRef.label} NEMT Program Structure`}
+        statute={stateRef.nemtProgram.statute}
+        summary={stateRef.nemtProgram.summary}
+        confidence={stateRef.nemtProgram.confidence}
+        note={stateRef.nemtProgram.note}
+      />
 
       {/* View toggle */}
       <div className="flex items-center gap-2 mb-5">
