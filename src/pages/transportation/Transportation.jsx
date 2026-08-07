@@ -11,7 +11,7 @@ import {
 // ── Constants ─────────────────────────────────────────────────
 const TRIP_STATUSES = [
   { key: 'scheduled',   label: 'Scheduled',   color: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-900',    dot: 'bg-blue-500' },
-  { key: 'in_progress', label: 'In Progress', color: 'bg-brand-50 text-brand-700 border-brand-200', dot: 'bg-brand-500' },
+  { key: 'in_progress', label: 'In Progress', color: 'bg-brand-50 text-brand-700 border-brand-200 dark:bg-brand-950/50 dark:text-brand-400 dark:border-brand-900', dot: 'bg-brand-500' },
   { key: 'completed',   label: 'Completed',   color: 'bg-green-50 text-green-700 border-green-200 dark:bg-green-950/50 dark:text-green-400 dark:border-green-900', dot: 'bg-green-500' },
   { key: 'cancelled',   label: 'Cancelled',   color: 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700',dot: 'bg-slate-400' },
   { key: 'no_show',     label: 'No Show',     color: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/50 dark:text-red-400 dark:border-red-900',       dot: 'bg-red-400' },
@@ -335,98 +335,98 @@ function TripModal({ trip, vehicles, residents, defaultDate, onClose, onSave }) 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[92vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-xl max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div className="flex items-center gap-3">
             <Car size={18} className="text-brand-600" />
-            <h2 className="font-display font-semibold text-slate-800">
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">
               {isNew ? 'Schedule Trip' : `Edit Trip — ${trip.resident_name}`}
             </h2>
             {!isNew && <StatusBadge status={form.status} />}
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+          <button onClick={onClose} className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"><X size={20} /></button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-          {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+          {error && <div className="px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
 
           {/* Resident lookup */}
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Resident</label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">Resident</label>
             <ResidentLookup
               residents={residents}
               value={form.resident_name}
               onChange={(name, unit, phone) => { set('resident_name', name); set('unit', unit || ''); set('phone', phone || '') }}
             />
             <input value={form.phone} onChange={e => set('phone', e.target.value)}
-              className="w-full mt-2 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full mt-2 px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="Phone number" />
           </div>
 
           {/* Schedule */}
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Schedule</label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">Schedule</label>
             <div className="grid grid-cols-3 gap-2">
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Date *</label>
                 <input type="date" value={form.trip_date} onChange={e => set('trip_date', e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
               </div>
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Pickup *</label>
                 <input type="time" value={form.pickup_time} onChange={e => set('pickup_time', e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
               </div>
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Est. Return</label>
                 <input type="time" value={form.return_time} onChange={e => set('return_time', e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
               </div>
             </div>
           </div>
 
           {/* Appointment */}
-          <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl space-y-3">
-            <label className="block text-xs font-semibold text-blue-700 uppercase tracking-wide flex items-center gap-1.5">
+          <div className="p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900 rounded-xl space-y-3">
+            <label className="block text-xs font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wide flex items-center gap-1.5">
               <MapPin size={13} /> Appointment Details
             </label>
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Type</label>
                 <select value={form.appointment_type} onChange={e => set('appointment_type', e.target.value)}
-                  className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white">
+                  className="w-full px-3 py-2 border border-blue-200 dark:border-blue-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white dark:bg-slate-800 dark:text-slate-100">
                   {APPT_TYPES.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Appt Time</label>
                 <input type="time" value={form.appointment_time} onChange={e => set('appointment_time', e.target.value)}
-                  className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white" />
+                  className="w-full px-3 py-2 border border-blue-200 dark:border-blue-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white dark:bg-slate-800 dark:text-slate-100" />
               </div>
             </div>
             <input value={form.provider_name} onChange={e => set('provider_name', e.target.value)}
-              className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
+              className="w-full px-3 py-2 border border-blue-200 dark:border-blue-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white dark:bg-slate-800 dark:text-slate-100"
               placeholder="Provider / Clinic name" />
             <input value={form.provider_address} onChange={e => set('provider_address', e.target.value)}
-              className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
+              className="w-full px-3 py-2 border border-blue-200 dark:border-blue-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white dark:bg-slate-800 dark:text-slate-100"
               placeholder="Address" />
             <input value={form.provider_phone} onChange={e => set('provider_phone', e.target.value)}
-              className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
+              className="w-full px-3 py-2 border border-blue-200 dark:border-blue-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white dark:bg-slate-800 dark:text-slate-100"
               placeholder="Provider phone" />
           </div>
 
           {/* Driver & Vehicle */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Driver</label>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Driver</label>
               <input value={form.driver_name} onChange={e => set('driver_name', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="Driver name" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Vehicle</label>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Vehicle</label>
               <select value={form.vehicle_id} onChange={e => set('vehicle_id', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                 <option value="">Select vehicle</option>
                 {vehicles.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
               </select>
@@ -436,11 +436,11 @@ function TripModal({ trip, vehicles, residents, defaultDate, onClose, onSave }) 
           {/* Status */}
           {!isNew && (
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Status</label>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">Status</label>
               <div className="flex flex-wrap gap-2">
                 {TRIP_STATUSES.map(s => (
                   <button key={s.key} onClick={() => set('status', s.key)}
-                    className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${form.status === s.key ? s.color + ' ring-2 ring-offset-1 ring-brand-400' : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}>
+                    className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${form.status === s.key ? s.color + ' ring-2 ring-offset-1 ring-brand-400' : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300'}`}>
                     {s.label}
                   </button>
                 ))}
@@ -450,43 +450,43 @@ function TripModal({ trip, vehicles, residents, defaultDate, onClose, onSave }) 
 
           {/* Actuals / Trip Log */}
           {(showActuals || !isNew) && (
-            <div className="p-4 bg-green-50 border border-green-100 rounded-xl space-y-3">
-              <label className="block text-xs font-semibold text-green-700 uppercase tracking-wide flex items-center gap-1.5">
+            <div className="p-4 bg-green-50 dark:bg-green-950/30 border border-green-100 dark:border-green-900 rounded-xl space-y-3">
+              <label className="block text-xs font-semibold text-green-700 dark:text-green-400 uppercase tracking-wide flex items-center gap-1.5">
                 <FileText size={13} /> Trip Log
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-xs text-slate-400 mb-1">Actual Pickup</label>
                   <input type="time" value={form.actual_pickup} onChange={e => set('actual_pickup', e.target.value)}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-400 bg-white" />
+                    className="w-full px-3 py-2 border border-green-200 dark:border-green-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-400 bg-white dark:bg-slate-800 dark:text-slate-100" />
                 </div>
                 <div>
                   <label className="block text-xs text-slate-400 mb-1">Actual Return</label>
                   <input type="time" value={form.actual_return} onChange={e => set('actual_return', e.target.value)}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-400 bg-white" />
+                    className="w-full px-3 py-2 border border-green-200 dark:border-green-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-400 bg-white dark:bg-slate-800 dark:text-slate-100" />
                 </div>
                 <div>
                   <label className="block text-xs text-slate-400 mb-1">Mileage Start</label>
                   <input type="number" value={form.mileage_start} onChange={e => set('mileage_start', e.target.value)}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-400 bg-white"
+                    className="w-full px-3 py-2 border border-green-200 dark:border-green-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-400 bg-white dark:bg-slate-800 dark:text-slate-100"
                     placeholder="Odometer out" />
                 </div>
                 <div>
                   <label className="block text-xs text-slate-400 mb-1">Mileage End</label>
                   <input type="number" value={form.mileage_end} onChange={e => set('mileage_end', e.target.value)}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-400 bg-white"
+                    className="w-full px-3 py-2 border border-green-200 dark:border-green-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-400 bg-white dark:bg-slate-800 dark:text-slate-100"
                     placeholder="Odometer in" />
                 </div>
               </div>
               <textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows={2}
-                className="w-full px-3 py-2 border border-green-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-400 bg-white resize-none"
+                className="w-full px-3 py-2 border border-green-200 dark:border-green-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-400 bg-white dark:bg-slate-800 dark:text-slate-100 resize-none"
                 placeholder="Trip notes..." />
             </div>
           )}
         </div>
 
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
             {saving ? 'Saving...' : isNew ? 'Schedule Trip' : 'Save Changes'}
@@ -578,12 +578,12 @@ export default function Transportation() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-slate-800">Transportation</h1>
+          <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Transportation</h1>
           <p className="text-slate-500 text-sm mt-0.5">Medical transport scheduling and trip logs</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setShowPrint(true)}
-            className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
+            className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
             <Printer size={15} /> Trip Sheet
           </button>
           <button onClick={handleNew}
@@ -596,10 +596,10 @@ export default function Transportation() {
       {/* Stats */}
       <div className="grid grid-cols-4 gap-3 mb-6">
         {[
-          { label: "Today's Trips",  value: todayTrips.length,  color: 'text-brand-600',  bg: 'bg-brand-50' },
-          { label: 'Upcoming',       value: upcomingCount,      color: 'text-blue-600',   bg: 'bg-blue-50' },
-          { label: 'This Month',     value: thisMonth,          color: 'text-green-600',  bg: 'bg-green-50' },
-          { label: 'Vehicles',       value: vehicles.length,    color: 'text-slate-600',  bg: 'bg-slate-100' },
+          { label: "Today's Trips",  value: todayTrips.length,  color: 'text-brand-600',  bg: 'bg-brand-50 dark:bg-brand-950/40' },
+          { label: 'Upcoming',       value: upcomingCount,      color: 'text-blue-600',   bg: 'bg-blue-50 dark:bg-blue-950/40' },
+          { label: 'This Month',     value: thisMonth,          color: 'text-green-600',  bg: 'bg-green-50 dark:bg-green-950/40' },
+          { label: 'Vehicles',       value: vehicles.length,    color: 'text-slate-600 dark:text-slate-300',  bg: 'bg-slate-100 dark:bg-slate-800' },
         ].map(s => (
           <div key={s.label} className={`${s.bg} rounded-2xl p-4`}>
             <div className={`text-3xl font-display font-bold ${s.color}`}>{s.value}</div>
@@ -610,17 +610,17 @@ export default function Transportation() {
 
       {/* View toggle */}
       <div className="flex items-center gap-2 mb-5">
-        <div className="flex gap-1 bg-slate-100 p-1 rounded-xl">
+        <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
           <button onClick={() => setView('day')}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${view === 'day' ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500'}`}>
+            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${view === 'day' ? 'bg-white dark:bg-slate-900 text-brand-700 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}>
             Day View
           </button>
           <button onClick={() => setView('month')}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${view === 'month' ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500'}`}>
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${view === 'month' ? 'bg-white dark:bg-slate-900 text-brand-700 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}>
             <Grid3x3 size={13} /> Month
           </button>
           <button onClick={() => setView('list')}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${view === 'list' ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500'}`}>
+            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${view === 'list' ? 'bg-white dark:bg-slate-900 text-brand-700 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}>
             All Trips
           </button>
         </div>
@@ -631,14 +631,14 @@ export default function Transportation() {
         <>
           <div className="flex items-center gap-3 mb-4">
             <button onClick={() => { if (calMonth === 0) { setCalMonth(11); setCalYear(y => y-1) } else setCalMonth(m => m-1) }}
-              className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
+              className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
               <ChevronLeft size={18} />
             </button>
             <div className="flex-1 text-center">
-              <h2 className="font-display font-semibold text-slate-800 text-lg">{MONTH_NAMES[calMonth]} {calYear}</h2>
+              <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 text-lg">{MONTH_NAMES[calMonth]} {calYear}</h2>
             </div>
             <button onClick={() => { if (calMonth === 11) { setCalMonth(0); setCalYear(y => y+1) } else setCalMonth(m => m+1) }}
-              className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
+              className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
               <ChevronRight size={18} />
             </button>
           </div>
@@ -658,17 +658,17 @@ export default function Transportation() {
           {/* Date nav */}
           <div className="flex items-center gap-3 mb-4">
             <button onClick={() => shiftDate(-1)}
-              className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
+              className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
               <ChevronLeft size={18} />
             </button>
             <div className="flex-1 text-center">
-              <div className="font-display font-semibold text-slate-800">
+              <div className="font-display font-semibold text-slate-800 dark:text-slate-100">
                 {new Date(selectedDate + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
               </div>
               {selectedDate === today() && <div className="text-xs text-brand-500 font-medium mt-0.5">Today</div>}
             </div>
             <button onClick={() => shiftDate(1)}
-              className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
+              className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
               <ChevronRight size={18} />
             </button>
           </div>
@@ -676,7 +676,7 @@ export default function Transportation() {
           {/* Also show date picker */}
           <div className="flex justify-center mb-5">
             <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)}
-              className="px-3 py-1.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
 
           {loading ? (
@@ -690,7 +690,7 @@ export default function Transportation() {
           ) : (
             <div className="space-y-3">
               {dayTrips.map((t, i) => (
-                <div key={t.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-all">
+                <div key={t.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5 hover:shadow-md transition-all">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-4">
                       <div className="text-center flex-shrink-0 w-14">
@@ -699,8 +699,8 @@ export default function Transportation() {
                       </div>
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-display font-semibold text-slate-800">{t.resident_name}</span>
-                          {t.unit && <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">Unit {t.unit}</span>}
+                          <span className="font-display font-semibold text-slate-800 dark:text-slate-100">{t.resident_name}</span>
+                          {t.unit && <span className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-full">Unit {t.unit}</span>}
                           <StatusBadge status={t.status} />
                         </div>
                         <div className="flex flex-wrap gap-3 mt-2 text-xs text-slate-500">
@@ -748,9 +748,9 @@ export default function Transportation() {
                     </div>
                     <div className="flex gap-1 flex-shrink-0">
                       <button onClick={() => handleEdit(t)}
-                        className="p-2 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 transition-colors"><Edit2 size={14} /></button>
+                        className="p-2 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-950/50 transition-colors"><Edit2 size={14} /></button>
                       <button onClick={() => handleDelete(t.id)}
-                        className="p-2 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors"><Trash2 size={14} /></button>
+                        className="p-2 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors"><Trash2 size={14} /></button>
                     </div>
                   </div>
                 </div>
@@ -767,44 +767,44 @@ export default function Transportation() {
             <div className="relative flex-1 min-w-48">
               <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by resident, unit, or provider..."
-                className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-              className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+              className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100">
               <option value="all">All Statuses</option>
               {TRIP_STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
             </select>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-slate-100 bg-slate-50">
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Resident</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Date</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Pickup</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Appointment</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Driver</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Status</th>
+                <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Resident</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Date</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Pickup</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Appointment</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Driver</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Status</th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
               <tbody>
                 {listTrips.map(t => (
-                  <tr key={t.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => handleEdit(t)}>
+                  <tr key={t.id} className="border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors cursor-pointer" onClick={() => handleEdit(t)}>
                     <td className="px-4 py-3">
-                      <div className="font-medium text-slate-800 text-sm">{t.resident_name}</div>
+                      <div className="font-medium text-slate-800 dark:text-slate-100 text-sm">{t.resident_name}</div>
                       {t.unit && <div className="text-xs text-slate-400">Unit {t.unit}</div>}
                     </td>
-                    <td className="px-4 py-3 text-xs text-slate-600">
+                    <td className="px-4 py-3 text-xs text-slate-600 dark:text-slate-300">
                       {new Date(t.trip_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </td>
-                    <td className="px-4 py-3 text-xs text-slate-600">{fmt12(t.pickup_time)}</td>
-                    <td className="px-4 py-3 text-xs text-slate-600">
+                    <td className="px-4 py-3 text-xs text-slate-600 dark:text-slate-300">{fmt12(t.pickup_time)}</td>
+                    <td className="px-4 py-3 text-xs text-slate-600 dark:text-slate-300">
                       {getApptType(t.appointment_type)}
                       {t.provider_name && <div className="text-slate-400">{t.provider_name}</div>}
                     </td>
-                    <td className="px-4 py-3 text-xs text-slate-500">{t.driver_name || '—'}</td>
+                    <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400">{t.driver_name || '—'}</td>
                     <td className="px-4 py-3"><StatusBadge status={t.status} /></td>
                     <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                       <button onClick={() => handleDelete(t.id)}

@@ -478,30 +478,30 @@ function NoteModal({ note, resident, orgId, profile, onClose, onSaved }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div>
-            <h2 className="font-display font-semibold text-slate-800">{isNew ? 'Add Care Note' : 'Edit Note'}</h2>
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">{isNew ? 'Add Care Note' : 'Edit Note'}</h2>
             <p className="text-xs text-slate-400 mt-0.5">{resident.first_name} {resident.last_name}</p>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+          <button onClick={onClose} className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"><X size={20} /></button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
-          {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+          {error && <div className="px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Date</label>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">Date</label>
               <input type="date" value={form.note_date} onChange={e => set('note_date', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Shift</label>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">Shift</label>
               <div className="flex gap-1">
                 {SHIFTS.map(s => (
                   <button key={s.key} onClick={() => set('shift', s.key)}
-                    className={`flex-1 py-2 rounded-lg border text-xs font-semibold transition-all ${form.shift === s.key ? 'bg-brand-600 border-brand-600 text-white' : 'border-slate-200 text-slate-600 hover:border-slate-300'}`}>
+                    className={`flex-1 py-2 rounded-lg border text-xs font-semibold transition-all ${form.shift === s.key ? 'bg-brand-600 border-brand-600 text-white' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300'}`}>
                     {s.label}
                   </button>
                 ))}
@@ -510,11 +510,11 @@ function NoteModal({ note, resident, orgId, profile, onClose, onSaved }) {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Category</label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">Category</label>
             <div className="flex flex-wrap gap-1.5">
               {NOTE_CATEGORIES.map(c => (
                 <button key={c.key} onClick={() => set('category', c.key)}
-                  className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${form.category === c.key ? 'bg-brand-600 border-brand-600 text-white' : 'border-slate-200 text-slate-600 hover:border-brand-300'}`}>
+                  className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${form.category === c.key ? 'bg-brand-600 border-brand-600 text-white' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300'}`}>
                   {c.label}
                 </button>
               ))}
@@ -522,30 +522,30 @@ function NoteModal({ note, resident, orgId, profile, onClose, onSaved }) {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Note *</label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Note *</label>
             <textarea value={form.body} onChange={e => set('body', e.target.value)} rows={6}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
               placeholder="Document your observations, interventions, and resident response..." />
             <div className="text-xs text-slate-400 mt-1 text-right">{form.body.length} chars</div>
           </div>
 
-          <label className={`flex items-start gap-3 cursor-pointer p-3 rounded-xl border-2 transition-all ${form.is_flagged ? 'bg-red-50 border-red-300' : 'border-slate-200'}`}>
+          <label className={`flex items-start gap-3 cursor-pointer p-3 rounded-xl border-2 transition-all ${form.is_flagged ? 'bg-red-50 dark:bg-red-950/30 border-red-300 dark:border-red-800' : 'border-slate-200 dark:border-slate-700'}`}>
             <input type="checkbox" checked={form.is_flagged} onChange={e => set('is_flagged', e.target.checked)} className="w-4 h-4 rounded text-red-600 mt-0.5" />
             <div className="flex-1">
-              <div className="flex items-center gap-1.5 font-medium text-slate-800 text-sm">
+              <div className="flex items-center gap-1.5 font-medium text-slate-800 dark:text-slate-100 text-sm">
                 <Flag size={13} className={form.is_flagged ? 'text-red-500' : 'text-slate-400'} />
                 Flag for supervisor review
               </div>
               {form.is_flagged && (
                 <input value={form.flag_reason} onChange={e => set('flag_reason', e.target.value)}
-                  className="mt-2 w-full px-3 py-1.5 border border-red-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-400 bg-white"
+                  className="mt-2 w-full px-3 py-1.5 border border-red-200 dark:border-red-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-400 bg-white dark:bg-slate-800 dark:text-slate-100"
                   placeholder="Reason for flagging..." />
               )}
             </div>
           </label>
         </div>
 
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-between gap-3 flex-shrink-0">
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-between gap-3 flex-shrink-0">
           <div>
             {!isNew && (
               <button onClick={handleDelete} disabled={deleting}
@@ -555,7 +555,7 @@ function NoteModal({ note, resident, orgId, profile, onClose, onSaved }) {
             )}
           </div>
           <div className="flex gap-3">
-            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
             <button onClick={handleSave} disabled={saving}
               className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
               {saving ? 'Saving...' : isNew ? 'Add Note' : 'Save Changes'}
@@ -619,20 +619,20 @@ function ResidentPanel({ resident, orgId, profile, canEdit, onSaved }) {
   return (
     <div className="flex-1 flex flex-col min-h-0">
       {/* Resident header */}
-      <div className="px-5 py-4 border-b border-slate-100 flex-shrink-0 bg-white">
+      <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0 bg-white dark:bg-slate-900">
         <div className="flex items-center gap-3 mb-3">
           <div className="w-10 h-10 rounded-2xl bg-brand-100 flex items-center justify-center text-brand-700 font-display font-bold">
             {resident.first_name?.[0]}
           </div>
           <div>
-            <h2 className="font-display font-semibold text-slate-800">{resident.first_name} {resident.last_name}</h2>
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">{resident.first_name} {resident.last_name}</h2>
             <p className="text-xs text-slate-400 capitalize">{resident.care_level?.replace('_',' ')} · Room {resident.room || '—'}</p>
           </div>
         </div>
 
         {/* Latest vitals summary bar */}
         {latestVitals && (
-          <div className="grid grid-cols-4 gap-2 p-3 bg-slate-50 rounded-xl text-xs">
+          <div className="grid grid-cols-4 gap-2 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-xs">
             {[
               { label: 'BP', value: latestVitals.bp_systolic && latestVitals.bp_diastolic ? `${latestVitals.bp_systolic}/${latestVitals.bp_diastolic}` : '—', trend: null, special: bpClass(latestVitals.bp_systolic, latestVitals.bp_diastolic) },
               { label: 'Pulse', value: latestVitals.pulse ? `${latestVitals.pulse}` : '—', prev: prevVitals?.pulse, curr: latestVitals.pulse },
@@ -640,7 +640,7 @@ function ResidentPanel({ resident, orgId, profile, canEdit, onSaved }) {
               { label: 'Pain', value: latestVitals.pain_level != null ? `${latestVitals.pain_level}/10` : '—', special: latestVitals.pain_level >= 7 ? { color: 'text-red-600' } : latestVitals.pain_level >= 4 ? { color: 'text-amber-600' } : null },
             ].map(v => (
               <div key={v.label} className="text-center">
-                <div className={`font-bold text-sm ${v.special?.color || 'text-slate-800'}`}>{v.value}</div>
+                <div className={`font-bold text-sm ${v.special?.color || 'text-slate-800 dark:text-slate-100'}`}>{v.value}</div>
                 <div className="text-slate-400">{v.label}</div>
               </div>
             ))}
@@ -655,7 +655,7 @@ function ResidentPanel({ resident, orgId, profile, canEdit, onSaved }) {
             { key: 'notes',  label: `Notes${flaggedNotes.length ? ` 🚩${flaggedNotes.length}` : notes.length ? ` (${notes.length})` : ''}` },
           ].map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${tab === t.key ? 'bg-brand-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${tab === t.key ? 'bg-brand-600 text-white' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
               {t.label}
             </button>
           ))}
@@ -686,8 +686,8 @@ function ResidentPanel({ resident, orgId, profile, canEdit, onSaved }) {
                       { label: 'Weight',      data: weightData, color: '#8b5cf6', unit: 'lbs' },
                       { label: 'O₂ Sat',      data: o2Data,    color: '#22c55e', unit: '%' },
                     ].filter(c => c.data.length >= 2).map(chart => (
-                      <div key={chart.label} className="bg-white border border-slate-100 rounded-xl p-3">
-                        <div className="text-xs font-semibold text-slate-500 mb-2">{chart.label}</div>
+                      <div key={chart.label} className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl p-3">
+                        <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">{chart.label}</div>
                         <Sparkline data={chart.data} color={chart.color} />
                         <div className="text-xs text-slate-400 mt-1">{chart.data[chart.data.length-1]} {chart.unit}</div>
                       </div>
@@ -705,7 +705,7 @@ function ResidentPanel({ resident, orgId, profile, canEdit, onSaved }) {
                       const bp    = bpClass(v.bp_systolic, v.bp_diastolic)
                       const prev  = vitals[idx + 1]
                       return (
-                        <div key={v.id} className="bg-white border border-slate-100 rounded-2xl p-4">
+                        <div key={v.id} className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-4">
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
                               <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${shift.color}`}>{shift.label}</span>
@@ -743,12 +743,12 @@ function ResidentPanel({ resident, orgId, profile, canEdit, onSaved }) {
                             ].filter(f => f.value).map(f => (
                               <div key={f.label}>
                                 <div className="text-slate-400">{f.label}</div>
-                                <div className={`font-semibold ${f.alert ? 'text-red-600' : f.extraColor || 'text-slate-800'}`}>{f.value}</div>
+                                <div className={`font-semibold ${f.alert ? 'text-red-600' : f.extraColor || 'text-slate-800 dark:text-slate-100'}`}>{f.value}</div>
                                 {f.extra && <div className={`text-xs ${f.extraColor}`}>{f.extra}</div>}
                               </div>
                             ))}
                           </div>
-                          {v.notes && <p className="mt-2 text-xs text-slate-500 italic border-t border-slate-50 pt-2">{v.notes}</p>}
+                          {v.notes && <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 italic border-t border-slate-50 dark:border-slate-800 pt-2">{v.notes}</p>}
                         </div>
                       )
                     })}
@@ -776,16 +776,16 @@ function ResidentPanel({ resident, orgId, profile, canEdit, onSaved }) {
                         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Scheduled Medications</h3>
                         <div className="space-y-2">
                           {scheduledMeds.map(m => (
-                            <div key={m.id} className="bg-white border border-slate-100 rounded-2xl p-4 hover:border-brand-200 transition-all">
+                            <div key={m.id} className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-4 hover:border-brand-200 transition-all">
                               <div className="flex items-start justify-between gap-3">
                                 <div className="flex items-start gap-3 flex-1">
-                                  <div className="w-8 h-8 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
-                                    <Pill size={15} className="text-blue-600" />
+                                  <div className="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-950/50 flex items-center justify-center flex-shrink-0">
+                                    <Pill size={15} className="text-blue-600 dark:text-blue-400" />
                                   </div>
                                   <div className="flex-1">
-                                    <div className="font-semibold text-slate-800 text-sm">{m.name} {m.dosage && <span className="font-normal text-slate-500">{m.dosage}</span>}</div>
+                                    <div className="font-semibold text-slate-800 dark:text-slate-100 text-sm">{m.name} {m.dosage && <span className="font-normal text-slate-500 dark:text-slate-400">{m.dosage}</span>}</div>
                                     {m.generic_name && <div className="text-xs text-slate-400">{m.generic_name}</div>}
-                                    <div className="text-xs text-slate-500 mt-1 flex flex-wrap gap-2">
+                                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex flex-wrap gap-2">
                                       <span className="capitalize">{m.form} · {m.route?.toUpperCase()}</span>
                                       <span className="font-medium text-brand-600">{m.frequency}</span>
                                     </div>
@@ -817,18 +817,18 @@ function ResidentPanel({ resident, orgId, profile, canEdit, onSaved }) {
                         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">PRN (As Needed)</h3>
                         <div className="space-y-2">
                           {prnMeds.map(m => (
-                            <div key={m.id} className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
+                            <div key={m.id} className="bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900 rounded-2xl p-4">
                               <div className="flex items-start justify-between gap-3">
                                 <div className="flex items-start gap-3 flex-1">
-                                  <div className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
-                                    <Pill size={15} className="text-amber-600" />
+                                  <div className="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-950/50 flex items-center justify-center flex-shrink-0">
+                                    <Pill size={15} className="text-amber-600 dark:text-amber-400" />
                                   </div>
                                   <div>
-                                    <div className="font-semibold text-slate-800 text-sm">
-                                      {m.name} {m.dosage && <span className="font-normal text-slate-500">{m.dosage}</span>}
-                                      <span className="ml-2 text-xs bg-amber-200 text-amber-800 px-1.5 py-0.5 rounded font-medium">PRN</span>
+                                    <div className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
+                                      {m.name} {m.dosage && <span className="font-normal text-slate-500 dark:text-slate-400">{m.dosage}</span>}
+                                      <span className="ml-2 text-xs bg-amber-200 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300 px-1.5 py-0.5 rounded font-medium">PRN</span>
                                     </div>
-                                    <div className="text-xs text-slate-500 mt-0.5">{m.frequency}</div>
+                                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{m.frequency}</div>
                                     {m.indication && <div className="text-xs text-slate-400">For: {m.indication}</div>}
                                   </div>
                                 </div>
@@ -865,13 +865,13 @@ function ResidentPanel({ resident, orgId, profile, canEdit, onSaved }) {
                       const shift = getShift(n.shift)
                       const cat   = getCat(n.category)
                       return (
-                        <div key={n.id} className={`bg-white rounded-2xl border p-4 ${n.is_flagged ? 'border-red-200' : 'border-slate-100'}`}>
+                        <div key={n.id} className={`bg-white dark:bg-slate-900 rounded-2xl border p-4 ${n.is_flagged ? 'border-red-200 dark:border-red-900' : 'border-slate-100 dark:border-slate-800'}`}>
                           <div className="flex items-start justify-between gap-3 mb-2">
                             <div className="flex items-center gap-2 flex-wrap">
                               {n.is_flagged && <Flag size={12} className="text-red-500 flex-shrink-0" />}
-                              <span className="text-xs font-semibold text-slate-700">{fmtDate(n.note_date)}</span>
+                              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{fmtDate(n.note_date)}</span>
                               <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${shift.color}`}>{shift.label}</span>
-                              <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full">{cat.label}</span>
+                              <span className="text-xs px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-full">{cat.label}</span>
                               {n.profiles && <span className="text-xs text-slate-400">{n.profiles.first_name} {n.profiles.last_name}</span>}
                             </div>
                             {canEdit && (
@@ -886,9 +886,9 @@ function ResidentPanel({ resident, orgId, profile, canEdit, onSaved }) {
                               </div>
                             )}
                           </div>
-                          <p className="text-sm text-slate-700 leading-relaxed">{n.body}</p>
+                          <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{n.body}</p>
                           {n.is_flagged && n.flag_reason && (
-                            <div className="mt-2 text-xs text-red-600 bg-red-50 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+                            <div className="mt-2 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/50 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
                               <Flag size={10} /> {n.flag_reason}
                             </div>
                           )}
@@ -965,16 +965,16 @@ export default function NursingNotes() {
       {/* Left panel — resident list */}
       <div className="w-72 flex-shrink-0 flex flex-col">
         <div className="mb-4">
-          <h1 className="font-display text-2xl font-semibold text-slate-800">Nursing Notes</h1>
+          <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Nursing Notes</h1>
           <p className="text-slate-500 text-sm mt-0.5">Vitals, medications, and care notes</p>
         </div>
 
         {/* Today's stats */}
         <div className="grid grid-cols-3 gap-2 mb-4">
           {[
-            { label: "Vitals Today",  value: todayStats.vitalsToday, color: 'text-brand-600', bg: 'bg-brand-50' },
-            { label: "Notes Today",   value: todayStats.notesToday,  color: 'text-green-600', bg: 'bg-green-50' },
-            { label: "Flagged",       value: todayStats.flagged,     color: todayStats.flagged > 0 ? 'text-red-600' : 'text-slate-400', bg: todayStats.flagged > 0 ? 'bg-red-50' : 'bg-slate-100' },
+            { label: "Vitals Today",  value: todayStats.vitalsToday, color: 'text-brand-600', bg: 'bg-brand-50 dark:bg-brand-950/40' },
+            { label: "Notes Today",   value: todayStats.notesToday,  color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-950/40' },
+            { label: "Flagged",       value: todayStats.flagged,     color: todayStats.flagged > 0 ? 'text-red-600' : 'text-slate-400', bg: todayStats.flagged > 0 ? 'bg-red-50 dark:bg-red-950/40' : 'bg-slate-100 dark:bg-slate-800' },
           ].map(s => (
             <div key={s.label} className={`${s.bg} rounded-xl p-2.5 text-center`}>
               <div className={`text-xl font-display font-bold ${s.color}`}>{s.value}</div>
@@ -987,7 +987,7 @@ export default function NursingNotes() {
         <div className="relative mb-3">
           <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search residents..."
-            className="w-full pl-8 pr-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            className="w-full pl-8 pr-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
         </div>
 
         {/* Resident list */}
@@ -996,12 +996,12 @@ export default function NursingNotes() {
             <div className="text-center py-8 text-slate-400 text-sm">Loading...</div>
           ) : filtered.map(r => (
             <button key={r.id} onClick={() => setSelected(r)}
-              className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all ${selected?.id === r.id ? 'bg-brand-600 text-white' : 'hover:bg-slate-100 text-slate-700'}`}>
+              className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all ${selected?.id === r.id ? 'bg-brand-600 text-white' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'}`}>
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${selected?.id === r.id ? 'bg-brand-500 text-white' : 'bg-brand-100 text-brand-700'}`}>
                 {r.first_name?.[0]}{r.last_name?.[0]}
               </div>
               <div className="flex-1 min-w-0">
-                <div className={`text-sm font-semibold truncate ${selected?.id === r.id ? 'text-white' : 'text-slate-800'}`}>
+                <div className={`text-sm font-semibold truncate ${selected?.id === r.id ? 'text-white' : 'text-slate-800 dark:text-slate-100'}`}>
                   {r.first_name} {r.last_name}
                 </div>
                 <div className={`text-xs truncate capitalize ${selected?.id === r.id ? 'text-brand-200' : 'text-slate-400'}`}>
@@ -1017,7 +1017,7 @@ export default function NursingNotes() {
       </div>
 
       {/* Right panel — resident detail */}
-      <div className="flex-1 bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col overflow-hidden">
+      <div className="flex-1 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col overflow-hidden">
         {!selected ? (
           <div className="flex-1 flex items-center justify-center text-center p-8">
             <div>
