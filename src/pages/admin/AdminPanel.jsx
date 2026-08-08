@@ -6,7 +6,7 @@ import {
   Users, Building2, Settings, Plus, X, Edit2, Trash2,
   Search, Shield, Check, Mail, Key, ToggleLeft, ToggleRight,
   ChevronRight, AlertCircle, CheckCircle2, Clock, Ban,
-  Save, Eye, EyeOff, Globe, Phone, MapPin, User, List, Plug, FileText
+  Save, Globe, Phone, MapPin, User, List, Plug, FileText
 } from 'lucide-react'
 import AdminLists from './AdminLists'
 import UserPermissions from './UserPermissions'
@@ -48,26 +48,24 @@ const getBilling = (key, plan) => {
 function CreateUserModal({ orgId, orgName, onClose, onSave }) {
   const { profile } = useAuth()
   const [form, setForm] = useState({
-    email: '', password: '', first_name: '', last_name: '',
+    email: '', first_name: '', last_name: '',
     role: 'staff', phone: '', unit: ''
   })
-  const [showPass, setShowPass] = useState(false)
   const [saving, setSaving]     = useState(false)
   const [error, setError]       = useState('')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
   const handleSave = async () => {
-    if (!form.email.trim() || !form.password.trim() || !form.first_name.trim()) {
-      setError('Email, password and first name are required'); return
+    if (!form.email.trim() || !form.first_name.trim()) {
+      setError('Email and first name are required'); return
     }
-    if (form.password.length < 8) { setError('Password must be at least 8 characters'); return }
     setSaving(true)
 
-    // Use Edge Function with service role — avoids client signUp switching the admin's session
+    // Use Edge Function with service role — avoids client signUp switching the admin's session.
+    // No password is sent: the function always emails a self-service password-setup link.
     const { data, error: fnErr } = await supabase.functions.invoke('create-user', {
       body: {
         email:           form.email.trim(),
-        password:        form.password,
         first_name:      form.first_name.trim(),
         last_name:       form.last_name.trim(),
         phone:           form.phone || null,
@@ -117,18 +115,7 @@ function CreateUserModal({ orgId, orgName, onClose, onSave }) {
             <input type="email" value={form.email} onChange={e => set('email', e.target.value)}
               className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="staff@example.com" />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Password *</label>
-            <div className="relative">
-              <input type={showPass ? 'text' : 'password'} value={form.password} onChange={e => set('password', e.target.value)}
-                className="w-full px-3 py-2 pr-10 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-                placeholder="Min 8 characters" />
-              <button onClick={() => setShowPass(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300">
-                {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
-              </button>
-            </div>
+            <p className="text-xs text-slate-400 mt-1">They'll get an email to set their own password — no temp password to hand off.</p>
           </div>
 
           <div>
