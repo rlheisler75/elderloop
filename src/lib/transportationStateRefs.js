@@ -94,17 +94,17 @@ export const TRANSPORTATION_STATE_REFS = {
   AR: {
     label: 'Arkansas',
     vehicleAccessibility: {
-      summary: 'The nursing home rules only require a written transportation policy for medical/dental appointments — no specific wheelchair lift, tie-down, or vehicle-inspection standard was locatable in the accessible text.',
-      statute: 'NOT FOUND (facility-specific)',
-      confidence: 'low',
-      note: 'The primary PDF could not be fully text-parsed by the research tooling — this is "not found in what could be retrieved," not a confirmed absence. Recommend a manual read.',
-      source: 'https://www.humanservices.arkansas.gov/wp-content/uploads/Rules-for-Nursing-Homes-11.01.2024.pdf',
+      summary: 'Confirmed: the nursing home rules require only that "the facility shall establish a written policy regarding transportation of residents, when necessary, to the hospital, medical clinics, and dentist offices" — a service-coordination obligation, not a vehicle-equipment standard. No wheelchair lift, tie-down, or vehicle-inspection requirement exists in this section. Falls back to the federal ADA/FTA baseline.',
+      statute: 'Rules for Nursing Homes § 322 (Transportation of Residents)',
+      confidence: 'high',
+      note: 'Verified via a full section-index read of the rule text (the original primary PDF wouldn\'t parse, but a mirror of the same official text confirmed the section content directly) — this is a confirmed absence, not a research gap.',
+      source: 'https://www.law.cornell.edu/regulations/arkansas/016-25-24-Ark-Code-R-002',
     },
     driverRequirements: {
-      summary: 'A "P" (passenger-for-hire) endorsement is required on a Class D license for anyone driving passengers for hire — a general-purpose rule, not resident-transport-specific. Arkansas Medicaid\'s own NEMT provider manual separately requires enrolled NEMT drivers/attendants to hold national certifications in Defensive Driving, First Aid, CPR, and Passenger Assistance Sensitivity.',
-      statute: '006.05.93 Ark. Code R. 014',
-      confidence: 'medium',
-      note: 'The NEMT certification requirement applies to enrolled Medicaid NEMT providers, not facility-employed drivers generally.',
+      summary: 'Confirmed by exact rule text: a "P" (passenger-for-hire) endorsement on a Class D license is required only for drivers who "receive a fare for the transportation of the passenger" — the rule explicitly states this "does not include those drivers paid on a salary basis." A facility\'s salaried transportation staff are therefore exempt from the P endorsement. Arkansas Medicaid\'s own NEMT provider manual separately requires enrolled NEMT drivers/attendants to hold national certifications in Defensive Driving, First Aid, CPR, and Passenger Assistance Sensitivity — but that applies only to enrolled Medicaid NEMT providers, not general facility staff.',
+      statute: '006.05.93 Ark. Code R. 014, § 1-27-23-111',
+      confidence: 'high',
+      note: 'This resolves the ambiguity flagged in the original research — verified via exact quoted rule text, not inferred.',
       source: 'https://www.law.cornell.edu/regulations/arkansas/006-05-93-Ark-Code-R-014',
     },
     nemtProgram: {
@@ -245,10 +245,10 @@ export const TRANSPORTATION_STATE_REFS = {
       source: 'https://www.flsenate.gov/Laws/Statutes/2025/316.87',
     },
     driverRequirements: {
-      summary: 'Medicaid NEMT providers (including transportation network companies) must screen all drivers per Florida\'s Level 2 background screening statute or a functionally equivalent procedure.',
+      summary: 'Medicaid NEMT providers (including transportation network companies) must screen all drivers per Florida\'s Level 2 background screening statute or a functionally equivalent procedure. On closer read, this statute\'s scope is limited to "a provider licensed by the county or operating under a permit issued by the county" and transportation network companies/brokers contracting with Medicaid — commercial, externally-regulated entities. It contains no language addressing a facility operating its own vehicle for its own residents\' exclusive use, which most likely falls outside this statute\'s scope (the same self-transport-exemption pattern found in Ohio\'s ambulette rule).',
       statute: 'Fla. Stat. § 316.87(3)',
       confidence: 'medium',
-      note: 'This governs NEMT transportation providers/network companies specifically — direct applicability to in-house, facility-operated (non-commercial) transport is uncertain.',
+      note: 'Likely does not apply to in-house, facility-operated (non-commercial) transport — but Florida has no explicit exemption clause stating this the way Ohio does, so it\'s an inference from scope language rather than a stated carve-out. Keep at medium confidence.',
       source: 'https://www.flsenate.gov/Laws/Statutes/2025/316.87',
     },
     nemtProgram: {
