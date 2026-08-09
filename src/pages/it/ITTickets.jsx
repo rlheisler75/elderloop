@@ -6,8 +6,10 @@ import {
   Printer, Phone, Server, Package, HelpCircle, Edit2,
   User, Calendar, Tag, MapPin, Wrench, Laptop, Tv,
   ToggleLeft, ToggleRight, ChevronRight, RefreshCw,
-  ClipboardList, Box, AlertCircle, Clock, KeyRound
+  ClipboardList, Box, AlertCircle, Clock, KeyRound, ScanLine
 } from 'lucide-react'
+import BarcodeScanner from '../supply/BarcodeScanner'
+import ITAssetLabels from './ITAssetLabels'
 
 // ── Helpers ────────────────────────────────────────────────────
 const fmtDate = (ts) => ts
@@ -150,16 +152,19 @@ function TicketModal({ ticket, categories, assets, staffList, isAdmin, onClose, 
   const [notes,    setNotes]    = useState(ticket.resolution_notes || '')
   const [priority, setPriority] = useState(ticket.priority)
   const [saving,   setSaving]   = useState(false)
+  const [error,    setError]    = useState('')
 
   const handleSave = async () => {
-    setSaving(true)
-    await supabase.from('it_tickets').update({
+    setSaving(true); setError('')
+    const { error: err } = await supabase.from('it_tickets').update({
       status, assigned_to: assignee || null, priority,
       resolution_notes: notes || null,
       resolved_at: ['resolved','closed'].includes(status) ? new Date().toISOString() : null,
       updated_at: new Date().toISOString(),
     }).eq('id', ticket.id)
-    setSaving(false); onSave()
+    setSaving(false)
+    if (err) { setError(err.message); return }
+    onSave()
   }
 
   const catLabel = categories.find(c => c.value === ticket.category)?.label || ticket.category
@@ -177,6 +182,7 @@ function TicketModal({ ticket, categories, assets, staffList, isAdmin, onClose, 
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+          {error && <div className="px-4 py-3 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
           {ticket.description && (
             <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{ticket.description}</div>
           )}
@@ -256,17 +262,19 @@ function AssetModal({ asset, orgId, assetTypes, locations, staffList, onClose, o
   const isNew = !asset
   const [form, setForm] = useState(asset || {
     asset_tag: '', name: '', asset_type: assetTypes[0]?.value || 'desktop',
-    make: '', model: '', serial_number: '',
+    make: '', model: '', serial_number: '', barcode: '',
     purchase_date: '', warranty_expiry: '',
     location: locations[0]?.value || '',
     assigned_to: '', status: 'active', notes: '',
   })
   const [saving, setSaving] = useState(false)
+  const [showScan, setShowScan] = useState(false)
+  const [error, setError] = useState('')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
   const handleSave = async () => {
     if (!form.name.trim()) return
-    setSaving(true)
+    setSaving(true); setError('')
     const payload = {
       organization_id: orgId,
       asset_tag:       form.asset_tag  || null,
@@ -275,6 +283,7 @@ function AssetModal({ asset, orgId, assetTypes, locations, staffList, onClose, o
       make:            form.make        || null,
       model:           form.model       || null,
       serial_number:   form.serial_number || null,
+      barcode:         form.barcode     || null,
       purchase_date:   form.purchase_date  || null,
       warranty_expiry: form.warranty_expiry || null,
       location:        form.location    || null,
@@ -283,12 +292,16 @@ function AssetModal({ asset, orgId, assetTypes, locations, staffList, onClose, o
       notes:           form.notes       || null,
       updated_at:      new Date().toISOString(),
     }
-    if (isNew) await supabase.from('it_assets').insert(payload)
-    else       await supabase.from('it_assets').update(payload).eq('id', asset.id)
-    setSaving(false); onSave()
+    const { error: err } = isNew
+      ? await supabase.from('it_assets').insert(payload)
+      : await supabase.from('it_assets').update(payload).eq('id', asset.id)
+    setSaving(false)
+    if (err) { setError(err.message); return }
+    onSave()
   }
 
   return (
+    <>
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-xl max-h-[92vh] flex flex-col">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
@@ -296,6 +309,7 @@ function AssetModal({ asset, orgId, assetTypes, locations, staffList, onClose, o
           <button onClick={onClose}><X size={20} className="text-slate-400" /></button>
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+          {error && <div className="px-4 py-3 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="label">Asset Tag</label>
@@ -326,10 +340,23 @@ function AssetModal({ asset, orgId, assetTypes, locations, staffList, onClose, o
                 placeholder="OptiPlex 7090..." className="input w-full" />
             </div>
           </div>
-          <div>
-            <label className="label">Serial Number</label>
-            <input value={form.serial_number || ''} onChange={e => set('serial_number', e.target.value)}
-              className="input w-full" />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label">Serial Number</label>
+              <input value={form.serial_number || ''} onChange={e => set('serial_number', e.target.value)}
+                className="input w-full" />
+            </div>
+            <div>
+              <label className="label">Barcode</label>
+              <div className="flex gap-1.5">
+                <input value={form.barcode || ''} onChange={e => set('barcode', e.target.value)}
+                  placeholder="Scan or type" className="input w-full" />
+                <button type="button" onClick={() => setShowScan(true)}
+                  className="flex-shrink-0 px-2.5 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-brand-600 hover:border-brand-300 rounded-lg transition-colors" title="Scan with camera">
+                  <ScanLine size={15} />
+                </button>
+              </div>
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -384,6 +411,12 @@ function AssetModal({ asset, orgId, assetTypes, locations, staffList, onClose, o
         </div>
       </div>
     </div>
+    {showScan && (
+      <BarcodeScanner title="Scan Asset Barcode"
+        onScan={(code) => { set('barcode', code); setShowScan(false) }}
+        onClose={() => setShowScan(false)} />
+    )}
+    </>
   )
 }
 
@@ -555,6 +588,8 @@ export default function ITTickets() {
   const [newAsset, setNewAsset]     = useState(false)
   const [assetSearch, setAssetSearch] = useState('')
   const [assetTypeFilter, setAssetTypeFilter] = useState('all')
+  const [scanLookup, setScanLookup]   = useState(false)
+  const [showAssetLabels, setShowAssetLabels] = useState(false)
   const [viewLicense, setViewLicense] = useState(null)
   const [newLicense, setNewLicense]   = useState(false)
   const [licenseSearch, setLicenseSearch] = useState('')
@@ -611,6 +646,13 @@ export default function ITTickets() {
       .filter(Boolean).some(f => f.toLowerCase().includes(assetSearch.toLowerCase()))) return false
     return true
   })
+
+  const handleAssetScan = (code) => {
+    setScanLookup(false)
+    const found = assets.find(a => a.barcode === code || a.asset_tag === code || a.serial_number === code)
+    if (found) setViewAsset(found)
+    else alert(`No asset found with barcode: ${code}`)
+  }
 
   const filteredLicenses = licenses.filter(l => {
     if (licenseStatusFilter !== 'all' && l.status !== licenseStatusFilter) return false
@@ -784,11 +826,21 @@ export default function ITTickets() {
               <option value="all">All Types</option>
               {assetTypes.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
             </select>
+            <button onClick={() => setScanLookup(true)}
+              className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl text-xs font-medium transition-colors">
+              <ScanLine size={14} /> Scan
+            </button>
             {admin && (
-              <button onClick={() => setNewAsset(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-sm font-medium transition-colors">
-                <Plus size={15} /> Add Asset
-              </button>
+              <>
+                <button onClick={() => setShowAssetLabels(true)}
+                  className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl text-xs font-medium transition-colors">
+                  <Printer size={13} /> Print Labels
+                </button>
+                <button onClick={() => setNewAsset(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-sm font-medium transition-colors">
+                  <Plus size={15} /> Add Asset
+                </button>
+              </>
             )}
           </div>
 
@@ -970,6 +1022,12 @@ export default function ITTickets() {
           license={newLicense ? null : viewLicense} orgId={orgId} staffList={staffList}
           onClose={() => { setViewLicense(null); setNewLicense(false) }}
           onSave={() => { setViewLicense(null); setNewLicense(false); fetchAll() }} />
+      )}
+      {scanLookup && (
+        <BarcodeScanner title="Scan Asset Barcode" onScan={handleAssetScan} onClose={() => setScanLookup(false)} />
+      )}
+      {showAssetLabels && (
+        <ITAssetLabels assetTypes={assetTypes} onClose={() => setShowAssetLabels(false)} />
       )}
     </div>
   )
