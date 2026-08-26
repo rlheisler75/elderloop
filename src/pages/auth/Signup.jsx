@@ -48,6 +48,12 @@ export default function Signup() {
     first_name: '', last_name: '', email: '',
     password: '', community_name: '',
   })
+  useEffect(() => {
+    if (!repCode) return
+    supabase.rpc('increment_rep_code_click', { p_code: repCode })
+      .then(({ error }) => { if (error) console.error('increment_rep_code_click failed:', error) })
+  }, [repCode])
+
   const [showPw,   setShowPw]   = useState(false)
   const [loading,  setLoading]  = useState(false)
   const [error,    setError]    = useState('')

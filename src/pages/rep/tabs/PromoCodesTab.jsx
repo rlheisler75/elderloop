@@ -1,20 +1,25 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../../lib/supabase'
 import { useAuth } from '../../../context/AuthContext'
-import { Copy, Check, Link as LinkIcon } from 'lucide-react'
+import { Copy, Check, Link as LinkIcon, MousePointerClick, Building2, TrendingUp } from 'lucide-react'
 
 function MyLinkCard() {
   const { profile } = useAuth()
   const [repCode, setRepCode] = useState(null)
+  const [clickCount, setClickCount] = useState(null)
+  const [signupCount, setSignupCount] = useState(null)
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     if (!profile?.id) return
-    supabase.from('rep_codes').select('code').eq('rep_id', profile.id).single()
-      .then(({ data }) => setRepCode(data?.code || null))
+    supabase.from('rep_codes').select('code, click_count').eq('rep_id', profile.id).single()
+      .then(({ data }) => { setRepCode(data?.code || null); setClickCount(data?.click_count ?? 0) })
+    supabase.from('organizations').select('id', { count: 'exact', head: true }).eq('rep_id', profile.id)
+      .then(({ count }) => setSignupCount(count ?? 0))
   }, [profile?.id])
 
   const link = repCode ? `https://elderloop.xyz/signup?rep=${repCode}` : ''
+  const conversionRate = clickCount > 0 ? Math.round((signupCount / clickCount) * 100) : null
 
   const handleCopy = async () => {
     if (!link) return
@@ -24,20 +29,37 @@ function MyLinkCard() {
   }
 
   return (
-    <div className="bg-brand-950 rounded-xl p-5 mb-6 flex items-center justify-between gap-4 flex-wrap">
-      <div className="flex items-center gap-3 min-w-0">
-        <div className="w-9 h-9 bg-brand-600 rounded-xl flex items-center justify-center flex-shrink-0">
-          <LinkIcon size={16} className="text-white" />
+    <div className="bg-brand-950 rounded-xl p-5 mb-6">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-9 h-9 bg-brand-600 rounded-xl flex items-center justify-center flex-shrink-0">
+            <LinkIcon size={16} className="text-white" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-brand-300 text-xs font-medium uppercase tracking-wide">Your Signup Link</p>
+            <p className="text-white font-mono text-sm truncate">{link || 'Loading...'}</p>
+          </div>
         </div>
-        <div className="min-w-0">
-          <p className="text-brand-300 text-xs font-medium uppercase tracking-wide">Your Signup Link</p>
-          <p className="text-white font-mono text-sm truncate">{link || 'Loading...'}</p>
-        </div>
+        <button onClick={handleCopy} disabled={!link}
+          className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50">
+          {copied ? <><Check size={14} /> Copied!</> : <><Copy size={14} /> Copy Link</>}
+        </button>
       </div>
-      <button onClick={handleCopy} disabled={!link}
-        className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50">
-        {copied ? <><Check size={14} /> Copied!</> : <><Copy size={14} /> Copy Link</>}
-      </button>
+      {repCode && (
+        <div className="flex items-center gap-5 mt-4 pt-4 border-t border-white/10 text-sm">
+          <span className="flex items-center gap-1.5 text-brand-200">
+            <MousePointerClick size={14} className="text-brand-400" /> {clickCount ?? '—'} clicks
+          </span>
+          <span className="flex items-center gap-1.5 text-brand-200">
+            <Building2 size={14} className="text-brand-400" /> {signupCount ?? '—'} signups
+          </span>
+          {conversionRate !== null && (
+            <span className="flex items-center gap-1.5 text-brand-200">
+              <TrendingUp size={14} className="text-brand-400" /> {conversionRate}% conversion
+            </span>
+          )}
+        </div>
+      )}
     </div>
   )
 }
