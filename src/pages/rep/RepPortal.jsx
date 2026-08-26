@@ -4,7 +4,8 @@ import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
 import {
   Building2, DollarSign, Megaphone, FileText, Tag, Mail, CreditCard,
-  LogOut, Eye, EyeOff, Loader2, AlertCircle, KeyRound, GraduationCap
+  LogOut, Eye, EyeOff, Loader2, AlertCircle, KeyRound, GraduationCap,
+  Menu, X
 } from 'lucide-react'
 import AccountsTab from './tabs/AccountsTab'
 import CommissionsTab from './tabs/CommissionsTab'
@@ -126,8 +127,9 @@ export default function RepPortal() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const initialTab = TABS.some(t => t.key === searchParams.get('tab')) ? searchParams.get('tab') : 'accounts'
-  const [tab, setTab]         = useState(initialTab)
-  const [repCode, setRepCode] = useState(null)
+  const [tab, setTab]                 = useState(initialTab)
+  const [repCode, setRepCode]         = useState(null)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
     if (!profile?.id) return
@@ -136,77 +138,88 @@ export default function RepPortal() {
   }, [profile?.id])
 
   const handleSignOut = async () => { await signOut(); navigate('/login') }
+  const selectTab = (key) => { setTab(key); setSidebarOpen(false) }
 
   if (profile?.must_change_password) {
     return <MustChangePasswordGate onDone={refreshProfile} />
   }
 
+  const navItemCls = (active) =>
+    `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors w-full text-left ${
+      active ? 'bg-brand-700 text-white' : 'text-brand-300 hover:bg-brand-800 hover:text-white'
+    }`
+
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <div className="bg-brand-950 border-b border-brand-900">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-brand-600 rounded-xl flex items-center justify-center overflow-hidden">
+    <div className="flex h-screen bg-slate-50">
+      {sidebarOpen && <div className="fixed inset-0 z-20 bg-black/50 lg:hidden" onClick={() => setSidebarOpen(false)} />}
+
+      {/* Sidebar */}
+      <aside className={`fixed inset-y-0 left-0 z-30 w-64 bg-brand-950 flex flex-col transform transition-transform duration-200 lg:translate-x-0 lg:static lg:z-auto ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="flex items-center justify-between px-6 py-5 border-b border-brand-800">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 bg-brand-600 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0">
               <img src="/icon-192.png" alt="ElderLoop" className="w-full h-full object-cover" />
             </div>
-            <div>
-              <div className="text-white font-semibold" style={{ fontFamily: '"Playfair Display", serif' }}>ElderLoop</div>
-              <div className="text-brand-400 text-xs">Sales Rep Portal</div>
+            <div className="min-w-0">
+              <div className="text-white font-semibold truncate" style={{ fontFamily: '"Playfair Display", serif' }}>ElderLoop</div>
+              <div className="text-brand-400 text-xs truncate">Sales Rep Portal</div>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right hidden sm:block">
-              <div className="text-white text-sm font-medium">{profile?.first_name} {profile?.last_name}</div>
-              {repCode && <div className="text-brand-400 text-xs font-mono">{repCode}</div>}
+          <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-brand-400 hover:text-white ml-2"><X size={18} /></button>
+        </div>
+
+        <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-0.5">
+          {TABS.map(t => {
+            const Icon = t.icon
+            return (
+              <button key={t.key} onClick={() => selectTab(t.key)} className={navItemCls(tab === t.key)}>
+                <Icon size={17} /> {t.label}
+              </button>
+            )
+          })}
+          <button onClick={() => { navigate('/training'); setSidebarOpen(false) }} className={navItemCls(false)}>
+            <GraduationCap size={17} /> Training
+          </button>
+        </nav>
+
+        <div className="px-3 py-4 border-t border-brand-800 space-y-0.5">
+          <div className="flex items-center gap-3 px-3 py-2.5">
+            <div className="w-7 h-7 rounded-full bg-brand-700 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
+              {profile?.first_name?.[0]?.toUpperCase() ?? '?'}
             </div>
-            <button onClick={() => navigate('/forgot-password')}
-              className="flex items-center gap-1.5 text-xs text-brand-300 hover:text-white px-3 py-1.5 rounded-lg hover:bg-brand-900 transition-colors">
-              <KeyRound size={13} /> Change Password
-            </button>
-            <button onClick={handleSignOut}
-              className="flex items-center gap-1.5 text-xs text-brand-300 hover:text-white px-3 py-1.5 rounded-lg hover:bg-brand-900 transition-colors">
-              <LogOut size={13} /> Sign Out
-            </button>
+            <div className="flex-1 min-w-0">
+              <div className="text-white text-xs font-medium truncate">{profile?.first_name} {profile?.last_name}</div>
+              {repCode && <div className="text-brand-400 text-xs font-mono truncate">{repCode}</div>}
+            </div>
           </div>
+          <button onClick={() => navigate('/forgot-password')} className={navItemCls(false)}>
+            <KeyRound size={17} /> Change Password
+          </button>
+          <button onClick={handleSignOut} className={navItemCls(false)}>
+            <LogOut size={17} /> Sign Out
+          </button>
         </div>
-      </div>
+      </aside>
 
-      {/* Tab nav */}
-      <div className="bg-white border-b border-slate-100 sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-6">
-          <nav className="flex gap-1 overflow-x-auto no-scrollbar">
-            {TABS.map(t => {
-              const Icon = t.icon
-              return (
-                <button key={t.key} onClick={() => setTab(t.key)}
-                  className={`flex-shrink-0 flex items-center gap-2 px-4 py-3.5 text-sm font-medium border-b-2 transition-colors ${
-                    tab === t.key
-                      ? 'border-brand-600 text-brand-700'
-                      : 'border-transparent text-slate-500 hover:text-slate-700'
-                  }`}>
-                  <Icon size={15} /> {t.label}
-                </button>
-              )
-            })}
-            <button onClick={() => navigate('/training')}
-              className="flex-shrink-0 flex items-center gap-2 px-4 py-3.5 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition-colors">
-              <GraduationCap size={15} /> Training
-            </button>
-          </nav>
+      {/* Main */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <div className="lg:hidden flex items-center gap-3 px-4 py-3 bg-white border-b border-slate-100">
+          <button onClick={() => setSidebarOpen(true)} className="text-slate-500 hover:text-slate-700"><Menu size={22} /></button>
+          <span className="font-display font-semibold text-brand-800">ElderLoop</span>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="max-w-6xl mx-auto px-6 py-6">
-        {tab === 'accounts'    && <AccountsTab repCode={repCode} />}
-        {tab === 'commissions' && <CommissionsTab />}
-        {tab === 'prospects'   && <ProspectsTab />}
-        {tab === 'materials'   && <MaterialsTab />}
-        {tab === 'templates'   && <EmailTemplatesTab />}
-        {tab === 'salessheet'  && <SalesSheetTab />}
-        {tab === 'businesscard' && <BusinessCardTab />}
-        {tab === 'promocodes'  && <PromoCodesTab />}
+        <main className="flex-1 overflow-y-auto">
+          <div className="max-w-6xl mx-auto px-6 py-6">
+            {tab === 'accounts'    && <AccountsTab repCode={repCode} />}
+            {tab === 'commissions' && <CommissionsTab />}
+            {tab === 'prospects'   && <ProspectsTab />}
+            {tab === 'materials'   && <MaterialsTab />}
+            {tab === 'templates'   && <EmailTemplatesTab />}
+            {tab === 'salessheet'  && <SalesSheetTab />}
+            {tab === 'businesscard' && <BusinessCardTab />}
+            {tab === 'promocodes'  && <PromoCodesTab />}
+          </div>
+        </main>
       </div>
     </div>
   )
