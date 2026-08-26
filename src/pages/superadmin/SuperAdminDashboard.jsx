@@ -5,13 +5,14 @@ import LeadsTab from './LeadsTab'
 import RepTracker from './RepTracker'
 import RepResourcesTab from './RepResourcesTab'
 import RepAccountsTab from './RepAccountsTab'
+import RepCommissionsTab from './RepCommissionsTab'
 import { useAuth } from '../../context/AuthContext'
 import {
   Building2, Users, Shield, Plus, Settings, CheckCircle2,
   Activity, Globe, BarChart3, Eye, LogOut, Zap, X,
   Edit2, Check, ChevronRight, TrendingUp, AlertCircle,
   ClipboardList, Link, Copy, Star, Image as ImageIcon,
-  Trash2, Upload, AlertTriangle, RefreshCw, FileText, UserPlus
+  Trash2, Upload, AlertTriangle, RefreshCw, FileText, UserPlus, DollarSign
 } from 'lucide-react'
 
 const BILLING_LABELS = {
@@ -538,6 +539,7 @@ export default function SuperAdminDashboard() {
             { key: 'surveys',        icon: ClipboardList, label: 'Platform Surveys' },
             { key: 'rep_accounts',   icon: UserPlus,      label: 'Rep Accounts' },
             { key: 'reps',           icon: TrendingUp,    label: 'Rep Tracking' },
+            { key: 'commissions',    icon: DollarSign,    label: 'Rep Commissions' },
             { key: 'rep_resources',  icon: FileText,      label: 'Rep Promo Materials' },
             { key: 'activity',       icon: Activity,      label: 'Platform Activity' },
           ].map(item => {
@@ -596,7 +598,7 @@ export default function SuperAdminDashboard() {
         <div className="px-8 py-6 border-b border-slate-800 flex items-center justify-between">
           <div>
             <h1 style={{ fontFamily: '"Playfair Display", serif' }} className="text-2xl font-bold text-white">
-              {activeTab === 'overview' ? 'Platform Overview' : activeTab === 'organizations' ? 'Organizations' : activeTab === 'rep_accounts' ? 'Rep Accounts' : activeTab === 'reps' ? 'Rep Tracking' : activeTab === 'rep_resources' ? 'Rep Promo Materials' : 'Platform Activity'}
+              {activeTab === 'overview' ? 'Platform Overview' : activeTab === 'organizations' ? 'Organizations' : activeTab === 'rep_accounts' ? 'Rep Accounts' : activeTab === 'reps' ? 'Rep Tracking' : activeTab === 'commissions' ? 'Rep Commissions' : activeTab === 'rep_resources' ? 'Rep Promo Materials' : 'Platform Activity'}
             </h1>
             <p className="text-slate-500 text-sm mt-0.5">
               {new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' })}
@@ -813,6 +815,9 @@ export default function SuperAdminDashboard() {
 
               {/* ── REP ACCOUNTS TAB ── */}
             {activeTab === 'rep_accounts' && <RepAccountsTab />}
+
+              {/* ── REP COMMISSIONS TAB ── */}
+            {activeTab === 'commissions' && <RepCommissionsTab />}
 
               {/* ── REP PROMO MATERIALS TAB ── */}
             {activeTab === 'rep_resources' && <RepResourcesTab />}
