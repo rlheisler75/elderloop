@@ -6,6 +6,7 @@ import RepTracker from './RepTracker'
 import RepResourcesTab from './RepResourcesTab'
 import RepAccountsTab from './RepAccountsTab'
 import RepCommissionsTab from './RepCommissionsTab'
+import PlatformActivityTab from './PlatformActivityTab'
 import { useAuth } from '../../context/AuthContext'
 import {
   Building2, Users, Shield, Plus, Settings, CheckCircle2,
@@ -792,13 +793,7 @@ export default function SuperAdminDashboard() {
               </>
               )}
 
-              {activeTab === 'activity' && (
-                <div className="text-center py-20 text-slate-600">
-                  <Activity size={40} className="mx-auto mb-4 opacity-30" />
-                  <p className="text-slate-400 font-medium mb-1">Platform activity log coming soon</p>
-                  <p className="text-sm">A cross-org audit trail isn't wired up yet.</p>
-                </div>
-              )}
+              {activeTab === 'activity' && <PlatformActivityTab />}
 
               {/* ── REP TRACKING TAB ── */}
             {activeTab === 'reps' && (
