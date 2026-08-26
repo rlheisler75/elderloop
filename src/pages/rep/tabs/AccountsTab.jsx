@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../../lib/supabase'
-import { Building2, Copy, Check, Loader2, Calendar, TrendingUp } from 'lucide-react'
+import { Building2, Copy, Check, Loader2, Calendar, TrendingUp, AlertTriangle, Clock } from 'lucide-react'
 
 const PLAN_LABELS = {
   starter:      'Starter',
@@ -12,14 +12,24 @@ const PLAN_LABELS = {
 const STATUS_STYLES = {
   active:    'bg-green-100 text-green-700',
   trialing:  'bg-blue-100 text-blue-700',
-  past_due:  'bg-amber-100 text-amber-700',
+  past_due:  'bg-red-100 text-red-700',
   canceled:  'bg-slate-100 text-slate-500',
   inactive:  'bg-slate-100 text-slate-500',
 }
 
+const RENEWAL_WARNING_DAYS = 30
+
 const fmtDate = (d) => d
   ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   : '—'
+
+const daysUntil = (d) => d ? Math.ceil((new Date(d) - Date.now()) / 86400000) : null
+
+const renewsSoon = (org) =>
+  org.subscription_status === 'active' &&
+  daysUntil(org.current_period_end) !== null &&
+  daysUntil(org.current_period_end) >= 0 &&
+  daysUntil(org.current_period_end) <= RENEWAL_WARNING_DAYS
 
 export default function AccountsTab({ repCode }) {
   const [orgs, setOrgs]       = useState([])
@@ -53,8 +63,25 @@ export default function AccountsTab({ repCode }) {
     </div>
   )
 
+  const pastDueOrgs = orgs.filter(o => o.subscription_status === 'past_due')
+  const renewingOrgs = orgs.filter(renewsSoon)
+
   return (
     <div className="space-y-6">
+      {/* Attention banners */}
+      {pastDueOrgs.length > 0 && (
+        <div className="flex items-center gap-2.5 bg-red-50 border border-red-200 rounded-2xl px-4 py-3 text-sm text-red-700">
+          <AlertTriangle size={16} className="flex-shrink-0" />
+          <span><strong>{pastDueOrgs.length}</strong> account{pastDueOrgs.length === 1 ? ' is' : 's are'} past due — a quick check-in could save the account.</span>
+        </div>
+      )}
+      {renewingOrgs.length > 0 && (
+        <div className="flex items-center gap-2.5 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 text-sm text-amber-700">
+          <Clock size={16} className="flex-shrink-0" />
+          <span><strong>{renewingOrgs.length}</strong> account{renewingOrgs.length === 1 ? '' : 's'} renewing within {RENEWAL_WARNING_DAYS} days.</span>
+        </div>
+      )}
+
       {/* Referral link */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
         <h3 className="font-semibold text-slate-700 text-sm mb-1">Your Referral Link</h3>
@@ -98,25 +125,33 @@ export default function AccountsTab({ repCode }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {orgs.map(org => (
-                <tr key={org.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-5 py-3 font-medium text-slate-800 text-sm">{org.name}</td>
-                  <td className="px-5 py-3">
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 font-medium">
-                      {PLAN_LABELS[org.plan] || org.plan || '—'}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3">
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${STATUS_STYLES[org.subscription_status] || 'bg-slate-100 text-slate-500'}`}>
-                      {org.subscription_status?.replace('_', ' ') || 'inactive'}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3 text-xs text-slate-500 flex items-center gap-1.5">
-                    <Calendar size={12} className="text-slate-300" /> {fmtDate(org.onboarded_at || org.created_at)}
-                  </td>
-                  <td className="px-5 py-3 text-xs text-slate-500">{fmtDate(org.current_period_end)}</td>
-                </tr>
-              ))}
+              {orgs.map(org => {
+                const pastDue = org.subscription_status === 'past_due'
+                const soon = renewsSoon(org)
+                return (
+                  <tr key={org.id} className={`transition-colors ${pastDue ? 'bg-red-50/60 hover:bg-red-50' : 'hover:bg-slate-50'}`}>
+                    <td className="px-5 py-3 font-medium text-slate-800 text-sm">{org.name}</td>
+                    <td className="px-5 py-3">
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 font-medium">
+                        {PLAN_LABELS[org.plan] || org.plan || '—'}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3">
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${STATUS_STYLES[org.subscription_status] || 'bg-slate-100 text-slate-500'}`}>
+                        {org.subscription_status?.replace('_', ' ') || 'inactive'}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3 text-xs text-slate-500 flex items-center gap-1.5">
+                      <Calendar size={12} className="text-slate-300" /> {fmtDate(org.onboarded_at || org.created_at)}
+                    </td>
+                    <td className="px-5 py-3 text-xs">
+                      <span className={soon ? 'text-amber-600 font-medium flex items-center gap-1' : 'text-slate-500'}>
+                        {soon && <Clock size={11} />} {fmtDate(org.current_period_end)}
+                      </span>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         )}
