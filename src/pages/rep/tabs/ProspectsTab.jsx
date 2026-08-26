@@ -6,7 +6,7 @@ import {
   Edit2, Trash2, Building2
 } from 'lucide-react'
 
-const STATUSES = [
+export const STATUSES = [
   { key: 'new',              label: 'New',              color: 'bg-slate-100 text-slate-700 border-slate-200' },
   { key: 'contacted',        label: 'Contacted',        color: 'bg-blue-100 text-blue-700 border-blue-200' },
   { key: 'demo_scheduled',   label: 'Demo Scheduled',   color: 'bg-purple-100 text-purple-700 border-purple-200' },
@@ -20,7 +20,7 @@ const inputCls = 'w-full px-3 py-2 border border-slate-200 rounded-xl text-sm fo
 
 const fmtDate = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : null
 
-function ProspectForm({ prospect, onClose, onSaved }) {
+export function ProspectForm({ prospect, onClose, onSaved }) {
   const { profile } = useAuth()
   const [form, setForm] = useState({
     community_name:  prospect?.community_name  || '',

@@ -5,11 +5,12 @@ import { supabase } from '../../lib/supabase'
 import {
   Building2, DollarSign, Megaphone, FileText, Tag, Mail, CreditCard,
   LogOut, Eye, EyeOff, Loader2, AlertCircle, KeyRound, GraduationCap,
-  Menu, X
+  Menu, X, CalendarClock
 } from 'lucide-react'
 import AccountsTab from './tabs/AccountsTab'
 import CommissionsTab from './tabs/CommissionsTab'
 import ProspectsTab from './tabs/ProspectsTab'
+import FollowUpsTab from './tabs/FollowUpsTab'
 import MaterialsTab from './tabs/MaterialsTab'
 import PromoCodesTab from './tabs/PromoCodesTab'
 import EmailTemplatesTab from './tabs/EmailTemplatesTab'
@@ -115,6 +116,7 @@ const TABS = [
   { key: 'accounts',    label: 'My Accounts',            icon: Building2 },
   { key: 'commissions', label: 'Commissions & Residuals', icon: DollarSign },
   { key: 'prospects',   label: 'Marketing',              icon: Megaphone },
+  { key: 'followups',   label: 'Follow-Ups Due',         icon: CalendarClock },
   { key: 'materials',   label: 'Promo Materials',        icon: FileText },
   { key: 'templates',   label: 'Email Templates',        icon: Mail },
   { key: 'salessheet',  label: 'Sales Sheet',            icon: FileText },
@@ -213,6 +215,7 @@ export default function RepPortal() {
             {tab === 'accounts'    && <AccountsTab repCode={repCode} />}
             {tab === 'commissions' && <CommissionsTab />}
             {tab === 'prospects'   && <ProspectsTab />}
+            {tab === 'followups'   && <FollowUpsTab />}
             {tab === 'materials'   && <MaterialsTab />}
             {tab === 'templates'   && <EmailTemplatesTab />}
             {tab === 'salessheet'  && <SalesSheetTab />}
