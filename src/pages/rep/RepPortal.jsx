@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
 import {
   Building2, DollarSign, Megaphone, FileText, Tag, Mail, CreditCard,
-  LogOut, Eye, EyeOff, Loader2, AlertCircle, KeyRound
+  LogOut, Eye, EyeOff, Loader2, AlertCircle, KeyRound, GraduationCap
 } from 'lucide-react'
 import AccountsTab from './tabs/AccountsTab'
 import CommissionsTab from './tabs/CommissionsTab'
@@ -189,6 +189,10 @@ export default function RepPortal() {
                 </button>
               )
             })}
+            <button onClick={() => navigate('/training')}
+              className="flex-shrink-0 flex items-center gap-2 px-4 py-3.5 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition-colors">
+              <GraduationCap size={15} /> Training
+            </button>
           </nav>
         </div>
       </div>

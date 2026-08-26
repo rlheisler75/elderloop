@@ -69,6 +69,34 @@ const StaffGuide = lazy(() => import('./pages/training/StaffGuide'))
 const TimeClockGuide = lazy(() => import('./pages/training/TimeClockGuide'))
 const SurveysGuide = lazy(() => import('./pages/training/SurveysGuide'))
 
+// Training routes — shared between the public route tree and the sales-rep
+// route branch (below) so reps can reach the Training Library from /rep.
+const trainingRoutes = [
+  <Route key="training"               path="/training"                    element={<Lazy><TrainingHub /></Lazy>} />,
+  <Route key="training-social"        path="/training/social-services"     element={<Lazy><SocialServicesGuide /></Lazy>} />,
+  <Route key="training-dietary"       path="/training/dietary"             element={<Lazy><DietaryGuide /></Lazy>} />,
+  <Route key="training-nursing"       path="/training/nursing"             element={<Lazy><NursingGuide /></Lazy>} />,
+  <Route key="training-maintenance"   path="/training/maintenance"         element={<Lazy><MaintenanceGuide /></Lazy>} />,
+  <Route key="training-housekeeping"  path="/training/housekeeping"        element={<Lazy><HousekeepingGuide /></Lazy>} />,
+  <Route key="training-activities"    path="/training/activities"          element={<Lazy><ActivitiesGuide /></Lazy>} />,
+  <Route key="training-chapel"        path="/training/chapel"              element={<Lazy><ChapelGuide /></Lazy>} />,
+  <Route key="training-marketing"     path="/training/marketing"           element={<Lazy><MarketingGuide /></Lazy>} />,
+  <Route key="training-communication" path="/training/communication"       element={<Lazy><CommunicationGuide /></Lazy>} />,
+  <Route key="training-transportation" path="/training/transportation"     element={<Lazy><TransportationGuide /></Lazy>} />,
+  <Route key="training-property"      path="/training/property-management" element={<Lazy><PropertyGuide /></Lazy>} />,
+  <Route key="training-supply"        path="/training/central-supply"      element={<Lazy><SupplyGuide /></Lazy>} />,
+  <Route key="training-security"      path="/training/security"            element={<Lazy><SecurityGuide /></Lazy>} />,
+  <Route key="training-meters"        path="/training/meters"              element={<Lazy><MeterGuide /></Lazy>} />,
+  <Route key="training-it"            path="/training/it"                  element={<Lazy><ITGuide /></Lazy>} />,
+  <Route key="training-directory"     path="/training/directory"           element={<Lazy><DirectoryGuide /></Lazy>} />,
+  <Route key="training-family"        path="/training/family"              element={<Lazy><FamilyGuide /></Lazy>} />,
+  <Route key="training-incidents"     path="/training/incidents"           element={<Lazy><IncidentsGuide /></Lazy>} />,
+  <Route key="training-scheduling"    path="/training/scheduling"          element={<Lazy><SchedulingGuide /></Lazy>} />,
+  <Route key="training-staff"         path="/training/staff"               element={<Lazy><StaffGuide /></Lazy>} />,
+  <Route key="training-timeclock"     path="/training/timeclock"           element={<Lazy><TimeClockGuide /></Lazy>} />,
+  <Route key="training-surveys"       path="/training/surveys"             element={<Lazy><SurveysGuide /></Lazy>} />,
+]
+
 // Public TV & role-specific portals (outside the staff Layout)
 import TV            from './pages/tv/TV'
 import Signage       from './pages/signage/Signage'
@@ -208,6 +236,7 @@ export default function App() {
     return (
       <Routes>
         <Route path="/rep" element={<Lazy><RepPortal /></Lazy>} />
+        {trainingRoutes}
         <Route path="*" element={<Navigate to="/rep" replace />} />
       </Routes>
     )
@@ -227,29 +256,7 @@ export default function App() {
         <Route path="/email-optout"   element={<EmailOptOut />} />
         <Route path="/terms"           element={<Terms />} />
         <Route path="/privacy"         element={<Privacy />} />
-        <Route path="/training"                    element={<Lazy><TrainingHub /></Lazy>} />
-        <Route path="/training/social-services"     element={<Lazy><SocialServicesGuide /></Lazy>} />
-        <Route path="/training/dietary"             element={<Lazy><DietaryGuide /></Lazy>} />
-        <Route path="/training/nursing"             element={<Lazy><NursingGuide /></Lazy>} />
-        <Route path="/training/maintenance"         element={<Lazy><MaintenanceGuide /></Lazy>} />
-        <Route path="/training/housekeeping"        element={<Lazy><HousekeepingGuide /></Lazy>} />
-        <Route path="/training/activities"          element={<Lazy><ActivitiesGuide /></Lazy>} />
-        <Route path="/training/chapel"              element={<Lazy><ChapelGuide /></Lazy>} />
-        <Route path="/training/marketing"           element={<Lazy><MarketingGuide /></Lazy>} />
-        <Route path="/training/communication"       element={<Lazy><CommunicationGuide /></Lazy>} />
-        <Route path="/training/transportation"      element={<Lazy><TransportationGuide /></Lazy>} />
-        <Route path="/training/property-management" element={<Lazy><PropertyGuide /></Lazy>} />
-        <Route path="/training/central-supply"      element={<Lazy><SupplyGuide /></Lazy>} />
-        <Route path="/training/security"            element={<Lazy><SecurityGuide /></Lazy>} />
-        <Route path="/training/meters"               element={<Lazy><MeterGuide /></Lazy>} />
-        <Route path="/training/it"                   element={<Lazy><ITGuide /></Lazy>} />
-        <Route path="/training/directory"            element={<Lazy><DirectoryGuide /></Lazy>} />
-        <Route path="/training/family"               element={<Lazy><FamilyGuide /></Lazy>} />
-        <Route path="/training/incidents"            element={<Lazy><IncidentsGuide /></Lazy>} />
-        <Route path="/training/scheduling"           element={<Lazy><SchedulingGuide /></Lazy>} />
-        <Route path="/training/staff"                element={<Lazy><StaffGuide /></Lazy>} />
-        <Route path="/training/timeclock"            element={<Lazy><TimeClockGuide /></Lazy>} />
-        <Route path="/training/surveys"              element={<Lazy><SurveysGuide /></Lazy>} />
+        {trainingRoutes}
         <Route path="/resident"       element={user ? <ResidentPortal /> : <Navigate to="/login" replace />} />
         <Route path="/family-portal"  element={user ? <FamilyPortal />  : <Navigate to="/login" replace />} />
         <Route path="/rep"            element={!user ? <Navigate to="/login" replace /> : isSuperAdmin ? <Lazy><RepPortal /></Lazy> : <Navigate to="/app/dashboard" replace />} />
