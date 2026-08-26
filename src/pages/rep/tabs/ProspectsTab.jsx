@@ -3,8 +3,17 @@ import { supabase } from '../../../lib/supabase'
 import { useAuth } from '../../../context/AuthContext'
 import {
   Plus, X, Loader2, Phone, Mail, MapPin, Calendar,
-  Edit2, Trash2, Building2
+  Edit2, Trash2, Building2, MessageSquare, Video, Users, HelpCircle, Send
 } from 'lucide-react'
+
+export const ACTIVITY_TYPES = [
+  { key: 'call',    label: 'Call',    icon: Phone },
+  { key: 'email',   label: 'Email',   icon: Mail },
+  { key: 'demo',    label: 'Demo',    icon: Video },
+  { key: 'meeting', label: 'Meeting', icon: Users },
+  { key: 'note',    label: 'Note',    icon: MessageSquare },
+  { key: 'other',   label: 'Other',   icon: HelpCircle },
+]
 
 export const STATUSES = [
   { key: 'new',              label: 'New',              color: 'bg-slate-100 text-slate-700 border-slate-200' },
@@ -19,6 +28,90 @@ export const STATUSES = [
 const inputCls = 'w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent'
 
 const fmtDate = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : null
+
+const fmtDateTime = (d) => new Date(d).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+
+// ── Activity log (call/email/demo notes) for an existing prospect ──
+function ActivityLog({ prospectId }) {
+  const { profile } = useAuth()
+  const [activities, setActivities] = useState([])
+  const [loading, setLoading]       = useState(true)
+  const [type, setType]             = useState('call')
+  const [note, setNote]             = useState('')
+  const [logging, setLogging]       = useState(false)
+
+  useEffect(() => { fetchActivities() }, [prospectId])
+
+  async function fetchActivities() {
+    setLoading(true)
+    const { data } = await supabase
+      .from('rep_prospect_activities')
+      .select('*')
+      .eq('prospect_id', prospectId)
+      .order('created_at', { ascending: false })
+    setActivities(data || [])
+    setLoading(false)
+  }
+
+  const logActivity = async () => {
+    setLogging(true)
+    const { error } = await supabase.from('rep_prospect_activities').insert({
+      prospect_id: prospectId,
+      rep_id: profile.id,
+      activity_type: type,
+      notes: note.trim() || null,
+    })
+    setLogging(false)
+    if (error) return
+    setNote('')
+    fetchActivities()
+  }
+
+  return (
+    <div>
+      <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Activity Log</label>
+
+      <div className="flex gap-2 mb-3">
+        <select value={type} onChange={e => setType(e.target.value)}
+          className="px-2.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent">
+          {ACTIVITY_TYPES.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
+        </select>
+        <input value={note} onChange={e => setNote(e.target.value)}
+          placeholder="What happened?" className={inputCls + ' flex-1'}
+          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); logActivity() } }} />
+        <button onClick={logActivity} disabled={logging}
+          className="px-3 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white rounded-xl transition-colors flex-shrink-0">
+          <Send size={14} />
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-4"><Loader2 size={18} className="animate-spin text-brand-400" /></div>
+      ) : activities.length === 0 ? (
+        <p className="text-xs text-slate-400 text-center py-3">No activity logged yet.</p>
+      ) : (
+        <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+          {activities.map(a => {
+            const cfg = ACTIVITY_TYPES.find(t => t.key === a.activity_type) || ACTIVITY_TYPES.at(-1)
+            const Icon = cfg.icon
+            return (
+              <div key={a.id} className="flex items-start gap-2.5 bg-slate-50 rounded-xl px-3 py-2">
+                <Icon size={13} className="text-slate-400 mt-0.5 flex-shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-slate-600">{cfg.label}</span>
+                    <span className="text-xs text-slate-400">{fmtDateTime(a.created_at)}</span>
+                  </div>
+                  {a.notes && <p className="text-xs text-slate-500 mt-0.5">{a.notes}</p>}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export function ProspectForm({ prospect, onClose, onSaved }) {
   const { profile } = useAuth()
@@ -119,6 +212,8 @@ export function ProspectForm({ prospect, onClose, onSaved }) {
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Notes</label>
             <textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows={3} className={inputCls + ' resize-none'} />
           </div>
+
+          {prospect && <ActivityLog prospectId={prospect.id} />}
         </div>
         <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
           <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600">Cancel</button>
