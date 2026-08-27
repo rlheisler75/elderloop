@@ -16,6 +16,7 @@ import PromoCodesTab from './tabs/PromoCodesTab'
 import EmailTemplatesTab from './tabs/EmailTemplatesTab'
 import SalesSheetTab from './tabs/SalesSheetTab'
 import BusinessCardTab from './tabs/BusinessCardTab'
+import OrgSupportModal from './OrgSupportModal'
 
 // ── Mandatory password change (first login on an admin-created rep account) ──
 function MustChangePasswordGate({ onDone }) {
@@ -132,11 +133,17 @@ export default function RepPortal() {
   const [tab, setTab]                 = useState(initialTab)
   const [repCode, setRepCode]         = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [myOrgs, setMyOrgs]           = useState([])
+  const [supportOrg, setSupportOrg]   = useState(null)
 
   useEffect(() => {
     if (!profile?.id) return
     supabase.from('rep_codes').select('code').eq('rep_id', profile.id).single()
       .then(({ data }) => setRepCode(data?.code || null))
+    supabase.from('organizations')
+      .select('id, name, city, state, plan, subscription_status, onboarded_at, created_at, current_period_end')
+      .order('name')
+      .then(({ data }) => setMyOrgs(data || []))
   }, [profile?.id])
 
   const handleSignOut = async () => { await signOut(); navigate('/login') }
@@ -182,6 +189,19 @@ export default function RepPortal() {
           <button onClick={() => { navigate('/training'); setSidebarOpen(false) }} className={navItemCls(false)}>
             <GraduationCap size={17} /> Training
           </button>
+
+          {myOrgs.length > 0 && (
+            <div className="pt-4 mt-2 border-t border-brand-800">
+              <div className="text-xs text-brand-500 uppercase tracking-widest px-3 mb-1.5">Jump to Org</div>
+              {myOrgs.map(org => (
+                <button key={org.id} onClick={() => { setSupportOrg(org); setSidebarOpen(false) }}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-brand-300 hover:bg-brand-800 hover:text-white transition-all text-left truncate">
+                  <Building2 size={13} className="flex-shrink-0" />
+                  <span className="truncate">{org.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </nav>
 
         <div className="px-3 py-4 border-t border-brand-800 space-y-0.5">
@@ -224,6 +244,8 @@ export default function RepPortal() {
           </div>
         </main>
       </div>
+
+      {supportOrg && <OrgSupportModal org={supportOrg} onClose={() => setSupportOrg(null)} />}
     </div>
   )
 }
