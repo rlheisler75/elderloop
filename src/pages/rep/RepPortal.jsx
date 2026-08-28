@@ -117,17 +117,22 @@ function MustChangePasswordGate({ onDone }) {
 }
 
 const TABS = [
+  // Start here
   { key: 'overview',    label: 'Overview',               icon: LayoutDashboard },
-  { key: 'accounts',    label: 'My Accounts',            icon: Building2 },
-  { key: 'commissions', label: 'Commissions & Residuals', icon: DollarSign },
+  // Working the pipeline (daily use)
   { key: 'prospects',   label: 'Marketing',              icon: Megaphone },
   { key: 'followups',   label: 'Follow-Ups Due',         icon: CalendarClock },
+  // Selling tools & collateral
   { key: 'materials',   label: 'Promo Materials',        icon: FileText },
-  { key: 'toolkit',     label: 'Rep Toolkit',            icon: Wrench },
-  { key: 'templates',   label: 'Email Templates',        icon: Mail },
   { key: 'salessheet',  label: 'Sales Sheet',            icon: FileText },
   { key: 'businesscard',label: 'Business Card',          icon: CreditCard },
+  { key: 'templates',   label: 'Email Templates',        icon: Mail },
   { key: 'promocodes',  label: 'Promo Codes & My Link',  icon: Tag },
+  // Results
+  { key: 'accounts',    label: 'My Accounts',            icon: Building2 },
+  { key: 'commissions', label: 'Commissions & Residuals', icon: DollarSign },
+  // Support
+  { key: 'toolkit',     label: 'Rep Toolkit',            icon: Wrench },
 ]
 
 export default function RepPortal() {
@@ -240,16 +245,16 @@ export default function RepPortal() {
         <main className="flex-1 overflow-y-auto">
           <div className="max-w-6xl mx-auto px-6 py-6">
             {tab === 'overview'    && <OverviewTab onNavigate={selectTab} />}
-            {tab === 'accounts'    && <AccountsTab repCode={repCode} />}
-            {tab === 'commissions' && <CommissionsTab />}
             {tab === 'prospects'   && <ProspectsTab />}
             {tab === 'followups'   && <FollowUpsTab />}
             {tab === 'materials'   && <MaterialsTab />}
-            {tab === 'toolkit'     && <ToolkitTab />}
-            {tab === 'templates'   && <EmailTemplatesTab />}
             {tab === 'salessheet'  && <SalesSheetTab />}
             {tab === 'businesscard' && <BusinessCardTab />}
+            {tab === 'templates'   && <EmailTemplatesTab />}
             {tab === 'promocodes'  && <PromoCodesTab />}
+            {tab === 'accounts'    && <AccountsTab repCode={repCode} />}
+            {tab === 'commissions' && <CommissionsTab />}
+            {tab === 'toolkit'     && <ToolkitTab />}
           </div>
         </main>
       </div>
