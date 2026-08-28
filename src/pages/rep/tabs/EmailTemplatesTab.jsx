@@ -70,6 +70,64 @@ Best,
 {{rep_name}}
 ElderLoop`,
   },
+  {
+    key: 'demo_confirmation',
+    label: 'Demo Confirmation',
+    description: 'Confirm a scheduled demo and set expectations beforehand',
+    subject: 'Confirmed — your ElderLoop demo on {{demo_datetime_placeholder}}',
+    body: `Hi {{contact_first_name}},
+
+Looking forward to showing you ElderLoop on {{demo_datetime_placeholder}}. Should take about 20-30 minutes, and I'll tailor it to what matters most for {{community_placeholder}} — just let me know beforehand if there's a specific module (dietary, nursing, family communication, etc.) you especially want to see.
+
+If it's easier to hop on now, here's a link you can bookmark for the call: [meeting link]
+
+In the meantime, feel free to poke around on your own — the trial is already live:
+{{signup_link}}
+
+See you then,
+{{rep_name}}
+ElderLoop`,
+  },
+  {
+    key: 'post_demo',
+    label: 'Post-Demo Follow-Up',
+    description: 'Right after a completed demo, recapping and pushing toward next steps',
+    subject: 'Great meeting you — next steps for {{community_placeholder}}',
+    body: `Hi {{contact_first_name}},
+
+Thanks for the time today — really enjoyed walking through ElderLoop with you and hearing about how things run at {{community_placeholder}}.
+
+Quick recap of what stood out from our conversation: everything you saw today is included in every plan, no add-on pricing, and setup typically takes a day rather than a quarter.
+
+Your trial is already running if you want your team to start exploring on their own:
+{{signup_link}}
+
+What would be most helpful as a next step — a proposal with pricing for your community's size, or a follow-up call with your team?
+
+Best,
+{{rep_name}}
+ElderLoop`,
+  },
+  {
+    key: 'proposal_followup',
+    label: 'Proposal Follow-Up',
+    description: 'A few days after sending pricing, checking in and addressing hesitation',
+    subject: 'Checking in on the ElderLoop proposal for {{community_placeholder}}',
+    body: `Hi {{contact_first_name}},
+
+Wanted to check in on the proposal I sent over for {{community_placeholder}} — happy to answer any questions or walk through the numbers again with anyone else who needs to weigh in.
+
+A couple of things that tend to come up at this stage:
+- Migrating your current resident data is something we help with directly, not something you're left to figure out alone
+- Pricing is flat per plan, not per module — nothing gets more expensive as your team uses more of it
+- You can start on a lower plan and move up any time without a new contract
+
+If pricing or timing is the sticking point, let me know — there's usually a way to make the numbers work.
+
+Best,
+{{rep_name}}
+ElderLoop`,
+  },
 ]
 
 function TemplateCard({ template, repName, signupLink }) {
@@ -80,6 +138,7 @@ function TemplateCard({ template, repName, signupLink }) {
     .replaceAll('{{signup_link}}', signupLink || '')
     .replaceAll('{{community_placeholder}}', '[Community Name]')
     .replaceAll('{{contact_first_name}}', '[First Name]')
+    .replaceAll('{{demo_datetime_placeholder}}', '[Date & Time]')
 
   const filledSubject = fill(template.subject)
   const filledBody = fill(template.body)
