@@ -5,8 +5,9 @@ import { supabase } from '../../lib/supabase'
 import {
   Building2, DollarSign, Megaphone, FileText, Tag, Mail, CreditCard,
   LogOut, Eye, EyeOff, Loader2, AlertCircle, KeyRound, GraduationCap,
-  Menu, X, CalendarClock
+  Menu, X, CalendarClock, LayoutDashboard
 } from 'lucide-react'
+import OverviewTab from './tabs/OverviewTab'
 import AccountsTab from './tabs/AccountsTab'
 import CommissionsTab from './tabs/CommissionsTab'
 import ProspectsTab from './tabs/ProspectsTab'
@@ -115,6 +116,7 @@ function MustChangePasswordGate({ onDone }) {
 }
 
 const TABS = [
+  { key: 'overview',    label: 'Overview',               icon: LayoutDashboard },
   { key: 'accounts',    label: 'My Accounts',            icon: Building2 },
   { key: 'commissions', label: 'Commissions & Residuals', icon: DollarSign },
   { key: 'prospects',   label: 'Marketing',              icon: Megaphone },
@@ -130,7 +132,7 @@ export default function RepPortal() {
   const { profile, signOut, refreshProfile } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const initialTab = TABS.some(t => t.key === searchParams.get('tab')) ? searchParams.get('tab') : 'accounts'
+  const initialTab = TABS.some(t => t.key === searchParams.get('tab')) ? searchParams.get('tab') : 'overview'
   const [tab, setTab]                 = useState(initialTab)
   const [repCode, setRepCode]         = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -235,6 +237,7 @@ export default function RepPortal() {
 
         <main className="flex-1 overflow-y-auto">
           <div className="max-w-6xl mx-auto px-6 py-6">
+            {tab === 'overview'    && <OverviewTab onNavigate={selectTab} />}
             {tab === 'accounts'    && <AccountsTab repCode={repCode} />}
             {tab === 'commissions' && <CommissionsTab />}
             {tab === 'prospects'   && <ProspectsTab />}
