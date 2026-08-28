@@ -17,6 +17,7 @@ import EmailTemplatesTab from './tabs/EmailTemplatesTab'
 import SalesSheetTab from './tabs/SalesSheetTab'
 import BusinessCardTab from './tabs/BusinessCardTab'
 import OrgSupportModal from './OrgSupportModal'
+import NotificationBell from '../../components/communication/NotificationBell'
 
 // ── Mandatory password change (first login on an admin-created rep account) ──
 function MustChangePasswordGate({ onDone }) {
@@ -227,7 +228,11 @@ export default function RepPortal() {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <div className="lg:hidden flex items-center gap-3 px-4 py-3 bg-white border-b border-slate-100">
           <button onClick={() => setSidebarOpen(true)} className="text-slate-500 hover:text-slate-700"><Menu size={22} /></button>
-          <span className="font-display font-semibold text-brand-800">ElderLoop</span>
+          <span className="font-display font-semibold text-brand-800 flex-1">ElderLoop</span>
+          <NotificationBell />
+        </div>
+        <div className="hidden lg:flex items-center justify-end px-6 py-3 bg-white border-b border-slate-100">
+          <NotificationBell />
         </div>
 
         <main className="flex-1 overflow-y-auto">
