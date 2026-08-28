@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabase'
 import {
   Building2, DollarSign, Megaphone, FileText, Tag, Mail, CreditCard,
   LogOut, Eye, EyeOff, Loader2, AlertCircle, KeyRound, GraduationCap,
-  Menu, X, CalendarClock, LayoutDashboard
+  Menu, X, CalendarClock, LayoutDashboard, Wrench
 } from 'lucide-react'
 import OverviewTab from './tabs/OverviewTab'
 import AccountsTab from './tabs/AccountsTab'
@@ -17,6 +17,7 @@ import PromoCodesTab from './tabs/PromoCodesTab'
 import EmailTemplatesTab from './tabs/EmailTemplatesTab'
 import SalesSheetTab from './tabs/SalesSheetTab'
 import BusinessCardTab from './tabs/BusinessCardTab'
+import ToolkitTab from './tabs/ToolkitTab'
 import OrgSupportModal from './OrgSupportModal'
 import NotificationBell from '../../components/communication/NotificationBell'
 
@@ -122,6 +123,7 @@ const TABS = [
   { key: 'prospects',   label: 'Marketing',              icon: Megaphone },
   { key: 'followups',   label: 'Follow-Ups Due',         icon: CalendarClock },
   { key: 'materials',   label: 'Promo Materials',        icon: FileText },
+  { key: 'toolkit',     label: 'Rep Toolkit',            icon: Wrench },
   { key: 'templates',   label: 'Email Templates',        icon: Mail },
   { key: 'salessheet',  label: 'Sales Sheet',            icon: FileText },
   { key: 'businesscard',label: 'Business Card',          icon: CreditCard },
@@ -243,6 +245,7 @@ export default function RepPortal() {
             {tab === 'prospects'   && <ProspectsTab />}
             {tab === 'followups'   && <FollowUpsTab />}
             {tab === 'materials'   && <MaterialsTab />}
+            {tab === 'toolkit'     && <ToolkitTab />}
             {tab === 'templates'   && <EmailTemplatesTab />}
             {tab === 'salessheet'  && <SalesSheetTab />}
             {tab === 'businesscard' && <BusinessCardTab />}
