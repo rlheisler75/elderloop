@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabase'
 import {
   Building2, DollarSign, Megaphone, FileText, Tag, Mail, CreditCard,
   LogOut, Eye, EyeOff, Loader2, AlertCircle, KeyRound, GraduationCap,
-  Menu, X, CalendarClock, LayoutDashboard, Wrench, Scale, QrCode, Calculator
+  Menu, X, CalendarClock, LayoutDashboard, Wrench, Scale, QrCode, Calculator, PenLine
 } from 'lucide-react'
 import OverviewTab from './tabs/OverviewTab'
 import AccountsTab from './tabs/AccountsTab'
@@ -19,6 +19,7 @@ import SalesSheetTab from './tabs/SalesSheetTab'
 import ComparisonSheetTab from './tabs/ComparisonSheetTab'
 import TradeShowFlyerTab from './tabs/TradeShowFlyerTab'
 import ROIWorksheetTab from './tabs/ROIWorksheetTab'
+import EmailSignatureTab from './tabs/EmailSignatureTab'
 import BusinessCardTab from './tabs/BusinessCardTab'
 import ToolkitTab from './tabs/ToolkitTab'
 import OrgSupportModal from './OrgSupportModal'
@@ -131,6 +132,7 @@ const TABS = [
   { key: 'comparison',  label: 'Comparison Sheet',       icon: Scale },
   { key: 'tradeshow',   label: 'Trade Show Flyer',       icon: QrCode },
   { key: 'roi',         label: 'ROI Worksheet',          icon: Calculator },
+  { key: 'signature',   label: 'Email Signature',        icon: PenLine },
   { key: 'businesscard',label: 'Business Card',          icon: CreditCard },
   { key: 'templates',   label: 'Email Templates',        icon: Mail },
   { key: 'promocodes',  label: 'Promo Codes & My Link',  icon: Tag },
@@ -258,6 +260,7 @@ export default function RepPortal() {
             {tab === 'comparison'  && <ComparisonSheetTab />}
             {tab === 'tradeshow'   && <TradeShowFlyerTab />}
             {tab === 'roi'         && <ROIWorksheetTab />}
+            {tab === 'signature'   && <EmailSignatureTab />}
             {tab === 'businesscard' && <BusinessCardTab />}
             {tab === 'templates'   && <EmailTemplatesTab />}
             {tab === 'promocodes'  && <PromoCodesTab />}
