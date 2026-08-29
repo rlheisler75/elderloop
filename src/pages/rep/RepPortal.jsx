@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabase'
 import {
   Building2, DollarSign, Megaphone, FileText, Tag, Mail, CreditCard,
   LogOut, Eye, EyeOff, Loader2, AlertCircle, KeyRound, GraduationCap,
-  Menu, X, CalendarClock, LayoutDashboard, Wrench, Scale
+  Menu, X, CalendarClock, LayoutDashboard, Wrench, Scale, QrCode
 } from 'lucide-react'
 import OverviewTab from './tabs/OverviewTab'
 import AccountsTab from './tabs/AccountsTab'
@@ -17,6 +17,7 @@ import PromoCodesTab from './tabs/PromoCodesTab'
 import EmailTemplatesTab from './tabs/EmailTemplatesTab'
 import SalesSheetTab from './tabs/SalesSheetTab'
 import ComparisonSheetTab from './tabs/ComparisonSheetTab'
+import TradeShowFlyerTab from './tabs/TradeShowFlyerTab'
 import BusinessCardTab from './tabs/BusinessCardTab'
 import ToolkitTab from './tabs/ToolkitTab'
 import OrgSupportModal from './OrgSupportModal'
@@ -127,6 +128,7 @@ const TABS = [
   { key: 'materials',   label: 'Promo Materials',        icon: FileText },
   { key: 'salessheet',  label: 'Sales Sheet',            icon: FileText },
   { key: 'comparison',  label: 'Comparison Sheet',       icon: Scale },
+  { key: 'tradeshow',   label: 'Trade Show Flyer',       icon: QrCode },
   { key: 'businesscard',label: 'Business Card',          icon: CreditCard },
   { key: 'templates',   label: 'Email Templates',        icon: Mail },
   { key: 'promocodes',  label: 'Promo Codes & My Link',  icon: Tag },
@@ -252,6 +254,7 @@ export default function RepPortal() {
             {tab === 'materials'   && <MaterialsTab />}
             {tab === 'salessheet'  && <SalesSheetTab />}
             {tab === 'comparison'  && <ComparisonSheetTab />}
+            {tab === 'tradeshow'   && <TradeShowFlyerTab />}
             {tab === 'businesscard' && <BusinessCardTab />}
             {tab === 'templates'   && <EmailTemplatesTab />}
             {tab === 'promocodes'  && <PromoCodesTab />}
