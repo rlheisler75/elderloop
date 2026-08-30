@@ -2,13 +2,14 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import UserProfileModal from '../../components/UserProfileModal'
 import {
   Bell, Wrench, UtensilsCrossed, Calendar, Church,
   Play, Plus, X, LogOut, ChevronRight, Clock,
   CheckCircle2, AlertCircle, Activity, Send,
   ThumbsUp, ThumbsDown, Save, Home, Radio,
   Maximize, Star, Sun, Coffee, Soup, Cookie,
-  MapPin
+  MapPin, User
 } from 'lucide-react'
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -431,6 +432,7 @@ export default function ResidentPortal() {
   const [loading, setLoading]           = useState(true)
   const [tab, setTab]                   = useState('home')
   const [showWOModal, setShowWOModal]   = useState(false)
+  const [showProfile, setShowProfile]   = useState(false)
   const [openWOs, setOpenWOs]           = useState(0)
 
   const orgId = organization?.id || profile?.organization_id
@@ -517,6 +519,10 @@ export default function ResidentPortal() {
           </div>
           <div className="flex items-center gap-3">
             {organization?.name && <span className="text-xs text-slate-400 hidden sm:block">{organization.name}</span>}
+            <button onClick={() => setShowProfile(true)}
+              className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors" title="My Account">
+              <User size={16} />
+            </button>
             <button onClick={handleSignOut}
               className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600 px-2 py-1 rounded-lg hover:bg-slate-100">
               <LogOut size={13} /> Sign Out
@@ -524,6 +530,8 @@ export default function ResidentPortal() {
           </div>
         </div>
       </div>
+
+      {showProfile && <UserProfileModal onClose={() => setShowProfile(false)} />}
 
       <div className="max-w-2xl mx-auto px-4 pb-8">
         {/* Welcome bar */}

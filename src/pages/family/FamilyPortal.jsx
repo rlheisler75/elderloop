@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import UserProfileModal from '../../components/UserProfileModal'
 import {
   Heart, Bell, MessageSquare, CalendarDays, ChevronRight,
   Plus, X, Send, Star, Activity, ArrowLeft, LogOut,
@@ -671,6 +672,7 @@ export default function FamilyPortal() {
   const [emergencyContacts, setEmergencyContacts] = useState([])
   const [medicalContacts, setMedicalContacts]     = useState([])
   const [loading, setLoading]               = useState(true)
+  const [showProfile, setShowProfile]       = useState(false)
   const [notifs, setNotifs]         = useState([])
   const [showNotifs, setShowNotifs] = useState(false)
   const notifRef = useRef(null)
@@ -917,6 +919,10 @@ export default function FamilyPortal() {
                 </div>
               )}
             </div>
+            <button onClick={() => setShowProfile(true)}
+              className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors" title="My Account">
+              <User size={16} />
+            </button>
             <button onClick={handleSignOut}
               className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600 px-2 py-1 rounded-lg hover:bg-slate-100">
               <LogOut size={13} /> Sign Out
@@ -924,6 +930,8 @@ export default function FamilyPortal() {
           </div>
         </div>
       </div>
+
+      {showProfile && <UserProfileModal onClose={() => setShowProfile(false)} />}
 
       <div className="max-w-lg mx-auto px-4 pb-8">
         {/* Resident switcher (if multiple residents) */}
