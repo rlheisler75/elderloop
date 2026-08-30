@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../../lib/supabase'
-import { DollarSign, Clock, TrendingUp, Loader2, ClipboardList } from 'lucide-react'
+import { DollarSign, Clock, TrendingUp, Loader2, ClipboardList, Download } from 'lucide-react'
 
 const STATUS_STYLES = {
   pending:  'bg-amber-100 text-amber-700',
@@ -15,6 +15,36 @@ const EVENT_LABELS = {
 
 const fmtMoney = (n) => `$${Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 const fmtDate  = (d) => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'
+
+const csvField = (v) => {
+  const s = String(v ?? '')
+  return /[",\n]/.test(s) ? `"${s.replaceAll('"', '""')}"` : s
+}
+
+function downloadCsv(events) {
+  const headers = ['Account', 'Type', 'Plan', 'Period Start', 'Period End', 'Amount', 'Status', 'Notes', 'Created']
+  const rows = events.map(e => [
+    e.organizations?.name || '',
+    EVENT_LABELS[e.event_type] || e.event_type,
+    e.plan || '',
+    e.period_start || '',
+    e.period_end || '',
+    Number(e.amount || 0).toFixed(2),
+    e.status,
+    e.notes || '',
+    e.created_at ? new Date(e.created_at).toISOString().slice(0, 10) : '',
+  ])
+  const csv = [headers, ...rows].map(row => row.map(csvField).join(',')).join('\r\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `elderloop-commissions-${new Date().toISOString().slice(0, 10)}.csv`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
 
 export default function CommissionsTab() {
   const [events, setEvents]   = useState([])
@@ -67,8 +97,14 @@ export default function CommissionsTab() {
 
       {/* Ledger */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100">
+        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
           <h3 className="font-semibold text-slate-700 text-sm">Commission & Residual Ledger</h3>
+          {events.length > 0 && (
+            <button onClick={() => downloadCsv(events)}
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600 transition-colors">
+              <Download size={12} /> Download CSV
+            </button>
+          )}
         </div>
 
         {events.length === 0 ? (
