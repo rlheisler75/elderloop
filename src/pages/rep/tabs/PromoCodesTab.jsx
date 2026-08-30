@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../../lib/supabase'
 import { useAuth } from '../../../context/AuthContext'
-import { Copy, Check, Link as LinkIcon, MousePointerClick, Building2, TrendingUp } from 'lucide-react'
+import { Copy, Check, Link as LinkIcon, MousePointerClick, Building2, TrendingUp, Power, PowerOff, Loader2 } from 'lucide-react'
 
 function MyLinkCard() {
   const { profile } = useAuth()
@@ -83,6 +83,7 @@ export default function PromoCodesTab() {
   const [showModal, setShowModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState('')
+  const [toggling, setToggling] = useState(null)
 
   const [form, setForm] = useState({
     code: '',
@@ -105,6 +106,13 @@ export default function PromoCodesTab() {
   }, [])
 
   useEffect(() => { loadCodes() }, [loadCodes])
+
+  async function toggleActive(c) {
+    setToggling(c.id)
+    const { error } = await supabase.from('rep_promo_codes').update({ is_active: !c.is_active }).eq('id', c.id)
+    if (!error) setCodes(prev => prev.map(x => x.id === c.id ? { ...x, is_active: !x.is_active } : x))
+    setToggling(null)
+  }
 
   function resetForm() {
     setForm({
@@ -211,14 +219,15 @@ export default function PromoCodesTab() {
               <th className="px-4 py-3 font-medium">Redemptions</th>
               <th className="px-4 py-3 font-medium">Status</th>
               <th className="px-4 py-3 font-medium">Expires</th>
+              <th className="px-4 py-3 font-medium"></th>
             </tr>
           </thead>
           <tbody>
             {loading && (
-              <tr><td colSpan={6} className="px-4 py-6 text-center text-slate-400">Loading...</td></tr>
+              <tr><td colSpan={7} className="px-4 py-6 text-center text-slate-400">Loading...</td></tr>
             )}
             {!loading && codes.length === 0 && (
-              <tr><td colSpan={6} className="px-4 py-6 text-center text-slate-400">No promo codes yet</td></tr>
+              <tr><td colSpan={7} className="px-4 py-6 text-center text-slate-400">No promo codes yet</td></tr>
             )}
             {codes.map((c) => (
               <tr key={c.id} className="border-b border-slate-100 last:border-0">
@@ -239,6 +248,13 @@ export default function PromoCodesTab() {
                   </span>
                 </td>
                 <td className="px-4 py-3 text-slate-400">{formatExpiry(c.expires_at)}</td>
+                <td className="px-4 py-3 text-right">
+                  <button onClick={() => toggleActive(c)} disabled={toggling === c.id}
+                    title={c.is_active ? 'Deactivate' : 'Reactivate'}
+                    className={`p-1.5 rounded-lg transition-colors ${c.is_active ? 'text-slate-400 hover:text-red-500 hover:bg-red-50' : 'text-slate-400 hover:text-green-600 hover:bg-green-50'}`}>
+                    {toggling === c.id ? <Loader2 size={14} className="animate-spin" /> : c.is_active ? <PowerOff size={14} /> : <Power size={14} />}
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
