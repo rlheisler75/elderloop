@@ -21,7 +21,7 @@ export default function SalesSheetTab() {
   }, [profile?.id])
 
   const repName = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'Your ElderLoop Rep'
-  const repPhone = profile?.phone || '(add your phone in My Settings)'
+  const repPhone = profile?.phone || '(add your phone in My Profile)'
   const repEmail = profile?.email || ''
   const signupLink = repCode ? `elderloop.xyz/signup?rep=${repCode}` : 'elderloop.xyz/signup'
 

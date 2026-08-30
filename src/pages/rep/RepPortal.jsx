@@ -23,6 +23,7 @@ import EmailSignatureTab from './tabs/EmailSignatureTab'
 import BusinessCardTab from './tabs/BusinessCardTab'
 import ToolkitTab from './tabs/ToolkitTab'
 import OrgSupportModal from './OrgSupportModal'
+import MyProfileModal from './MyProfileModal'
 import NotificationBell from '../../components/communication/NotificationBell'
 
 // ── Mandatory password change (first login on an admin-created rep account) ──
@@ -153,6 +154,7 @@ export default function RepPortal() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [myOrgs, setMyOrgs]           = useState([])
   const [supportOrg, setSupportOrg]   = useState(null)
+  const [showProfile, setShowProfile] = useState(false)
 
   useEffect(() => {
     if (!profile?.id) return
@@ -223,7 +225,8 @@ export default function RepPortal() {
         </nav>
 
         <div className="px-3 py-4 border-t border-brand-800 space-y-0.5">
-          <div className="flex items-center gap-3 px-3 py-2.5">
+          <button onClick={() => setShowProfile(true)}
+            className="flex items-center gap-3 px-3 py-2.5 w-full text-left rounded-lg hover:bg-brand-800 transition-colors">
             <div className="w-7 h-7 rounded-full bg-brand-700 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
               {profile?.first_name?.[0]?.toUpperCase() ?? '?'}
             </div>
@@ -231,7 +234,7 @@ export default function RepPortal() {
               <div className="text-white text-xs font-medium truncate">{profile?.first_name} {profile?.last_name}</div>
               {repCode && <div className="text-brand-400 text-xs font-mono truncate">{repCode}</div>}
             </div>
-          </div>
+          </button>
           <button onClick={() => navigate('/forgot-password')} className={navItemCls(false)}>
             <KeyRound size={17} /> Change Password
           </button>
@@ -272,6 +275,7 @@ export default function RepPortal() {
       </div>
 
       {supportOrg && <OrgSupportModal org={supportOrg} onClose={() => setSupportOrg(null)} />}
+      {showProfile && <MyProfileModal onClose={() => setShowProfile(false)} />}
     </div>
   )
 }

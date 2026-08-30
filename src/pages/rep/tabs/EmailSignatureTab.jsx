@@ -73,7 +73,7 @@ export default function EmailSignatureTab() {
 
       {!repPhone && (
         <div className="mb-4 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-          Your phone number isn't set yet — add it in My Settings so it shows up here.
+          Your phone number isn't set yet — click your name at the bottom of the sidebar to add it.
         </div>
       )}
 
