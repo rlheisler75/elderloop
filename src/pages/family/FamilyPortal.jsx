@@ -1081,7 +1081,7 @@ export default function FamilyPortal() {
                     ) : threads.map(thread => {
                       const first = thread[0]
                       const last  = thread[thread.length - 1]
-                      const _depts = DEPARTMENTS_DEFAULT
+                      const _depts = organization?.departments?.length ? organization.departments : DEPARTMENTS_DEFAULT
                       const dept  = _depts.find(d => d.key === first?.to_department)
                       const unread = thread.filter(m => m.sender_type === 'staff' && !m.is_read_by_family).length
                       return (
