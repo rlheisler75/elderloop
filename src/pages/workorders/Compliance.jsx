@@ -84,29 +84,29 @@ function AddCategoryModal({ orgId, onClose, onSaved }) {
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
         </div>
         <div className="px-6 py-5 space-y-4">
-          {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+          {error && <div className="px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Inspection Name *</label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Inspection Name *</label>
             <input value={form.label} onChange={e => set('label', e.target.value)}
               className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="e.g. Grease Trap Cleaning, Pool Safety Inspection" />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Description</label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Description</label>
             <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={2}
               className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
               placeholder="What does this inspection cover?" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Frequency</label>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Frequency</label>
               <select value={form.frequency} onChange={e => set('frequency', e.target.value)}
                 className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 capitalize">
                 {FREQ_OPTIONS.map(f => <option key={f} value={f} className="capitalize">{f}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Color Tag</label>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Color Tag</label>
               <select value={form.color} onChange={e => set('color', e.target.value)}
                 className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                 {COLOR_OPTIONS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
@@ -114,13 +114,13 @@ function AddCategoryModal({ orgId, onClose, onSaved }) {
             </div>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Regulatory Authority <span className="font-normal text-slate-400">(optional)</span></label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Regulatory Authority <span className="font-normal text-slate-400">(optional)</span></label>
             <input value={form.authority} onChange={e => set('authority', e.target.value)}
               className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="e.g. State Health Dept, Local Fire Marshal" />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Regulation / Code Reference <span className="font-normal text-slate-400">(optional)</span></label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Regulation / Code Reference <span className="font-normal text-slate-400">(optional)</span></label>
             <input value={form.authority_ref} onChange={e => set('authority_ref', e.target.value)}
               className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="e.g. §19 CSR 30-85, NFPA 96" />
@@ -246,36 +246,35 @@ function InspectionModal({ category, orgId, profile, onClose, onSaved }) {
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-          {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+          {error && <div className="px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
 
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Inspection Date *</label>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Inspection Date *</label>
               <input type="date" value={form.inspection_date} onChange={e => set('inspection_date', e.target.value)}
                 className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Next Due Date</label>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Next Due Date</label>
               <input type="date" value={form.next_due_date} onChange={e => set('next_due_date', e.target.value)}
                 className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Inspector</label>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Inspector</label>
               <input value={form.inspector_name} onChange={e => set('inspector_name', e.target.value)}
                 className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
           </div>
 
           {/* Live status */}
-          <div className="flex items-center gap-3 p-3 rounded-xl border-2"
-            style={{
-              borderColor: autoStatus === 'pass' ? '#86efac' : autoStatus === 'fail' ? '#fca5a5' : '#fcd34d',
-              background:  autoStatus === 'pass' ? '#f0fdf4' : autoStatus === 'fail' ? '#fef2f2' : '#fffbeb'
-            }}>
+          <div className={`flex items-center gap-3 p-3 rounded-xl border-2 ${
+            autoStatus === 'pass' ? 'border-green-300 dark:border-green-800 bg-green-50 dark:bg-green-950/30' :
+            autoStatus === 'fail' ? 'border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/30' :
+            'border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30'}`}>
             <div className="flex gap-3 text-sm font-medium">
-              <span className="text-green-700">{passCount} Pass</span>
-              {warnCount > 0 && <span className="text-amber-700">{warnCount} Need Attention</span>}
-              {failCount > 0 && <span className="text-red-700">{failCount} Fail</span>}
+              <span className="text-green-700 dark:text-green-400">{passCount} Pass</span>
+              {warnCount > 0 && <span className="text-amber-700 dark:text-amber-400">{warnCount} Need Attention</span>}
+              {failCount > 0 && <span className="text-red-700 dark:text-red-400">{failCount} Fail</span>}
             </div>
             <div className="ml-auto text-sm font-semibold">
               {(() => { const s = STATUS_CONFIG[autoStatus]; const Icon = s.icon
@@ -287,18 +286,18 @@ function InspectionModal({ category, orgId, profile, onClose, onSaved }) {
           {/* Checklist */}
           {items.length > 0 && (
             <div>
-              <h3 className="font-semibold text-slate-700 text-sm mb-3">Checklist ({items.length} items)</h3>
+              <h3 className="font-semibold text-slate-700 dark:text-slate-300 text-sm mb-3">Checklist ({items.length} items)</h3>
               <div className="space-y-2">
                 {items.map(item => {
                   const itemResult = results[item.id] || { result: 'pass', notes: '' }
                   return (
                     <div key={item.id} className={`p-4 rounded-xl border transition-all ${
-                      itemResult.result === 'fail'            ? 'border-red-200 bg-red-50' :
-                      itemResult.result === 'needs_attention' ? 'border-amber-200 bg-amber-50' :
-                      'border-slate-100 bg-white'}`}>
+                      itemResult.result === 'fail'            ? 'border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/30' :
+                      itemResult.result === 'needs_attention' ? 'border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30' :
+                      'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-800/50'}`}>
                       <div className="flex items-start gap-3">
                         <div className="flex-1">
-                          <div className="text-sm font-medium text-slate-800">{item.item_label}</div>
+                          <div className="text-sm font-medium text-slate-800 dark:text-slate-100">{item.item_label}</div>
                           {item.notes_hint && <div className="text-xs text-slate-400 mt-0.5">{item.notes_hint}</div>}
                         </div>
                         <div className="flex gap-1 flex-shrink-0">
@@ -309,7 +308,7 @@ function InspectionModal({ category, orgId, profile, onClose, onSaved }) {
                           ].map(opt => (
                             <button key={opt.val} onClick={() => setItemResult(item.id, 'result', opt.val)}
                               className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all
-                                ${itemResult.result === opt.val ? opt.cls : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>
+                                ${itemResult.result === opt.val ? opt.cls : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'}`}>
                               {opt.label}
                             </button>
                           ))}
@@ -317,7 +316,7 @@ function InspectionModal({ category, orgId, profile, onClose, onSaved }) {
                       </div>
                       {(itemResult.result === 'needs_attention' || itemResult.result === 'fail') && (
                         <input value={itemResult.notes || ''} onChange={e => setItemResult(item.id, 'notes', e.target.value)}
-                          className="mt-2 w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white"
+                          className="mt-2 w-full px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100"
                           placeholder="Note what needs attention..." />
                       )}
                     </div>
@@ -329,25 +328,25 @@ function InspectionModal({ category, orgId, profile, onClose, onSaved }) {
 
           {/* Overall notes */}
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Overall Notes</label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Overall Notes</label>
             <textarea value={form.overall_notes} onChange={e => set('overall_notes', e.target.value)} rows={3}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
               placeholder="Summary observations, corrective actions taken..." />
           </div>
 
           {/* Report upload */}
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Attach Report <span className="font-normal text-slate-400">(optional)</span></label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Attach Report <span className="font-normal text-slate-400">(optional)</span></label>
             {reportUrl ? (
-              <div className="flex items-center gap-3 px-4 py-3 bg-green-50 border border-green-200 rounded-xl">
+              <div className="flex items-center gap-3 px-4 py-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900 rounded-xl">
                 <FileText size={16} className="text-green-600 flex-shrink-0" />
-                <span className="text-sm text-green-700 flex-1 truncate">{reportName}</span>
+                <span className="text-sm text-green-700 dark:text-green-400 flex-1 truncate">{reportName}</span>
                 <a href={reportUrl} target="_blank" rel="noopener noreferrer" className="p-1.5 text-green-600 hover:text-green-800"><Eye size={14} /></a>
                 <button onClick={() => { setReportUrl(''); setReportName('') }} className="p-1.5 text-slate-400 hover:text-red-500"><X size={14} /></button>
               </div>
             ) : (
               <button onClick={() => fileRef.current.click()} disabled={uploading}
-                className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-slate-200 rounded-xl text-sm text-slate-400 hover:border-brand-400 hover:text-brand-500 transition-colors disabled:opacity-50">
+                className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-400 hover:border-brand-400 hover:text-brand-500 transition-colors disabled:opacity-50">
                 <Upload size={15} /> {uploading ? 'Uploading...' : 'Upload inspection report (PDF, JPG, PNG)'}
               </button>
             )}
@@ -355,10 +354,10 @@ function InspectionModal({ category, orgId, profile, onClose, onSaved }) {
           </div>
         </div>
 
-        <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between flex-shrink-0">
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between flex-shrink-0">
           <p className="text-xs text-slate-400">* Required fields</p>
           <div className="flex gap-3">
-            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 font-medium">Cancel</button>
+            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
             <button onClick={handleSave} disabled={saving}
               className="flex items-center gap-2 px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
               <ClipboardCheck size={15} /> {saving ? 'Saving...' : 'Save Inspection Record'}
@@ -400,10 +399,10 @@ function InspectionHistory({ category, orgId, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div>
-            <h2 className="font-display font-semibold text-slate-800">{category.label} — History</h2>
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">{category.label} — History</h2>
             <p className="text-xs text-slate-400 mt-0.5">{inspections.length} inspection{inspections.length !== 1 ? 's' : ''} on record</p>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
@@ -420,13 +419,13 @@ function InspectionHistory({ category, orgId, onClose }) {
             return (
               <div key={insp.id} className={`border rounded-2xl overflow-hidden ${s.border}`}>
                 <button onClick={() => fetchResults(insp.id)}
-                  className="w-full flex items-center gap-3 p-4 text-left hover:bg-slate-50 transition-colors">
+                  className="w-full flex items-center gap-3 p-4 text-left hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                   <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${s.bg}`}>
                     <Icon size={18} className={s.color} />
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-slate-800 text-sm">{fmt(insp.inspection_date)}</span>
+                      <span className="font-semibold text-slate-800 dark:text-slate-100 text-sm">{fmt(insp.inspection_date)}</span>
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.bg} ${s.color}`}>{s.label}</span>
                     </div>
                     <div className="text-xs text-slate-400 mt-0.5">
@@ -436,25 +435,25 @@ function InspectionHistory({ category, orgId, onClose }) {
                   {insp.report_url && (
                     <a href={insp.report_url} target="_blank" rel="noopener noreferrer"
                       onClick={e => e.stopPropagation()}
-                      className="flex items-center gap-1 text-xs text-brand-600 hover:text-brand-800 px-2 py-1 rounded-lg hover:bg-brand-50 transition-colors">
+                      className="flex items-center gap-1 text-xs text-brand-600 hover:text-brand-800 px-2 py-1 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-950/50 transition-colors">
                       <FileText size={12} /> Report
                     </a>
                   )}
                   {isExpanded ? <ChevronUp size={16} className="text-slate-400 flex-shrink-0" /> : <ChevronDown size={16} className="text-slate-400 flex-shrink-0" />}
                 </button>
                 {isExpanded && (
-                  <div className="px-5 pb-4 border-t border-slate-100 pt-3">
-                    {insp.overall_notes && <p className="text-sm text-slate-600 mb-3 italic">{insp.overall_notes}</p>}
+                  <div className="px-5 pb-4 border-t border-slate-100 dark:border-slate-800 pt-3">
+                    {insp.overall_notes && <p className="text-sm text-slate-600 dark:text-slate-300 mb-3 italic">{insp.overall_notes}</p>}
                     {(itemResults[insp.id] || []).length > 0 && (
                       <div className="space-y-1">
                         {(itemResults[insp.id] || []).map(result => (
                           <div key={result.id} className="flex items-center gap-2 text-xs">
                             <span className={`w-12 text-center px-1.5 py-0.5 rounded-full font-medium flex-shrink-0
-                              ${result.result === 'pass' ? 'bg-green-100 text-green-700' :
-                                result.result === 'fail' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                              ${result.result === 'pass' ? 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400' :
+                                result.result === 'fail' ? 'bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-400' : 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400'}`}>
                               {result.result === 'needs_attention' ? 'Attn' : result.result}
                             </span>
-                            <span className="text-slate-600">{result.compliance_checklist_items?.item_label}</span>
+                            <span className="text-slate-600 dark:text-slate-300">{result.compliance_checklist_items?.item_label}</span>
                             {result.notes && <span className="text-slate-400 italic">— {result.notes}</span>}
                           </div>
                         ))}
@@ -466,7 +465,7 @@ function InspectionHistory({ category, orgId, onClose }) {
             )
           })}
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end flex-shrink-0">
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end flex-shrink-0">
           <button onClick={onClose} className="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg">Close</button>
         </div>
       </div>
@@ -568,54 +567,54 @@ export default function CompliancePanel({ orgId, profile }) {
           { label: 'Overdue',     value: overdueCats,   color: overdueCats > 0   ? 'text-red-600'   : 'text-slate-400', bg: overdueCats > 0   ? 'bg-red-50'    : 'bg-slate-100', alert: overdueCats > 0 },
           { label: 'Not Started', value: totalCats - compliantCats - dueSoonCats - overdueCats, color: 'text-slate-400', bg: 'bg-slate-100' },
         ].map(s => (
-          <div key={s.label} className={`${s.bg} rounded-2xl p-4 ${s.alert ? 'ring-2 ring-red-300' : ''}`}>
+          <div key={s.label} className={`${s.bg} dark:bg-slate-900 rounded-2xl p-4 border border-white dark:border-slate-800 ${s.alert ? 'ring-2 ring-red-300 dark:ring-red-800' : ''}`}>
             <div className={`text-3xl font-display font-bold ${s.color}`}>{s.value}</div>
-            <div className="text-slate-500 text-xs mt-1">{s.label}</div>
+            <div className="text-slate-500 dark:text-slate-400 text-xs mt-1">{s.label}</div>
           </div>
         ))}
       </div>
 
       {/* State reference banner (read-only — set once for the whole org in Org Settings) */}
-      <div className="mb-5 bg-blue-50 border border-blue-200 rounded-2xl overflow-hidden">
+      <div className="mb-5 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded-2xl overflow-hidden">
         <div className="flex items-center gap-3 px-4 py-3">
           <Globe size={16} className="text-blue-600 flex-shrink-0" />
           <div className="flex-1 flex items-center gap-2 flex-wrap">
-            <span className="text-xs font-semibold text-blue-800">Compliance State:</span>
-            <span className="px-2 py-1 bg-white border border-blue-300 rounded-lg text-xs font-medium text-blue-800">{stateRef.label}</span>
+            <span className="text-xs font-semibold text-blue-800 dark:text-blue-400">Compliance State:</span>
+            <span className="px-2 py-1 bg-white dark:bg-slate-800 border border-blue-300 dark:border-blue-800 rounded-lg text-xs font-medium text-blue-800 dark:text-blue-400">{stateRef.label}</span>
             {canEditOrgSettings && (
               <Link to="/app/admin"
-                className="flex items-center gap-1 px-2.5 py-1 text-blue-700 hover:text-blue-900 hover:bg-blue-100 text-xs font-medium rounded-lg transition-colors">
+                className="flex items-center gap-1 px-2.5 py-1 text-blue-700 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-xs font-medium rounded-lg transition-colors">
                 <Settings size={11} /> Change in Org Settings
               </Link>
             )}
           </div>
-          <button onClick={() => setShowStateInfo(s => !s)} className="text-blue-600 hover:text-blue-800 flex-shrink-0">
+          <button onClick={() => setShowStateInfo(s => !s)} className="text-blue-600 hover:text-blue-800 dark:hover:text-blue-300 flex-shrink-0">
             {showStateInfo ? <ChevronUp size={16} /> : <Info size={16} />}
           </button>
         </div>
         {showStateInfo && (
-          <div className="px-4 pb-4 border-t border-blue-200 pt-3">
-            <p className="text-xs text-blue-800 leading-relaxed"><span className="font-semibold">{stateRef.label} Reference:</span> {stateRef.summary}</p>
-            <p className="text-xs text-blue-700 mt-1.5 italic">{stateRef.retention}</p>
+          <div className="px-4 pb-4 border-t border-blue-200 dark:border-blue-900 pt-3">
+            <p className="text-xs text-blue-800 dark:text-blue-400 leading-relaxed"><span className="font-semibold">{stateRef.label} Reference:</span> {stateRef.summary}</p>
+            <p className="text-xs text-blue-700 dark:text-blue-400 mt-1.5 italic">{stateRef.retention}</p>
           </div>
         )}
       </div>
 
       {/* Add custom + section header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-display font-semibold text-slate-800 flex items-center gap-2">
+        <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2">
           <ShieldCheck size={18} className="text-brand-600" /> Inspection Categories
           <span className="text-sm font-normal text-slate-400">({totalCats} total)</span>
         </h2>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowPrint(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-300 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-medium transition-colors">
+            className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl text-xs font-medium transition-colors">
             <Printer size={13} /> Print for Surveyor
           </button>
           <button
             onClick={() => setShowAddCat(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 border border-brand-300 text-brand-600 hover:bg-brand-50 rounded-xl text-xs font-medium transition-colors">
+            className="flex items-center gap-1.5 px-3 py-1.5 border border-brand-300 dark:border-brand-800 text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-950/50 rounded-xl text-xs font-medium transition-colors">
             <Plus size={13} /> Add Custom Inspection
           </button>
         </div>
@@ -626,44 +625,44 @@ export default function CompliancePanel({ orgId, profile }) {
         {categories.map(cat => {
           const last    = lastInspections[cat.id]
           const days    = last?.next_due_date ? daysUntil(last.next_due_date) : null
-          const freq    = FREQ_LABELS[cat.frequency] || { label: cat.frequency, color: 'bg-slate-100 text-slate-600' }
+          const freq    = FREQ_LABELS[cat.frequency] || { label: cat.frequency, color: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' }
           const status  = last ? STATUS_CONFIG[last.status] : null
           const StatusIcon = status?.icon
 
           let urgencyBadge = null
           if (!last) {
-            urgencyBadge = { label: 'No Record', color: 'bg-slate-100 text-slate-500' }
+            urgencyBadge = { label: 'No Record', color: 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400' }
           } else if (days !== null && days < 0) {
-            urgencyBadge = { label: `${Math.abs(days)}d overdue`, color: 'bg-red-100 text-red-700' }
+            urgencyBadge = { label: `${Math.abs(days)}d overdue`, color: 'bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-400' }
           } else if (days !== null && days <= 7) {
-            urgencyBadge = { label: `Due in ${days}d`, color: 'bg-red-100 text-red-700' }
+            urgencyBadge = { label: `Due in ${days}d`, color: 'bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-400' }
           } else if (days !== null && days <= 30) {
-            urgencyBadge = { label: `Due in ${days}d`, color: 'bg-amber-100 text-amber-700' }
+            urgencyBadge = { label: `Due in ${days}d`, color: 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400' }
           }
 
           const cardBorder = urgencyBadge && (days === null || days < 0)
-            ? 'border-red-200' : urgencyBadge && days <= 7
-            ? 'border-red-200' : urgencyBadge && days <= 30
-            ? 'border-amber-200' : 'border-slate-100'
+            ? 'border-red-200 dark:border-red-900' : urgencyBadge && days <= 7
+            ? 'border-red-200 dark:border-red-900' : urgencyBadge && days <= 30
+            ? 'border-amber-200 dark:border-amber-900' : 'border-slate-100 dark:border-slate-800'
 
           return (
-            <div key={cat.id} className={`bg-white rounded-2xl border shadow-sm overflow-hidden hover:shadow-md transition-all ${cardBorder}`}>
+            <div key={cat.id} className={`bg-white dark:bg-slate-900 rounded-2xl border shadow-sm overflow-hidden hover:shadow-md transition-all ${cardBorder}`}>
               <div className="p-5">
                 <div className="flex items-start gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <h3 className="font-display font-semibold text-slate-800">{cat.label}</h3>
+                      <h3 className="font-display font-semibold text-slate-800 dark:text-slate-100">{cat.label}</h3>
                       {cat.is_custom && (
-                        <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full font-medium">Custom</span>
+                        <span className="text-xs px-2 py-0.5 bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-400 rounded-full font-medium">Custom</span>
                       )}
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${freq.color}`}>{freq.label}</span>
                       {urgencyBadge && (
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${urgencyBadge.color}`}>{urgencyBadge.label}</span>
                       )}
                     </div>
-                    {cat.description && <p className="text-xs text-slate-500 mb-2">{cat.description}</p>}
+                    {cat.description && <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">{cat.description}</p>}
                     <div className="flex items-center gap-3 flex-wrap text-xs text-slate-400">
-                      {cat.authority_ref && <span className="font-mono bg-slate-50 px-1.5 py-0.5 rounded">{cat.authority_ref}</span>}
+                      {cat.authority_ref && <span className="font-mono bg-slate-50 dark:bg-slate-800 px-1.5 py-0.5 rounded">{cat.authority_ref}</span>}
                       {last && (
                         <>
                           {status && StatusIcon && (
@@ -685,7 +684,7 @@ export default function CompliancePanel({ orgId, profile }) {
                       </button>
                     )}
                     <button onClick={() => setShowHistory(cat)}
-                      className="px-3 py-1.5 border border-slate-200 text-slate-600 hover:border-slate-300 rounded-xl text-xs font-medium transition-colors">
+                      className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600 rounded-xl text-xs font-medium transition-colors">
                       History
                     </button>
                     <button onClick={() => setShowInspect(cat)}
