@@ -6,11 +6,12 @@ const NAV = [
   { id: 'profiles', num: '01', label: 'Social Profiles' },
   { id: 'mood', num: '02', label: 'Mood & Behavior' },
   { id: 'notes', num: '03', label: 'Case Notes' },
-  { id: 'grievances', num: '04', label: 'Grievances' },
-  { id: 'conferences', num: '05', label: 'Care Conferences' },
-  { id: 'discharge', num: '06', label: 'Discharge Planning' },
-  { id: 'resources', num: '07', label: 'Resources' },
-  { id: 'dashboard', num: '08', label: 'Director Dashboard' },
+  { id: 'goals', num: '04', label: 'Goals' },
+  { id: 'grievances', num: '05', label: 'Grievances' },
+  { id: 'conferences', num: '06', label: 'Care Conferences' },
+  { id: 'discharge', num: '07', label: 'Discharge Planning' },
+  { id: 'resources', num: '08', label: 'Resources' },
+  { id: 'dashboard', num: '09', label: 'Director Dashboard' },
 ]
 
 export default function SocialServicesGuide() {
@@ -21,7 +22,7 @@ export default function SocialServicesGuide() {
         eyebrow="ElderLoop Staff Training"
         title="Social Services"
         dek="A working guide to every tab in the Social Services module — what each screen is for, how to use it day-to-day, and where the data ends up."
-        chips={['For: Social Services staff, Supervisors, Managers', 'Where: Sidebar → Social Services', '8 tabs']}
+        chips={['For: Social Services staff, Supervisors, Managers', 'Where: Sidebar → Social Services', '9 tabs']}
       />
 
       <div className="max-w-5xl mx-auto px-6 grid md:grid-cols-[200px_minmax(0,1fr)] gap-10 py-4">
@@ -66,10 +67,26 @@ export default function SocialServicesGuide() {
               { k: 2, text: <>Write what was discussed or observed in <b className="text-slate-900">Summary</b>. Add duration if useful for your records.</> },
               { k: 3, text: <>Toggle <b className="text-slate-900">Follow-up needed</b> and set a date if something needs a second touch.</> },
             ]} />
-            <Tip><b className="text-slate-900">Also documented in EMR</b> doesn't sync anything automatically — it's a manual flag so your team knows a contact is already charted in PointClickCare or MatrixCare, and this entry is just the quick internal log, not a duplicate of the official chart.</Tip>
+            <Tip><b className="text-slate-900">Also documented in EMR</b> doesn't sync anything automatically — it's a manual flag so your team knows a contact is already charted in PointClickCare or MatrixCare, and this entry is just the quick internal log, not a duplicate of the official chart. Set a follow-up date and you'll get a push notification the morning it's due — see the note at the end of the Goals section below for how that works.</Tip>
           </SectionBlock>
 
-          <SectionBlock id="grievances" num="04" title="Grievances"
+          <SectionBlock id="goals" num="04" title="Goals"
+            dek="Trackable social/emotional goals for a resident — not a single free-text field, but a real list where each goal has its own category, status, and target date.">
+            <ShotsPair>
+              <Frame src={SHOT('goals-list.png')} alt="Goals list" caption="Active goals, filterable by resident and status" />
+              <Frame src={SHOT('goals-modal.png')} alt="New Goal form" caption="Setting a new goal — category, plan, status, and target date" />
+            </ShotsPair>
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
+            <Steps items={[
+              { k: 1, text: <>Click <b className="text-slate-900">New Goal</b>, pick the resident and a category — Social Engagement, Emotional Wellbeing, Family Relationships, Independence / ADLs, Cognitive / Behavioral, or Other.</> },
+              { k: 2, text: <>Write the goal itself in <b className="text-slate-900">Goal</b> (short and specific — e.g. "Attend 2 group activities per week") and use <b className="text-slate-900">Description / Plan</b> for how you'll work toward it.</> },
+              { k: 3, text: <>Move <b className="text-slate-900">Status</b> from Not Started → In Progress as work happens, then to <b className="text-slate-900">Met</b> once it's achieved — that reveals an Achieved Date field, pre-filled with today. Use <b className="text-slate-900">Discontinued</b> for a goal that's no longer relevant rather than deleting it.</> },
+              { k: 4, text: 'By default the list shows only active (Not Started / In Progress) goals — switch the status filter to see everything, or just goals that are Met.' },
+            ]} />
+            <Tip>A goal past its target date and still active shows a red <b className="text-slate-900">Overdue</b> badge right on the card — no need to cross-check dates by hand. And every morning, anyone with Push Notifications turned on (Settings → Push Notifications) gets a single reminder summarizing that day's due Case Note follow-ups and Goal target dates together — sent to whoever created the note or goal, so it always reaches the right person.</Tip>
+          </SectionBlock>
+
+          <SectionBlock id="grievances" num="05" title="Grievances"
             dek="Formal complaint intake through investigation and resolution — filed by or on behalf of a resident, tracked until closed.">
             <Frame src={SHOT('grievances.png')} alt="Grievances list" caption="Open and resolved grievances, with days-open tracking" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
@@ -80,7 +97,7 @@ export default function SocialServicesGuide() {
             ]} />
           </SectionBlock>
 
-          <SectionBlock id="conferences" num="05" title="Care Conferences"
+          <SectionBlock id="conferences" num="06" title="Care Conferences"
             dek="Scheduled care-plan meetings with residents and families — the agenda, attendees, and notes all live in one place.">
             <Frame src={SHOT('care-conferences.png')} alt="Care Conferences list" caption="Scheduled and completed care conferences" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
@@ -90,7 +107,7 @@ export default function SocialServicesGuide() {
             ]} />
           </SectionBlock>
 
-          <SectionBlock id="discharge" num="06" title="Discharge Planning"
+          <SectionBlock id="discharge" num="07" title="Discharge Planning"
             dek="The full discharge workflow — destination, post-acute needs, barriers, family involvement, and the resources you've lined up — from first planning conversation to the day someone leaves.">
             <Frame src={SHOT('discharge-planning.png')} alt="Discharge Planning list" caption="Discharge Planning — status tiles and plan list" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
@@ -102,7 +119,7 @@ export default function SocialServicesGuide() {
             <Tip>Plans due within 14 days show up under <b className="text-slate-900">Due Within 14 Days</b> on this tab and on the Director Dashboard's <b className="text-slate-900">Upcoming Discharges</b> tile — a quick way to see who needs attention this week.</Tip>
           </SectionBlock>
 
-          <SectionBlock id="resources" num="07" title="Resources"
+          <SectionBlock id="resources" num="08" title="Resources"
             dek="Your community's own directory of outside agencies — hospice, home health, transportation, legal aid, and more — plus a log of every referral you send out.">
             <ShotsPair>
               <Frame src={SHOT('resources-directory.png')} alt="Resources directory" caption="Directory — build this once, reuse it for every referral" />
@@ -118,7 +135,7 @@ export default function SocialServicesGuide() {
             <Tip>This directory is entirely local to your organization — it's a reference tool for your team, not something that syncs to PointClickCare, MatrixCare, or any outside system. Keep it current directly here.</Tip>
           </SectionBlock>
 
-          <SectionBlock id="dashboard" num="08" title="Director Dashboard" roleNote="Directors & Admins only"
+          <SectionBlock id="dashboard" num="09" title="Director Dashboard" roleNote="Directors & Admins only"
             dek="Facility-wide compliance alerts, trend charts, and a per-worker caseload summary — the view a Social Services Director uses to know where to spend the week's attention.">
             <Frame src={SHOT('director-dashboard.png')} alt="Director Dashboard compliance alerts" caption="Compliance alert banner and the Open Referrals / Upcoming Discharges tiles" />
             <Frame src={SHOT('director-dashboard-caseload.png')} alt="Caseload Summary table" caption="Caseload Summary — assigned residents, open grievances, and workload per worker" />
@@ -134,6 +151,8 @@ export default function SocialServicesGuide() {
           <QuickRefTable rows={[
             ['Log today’s mood or a behavioral concern', 'Mood & Behavior → Quick Log Mood'],
             ['Record a phone call or family meeting', 'Case Notes → New Case Note'],
+            ['Set or update a resident’s goal', 'Goals → New Goal'],
+            ['See what’s overdue across goals', 'Goals → Overdue badge, or daily push reminder'],
             ['File a complaint', 'Grievances → New Grievance'],
             ['Schedule or write up a care conference', 'Care Conferences'],
             ['Start or update a discharge plan', 'Discharge Planning'],

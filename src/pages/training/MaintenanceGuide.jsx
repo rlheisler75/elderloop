@@ -7,7 +7,8 @@ const NAV = [
   { id: 'assets',     num: '02', label: 'Assets' },
   { id: 'pm',         num: '03', label: 'Preventive Maintenance' },
   { id: 'lifesafety', num: '04', label: 'Life Safety' },
-  { id: 'settings',   num: '05', label: 'Settings' },
+  { id: 'reports',    num: '05', label: 'Reports' },
+  { id: 'settings',   num: '06', label: 'Settings' },
 ]
 
 export default function MaintenanceGuide() {
@@ -18,7 +19,7 @@ export default function MaintenanceGuide() {
         eyebrow="ElderLoop Staff Training"
         title="Maintenance"
         dek="A working guide to work orders, the asset registry, preventive maintenance, and Life Safety compliance — from a resident-reported leak to a surveyor-ready inspection report."
-        chips={['For: Maintenance staff, Supervisors, Managers', 'Where: Sidebar → Maintenance', '6 tabs']}
+        chips={['For: Maintenance staff, Supervisors, Managers', 'Where: Sidebar → Maintenance', '7 tabs']}
       />
 
       <div className="max-w-5xl mx-auto px-6 grid md:grid-cols-[200px_minmax(0,1fr)] gap-10 py-4">
@@ -83,7 +84,22 @@ export default function MaintenanceGuide() {
             <Tip>The Print for Surveyor report isn't just a list — it includes your state's regulatory reference text, a pass/fail summary, and every category's history for the date range, including categories with no records at all. It's built to hand directly to an inspector.</Tip>
           </SectionBlock>
 
-          <SectionBlock id="settings" num="05" title="Settings"
+          <SectionBlock id="reports" num="05" title="Reports"
+            dek="Response and completion time by priority, workload by staff member, and category/source breakdowns — for a date range you pick — with CSV and print export.">
+            <ShotsPair>
+              <Frame src={SHOT('reports-overview.png')} alt="Maintenance Reports overview" caption="Response & Completion tab, with the date-range presets and summary strip" />
+              <Frame src={SHOT('reports-breakdown.png')} alt="Category and Source breakdown" caption="Category & Source tab — where tickets come from and what they're about" />
+            </ShotsPair>
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
+            <Steps items={[
+              { k: 1, text: <>Pick a date range with the presets (Last 7/30/90 Days, Last Year) or <b className="text-slate-900">Custom</b> — every report and the summary strip re-run against that range.</> },
+              { k: 2, text: <>Switch between the three sub-tabs: <b className="text-slate-900">Response &amp; Completion</b> (SLA performance by priority), <b className="text-slate-900">Work Load by Staff</b> (open/closed/overdue per person), and <b className="text-slate-900">Category &amp; Source</b> (what kind of work, and who's requesting it).</> },
+              { k: 3, text: <>Click <b className="text-slate-900">Export CSV</b> for the full underlying ticket list (not just the summary), or <b className="text-slate-900">Print Report</b> for a formatted one-page summary of all three views — same print-to-PDF flow as the Life Safety surveyor report.</> },
+            ]} />
+            <Tip>Response and completion times are only as accurate as the timestamps behind them — a ticket only counts toward "Avg Response" once someone's actually assigned to it, and toward "Avg Completion" once it's marked Closed. An assigned-but-idle ticket won't show a response time until you act on it.</Tip>
+          </SectionBlock>
+
+          <SectionBlock id="settings" num="06" title="Settings"
             dek="Configure SLA response targets, automatic ticket assignment by category, and the location hierarchy used throughout the module.">
             <ShotsPair>
               <Frame src={SHOT('settings-sla-rules.png')} alt="SLA Rules settings" caption="SLA Rules — response and completion targets per priority" />
@@ -105,6 +121,8 @@ export default function MaintenanceGuide() {
             ['Run a recurring task (filter change, generator test)', 'Preventive Maintenance → Generate WO'],
             ['Conduct a fire/life-safety inspection', 'Life Safety → Inspect'],
             ['Prepare for a state survey', 'Life Safety → Print for Surveyor'],
+            ['See SLA performance or staff workload', 'Reports'],
+            ['Export ticket data to Excel', 'Reports → Export CSV'],
             ['Change who tickets auto-assign to', 'Settings → Auto-Assignment'],
             ['Add a building, hall, or room', 'Settings → Locations'],
           ]} />
