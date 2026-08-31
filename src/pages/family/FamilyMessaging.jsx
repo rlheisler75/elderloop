@@ -83,7 +83,7 @@ function PostUpdateModal({ residents, orgId, profile, onClose, onSaved }) {
           {error && <div className="px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Resident *</label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Resident *</label>
             <select value={form.resident_id} onChange={e => set('resident_id', e.target.value)}
               className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
               <option value="">Select resident</option>
@@ -92,7 +92,7 @@ function PostUpdateModal({ residents, orgId, profile, onClose, onSaved }) {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Category</label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">Category</label>
             <div className="flex flex-wrap gap-2">
               {UPDATE_CATEGORIES.map(c => {
                 const Icon = c.icon
@@ -107,14 +107,14 @@ function PostUpdateModal({ residents, orgId, profile, onClose, onSaved }) {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Title (optional)</label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Title (optional)</label>
             <input value={form.title} onChange={e => set('title', e.target.value)}
               className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="e.g. Great Day Today" />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Update *</label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Update *</label>
             <textarea value={form.body} onChange={e => set('body', e.target.value)} rows={4}
               className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
               placeholder="Share what's happening with the resident today..." />
@@ -297,7 +297,7 @@ export default function FamilyMessaging() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Family Communication</h1>
-          <p className="text-slate-500 text-sm mt-0.5">Manage family messages and resident updates</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-0.5">Manage family messages and resident updates</p>
         </div>
         {canEditMessaging && (
           <button onClick={() => setShowPostUpdate(true)}
@@ -316,7 +316,7 @@ export default function FamilyMessaging() {
         ].map(s => (
           <div key={s.label} className={`${s.bg} dark:bg-slate-900 rounded-2xl p-4`}>
             <div className={`text-3xl font-display font-bold ${s.color}`}>{s.value}</div>
-            <div className="text-slate-500 text-xs mt-1">{s.label}</div>
+            <div className="text-slate-500 dark:text-slate-400 text-xs mt-1">{s.label}</div>
           </div>
         ))}
       </div>
@@ -367,7 +367,7 @@ export default function FamilyMessaging() {
                     </div>
                     <p className="text-xs text-slate-400 truncate mb-1">{last.body}</p>
                     <div className="flex items-center gap-2 text-xs text-slate-400">
-                      {res && <span className="font-medium text-slate-500">{res.first_name} {res.last_name}</span>}
+                      {res && <span className="font-medium text-slate-500 dark:text-slate-400">{res.first_name} {res.last_name}</span>}
                       <span>·</span>
                       <span>{dept?.label}</span>
                       <span>·</span>
@@ -439,7 +439,7 @@ export default function FamilyMessaging() {
                     )}
                     <div className="flex gap-2 items-end">
                       <button onClick={() => fileRef.current.click()}
-                        className="p-2 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 transition-colors flex-shrink-0">
+                        className="p-2 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-950/50 transition-colors flex-shrink-0">
                         <Paperclip size={16} />
                       </button>
                       <textarea value={reply} onChange={e => setReply(e.target.value)}
@@ -475,16 +475,16 @@ export default function FamilyMessaging() {
             </div>
           ) : updates.map(u => {
             const config = {
-              general:   { label: 'General',   color: 'bg-brand-100 text-brand-700' },
-              mood:      { label: 'Mood',      color: 'bg-amber-100 text-amber-700' },
-              activity:  { label: 'Activity',  color: 'bg-green-100 text-green-700' },
-              meal:      { label: 'Meal',      color: 'bg-orange-100 text-orange-700' },
-              health:    { label: 'Health',    color: 'bg-red-100 text-red-700' },
-              photo:     { label: 'Photo',     color: 'bg-purple-100 text-purple-700' },
-              milestone: { label: 'Milestone', color: 'bg-yellow-100 text-yellow-700' },
-            }[u.category] || { label: 'General', color: 'bg-slate-100 text-slate-600' }
+              general:   { label: 'General',   color: 'bg-brand-100 dark:bg-brand-950/50 text-brand-700 dark:text-brand-400' },
+              mood:      { label: 'Mood',      color: 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400' },
+              activity:  { label: 'Activity',  color: 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400' },
+              meal:      { label: 'Meal',      color: 'bg-orange-100 dark:bg-orange-950/50 text-orange-700 dark:text-orange-400' },
+              health:    { label: 'Health',    color: 'bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-400' },
+              photo:     { label: 'Photo',     color: 'bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-400' },
+              milestone: { label: 'Milestone', color: 'bg-yellow-100 dark:bg-yellow-950/50 text-yellow-700 dark:text-yellow-400' },
+            }[u.category] || { label: 'General', color: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' }
             return (
-              <div key={u.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+              <div key={u.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
@@ -494,8 +494,8 @@ export default function FamilyMessaging() {
                       </span>
                       {!u.is_family_visible && <span className="text-xs text-slate-400 italic">— internal only</span>}
                     </div>
-                    {u.title && <h3 className="font-semibold text-slate-800 text-sm mb-1">{u.title}</h3>}
-                    <p className="text-slate-600 text-sm">{u.body}</p>
+                    {u.title && <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-sm mb-1">{u.title}</h3>}
+                    <p className="text-slate-600 dark:text-slate-300 text-sm">{u.body}</p>
                     {u.photo_url && <img src={u.photo_url} alt="" className="mt-3 rounded-xl max-h-32 object-cover" />}
                     <div className="text-xs text-slate-400 mt-2">
                       Posted by {u.profiles?.first_name} {u.profiles?.last_name} · {relativeTime(u.created_at)}

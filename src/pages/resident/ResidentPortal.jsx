@@ -46,10 +46,10 @@ const WO_CATEGORIES = [
 ]
 
 const WO_STATUS = {
-  open:        { label: 'Submitted',   color: 'text-amber-600',  bg: 'bg-amber-50',  icon: Clock },
-  in_progress: { label: 'In Progress', color: 'text-blue-600',   bg: 'bg-blue-50',   icon: Activity },
-  on_hold:     { label: 'On Hold',     color: 'text-slate-500',  bg: 'bg-slate-50',  icon: AlertCircle },
-  closed:      { label: 'Completed',   color: 'text-green-600',  bg: 'bg-green-50',  icon: CheckCircle2 },
+  open:        { label: 'Submitted',   color: 'text-amber-600',  bg: 'bg-amber-50 dark:bg-amber-950/50',  icon: Clock },
+  in_progress: { label: 'In Progress', color: 'text-blue-600',   bg: 'bg-blue-50 dark:bg-blue-950/50',   icon: Activity },
+  on_hold:     { label: 'On Hold',     color: 'text-slate-500',  bg: 'bg-slate-50 dark:bg-slate-800',  icon: AlertCircle },
+  closed:      { label: 'Completed',   color: 'text-green-600',  bg: 'bg-green-50 dark:bg-green-950/50',  icon: CheckCircle2 },
 }
 
 const MEAL_TYPES = [
@@ -60,10 +60,10 @@ const MEAL_TYPES = [
 ]
 
 const MEAL_STATUS = {
-  pending:   { label: 'Received',  color: 'text-amber-600',  bg: 'bg-amber-50' },
-  preparing: { label: 'Preparing', color: 'text-blue-600',   bg: 'bg-blue-50' },
-  delivered: { label: 'Delivered', color: 'text-green-600',  bg: 'bg-green-50' },
-  cancelled: { label: 'Cancelled', color: 'text-slate-500',  bg: 'bg-slate-100' },
+  pending:   { label: 'Received',  color: 'text-amber-600',  bg: 'bg-amber-50 dark:bg-amber-950/50' },
+  preparing: { label: 'Preparing', color: 'text-blue-600',   bg: 'bg-blue-50 dark:bg-blue-950/50' },
+  delivered: { label: 'Delivered', color: 'text-green-600',  bg: 'bg-green-50 dark:bg-green-950/50' },
+  cancelled: { label: 'Cancelled', color: 'text-slate-500',  bg: 'bg-slate-100 dark:bg-slate-800' },
 }
 
 // ── Maintenance Request Modal ─────────────────────────────────
@@ -97,48 +97,48 @@ function MaintenanceModal({ resident, profile, orgId, onClose, onSaved }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4">
-      <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg max-h-[92vh] flex flex-col">
-        <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-slate-100 flex-shrink-0">
+      <div className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div>
-            <h2 className="font-semibold text-slate-800">Maintenance Request</h2>
+            <h2 className="font-semibold text-slate-800 dark:text-slate-100">Maintenance Request</h2>
             <p className="text-xs text-slate-400 mt-0.5">Room {resident?.room || resident?.unit || 'N/A'}</p>
           </div>
-          <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"><X size={18} /></button>
+          <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"><X size={18} /></button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
-          {error && <div className="px-3 py-2 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">{error}</div>}
+          {error && <div className="px-3 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-xl text-red-700 dark:text-red-400 text-sm">{error}</div>}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">What needs fixing? <span className="text-red-500">*</span></label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">What needs fixing? <span className="text-red-500">*</span></label>
             <input value={form.title} onChange={e => set('title', e.target.value)}
               placeholder="e.g. Dripping faucet, light bulb out, heat not working..."
-              className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent" />
+              className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent" />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Category</label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Category</label>
             <div className="grid grid-cols-4 gap-2">
               {WO_CATEGORIES.map(cat => (
                 <button key={cat.key} onClick={() => set('category', cat.key)}
-                  className={`flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition-all ${form.category === cat.key ? 'border-brand-500 bg-brand-50' : 'border-slate-100 hover:border-slate-200'}`}>
+                  className={`flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition-all ${form.category === cat.key ? 'border-brand-500 bg-brand-50 dark:bg-brand-950/50' : 'border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700'}`}>
                   <span className="text-lg leading-none">{cat.emoji}</span>
-                  <span className="text-xs text-slate-600 leading-tight text-center">{cat.label}</span>
+                  <span className="text-xs text-slate-600 dark:text-slate-300 leading-tight text-center">{cat.label}</span>
                 </button>
               ))}
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Urgency</label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Urgency</label>
             <div className="flex gap-2">
               {[
-                { key: 'low', label: 'Not Urgent', cls: 'border-slate-400 bg-slate-50 text-slate-700' },
-                { key: 'normal', label: 'Normal', cls: 'border-amber-400 bg-amber-50 text-amber-700' },
-                { key: 'high', label: 'Urgent', cls: 'border-red-400 bg-red-50 text-red-700' },
+                { key: 'low', label: 'Not Urgent', cls: 'border-slate-400 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300' },
+                { key: 'normal', label: 'Normal', cls: 'border-amber-400 bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400' },
+                { key: 'high', label: 'Urgent', cls: 'border-red-400 bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-400' },
               ].map(p => (
                 <button key={p.key} onClick={() => set('priority', p.key)}
-                  className={`flex-1 py-2 rounded-xl border-2 text-xs font-semibold transition-all ${form.priority === p.key ? p.cls : 'border-slate-100 text-slate-400'}`}>
+                  className={`flex-1 py-2 rounded-xl border-2 text-xs font-semibold transition-all ${form.priority === p.key ? p.cls : 'border-slate-100 dark:border-slate-800 text-slate-400'}`}>
                   {p.label}
                 </button>
               ))}
@@ -146,20 +146,20 @@ function MaintenanceModal({ resident, profile, orgId, onClose, onSaved }) {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Details <span className="text-slate-400 font-normal normal-case">(optional)</span></label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Details <span className="text-slate-400 font-normal normal-case">(optional)</span></label>
             <textarea value={form.description} onChange={e => set('description', e.target.value)}
               placeholder="Any extra details that would help maintenance..." rows={3}
-              className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none" />
+              className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none" />
           </div>
 
-          <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-100 rounded-xl">
+          <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900 rounded-xl">
             <AlertCircle size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-amber-700">For emergencies, please call the front desk or press your call button.</p>
+            <p className="text-xs text-amber-700 dark:text-amber-400">For emergencies, please call the front desk or press your call button.</p>
           </div>
         </div>
 
-        <div className="px-5 py-4 border-t border-slate-100 flex gap-3 flex-shrink-0">
-          <button onClick={onClose} className="flex-1 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-600 font-medium">Cancel</button>
+        <div className="px-5 py-4 border-t border-slate-100 dark:border-slate-800 flex gap-3 flex-shrink-0">
+          <button onClick={onClose} className="flex-1 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
           <button onClick={handleSubmit} disabled={saving}
             className="flex-1 py-2.5 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-2">
             {saving ? 'Submitting...' : <><Wrench size={14} /> Submit</>}
@@ -196,29 +196,29 @@ function MealOrderModal({ resident, profile, orgId, onClose, onSaved }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4">
-      <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg max-h-[92vh] flex flex-col">
-        <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-slate-100 flex-shrink-0">
+      <div className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div>
-            <h2 className="font-semibold text-slate-800">Order Meal Delivery</h2>
+            <h2 className="font-semibold text-slate-800 dark:text-slate-100">Order Meal Delivery</h2>
             <p className="text-xs text-slate-400 mt-0.5">Room {resident?.room || resident?.unit || 'N/A'}</p>
           </div>
-          <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"><X size={18} /></button>
+          <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"><X size={18} /></button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
-          {error && <div className="px-3 py-2 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">{error}</div>}
+          {error && <div className="px-3 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-xl text-red-700 dark:text-red-400 text-sm">{error}</div>}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Meal</label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Meal</label>
             <div className="grid grid-cols-2 gap-2">
               {MEAL_TYPES.map(m => {
                 const Icon = m.icon
                 return (
                   <button key={m.key} onClick={() => set('meal_type', m.key)}
-                    className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${form.meal_type === m.key ? 'border-brand-500 bg-brand-50' : 'border-slate-100 hover:border-slate-200'}`}>
+                    className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${form.meal_type === m.key ? 'border-brand-500 bg-brand-50 dark:bg-brand-950/50' : 'border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700'}`}>
                     <Icon size={18} className={form.meal_type === m.key ? 'text-brand-600' : 'text-slate-400'} />
                     <div>
-                      <div className={`text-sm font-semibold ${form.meal_type === m.key ? 'text-brand-700' : 'text-slate-700'}`}>{m.label}</div>
+                      <div className={`text-sm font-semibold ${form.meal_type === m.key ? 'text-brand-700 dark:text-brand-400' : 'text-slate-700 dark:text-slate-300'}`}>{m.label}</div>
                       <div className="text-xs text-slate-400">{m.time}</div>
                     </div>
                   </button>
@@ -228,39 +228,39 @@ function MealOrderModal({ resident, profile, orgId, onClose, onSaved }) {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">What would you like? <span className="text-red-500">*</span></label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">What would you like? <span className="text-red-500">*</span></label>
             <textarea value={form.items} onChange={e => set('items', e.target.value)}
               placeholder="e.g. Chicken soup, a roll, and orange juice..." rows={3}
-              className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none" />
+              className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none" />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Special Requests <span className="text-slate-400 font-normal normal-case">(optional)</span></label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Special Requests <span className="text-slate-400 font-normal normal-case">(optional)</span></label>
             <input value={form.special_requests} onChange={e => set('special_requests', e.target.value)}
               placeholder="e.g. No onions, extra napkins, decaf coffee..."
-              className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Delivery Time</label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Delivery Time</label>
             <div className="flex gap-2">
               {['ASAP', 'In 30 min', 'In 1 hour'].map(t => (
                 <button key={t} onClick={() => set('delivery_time', t)}
-                  className={`flex-1 py-2 rounded-xl border-2 text-xs font-semibold transition-all ${form.delivery_time === t ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-slate-100 text-slate-500'}`}>
+                  className={`flex-1 py-2 rounded-xl border-2 text-xs font-semibold transition-all ${form.delivery_time === t ? 'border-brand-500 bg-brand-50 dark:bg-brand-950/50 text-brand-700 dark:text-brand-400' : 'border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400'}`}>
                   {t}
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="flex items-start gap-2 p-3 bg-brand-50 border border-brand-100 rounded-xl">
+          <div className="flex items-start gap-2 p-3 bg-brand-50 dark:bg-brand-950/30 border border-brand-100 dark:border-brand-900 rounded-xl">
             <UtensilsCrossed size={14} className="text-brand-600 mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-brand-700">Your order will be sent to the kitchen. The dietary team will do their best to accommodate your request.</p>
+            <p className="text-xs text-brand-700 dark:text-brand-400">Your order will be sent to the kitchen. The dietary team will do their best to accommodate your request.</p>
           </div>
         </div>
 
-        <div className="px-5 py-4 border-t border-slate-100 flex gap-3 flex-shrink-0">
-          <button onClick={onClose} className="flex-1 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-600 font-medium">Cancel</button>
+        <div className="px-5 py-4 border-t border-slate-100 dark:border-slate-800 flex gap-3 flex-shrink-0">
+          <button onClick={onClose} className="flex-1 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
           <button onClick={handleSubmit} disabled={saving}
             className="flex-1 py-2.5 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-2">
             {saving ? 'Placing Order...' : <><Send size={14} /> Place Order</>}
@@ -322,11 +322,11 @@ function DiningTab({ resident, orgId }) {
 
       {/* Recent orders */}
       {orders.length > 0 && (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm">
-          <div className="px-5 py-3 border-b border-slate-50">
-            <h4 className="font-semibold text-slate-700 text-sm">Recent Orders</h4>
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+          <div className="px-5 py-3 border-b border-slate-50 dark:border-slate-800">
+            <h4 className="font-semibold text-slate-700 dark:text-slate-300 text-sm">Recent Orders</h4>
           </div>
-          <div className="divide-y divide-slate-50">
+          <div className="divide-y divide-slate-50 dark:divide-slate-800">
             {orders.slice(0, 5).map(o => {
               const st = MEAL_STATUS[o.status] || MEAL_STATUS.pending
               const mt = MEAL_TYPES.find(m => m.key === o.meal_type)
@@ -336,7 +336,7 @@ function DiningTab({ resident, orgId }) {
                     {mt && <mt.icon size={14} className={st.color} />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-slate-800 truncate">{o.items}</div>
+                    <div className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">{o.items}</div>
                     <div className="text-xs text-slate-400">{mt?.label} · {relativeTime(o.created_at)}</div>
                   </div>
                   <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${st.bg} ${st.color} flex-shrink-0`}>{st.label}</span>
@@ -348,9 +348,9 @@ function DiningTab({ resident, orgId }) {
       )}
 
       {/* Food preferences */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm">
-        <div className="px-5 py-3 border-b border-slate-50">
-          <h4 className="font-semibold text-slate-700 text-sm">My Food Preferences</h4>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+        <div className="px-5 py-3 border-b border-slate-50 dark:border-slate-800">
+          <h4 className="font-semibold text-slate-700 dark:text-slate-300 text-sm">My Food Preferences</h4>
           <p className="text-xs text-slate-400 mt-0.5">Tell the kitchen what you love and what to avoid</p>
         </div>
         <div className="px-5 py-4 space-y-4">
@@ -358,7 +358,7 @@ function DiningTab({ resident, orgId }) {
             <>
               {/* Diet type / allergens — read only */}
               {(dietProfile.diet_type || (dietProfile.allergens?.length > 0)) && (
-                <div className="p-3 bg-slate-50 rounded-xl text-xs text-slate-600 space-y-1">
+                <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-xs text-slate-600 dark:text-slate-300 space-y-1">
                   {dietProfile.diet_type && (
                     <div><span className="font-semibold">Diet type:</span> <span className="capitalize">{dietProfile.diet_type.replace('_', ' ')}</span></div>
                   )}
@@ -372,21 +372,21 @@ function DiningTab({ resident, orgId }) {
               )}
 
               <div>
-                <label className="flex items-center gap-2 text-xs font-semibold text-green-700 uppercase tracking-wide mb-1.5">
+                <label className="flex items-center gap-2 text-xs font-semibold text-green-700 dark:text-green-400 uppercase tracking-wide mb-1.5">
                   <ThumbsUp size={12} /> Foods I Love
                 </label>
                 <textarea value={likes} onChange={e => setLikes(e.target.value)} rows={3}
                   placeholder="e.g. Chicken soup, apple pie, sweet tea, scrambled eggs..."
-                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-400 resize-none" />
+                  className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-400 resize-none" />
               </div>
 
               <div>
-                <label className="flex items-center gap-2 text-xs font-semibold text-red-600 uppercase tracking-wide mb-1.5">
+                <label className="flex items-center gap-2 text-xs font-semibold text-red-600 dark:text-red-400 uppercase tracking-wide mb-1.5">
                   <ThumbsDown size={12} /> Foods I Don't Like
                 </label>
                 <textarea value={dislikes} onChange={e => setDislikes(e.target.value)} rows={3}
                   placeholder="e.g. Liver, Brussels sprouts, spicy food..."
-                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-400 resize-none" />
+                  className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-400 resize-none" />
               </div>
 
               <button onClick={handleSavePrefs} disabled={saving}
@@ -507,24 +507,24 @@ export default function ResidentPortal() {
   ]
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       {/* Header */}
-      <div className="bg-white border-b border-slate-100 sticky top-0 z-40">
+      <div className="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 sticky top-0 z-40">
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 bg-brand-600 rounded-lg flex items-center justify-center overflow-hidden">
               <img src="/icon-192.png" alt="ElderLoop" className="w-full h-full object-cover" />
             </div>
-            <span className="font-semibold text-slate-800" style={{ fontFamily: '"Playfair Display", serif' }}>ElderLoop</span>
+            <span className="font-semibold text-slate-800 dark:text-slate-100" style={{ fontFamily: '"Playfair Display", serif' }}>ElderLoop</span>
           </div>
           <div className="flex items-center gap-3">
             {organization?.name && <span className="text-xs text-slate-400 hidden sm:block">{organization.name}</span>}
             <button onClick={() => setShowProfile(true)}
-              className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors" title="My Account">
+              className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" title="My Account">
               <User size={16} />
             </button>
             <button onClick={handleSignOut}
-              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600 px-2 py-1 rounded-lg hover:bg-slate-100">
+              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
               <LogOut size={13} /> Sign Out
             </button>
           </div>
@@ -536,16 +536,16 @@ export default function ResidentPortal() {
       <div className="max-w-2xl mx-auto px-4 pb-8">
         {/* Welcome bar */}
         <div className="mt-5 mb-4">
-          <h1 className="text-2xl font-bold text-slate-800" style={{ fontFamily: '"Playfair Display", serif' }}>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100" style={{ fontFamily: '"Playfair Display", serif' }}>
             Welcome, {profile?.first_name} 👋
           </h1>
           {resident && (
-            <div className="flex items-center gap-2 mt-1 text-sm text-slate-500">
+            <div className="flex items-center gap-2 mt-1 text-sm text-slate-500 dark:text-slate-400">
               <MapPin size={13} className="text-slate-400" />
               <span>Room {resident.room || resident.unit}</span>
               {liveService && (
                 <>
-                  <span className="text-slate-300">·</span>
+                  <span className="text-slate-300 dark:text-slate-600">·</span>
                   <span className="flex items-center gap-1 text-red-600 font-medium text-xs">
                     <Radio size={11} className="animate-pulse" /> Chapel is LIVE
                   </span>
@@ -556,12 +556,12 @@ export default function ResidentPortal() {
         </div>
 
         {/* Tab bar */}
-        <div className="flex gap-1 bg-slate-100 p-1 rounded-2xl mb-5 overflow-x-auto no-scrollbar">
+        <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl mb-5 overflow-x-auto no-scrollbar">
           {TABS.map(t => {
             const Icon = t.icon
             return (
               <button key={t.key} onClick={() => setTab(t.key)}
-                className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all relative ${tab === t.key ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500'}`}>
+                className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all relative ${tab === t.key ? 'bg-white dark:bg-slate-900 text-brand-700 dark:text-brand-400 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}>
                 <Icon size={14} />
                 {t.label}
                 {t.badge > 0 && (
@@ -584,19 +584,19 @@ export default function ResidentPortal() {
                 {/* Quick action cards */}
                 <div className="grid grid-cols-2 gap-3 mb-2">
                   <button onClick={() => setShowWOModal(true)}
-                    className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 text-left hover:border-brand-200 hover:shadow-md transition-all group">
-                    <div className="w-9 h-9 bg-amber-50 rounded-xl flex items-center justify-center mb-3">
+                    className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-4 text-left hover:border-brand-200 dark:hover:border-brand-800 hover:shadow-md transition-all group">
+                    <div className="w-9 h-9 bg-amber-50 dark:bg-amber-950/50 rounded-xl flex items-center justify-center mb-3">
                       <Wrench size={18} className="text-amber-600" />
                     </div>
-                    <div className="font-semibold text-slate-800 text-sm">Request Repair</div>
+                    <div className="font-semibold text-slate-800 dark:text-slate-100 text-sm">Request Repair</div>
                     <div className="text-xs text-slate-400 mt-0.5">Submit a maintenance request</div>
                   </button>
                   <button onClick={() => setTab('dining')}
-                    className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 text-left hover:border-brand-200 hover:shadow-md transition-all group">
-                    <div className="w-9 h-9 bg-orange-50 rounded-xl flex items-center justify-center mb-3">
+                    className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-4 text-left hover:border-brand-200 dark:hover:border-brand-800 hover:shadow-md transition-all group">
+                    <div className="w-9 h-9 bg-orange-50 dark:bg-orange-950/50 rounded-xl flex items-center justify-center mb-3">
                       <UtensilsCrossed size={18} className="text-orange-600" />
                     </div>
-                    <div className="font-semibold text-slate-800 text-sm">Order Food</div>
+                    <div className="font-semibold text-slate-800 dark:text-slate-100 text-sm">Order Food</div>
                     <div className="text-xs text-slate-400 mt-0.5">Meal delivery to your room</div>
                   </button>
                 </div>
@@ -621,19 +621,19 @@ export default function ResidentPortal() {
 
                 {/* Today's activities preview */}
                 {todayActivities.length > 0 && (
-                  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm">
-                    <div className="px-5 py-3 border-b border-slate-50 flex items-center justify-between">
-                      <h4 className="font-semibold text-slate-700 text-sm flex items-center gap-2">
+                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+                    <div className="px-5 py-3 border-b border-slate-50 dark:border-slate-800 flex items-center justify-between">
+                      <h4 className="font-semibold text-slate-700 dark:text-slate-300 text-sm flex items-center gap-2">
                         <Sun size={14} className="text-amber-500" /> Today's Activities
                       </h4>
-                      <button onClick={() => setTab('activities')} className="text-xs text-brand-600 font-medium">See all</button>
+                      <button onClick={() => setTab('activities')} className="text-xs text-brand-600 dark:text-brand-400 font-medium">See all</button>
                     </div>
-                    <div className="divide-y divide-slate-50">
+                    <div className="divide-y divide-slate-50 dark:divide-slate-800">
                       {todayActivities.slice(0, 3).map(a => (
                         <div key={a.id} className="px-5 py-3 flex items-center gap-3">
                           <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: a.color || '#0c90e1' }} />
                           <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium text-slate-800">{a.title}</div>
+                            <div className="text-sm font-medium text-slate-800 dark:text-slate-100">{a.title}</div>
                             <div className="text-xs text-slate-400">{a.start_time ? fmt12(a.start_time) : 'All day'}{a.location ? ` · ${a.location}` : ''}</div>
                           </div>
                         </div>
@@ -646,19 +646,19 @@ export default function ResidentPortal() {
                 <div className="space-y-3">
                   <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wide px-1">Announcements</h4>
                   {announcements.length === 0 ? (
-                    <div className="text-center py-10 text-slate-400 bg-white rounded-2xl border border-dashed border-slate-200">
+                    <div className="text-center py-10 text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
                       <Bell size={28} className="mx-auto mb-2 opacity-30" />
                       <p className="text-sm">No announcements right now.</p>
                     </div>
                   ) : announcements.map(a => (
-                    <div key={a.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+                    <div key={a.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-4">
                       {a.pinned && (
                         <div className="flex items-center gap-1 text-xs text-amber-600 font-semibold mb-2">
                           <Star size={11} className="fill-amber-500 text-amber-500" /> Pinned
                         </div>
                       )}
-                      <div className="font-semibold text-slate-800 text-sm mb-1">{a.title}</div>
-                      <p className="text-slate-600 text-sm leading-relaxed">{a.body}</p>
+                      <div className="font-semibold text-slate-800 dark:text-slate-100 text-sm mb-1">{a.title}</div>
+                      <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">{a.body}</p>
                       <div className="text-xs text-slate-400 mt-2">
                         {new Date(a.starts_at).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                       </div>
@@ -678,21 +678,21 @@ export default function ResidentPortal() {
 
                 {workOrders.length > 0 && (
                   <div className="flex gap-2">
-                    <div className="flex-1 bg-amber-50 border border-amber-100 rounded-xl p-3 text-center">
-                      <div className="text-2xl font-bold text-amber-700">{openWOs}</div>
-                      <div className="text-xs text-amber-600 font-medium">Open</div>
+                    <div className="flex-1 bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900 rounded-xl p-3 text-center">
+                      <div className="text-2xl font-bold text-amber-700 dark:text-amber-400">{openWOs}</div>
+                      <div className="text-xs text-amber-600 dark:text-amber-400 font-medium">Open</div>
                     </div>
-                    <div className="flex-1 bg-green-50 border border-green-100 rounded-xl p-3 text-center">
-                      <div className="text-2xl font-bold text-green-700">{workOrders.filter(w => w.status === 'closed').length}</div>
-                      <div className="text-xs text-green-600 font-medium">Completed</div>
+                    <div className="flex-1 bg-green-50 dark:bg-green-950/30 border border-green-100 dark:border-green-900 rounded-xl p-3 text-center">
+                      <div className="text-2xl font-bold text-green-700 dark:text-green-400">{workOrders.filter(w => w.status === 'closed').length}</div>
+                      <div className="text-xs text-green-600 dark:text-green-400 font-medium">Completed</div>
                     </div>
                   </div>
                 )}
 
                 {workOrders.length === 0 ? (
-                  <div className="text-center py-12 text-slate-400 bg-white rounded-2xl border border-dashed border-slate-200">
+                  <div className="text-center py-12 text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
                     <Wrench size={32} className="mx-auto mb-3 opacity-30" />
-                    <p className="font-medium text-slate-500">No requests yet</p>
+                    <p className="font-medium text-slate-500 dark:text-slate-400">No requests yet</p>
                     <p className="text-sm mt-1">Tap above to let us know what needs fixing.</p>
                   </div>
                 ) : (
@@ -702,14 +702,14 @@ export default function ResidentPortal() {
                       const Icon = cfg.icon
                       const cat = WO_CATEGORIES.find(c => c.key === wo.category)
                       return (
-                        <div key={wo.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+                        <div key={wo.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-4">
                           <div className="flex items-start gap-3">
                             <div className={`w-9 h-9 ${cfg.bg} rounded-xl flex items-center justify-center flex-shrink-0`}>
                               <Icon size={16} className={cfg.color} />
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between gap-2">
-                                <p className="font-medium text-slate-800 text-sm truncate">{wo.title}</p>
+                                <p className="font-medium text-slate-800 dark:text-slate-100 text-sm truncate">{wo.title}</p>
                                 <span className={`text-xs font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${cfg.bg} ${cfg.color}`}>{cfg.label}</span>
                               </div>
                               <div className="text-xs text-slate-400 mt-0.5 flex items-center gap-1.5">
@@ -725,7 +725,7 @@ export default function ResidentPortal() {
                   </div>
                 )}
 
-                <div className="p-4 bg-slate-50 rounded-2xl text-xs text-slate-500 text-center">
+                <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl text-xs text-slate-500 dark:text-slate-400 text-center">
                   For emergencies, call the front desk or press your call button.
                 </div>
               </div>
@@ -744,9 +744,9 @@ export default function ResidentPortal() {
             {tab === 'activities' && (
               <div className="space-y-4">
                 {activities.length === 0 ? (
-                  <div className="text-center py-12 text-slate-400 bg-white rounded-2xl border border-dashed border-slate-200">
+                  <div className="text-center py-12 text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
                     <Calendar size={32} className="mx-auto mb-3 opacity-30" />
-                    <p className="font-medium text-slate-500">No upcoming activities</p>
+                    <p className="font-medium text-slate-500 dark:text-slate-400">No upcoming activities</p>
                     <p className="text-sm mt-1">Check back soon for this week's schedule.</p>
                   </div>
                 ) : (
@@ -758,15 +758,15 @@ export default function ResidentPortal() {
                         </h4>
                         <div className="space-y-2">
                           {todayActivities.map(a => (
-                            <div key={a.id} className="bg-white rounded-2xl border-l-4 border-slate-100 shadow-sm p-4"
+                            <div key={a.id} className="bg-white dark:bg-slate-900 rounded-2xl border-l-4 border-slate-100 dark:border-slate-800 shadow-sm p-4"
                               style={{ borderLeftColor: a.color || '#0c90e1' }}>
-                              <div className="font-semibold text-slate-800 text-sm">{a.title}</div>
+                              <div className="font-semibold text-slate-800 dark:text-slate-100 text-sm">{a.title}</div>
                               <div className="text-xs text-slate-400 mt-0.5">
                                 {a.start_time ? fmt12(a.start_time) : 'All day'}
                                 {a.end_time ? ` – ${fmt12(a.end_time)}` : ''}
                                 {a.location ? ` · ${a.location}` : ''}
                               </div>
-                              {a.description && <p className="text-xs text-slate-500 mt-1">{a.description}</p>}
+                              {a.description && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{a.description}</p>}
                             </div>
                           ))}
                         </div>
@@ -779,16 +779,16 @@ export default function ResidentPortal() {
                           {laterActivities.map(a => {
                             const isThisWeek = new Date(a.start_date) <= new Date(Date.now() + 6 * 86400000)
                             return (
-                              <div key={a.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-start gap-3">
+                              <div key={a.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-4 flex items-start gap-3">
                                 <div className="w-2 h-2 rounded-full mt-2 flex-shrink-0" style={{ background: a.color || '#0c90e1' }} />
                                 <div className="flex-1">
-                                  <div className="font-semibold text-slate-800 text-sm">{a.title}</div>
+                                  <div className="font-semibold text-slate-800 dark:text-slate-100 text-sm">{a.title}</div>
                                   <div className="text-xs text-slate-400 mt-0.5">
                                     {new Date(a.start_date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                                     {a.start_time ? ` · ${fmt12(a.start_time)}` : ''}
                                     {a.location ? ` · ${a.location}` : ''}
                                   </div>
-                                  {a.description && <p className="text-xs text-slate-500 mt-1">{a.description}</p>}
+                                  {a.description && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{a.description}</p>}
                                 </div>
                               </div>
                             )
@@ -823,14 +823,14 @@ export default function ResidentPortal() {
                 )}
 
                 {upcomingChapel.length > 0 && (
-                  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm">
-                    <div className="px-5 py-3 border-b border-slate-50">
-                      <h4 className="font-semibold text-slate-700 text-sm">Upcoming Services</h4>
+                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+                    <div className="px-5 py-3 border-b border-slate-50 dark:border-slate-800">
+                      <h4 className="font-semibold text-slate-700 dark:text-slate-300 text-sm">Upcoming Services</h4>
                     </div>
-                    <div className="divide-y divide-slate-50">
+                    <div className="divide-y divide-slate-50 dark:divide-slate-800">
                       {upcomingChapel.map(s => (
                         <div key={s.id} className="px-5 py-3">
-                          <div className="font-medium text-slate-800 text-sm">{s.title}</div>
+                          <div className="font-medium text-slate-800 dark:text-slate-100 text-sm">{s.title}</div>
                           <div className="text-xs text-slate-400 mt-0.5">
                             {new Date(s.service_date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                             {s.service_time ? ` · ${fmt12(s.service_time)}` : ''}
@@ -843,23 +843,23 @@ export default function ResidentPortal() {
                 )}
 
                 {pastChapel.length > 0 && (
-                  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm">
-                    <div className="px-5 py-3 border-b border-slate-50">
-                      <h4 className="font-semibold text-slate-700 text-sm">Watch Past Services</h4>
+                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+                    <div className="px-5 py-3 border-b border-slate-50 dark:border-slate-800">
+                      <h4 className="font-semibold text-slate-700 dark:text-slate-300 text-sm">Watch Past Services</h4>
                     </div>
-                    <div className="divide-y divide-slate-50">
+                    <div className="divide-y divide-slate-50 dark:divide-slate-800">
                       {pastChapel.map(s => (
                         <a key={s.id}
                           href={`https://youtube.com/watch?v=${s.recording_youtube_id}`}
                           target="_blank" rel="noopener noreferrer"
-                          className="flex items-center justify-between px-5 py-3 hover:bg-slate-50 transition-colors group">
+                          className="flex items-center justify-between px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group">
                           <div>
-                            <div className="text-sm text-slate-700 group-hover:text-brand-600 font-medium transition-colors">{s.title}</div>
+                            <div className="text-sm text-slate-700 dark:text-slate-300 group-hover:text-brand-600 dark:group-hover:text-brand-400 font-medium transition-colors">{s.title}</div>
                             <div className="text-xs text-slate-400">
                               {new Date(s.service_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                             </div>
                           </div>
-                          <Play size={14} className="text-slate-300 group-hover:text-brand-500 transition-colors flex-shrink-0" />
+                          <Play size={14} className="text-slate-300 dark:text-slate-600 group-hover:text-brand-500 transition-colors flex-shrink-0" />
                         </a>
                       ))}
                     </div>
@@ -867,9 +867,9 @@ export default function ResidentPortal() {
                 )}
 
                 {!liveService && upcomingChapel.length === 0 && pastChapel.length === 0 && (
-                  <div className="text-center py-16 text-slate-400 bg-white rounded-2xl border border-dashed border-slate-200">
+                  <div className="text-center py-16 text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
                     <Church size={32} className="mx-auto mb-3 opacity-30" />
-                    <p className="font-medium text-slate-500">No chapel services scheduled</p>
+                    <p className="font-medium text-slate-500 dark:text-slate-400">No chapel services scheduled</p>
                   </div>
                 )}
               </div>
@@ -890,10 +890,10 @@ export default function ResidentPortal() {
       )}
       {showWOModal && !resident && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl">
             <AlertCircle size={32} className="text-amber-500 mx-auto mb-3" />
-            <h3 className="font-semibold text-slate-800 mb-2">Account Not Linked</h3>
-            <p className="text-sm text-slate-500 mb-4">Your account isn't linked to a resident record yet. Please contact the front desk.</p>
+            <h3 className="font-semibold text-slate-800 dark:text-slate-100 mb-2">Account Not Linked</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Your account isn't linked to a resident record yet. Please contact the front desk.</p>
             <button onClick={() => setShowWOModal(false)} className="w-full py-2.5 bg-brand-600 text-white rounded-xl font-medium text-sm">Got It</button>
           </div>
         </div>
