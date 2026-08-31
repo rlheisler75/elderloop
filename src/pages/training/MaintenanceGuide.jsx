@@ -92,7 +92,7 @@ export default function MaintenanceGuide() {
             <Frame src={SHOT('settings-locations.png')} alt="Location Manager" caption="Locations — the hierarchy that powers the location picker everywhere else in the module" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
             <Steps items={[
-              { k: 1, text: <><b className="text-slate-900">SLA Rules:</b> set response and completion hour targets for Urgent, High, Medium, and Low priority — these drive the SLA banners and breach warnings on every ticket.</> },
+              { k: 1, text: <><b className="text-slate-900">SLA Rules:</b> set response and completion hour targets for Urgent, High, Normal, and Low priority — these drive the SLA banners and breach warnings on every ticket.</> },
               { k: 2, text: <><b className="text-slate-900">Auto-Assignment:</b> pick a default staff member per category so new tickets route themselves — this can always be overridden on an individual ticket.</> },
               { k: 3, text: <><b className="text-slate-900">Locations:</b> build out your buildings, halls, floors, and rooms once — click the icons on hover to add a child location, edit, or remove one.</> },
             ]} />

@@ -34,6 +34,7 @@ const TEMPLATES = [
 import CompliancePanel from './Compliance'
 import WorkOrderAssets from './WorkOrderAssets'
 import PMSchedules from './PMSchedules'
+import Reports from './Reports'
 import MaintenanceSettings from './MaintenanceSettings'
 import LocationPicker from '../../components/ui/LocationPicker'
 import BroadcastPanel from '../communication/BroadcastPanel'
@@ -1020,6 +1021,7 @@ export default function WorkOrders() {
           { key: 'assets',      label: 'Assets',      icon: Package },
           { key: 'pm',          label: 'Preventive Maintenance', icon: RefreshCw },
           { key: 'compliance',  label: 'Life Safety',  icon: ShieldCheck },
+          { key: 'reports',     label: 'Reports',      icon: BarChart3 },
           { key: 'communication', label: 'Communication', icon: MessageSquare },
           { key: 'settings',    label: 'Settings',     icon: Settings },
         ].map(v => {
@@ -1036,6 +1038,7 @@ export default function WorkOrders() {
       {mainView === 'assets'     && <WorkOrderAssets   orgId={organization?.id} profile={profile} />}
       {mainView === 'pm'         && <PMSchedules        orgId={organization?.id} profile={profile} />}
       {mainView === 'compliance' && <CompliancePanel    orgId={organization?.id} profile={profile} />}
+      {mainView === 'reports'    && <Reports            orgId={organization?.id} profile={profile} />}
       {mainView === 'communication' && (
         <BroadcastPanel
           isStarter={organization?.plan === 'starter'}

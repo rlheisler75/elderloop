@@ -6,7 +6,7 @@ import LocationManager from '../../components/ui/LocationManager'
 const PRIORITIES = [
   { key: 'urgent', label: 'Urgent', color: 'text-red-600', desc: 'Safety hazard, resident at risk' },
   { key: 'high',   label: 'High',   color: 'text-orange-600', desc: 'Significant disruption' },
-  { key: 'medium', label: 'Medium', color: 'text-amber-600',  desc: 'Normal maintenance request' },
+  { key: 'normal', label: 'Normal', color: 'text-amber-600',  desc: 'Normal maintenance request' },
   { key: 'low',    label: 'Low',    color: 'text-slate-500',  desc: 'Routine, can wait' },
 ]
 
@@ -51,8 +51,8 @@ export default function MaintenanceSettings({ orgId, profile }) {
     // Defaults if missing
     PRIORITIES.forEach(p => {
       if (!sla[p.key]) {
-        sla[p.key] = { response_hours: p.key === 'urgent' ? 1 : p.key === 'high' ? 4 : p.key === 'medium' ? 24 : 48,
-                       completion_hours: p.key === 'urgent' ? 4 : p.key === 'high' ? 24 : p.key === 'medium' ? 72 : 168 }
+        sla[p.key] = { response_hours: p.key === 'urgent' ? 1 : p.key === 'high' ? 4 : p.key === 'normal' ? 24 : 48,
+                       completion_hours: p.key === 'urgent' ? 4 : p.key === 'high' ? 24 : p.key === 'normal' ? 72 : 168 }
       }
     })
     setSlaRules(sla)
