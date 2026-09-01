@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import CycleMenuBuilder from './CycleMenuBuilder'
+import { resolveMealItem } from './mealResolution'
 import {
   Users, BookOpen, Printer, Plus, X, Edit2, Search, Eye,
   ChevronLeft, ChevronRight, AlertTriangle, Check,
@@ -734,54 +735,8 @@ function PrintTicket({ resident, menus, onClose }) {
               <div className="section">
                 <label>Menu Items</label>
                 {courses.map((course, i) => {
-                  const item   = course.menu_items
-                  // Check if resident can have the main item
-                  const itemSuitable = (it) => {
-                    if (!it) return false
-                    if (resident.allergens?.some(a => it.allergens?.includes(a))) return false
-                    if (it.suitable_diets?.length > 0 && !it.suitable_diets.includes(resident.diet_type)) return false
-                    if (it.suitable_consistencies?.length > 0 && !it.suitable_consistencies.includes(resident.consistency)) return false
-                    if (resident.dislikes && it.name && resident.dislikes.toLowerCase().includes(it.name.toLowerCase())) return false
-                    return true
-                  }
-
-                  // Walk alternates chain in priority order to find best match
-                  const sortedAlts = (course.alternates || []).sort((a,b) => a.priority - b.priority)
-
-                  // For alternates: only check allergens (safety), trust conditions for diet/consistency
-                  const altSafe = (altItem) => {
-                    if (!altItem) return false
-                    if (resident.allergens?.some(a => altItem.allergens?.includes(a))) return false
-                    return true
-                  }
-
-                  let servedItem = null
-                  let substitutedFor = null
-
-                  if (itemSuitable(item)) {
-                    servedItem = item
-                  } else {
-                    substitutedFor = item
-                    // Pass 1: find first alternate whose conditions match this resident AND is allergen-safe
-                    for (const alt of sortedAlts) {
-                      const altItem = alt.item
-                      if (!altItem || !altSafe(altItem)) continue
-                      const hasDietCond = alt.conditions?.diets?.length > 0
-                      const hasAlgCond  = alt.conditions?.allergens?.length > 0
-                      // No conditions = applies to everyone
-                      // Diet condition = resident must be in the allowed diet list
-                      // Allergen condition = resident must have that allergen
-                      const dietMatch = !hasDietCond || alt.conditions.diets.includes(resident.diet_type)
-                      const algMatch  = !hasAlgCond  || resident.allergens?.some(a => alt.conditions.allergens.includes(a))
-                      if (dietMatch && algMatch) { servedItem = altItem; break }
-                    }
-                    // Pass 2: if nothing matched, use any allergen-safe alternate
-                    if (!servedItem) {
-                      for (const alt of sortedAlts) {
-                        if (altSafe(alt.item)) { servedItem = alt.item; break }
-                      }
-                    }
-                  }
+                  const item = course.menu_items
+                  const { servedItem, substitutedFor } = resolveMealItem(item, course.alternates, resident)
 
                   return (
                     <div key={i} className="item">

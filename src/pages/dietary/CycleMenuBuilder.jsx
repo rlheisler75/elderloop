@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import { resolveMealItem } from './mealResolution'
 import {
   Plus, X, Edit2, Trash2, ChevronLeft, ChevronRight,
   BookOpen, Package, Save, ArrowLeft, RefreshCw, Check
@@ -418,27 +419,75 @@ function DayMealCell({ weekNum, dayIdx, period, dayData, items, onSave, canEdit 
 }
 
 // ── Cook's Count ───────────────────────────────────────────────
-function CooksCount({ weekNum, dayIdx, menuId, items }) {
-  const [counts, setCounts] = useState(null)
+// Real kitchen prep counts: for each course, resolves what every resident on
+// this menu would actually be served (main item, or their best-matching
+// alternate) using the same logic as the printed meal ticket, then tallies
+// how many portions of each item the kitchen needs to prepare.
+function CooksCount({ weekNum, dayIdx, menu, orgId }) {
+  const [result, setResult]   = useState(null)
   const [loading, setLoading] = useState(true)
   const [period, setPeriod]   = useState('lunch')
 
-  useEffect(() => { fetchCounts() }, [weekNum, dayIdx, period, menuId])
+  useEffect(() => { fetchCounts() }, [weekNum, dayIdx, period, menu.id])
 
   async function fetchCounts() {
     setLoading(true)
     const { data: dayData } = await supabase.from('cycle_menu_days')
-      .select('id').eq('cycle_menu_id', menuId).eq('week_number', weekNum).eq('day_of_week', dayIdx).limit(1)
+      .select('id').eq('cycle_menu_id', menu.id).eq('week_number', weekNum).eq('day_of_week', dayIdx).limit(1)
     const day = dayData?.[0] || null
-    if (!day) { setCounts(null); setLoading(false); return }
+    if (!day) { setResult(null); setLoading(false); return }
     const { data: mealRows } = await supabase.from('cycle_menu_meals')
       .select('id').eq('cycle_menu_day_id', day.id).eq('meal_period', period).limit(1)
     const meal = mealRows?.[0] || null
-    if (!meal) { setCounts(null); setLoading(false); return }
-    const { data: courses } = await supabase.from('meal_courses')
-      .select('*, menu_items:menu_items!meal_courses_menu_item_id_fkey(name), alternates:course_alternates(priority, item:menu_items!course_alternates_menu_item_id_fkey(name))')
-      .eq('meal_id', meal.id).order('sort_order')
-    setCounts(courses || [])
+    if (!meal) { setResult(null); setLoading(false); return }
+
+    const [{ data: courseData }, { data: residentProfiles }] = await Promise.all([
+      supabase.from('meal_courses')
+        .select('*, menu_items:menu_items!meal_courses_menu_item_id_fkey(id,name,allergens,suitable_diets,suitable_consistencies)')
+        .eq('meal_id', meal.id).order('sort_order'),
+      supabase.from('resident_dietary_profiles')
+        .select('resident_id, diet_type, consistency, allergens, dislikes, cycle_menu_id')
+        .eq('organization_id', orgId)
+        .eq('is_active', true),
+    ])
+
+    // Alternates by source_item_id (item-level, reusable across every cycle day
+    // that uses the same main item) — matches how the meal ticket resolves them.
+    const menuItemIds = (courseData || []).map(c => c.menu_item_id).filter(Boolean)
+    let altData = []
+    if (menuItemIds.length > 0) {
+      const { data: alts } = await supabase.from('course_alternates')
+        .select('id, source_item_id, priority, conditions, item:menu_items!course_alternates_menu_item_id_fkey(id,name,allergens,suitable_diets,suitable_consistencies)')
+        .in('source_item_id', menuItemIds)
+        .order('priority')
+      altData = alts || []
+    }
+
+    // Only residents actually on this menu: explicitly assigned to it, or
+    // unassigned while this is the org's current menu (same fallback the
+    // meal ticket uses).
+    const residents = (residentProfiles || []).filter(r =>
+      r.cycle_menu_id === menu.id || (!r.cycle_menu_id && menu.is_current)
+    )
+
+    const rows = (courseData || []).map(course => {
+      const alternates = altData.filter(a => a.source_item_id === course.menu_item_id)
+      const tally = {} // item name -> count
+      let unresolved = 0
+      residents.forEach(resident => {
+        const { servedItem } = resolveMealItem(course.menu_items, alternates, resident)
+        if (!servedItem) { unresolved++; return }
+        tally[servedItem.name] = (tally[servedItem.name] || 0) + 1
+      })
+      return {
+        course_name: course.course_name,
+        mainName: course.menu_items?.name || null,
+        tally: Object.entries(tally).sort((a, b) => b[1] - a[1]),
+        unresolved,
+      }
+    })
+
+    setResult({ rows, totalResidents: residents.length })
     setLoading(false)
   }
 
@@ -451,27 +500,45 @@ function CooksCount({ weekNum, dayIdx, menuId, items }) {
           {MEAL_PERIODS.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
         </select>
       </div>
-      <p className="text-xs text-slate-400 mb-3">Week {weekNum}, {DAYS[dayIdx]}</p>
+      <p className="text-xs text-slate-400 mb-3">
+        Week {weekNum}, {DAYS[dayIdx]}
+        {result && ` · ${result.totalResidents} resident${result.totalResidents !== 1 ? 's' : ''} on this menu`}
+      </p>
       {loading ? <div className="text-slate-400 text-sm">Loading...</div>
-        : !counts || counts.length === 0 ? <div className="text-slate-400 text-sm">No menu set for this meal.</div>
+        : !result || result.rows.length === 0 ? <div className="text-slate-400 text-sm">No menu set for this meal.</div>
+        : result.totalResidents === 0 ? <div className="text-slate-400 text-sm">No residents are assigned to this menu yet — link residents from their dietary profile to get real counts here.</div>
         : (
           <table className="w-full">
             <thead>
               <tr className="border-b border-slate-100 dark:border-slate-800">
                 <th className="text-left text-xs font-semibold text-slate-500 pb-2">Course</th>
                 <th className="text-left text-xs font-semibold text-slate-500 pb-2">Item</th>
-                <th className="text-left text-xs font-semibold text-slate-500 pb-2">Alternates</th>
+                <th className="text-right text-xs font-semibold text-slate-500 pb-2">Count</th>
               </tr>
             </thead>
             <tbody>
-              {counts.map((c, i) => (
-                <tr key={i} className="border-b border-slate-50 dark:border-slate-800">
-                  <td className="py-2 text-xs font-medium text-slate-700 dark:text-slate-300">{c.course_name}</td>
-                  <td className="py-2 text-xs text-slate-600 dark:text-slate-300">{c.menu_items?.name || '—'}</td>
-                  <td className="py-2 text-xs text-slate-400 italic">
-                    {c.alternates?.length > 0
-                      ? c.alternates.sort((a,b) => a.priority - b.priority).map(a => a.item?.name).filter(Boolean).join(' → ')
-                      : '—'}
+              {result.rows.map((r, i) => (
+                <tr key={i} className="border-b border-slate-50 dark:border-slate-800 align-top">
+                  <td className="py-2 text-xs font-medium text-slate-700 dark:text-slate-300">{r.course_name}</td>
+                  <td className="py-2 text-xs">
+                    {r.tally.length === 0 && r.unresolved === 0
+                      ? <span className="text-slate-400">—</span>
+                      : r.tally.map(([name, count], j) => (
+                          <div key={j} className={name === r.mainName ? 'text-slate-700 dark:text-slate-300' : 'text-slate-500 dark:text-slate-400 italic'}>
+                            {name}{name !== r.mainName && ' (alt)'}
+                          </div>
+                        ))}
+                    {r.unresolved > 0 && (
+                      <div className="text-red-600 dark:text-red-400 font-medium">⚠ Verify with kitchen</div>
+                    )}
+                  </td>
+                  <td className="py-2 text-xs text-right">
+                    {r.tally.map(([name, count], j) => (
+                      <div key={j} className="text-slate-700 dark:text-slate-300 font-semibold">{count}</div>
+                    ))}
+                    {r.unresolved > 0 && (
+                      <div className="text-red-600 dark:text-red-400 font-semibold">{r.unresolved}</div>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -483,7 +550,7 @@ function CooksCount({ weekNum, dayIdx, menuId, items }) {
 }
 
 // ── Cycle Menu Grid ────────────────────────────────────────────
-function CycleMenuGrid({ menu, items, onBack, canEdit }) {
+function CycleMenuGrid({ menu, items, onBack, canEdit, orgId }) {
   const [week, setWeek]     = useState(1)
   const [gridData, setGridData] = useState({})
   const [loading, setLoading]   = useState(true)
@@ -606,7 +673,7 @@ function CycleMenuGrid({ menu, items, onBack, canEdit }) {
               </button>
             ))}
           </div>
-          <CooksCount weekNum={week} dayIdx={countDay} menuId={menu.id} items={items} />
+          <CooksCount weekNum={week} dayIdx={countDay} menu={menu} orgId={orgId} />
         </div>
       )}
 
@@ -840,7 +907,7 @@ export default function CycleMenuBuilder({ menus, items, onRefresh, orgId, userI
       )}
 
       {view === 'grid' && activeMenu && (
-        <CycleMenuGrid menu={activeMenu} items={items} onBack={handleBack} canEdit={canEdit} />
+        <CycleMenuGrid menu={activeMenu} items={items} onBack={handleBack} canEdit={canEdit} orgId={orgId} />
       )}
 
       {showNewMenu && (
