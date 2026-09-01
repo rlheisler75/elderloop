@@ -580,7 +580,8 @@ function ResidentProfileModal({ resident, menus, canEdit, onClose, onSave }) {
 // ── Print Ticket ───────────────────────────────────────────────
 function PrintTicket({ resident, menus, onClose }) {
   const printRef  = useRef()
-  const today     = new Date().toISOString().split('T')[0]
+  const todayDate = new Date()
+  const today     = `${todayDate.getFullYear()}-${String(todayDate.getMonth() + 1).padStart(2, '0')}-${String(todayDate.getDate()).padStart(2, '0')}`
   const [date, setDate]       = useState(today)
   const [period, setPeriod]   = useState('lunch')
   const [courses, setCourses] = useState(null)
@@ -734,7 +735,6 @@ function PrintTicket({ resident, menus, onClose }) {
                 <label>Menu Items</label>
                 {courses.map((course, i) => {
                   const item   = course.menu_items
-                  const backup = course.backup_items
                   // Check if resident can have the main item
                   const itemSuitable = (it) => {
                     if (!it) return false

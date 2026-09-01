@@ -17,23 +17,38 @@ const MEAL_PERIODS = [
 const DAYS     = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
 const ALLERGENS = ['milk','eggs','fish','shellfish','tree_nuts','peanuts','wheat','gluten','soy','sesame']
 
+// Must match the diet_type / consistency_level Postgres enums exactly — same
+// lists as Dietary.jsx's DIET_TYPES / CONSISTENCIES, kept in sync there.
 const DIET_TYPES = [
   { key: 'regular',      label: 'Regular' },
+  { key: 'heart_healthy',label: 'Heart Healthy' },
+  { key: 'low_sodium',   label: 'Low Sodium' },
+  { key: 'diabetic',     label: 'Consistent Carbohydrate' },
+  { key: 'ncs',          label: 'No Concentrated Sweets' },
+  { key: 'renal',        label: 'Renal / CKD' },
+  { key: 'lo_carb',      label: 'Low Carbohydrate' },
+  { key: 'low_fat',      label: 'Low Fat' },
+  { key: 'low_residue',  label: 'Low Fiber / Low Residue' },
+  { key: 'dash',         label: 'DASH' },
+  { key: 'gluten_free',  label: 'Gluten Free' },
   { key: 'vegetarian',   label: 'Vegetarian' },
   { key: 'vegan',        label: 'Vegan' },
-  { key: 'diabetic',     label: 'Diabetic' },
-  { key: 'heart_healthy',label: 'Heart Healthy' },
-  { key: 'renal',        label: 'Renal' },
-  { key: 'low_sodium',   label: 'Low Sodium' },
-  { key: 'low_fat',      label: 'Low Fat' },
-  { key: 'gluten_free',  label: 'Gluten Free' },
+  { key: 'neutropenic',  label: 'Neutropenic' },
+  { key: 'other',        label: 'Other / Custom' },
 ]
 
 const CONSISTENCY_LEVELS = [
   { key: 'regular',          label: 'Regular' },
-  { key: 'mechanical_soft',  label: 'Mechanical Soft' },
+  { key: 'easy_to_chew',     label: 'Easy to Chew' },
+  { key: 'soft_bite_sized',  label: 'Soft & Bite-Sized' },
   { key: 'minced_moist',     label: 'Minced & Moist' },
+  { key: 'mechanical_soft',  label: 'Mechanical Soft' },
   { key: 'pureed',           label: 'Pureed' },
+  { key: 'liquid',           label: 'Liquidized / Thin' },
+  { key: 'slightly_thick',   label: 'Slightly Thick' },
+  { key: 'mildly_thick',     label: 'Mildly Thick' },
+  { key: 'moderately_thick', label: 'Moderately Thick' },
+  { key: 'extremely_thick',  label: 'Extremely Thick' },
   { key: 'thickened_liquid', label: 'Thickened Liquid' },
 ]
 
@@ -177,7 +192,7 @@ function MenuItemsCatalog({ items, onRefresh, orgId, canEdit }) {
               <p className="text-xs text-slate-400 mt-1">Select all texture levels this item can be served at.</p>
             </div>
             <div className="flex justify-end gap-2">
-              <button onClick={() => setShowForm(false)} className="px-3 py-1.5 text-sm text-slate-600 font-medium">Cancel</button>
+              <button onClick={() => setShowForm(false)} className="px-3 py-1.5 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
               <button onClick={handleSave} disabled={saving}
                 className="px-4 py-1.5 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 disabled:bg-brand-300 transition-colors">
                 {saving ? 'Saving...' : 'Save Item'}
@@ -381,7 +396,7 @@ function DayMealCell({ weekNum, dayIdx, period, dayData, items, onSave, canEdit 
                 </div>
               ))}
               <button onClick={addCourse}
-                className="w-full py-2 border-2 border-dashed border-slate-200 rounded-xl text-sm text-slate-400 hover:border-brand-400 hover:text-brand-500 transition-colors flex items-center justify-center gap-1.5">
+                className="w-full py-2 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-400 hover:border-brand-400 hover:text-brand-500 transition-colors flex items-center justify-center gap-1.5">
                 <Plus size={14} /> Add Course
               </button>
             </fieldset>

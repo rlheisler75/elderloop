@@ -18,6 +18,17 @@ function formatTime(date) {
   return `${h}:${m} ${ampm}`
 }
 
+// Local calendar date as YYYY-MM-DD — never use toISOString() for this, it
+// converts to UTC first and silently rolls to the wrong day near midnight
+// in any timezone behind UTC.
+function localDateStr(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+// Once dinner service is over, the board switches to previewing tomorrow's
+// menu instead of today's.
+const DINNER_END_MINUTES = 18 * 60 + 30 // 6:30 PM
+
 function formatDate(date) {
   return date.toLocaleDateString('en-US', {
     weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
@@ -29,10 +40,17 @@ function getOrdinal(n) {
   return n + (s[(v-20)%10] || s[v] || s[0])
 }
 
-// Returns today's menu items from cycle menus via day-of-cycle math
+// Returns the currently-relevant menu from cycle menus via day-of-cycle math.
+// Shows today's menu until dinner service ends, then switches to tomorrow's
+// so residents see what's actually coming up rather than a meal that's done.
 async function fetchTodayMenu(orgId) {
-  const today = new Date()
-  const dayOfWeek = today.getDay() // 0=Sun
+  const now = new Date()
+  const pastDinner = (now.getHours() * 60 + now.getMinutes()) >= DINNER_END_MINUTES
+  const targetDate = new Date(now)
+  if (pastDinner) targetDate.setDate(targetDate.getDate() + 1)
+
+  const target = new Date(localDateStr(targetDate) + 'T12:00:00')
+  const dayOfWeek = target.getDay() // 0=Sun … 6=Sat, matches cycle_menu_days.day_of_week
 
   // Get active cycle menu
   const { data: menus } = await supabase
@@ -46,11 +64,10 @@ async function fetchTodayMenu(orgId) {
   if (!menus) return null
 
   // Calculate which cycle day we're on
-  const start = new Date(menus.start_date)
-  const diffDays = Math.floor((today - start) / 86400000)
+  const start = new Date(menus.start_date + 'T12:00:00')
+  const diffDays = Math.floor((target - start) / 86400000)
   const cycleDay = ((diffDays % (menus.cycle_length * 7)) + (menus.cycle_length * 7)) % (menus.cycle_length * 7)
   const weekNum = Math.floor(cycleDay / 7) + 1
-  const dayNum = dayOfWeek === 0 ? 7 : dayOfWeek
 
   // Get the menu day
   const { data: menuDay } = await supabase
@@ -58,7 +75,7 @@ async function fetchTodayMenu(orgId) {
     .select('id')
     .eq('cycle_menu_id', menus.id)
     .eq('week_number', weekNum)
-    .eq('day_of_week', dayNum)
+    .eq('day_of_week', dayOfWeek)
     .single()
 
   if (!menuDay) return null
@@ -77,13 +94,14 @@ async function fetchTodayMenu(orgId) {
   // Get courses for that meal
   const { data: courses } = await supabase
     .from('meal_courses')
-    .select('course_name, menu_items(name)')
+    .select('course_name, menu_items:menu_items!meal_courses_menu_item_id_fkey(name)')
     .eq('meal_id', lunch.id)
     .order('sort_order')
 
   return {
     period: lunch.meal_period === 'lunch' ? 'Lunch' : 'Dinner',
     courses: (courses || []).map(c => c.menu_items?.name || c.course_name).filter(Boolean),
+    isTomorrow: pastDinner,
   }
 }
 
@@ -104,7 +122,7 @@ function buildSlides(announcements, activities, chapelServices, today) {
   }
 
   // Today's activities → slides
-  const todayStr = today.toISOString().slice(0, 10)
+  const todayStr = localDateStr(today)
   const todayActivities = activities.filter(a => a.start_date === todayStr)
   for (const a of todayActivities) {
     const time = a.start_time
@@ -224,8 +242,8 @@ export default function TV() {
       setOrg(orgData)
 
       const today = new Date()
-      const todayStr = today.toISOString().slice(0, 10)
-      const weekFromNow = new Date(today.getTime() + 7 * 86400000).toISOString().slice(0, 10)
+      const todayStr = localDateStr(today)
+      const weekFromNow = localDateStr(new Date(today.getTime() + 7 * 86400000))
 
       // Parallel fetches
       const [annRes, actRes, chapRes, menuData] = await Promise.all([
@@ -377,7 +395,7 @@ export default function TV() {
           {/* Today's menu */}
           {menu && (
             <div style={styles.sideCard}>
-              <div style={styles.sideLabel}>Today's {menu.period}</div>
+              <div style={styles.sideLabel}>{menu.isTomorrow ? "Tomorrow's" : "Today's"} {menu.period}</div>
               {menu.courses.slice(0, 4).map((item, i) => (
                 <div key={i} style={{ ...styles.sideItem, borderTop: i > 0 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
                   {item}
@@ -394,7 +412,7 @@ export default function TV() {
                 const time = a.start_time
                   ? new Date(`1970-01-01T${a.start_time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
                   : null
-                const dateLabel = a.start_date === new Date().toISOString().slice(0, 10)
+                const dateLabel = a.start_date === localDateStr(new Date())
                   ? (time || 'Today')
                   : new Date(a.start_date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
                 return (

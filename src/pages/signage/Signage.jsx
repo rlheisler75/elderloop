@@ -22,6 +22,15 @@ const CATEGORIES = {
 }
 const getCat = (key) => CATEGORIES[key] || CATEGORIES.general
 
+// Local calendar date as YYYY-MM-DD — never use toISOString() for this, it
+// converts to UTC first and silently rolls to the wrong day near midnight
+// in any timezone behind UTC.
+const localDateStr = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+
+// Once dinner service is over, the board switches to previewing tomorrow's
+// menu instead of today's — matches the dinner window shown on the slide.
+const DINNER_END_MINUTES = 18 * 60 + 30 // 6:30 PM
+
 const fmtTime = (t) => {
   if (!t) return ''
   const [h, m] = t.split(':')
@@ -78,7 +87,7 @@ function DotNav({ total, current, setCurrent, accent }) {
 // ── "Today at a Glance" slide — activities + time ─────────────
 function TodaySlide({ activities, orgName, orgLogo, visible }) {
   const now = new Date()
-  const todayStr = now.toISOString().split('T')[0]
+  const todayStr = localDateStr(now)
   const todayActs = activities
     .filter(a => a.start_date === todayStr)
     .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''))
@@ -169,7 +178,7 @@ function TodaySlide({ activities, orgName, orgLogo, visible }) {
 }
 
 // ── Menu slide ─────────────────────────────────────────────────
-function MenuSlide({ menu, orgName, orgLogo, visible }) {
+function MenuSlide({ menu, orgName, orgLogo, visible, isTomorrow }) {
   const accent = '#4ade80'
   return (
     <div className="fixed inset-0 overflow-hidden select-none flex flex-col"
@@ -188,7 +197,7 @@ function MenuSlide({ menu, orgName, orgLogo, visible }) {
           <div>
             <div className="text-white font-semibold text-lg" style={{ fontFamily: '"Playfair Display", serif' }}>{orgName}</div>
             <div className="flex items-center gap-2 text-green-400 text-xs tracking-widest uppercase">
-              <Utensils size={12} /> Today's Dining
+              <Utensils size={12} /> {isTomorrow ? "Tomorrow's Dining" : "Today's Dining"}
             </div>
           </div>
         </div>
@@ -252,8 +261,8 @@ function AnnouncementSlide({ slide, orgName, orgLogo, visible, accent }) {
       {/* Content */}
       {slide.image_url ? (
         <div className="flex-1 flex items-center px-12 gap-14 relative z-10">
-          <div className="flex-shrink-0 w-2/5 h-3/4 rounded-3xl overflow-hidden shadow-2xl border-4 border-white/10">
-            <img src={slide.image_url} alt={slide.title} className="w-full h-full object-cover" />
+          <div className="flex-shrink-0 w-2/5 h-full max-h-[70vh] rounded-3xl overflow-hidden shadow-2xl border-4 border-white/10 bg-black/20 flex items-center justify-center">
+            <img src={slide.image_url} alt={slide.title} className="max-w-full max-h-full object-contain" />
           </div>
           <div className="flex-1 flex flex-col justify-center">
             <div className="flex items-center gap-3 mb-6">
@@ -302,6 +311,7 @@ export default function Signage() {
   const [announcements, setAnnouncements] = useState([])
   const [activities, setActivities]     = useState([])
   const [todayMenu, setTodayMenu]       = useState([])
+  const [menuIsTomorrow, setMenuIsTomorrow] = useState(false)
   const [slides, setSlides]             = useState([])
   const [current, setCurrent]           = useState(0)
   const [visible, setVisible]           = useState(true)
@@ -347,7 +357,6 @@ export default function Signage() {
   const fetchAll = useCallback(async () => {
     if (!org) return
     const now = new Date().toISOString()
-    const todayStr = new Date().toISOString().split('T')[0]
 
     const [annRes, actRes, menuRes] = await Promise.all([
       supabase.from('announcements').select('*')
@@ -366,27 +375,37 @@ export default function Signage() {
         cycle_menu_days(id, week_number, day_of_week,
           cycle_menu_meals(id, meal_period,
             meal_courses(course_name, sort_order,
-              menu_items(name))))
+              menu_items:menu_items!meal_courses_menu_item_id_fkey(name))))
       `).eq('organization_id', org.id).eq('is_active', true).single()
     ])
 
     setAnnouncements(annRes.data || [])
     setActivities(actRes.data || [])
 
-    // Calculate which day of the cycle we're on
+    // Calculate which day of the cycle to show — after dinner service ends,
+    // switch to previewing tomorrow's menu instead of today's, so residents
+    // see what's actually coming up rather than a menu that's already done.
     if (menuRes.data) {
       const menu  = menuRes.data
-      const start = new Date(menu.start_date + 'T12:00:00')
-      const today = new Date(todayStr + 'T12:00:00')
-      const dayDiff  = Math.floor((today - start) / (1000 * 60 * 60 * 24))
+      const nowLocal    = new Date()
+      const pastDinner  = (nowLocal.getHours() * 60 + nowLocal.getMinutes()) >= DINNER_END_MINUTES
+      const targetDate  = new Date(nowLocal)
+      if (pastDinner) targetDate.setDate(targetDate.getDate() + 1)
+
+      const start  = new Date(menu.start_date + 'T12:00:00')
+      // Local calendar date, not toISOString() — see localDateStr comment above.
+      const target = new Date(localDateStr(targetDate) + 'T12:00:00')
+      const dayDiff  = Math.floor((target - start) / (1000 * 60 * 60 * 24))
       const cycleDays = menu.cycle_length * 7
       const dayInCycle = ((dayDiff % cycleDays) + cycleDays) % cycleDays
       const weekNum  = Math.floor(dayInCycle / 7) + 1
-      const dayOfWeek = (today.getDay() + 1) // 1=Sun … 7=Sat
+      const dayOfWeek = target.getDay() // 0=Sun … 6=Sat, matches cycle_menu_days.day_of_week
 
       const dayEntry = menu.cycle_menu_days?.find(
         d => d.week_number === weekNum && d.day_of_week === dayOfWeek
       )
+
+      setMenuIsTomorrow(pastDinner)
 
       if (dayEntry) {
         const PERIODS = [
@@ -403,6 +422,8 @@ export default function Signage() {
           return { period: p.label, time: p.time, courses }
         }).filter(m => m.courses.length > 0)
         setTodayMenu(mealSlides)
+      } else {
+        setTodayMenu([])
       }
     }
   }, [org])
@@ -462,7 +483,7 @@ export default function Signage() {
         <AnnouncementSlide slide={slide.data} orgName={orgName} orgLogo={orgLogo} visible={visible} accent={accent} />
       )}
       {slide?.type === 'menu' && (
-        <MenuSlide menu={todayMenu} orgName={orgName} orgLogo={orgLogo} visible={visible} />
+        <MenuSlide menu={todayMenu} orgName={orgName} orgLogo={orgLogo} visible={visible} isTomorrow={menuIsTomorrow} />
       )}
 
       {/* Global footer overlay */}
