@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import CycleMenuBuilder from './CycleMenuBuilder'
-import { resolveMealItem } from './mealResolution'
+import { resolveMealItem, calcCycleDay, fetchMealCourses } from './mealResolution'
 import {
   Users, BookOpen, Printer, Plus, X, Edit2, Search, Eye,
   ChevronLeft, ChevronRight, AlertTriangle, Check,
@@ -636,60 +636,14 @@ function PrintTicket({ resident, menus, onClose }) {
   const [courses, setCourses] = useState(null)
   const [loading, setLoading] = useState(false)
 
-  // Calculate which week + day-of-week a given date falls on in the cycle
-  function calcCycleDay(menu, dateStr) {
-    if (!menu?.start_date) return null
-    const start   = new Date(menu.start_date + 'T12:00:00')
-    const target  = new Date(dateStr + 'T12:00:00')
-    const diffDays = Math.floor((target - start) / 86400000)
-    if (diffDays < 0) return null
-    const totalWeeks  = Math.floor(diffDays / 7)
-    const cycleWeek   = (totalWeeks % menu.cycle_length) + 1   // 1-indexed
-    const dayOfWeek   = target.getDay()                         // 0=Sun … 6=Sat
-    return { cycleWeek, dayOfWeek }
-  }
-
   useEffect(() => {
     const menu = menus?.find(m => m.id === resident.cycle_menu_id) || menus?.find(m => m.is_current) || null
     if (!menu) { setCourses(null); return }
     const pos = calcCycleDay(menu, date)
     if (!pos) { setCourses(null); return }
-    fetchMeal(menu.id, pos.cycleWeek, pos.dayOfWeek, period)
-  }, [date, period, resident.cycle_menu_id, menus])
-
-  async function fetchMeal(menuId, weekNum, dayOfWeek, mealPeriod) {
     setLoading(true)
-    const { data: dayRows } = await supabase.from('cycle_menu_days')
-      .select('id').eq('cycle_menu_id', menuId).eq('week_number', weekNum).eq('day_of_week', dayOfWeek).limit(1)
-    const day = dayRows?.[0]
-    if (!day) { setCourses([]); setLoading(false); return }
-    const { data: mealRows } = await supabase.from('cycle_menu_meals')
-      .select('id').eq('cycle_menu_day_id', day.id).eq('meal_period', mealPeriod).limit(1)
-    const meal = mealRows?.[0]
-    if (!meal) { setCourses([]); setLoading(false); return }
-    const { data: courseData } = await supabase.from('meal_courses')
-      .select('*, menu_items:menu_items!meal_courses_menu_item_id_fkey(name,allergens,suitable_diets,suitable_consistencies)')
-      .eq('meal_id', meal.id).order('sort_order')
-
-    // Fetch alternates by source_item_id (menu item level) so alternates apply
-    // across all cycle days, not just the one instance where they were originally defined
-    const menuItemIds = courseData?.map(d => d.menu_item_id) || []
-    let altData = []
-    if (menuItemIds.length > 0) {
-      const { data: alts } = await supabase.from('course_alternates')
-        .select('id, source_item_id, priority, conditions, item:menu_items!course_alternates_menu_item_id_fkey(id,name,allergens,suitable_diets,suitable_consistencies)')
-        .in('source_item_id', menuItemIds)
-        .order('priority')
-      altData = alts || []
-    }
-
-    const merged = (courseData || []).map(course => ({
-      ...course,
-      alternates: altData.filter(a => a.source_item_id === course.menu_item_id)
-    }))
-    setCourses(merged)
-    setLoading(false)
-  }
+    fetchMealCourses(menu.id, pos.cycleWeek, pos.dayOfWeek, period).then(c => { setCourses(c); setLoading(false) })
+  }, [date, period, resident.cycle_menu_id, menus])
 
   const handlePrint = () => {
     const content = printRef.current.innerHTML
@@ -820,6 +774,152 @@ function PrintTicket({ resident, menus, onClose }) {
   )
 }
 
+// ── Bulk Print Tickets ────────────────────────────────────────
+// Prints one meal ticket per resident (page break between each) for a
+// chosen date/meal period — "print all trays for lunch" instead of one
+// resident at a time. Operates on whichever residents the caller passes in,
+// so it respects the diet-type filter already applied on the list.
+function BulkPrintModal({ residents, menus, onClose }) {
+  const printRef = useRef()
+  const todayDate = new Date()
+  const today = `${todayDate.getFullYear()}-${String(todayDate.getMonth() + 1).padStart(2, '0')}-${String(todayDate.getDate()).padStart(2, '0')}`
+  const [date, setDate]     = useState(today)
+  const [period, setPeriod] = useState('lunch')
+  const [tickets, setTickets] = useState(null)
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    Promise.all(residents.map(async (resident) => {
+      const menu = menus?.find(m => m.id === resident.cycle_menu_id) || menus?.find(m => m.is_current) || null
+      const pos  = menu ? calcCycleDay(menu, date) : null
+      const courses = menu && pos ? await fetchMealCourses(menu.id, pos.cycleWeek, pos.dayOfWeek, period) : []
+      return { resident, menu, pos, courses }
+    })).then(result => { if (!cancelled) { setTickets(result); setLoading(false) } })
+    return () => { cancelled = true }
+  }, [date, period, residents, menus])
+
+  const handlePrint = () => {
+    const content = printRef.current.innerHTML
+    const win = window.open('', '_blank')
+    win.document.write(`
+      <html><head><title>Meal Tickets - ${MEAL_PERIODS.find(p => p.key === period)?.label} - ${date}</title>
+      <style>
+        body { font-family: Arial, sans-serif; }
+        .ticket { padding: 20px; max-width: 400px; page-break-after: always; }
+        .ticket:last-child { page-break-after: auto; }
+        h2 { margin: 0 0 4px; font-size: 18px; }
+        .sub { color: #666; font-size: 13px; margin-bottom: 10px; }
+        .badges { margin-bottom: 8px; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; margin: 2px; }
+        .diet { background: #e0f2fe; color: #0369a1; }
+        .cons { background: #f0fdf4; color: #166534; }
+        .allergy { background: #fee2e2; color: #dc2626; }
+        .section { margin-top: 10px; }
+        .section label { font-weight: bold; font-size: 12px; color: #444; display: block; margin-bottom: 4px; }
+        .item { padding: 4px 0; border-bottom: 1px solid #eee; font-size: 13px; }
+        .course-name { font-weight: bold; font-size: 11px; color: #888; text-transform: uppercase; }
+        .backup { color: #999; font-style: italic; font-size: 11px; }
+        hr { margin: 12px 0; }
+        @media print { button { display: none; } }
+      </style></head>
+      <body>${content}</body></html>`)
+    win.document.close()
+    win.print()
+  }
+
+  const dateLabel = new Date(date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Print All Tickets</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+        </div>
+
+        <div className="px-6 pt-4 pb-2 flex gap-3 flex-shrink-0">
+          <div className="flex-1">
+            <label className="block text-xs font-medium text-slate-500 mb-1">Date</label>
+            <input type="date" value={date} onChange={e => setDate(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          </div>
+          <div className="flex-1">
+            <label className="block text-xs font-medium text-slate-500 mb-1">Meal Period</label>
+            <select value={period} onChange={e => setPeriod(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100">
+              {MEAL_PERIODS.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
+            </select>
+          </div>
+        </div>
+        <p className="px-6 pb-2 text-xs text-slate-400 flex-shrink-0">
+          {residents.length} resident{residents.length !== 1 ? 's' : ''} — whatever's currently filtered on the list behind this dialog.
+        </p>
+
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          {loading ? (
+            <p className="text-sm text-slate-400">Loading tickets...</p>
+          ) : (
+            <div ref={printRef}>
+              {tickets?.map(({ resident, menu, pos, courses }, idx) => {
+                const allergenLabels = resident.allergens?.map(a => ALLERGENS.find(al => al.key === a)?.label || a) || []
+                return (
+                  <div key={resident.id} className={`ticket ${idx > 0 ? 'pt-4 mt-4 border-t border-slate-100 dark:border-slate-800' : ''}`}>
+                    <h2 className="text-slate-800 dark:text-slate-100">{resident.first_name} {resident.last_name}</h2>
+                    <div className="sub">
+                      {[resident.room && `Room ${resident.room}`, resident.dining_location].filter(Boolean).join(' · ')}
+                      {' · '}{dateLabel}{' · '}{MEAL_PERIODS.find(m => m.key === period)?.label}
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '8px' }}>
+                      <span className="badge diet">{getDiet(resident.diet_type)}</span>
+                      <span className="badge cons">{getCons(resident.consistency)}</span>
+                      {allergenLabels.map(a => <span key={a} className="badge allergy">⚠ {a}</span>)}
+                      {resident.fluid_restriction && <span className="badge allergy">Fluid Restriction</span>}
+                    </div>
+                    <hr />
+                    {!menu ? (
+                      <p style={{ color: '#999', fontSize: 13 }}>No cycle menu assigned to this resident.</p>
+                    ) : !pos ? (
+                      <p style={{ color: '#999', fontSize: 13 }}>Selected date is before the menu start date.</p>
+                    ) : courses?.length > 0 ? (
+                      <div className="section">
+                        <label>Menu Items</label>
+                        {courses.map((course, i) => {
+                          const item = course.menu_items
+                          const { servedItem, substitutedFor } = resolveMealItem(item, course.alternates, resident)
+                          return (
+                            <div key={i} className="item">
+                              <div className="course-name">{course.course_name}</div>
+                              <div>{servedItem?.name || item?.name || '—'}</div>
+                              {substitutedFor && servedItem && <div className="backup">Sub for: {substitutedFor.name}</div>}
+                              {substitutedFor && !servedItem && <div className="backup" style={{ color: '#dc2626' }}>⚠ No suitable alternate — verify with kitchen</div>}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    ) : (
+                      <p style={{ color: '#999', fontSize: 13 }}>No menu items set for this meal.</p>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Close</button>
+          <button onClick={handlePrint} disabled={loading || !tickets?.length}
+            className="flex items-center gap-2 px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
+            <Printer size={15} /> Print {tickets?.length || ''} Tickets
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Main Dietary Page ──────────────────────────────────────────
 export default function Dietary() {
   const { profile, organization, canEdit } = useAuth()
@@ -835,6 +935,7 @@ export default function Dietary() {
   const [showProfileModal, setShowProfileModal] = useState(false)
   const [editResident, setEditResident]         = useState(null)
   const [printResident, setPrintResident]       = useState(null)
+  const [showBulkPrint, setShowBulkPrint]       = useState(false)
   const [filterDiet, setFilterDiet] = useState('all')
 
   useEffect(() => { if (organization) fetchAll() }, [organization])
@@ -896,11 +997,21 @@ export default function Dietary() {
           <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Dietary</h1>
           <p className="text-slate-500 text-sm mt-0.5">Resident profiles, dietary restrictions, and cycle menus</p>
         </div>
-        {tab === 'residents' && canEditDietary && (
-          <button onClick={handleNew}
-            className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
-            <Plus size={16} /> New Resident Profile
-          </button>
+        {tab === 'residents' && (
+          <div className="flex items-center gap-2">
+            {residents.length > 0 && (
+              <button onClick={() => setShowBulkPrint(true)}
+                className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 rounded-xl text-sm font-medium transition-colors">
+                <Printer size={16} /> Print All Tickets
+              </button>
+            )}
+            {canEditDietary && (
+              <button onClick={handleNew}
+                className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
+                <Plus size={16} /> New Resident Profile
+              </button>
+            )}
+          </div>
         )}
       </div>
 
@@ -1001,6 +1112,9 @@ export default function Dietary() {
       )}
       {printResident && (
         <PrintTicket resident={printResident} menus={menus} onClose={() => setPrintResident(null)} />
+      )}
+      {showBulkPrint && (
+        <BulkPrintModal residents={filtered} menus={menus} onClose={() => setShowBulkPrint(false)} />
       )}
     </div>
   )

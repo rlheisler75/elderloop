@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { resolveMealItem } from './mealResolution'
 import {
   Plus, X, Edit2, Trash2, ChevronLeft, ChevronRight,
-  BookOpen, Package, Save, ArrowLeft, RefreshCw, Check
+  BookOpen, Package, Save, ArrowLeft, RefreshCw, Check, ShieldCheck
 } from 'lucide-react'
 
 const MEAL_PERIODS = [
@@ -551,11 +551,32 @@ function CooksCount({ weekNum, dayIdx, menu, orgId }) {
 
 // ── Cycle Menu Grid ────────────────────────────────────────────
 function CycleMenuGrid({ menu, items, onBack, canEdit, orgId }) {
+  const { profile } = useAuth()
   const [week, setWeek]     = useState(1)
   const [gridData, setGridData] = useState({})
   const [loading, setLoading]   = useState(true)
   const [showCount, setShowCount] = useState(false)
   const [countDay, setCountDay]   = useState(0)
+  const [approval, setApproval] = useState({
+    approved_by: menu.approved_by || null,
+    approved_at: menu.approved_at || null,
+    approverName: null,
+  })
+
+  useEffect(() => {
+    setApproval({ approved_by: menu.approved_by || null, approved_at: menu.approved_at || null, approverName: null })
+    if (menu.approved_by) {
+      supabase.from('profiles').select('first_name,last_name').eq('id', menu.approved_by).single()
+        .then(({ data }) => setApproval(a => ({ ...a, approverName: data ? `${data.first_name} ${data.last_name}` : null })))
+    }
+  }, [menu.id, menu.approved_by])
+
+  async function handleApprove() {
+    const now = new Date().toISOString()
+    const { error } = await supabase.from('cycle_menus').update({ approved_by: profile.id, approved_at: now }).eq('id', menu.id)
+    if (error) { console.error('Failed to approve menu:', error.message); return }
+    setApproval({ approved_by: profile.id, approved_at: now, approverName: `${profile.first_name} ${profile.last_name}` })
+  }
 
   useEffect(() => { fetchWeekData() }, [week, menu.id])
 
@@ -604,16 +625,22 @@ function CycleMenuGrid({ menu, items, onBack, canEdit, orgId }) {
       ).select()
       if (insertErr) { console.error('Failed to save courses:', insertErr.message); return }
 
-      // Save alternates for each course
+      // Save alternates for each course. source_item_id (not meal_course_id) is
+      // what every reader (meal ticket, Cook's Count) actually resolves against —
+      // it's what makes an alternate apply to every cycle day that uses this same
+      // main item, not just the one instance it was defined on — so it has to be
+      // set here or the insert fails the column's not-null constraint.
       const alternateRows = []
       savedCourses.forEach((savedCourse, i) => {
         const origCourse = validCourses[i]
+        if (!savedCourse.menu_item_id) return
         origCourse.alternates?.filter(a => a.menu_item_id).forEach((a, j) => {
           alternateRows.push({
-            meal_course_id: savedCourse.id,
-            menu_item_id:   a.menu_item_id,
-            priority:       j + 1,
-            conditions:     a.conditions || {}
+            meal_course_id:  savedCourse.id,
+            source_item_id:  savedCourse.menu_item_id,
+            menu_item_id:    a.menu_item_id,
+            priority:        j + 1,
+            conditions:      a.conditions || {}
           })
         })
       })
@@ -621,6 +648,12 @@ function CycleMenuGrid({ menu, items, onBack, canEdit, orgId }) {
         const { error: altErr } = await supabase.from('course_alternates').insert(alternateRows)
         if (altErr) { console.error('Failed to save alternates:', altErr.message); return }
       }
+    }
+    // A previously-approved menu that just changed needs a fresh sign-off —
+    // an approval that silently survives edits isn't worth anything.
+    if (approval.approved_at) {
+      await supabase.from('cycle_menus').update({ approved_by: null, approved_at: null }).eq('id', menu.id)
+      setApproval({ approved_by: null, approved_at: null, approverName: null })
     }
     fetchWeekData()
   }
@@ -640,6 +673,25 @@ function CycleMenuGrid({ menu, items, onBack, canEdit, orgId }) {
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-colors ${showCount ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300'}`}>
           Cook's Count
         </button>
+      </div>
+
+      {/* Approval status */}
+      <div className={`flex items-center justify-between gap-3 mb-4 px-4 py-2.5 rounded-xl border text-sm ${
+        approval.approved_at
+          ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-100 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-400'
+          : 'bg-amber-50 dark:bg-amber-950/30 border-amber-100 dark:border-amber-900/50 text-amber-700 dark:text-amber-400'}`}>
+        <span className="flex items-center gap-2">
+          <ShieldCheck size={15} />
+          {approval.approved_at
+            ? `Approved${approval.approverName ? ` by ${approval.approverName}` : ''} on ${new Date(approval.approved_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+            : 'Not yet approved for nutritional adequacy'}
+        </span>
+        {canEdit && !approval.approved_at && (
+          <button onClick={handleApprove}
+            className="flex items-center gap-1.5 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition-colors flex-shrink-0">
+            <Check size={12} /> Approve Menu
+          </button>
+        )}
       </div>
 
       {/* Week nav */}
@@ -756,6 +808,9 @@ function CycleMenuList({ menus, onSelect, onCreate, onDelete, onSetCurrent, canE
                       Started {new Date(menu.start_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                     </p>
                   )}
+                  <p className={`text-xs mt-1 flex items-center gap-1 ${menu.approved_at ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                    <ShieldCheck size={11} /> {menu.approved_at ? 'Approved' : 'Not yet approved'}
+                  </p>
                 </div>
                 {canEdit && (
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

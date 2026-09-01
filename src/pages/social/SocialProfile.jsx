@@ -82,7 +82,10 @@ function ProfileEditor({ resident, orgId, profile: existingProfile, staff, canWr
     if (readOnly) return
     const today = new Date()
     const due = new Date(today); due.setDate(due.getDate() + 365)
-    setForm(f => ({ ...f, last_reviewed_at: today.toISOString().split('T')[0], review_due_date: due.toISOString().split('T')[0] }))
+    // Local calendar date, not toISOString() — that converts to UTC first and
+    // silently rolls to the wrong day for several hours around local midnight.
+    const toLocalDate = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    setForm(f => ({ ...f, last_reviewed_at: toLocalDate(today), review_due_date: toLocalDate(due) }))
   }
 
   const handleSave = async () => {
