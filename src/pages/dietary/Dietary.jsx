@@ -6,7 +6,7 @@ import { resolveMealItem } from './mealResolution'
 import {
   Users, BookOpen, Printer, Plus, X, Edit2, Search, Eye,
   ChevronLeft, ChevronRight, AlertTriangle, Check,
-  UtensilsCrossed, RefreshCw, ArrowRight, Clipboard, Link2
+  UtensilsCrossed, RefreshCw, ArrowRight, Clipboard, Link2, CalendarCheck
 } from 'lucide-react'
 import { DIETARY_STATE_REFS } from '../../lib/dietaryStateRefs'
 import RegRefBanner from '../../components/ui/RegRefBanner'
@@ -263,6 +263,15 @@ function ResidentCard({ resident, onEdit, onPrint, canEdit }) {
         })()}
         {resident.fluid_restriction && <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400">Fluid Restriction</span>}
         {resident.assistance_needed && <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400">Assist Needed</span>}
+        {!resident.review_due_date && (
+          <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">No RD review yet</span>
+        )}
+        {resident.review_due_date && (() => {
+          const days = Math.floor((new Date(resident.review_due_date) - new Date()) / (1000 * 60 * 60 * 24))
+          if (days < 0) return <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-400">RD review overdue</span>
+          if (days <= 14) return <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400">RD review due in {days}d</span>
+          return null
+        })()}
       </div>
 
       {hasAllergens && (
@@ -309,10 +318,23 @@ function ResidentProfileModal({ resident, menus, canEdit, onClose, onSave }) {
     assistance_notes:  resident?.assistance_notes  || '',
     general_notes:     resident?.general_notes     || '',
     cycle_menu_id:     resident?.cycle_menu_id     || null,
+    last_reviewed_at:  resident?.last_reviewed_at  || '',
+    review_due_date:   resident?.review_due_date   || '',
   })
   const [saving, setSaving] = useState(false)
   const [error, setError]   = useState('')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+  // Default interval is a starting point, not a regulation — actual required
+  // review cadence for therapeutic diets varies by state (and even by diet
+  // type/care level within a state). Staff can always override the date.
+  const markReviewed = () => {
+    if (readOnly) return
+    const today = new Date()
+    const due = new Date(today); due.setDate(due.getDate() + 90)
+    const toLocalDate = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    setForm(f => ({ ...f, last_reviewed_at: toLocalDate(today), review_due_date: toLocalDate(due) }))
+  }
 
   function handleResidentSelect(r) {
     setLinkedResident(r)
@@ -341,7 +363,9 @@ function ResidentProfileModal({ resident, menus, canEdit, onClose, onSave }) {
     setSaving(true)
     const payload = {
       ...form,
-      resident_id:     form.resident_id || null,
+      resident_id:      form.resident_id || null,
+      last_reviewed_at: form.last_reviewed_at || null,
+      review_due_date:  form.review_due_date || null,
       organization_id: profile.organization_id,
       updated_at:      new Date().toISOString(),
     }
@@ -561,6 +585,30 @@ function ResidentProfileModal({ resident, menus, canEdit, onClose, onSave }) {
               ))}
             </select>
             <p className="text-xs text-slate-400 mt-1">Leave blank to use the org's active menu automatically.</p>
+          </div>
+
+          {/* ── RD Review ── */}
+          <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/50 rounded-xl space-y-3">
+            <label className="text-xs font-semibold text-emerald-800 dark:text-emerald-400 uppercase tracking-wide flex items-center gap-1.5">
+              <CalendarCheck size={12} /> Dietitian / RD Review
+            </label>
+            <div>
+              <label className="block text-xs font-medium text-slate-500 mb-1">Review Due Date</label>
+              <input type="date" value={form.review_due_date} onChange={e => set('review_due_date', e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <p className="text-xs text-slate-400 mt-1">Required review cadence for therapeutic diets varies by state (and sometimes by care level) — set the date your state and diet order actually require.</p>
+            </div>
+            <div className="flex items-center justify-between pt-2 border-t border-emerald-100 dark:border-emerald-900/50">
+              <div className="text-xs text-slate-500 dark:text-slate-400">
+                {form.last_reviewed_at ? `Last reviewed ${new Date(form.last_reviewed_at + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : 'Not yet reviewed'}
+              </div>
+              {!readOnly && (
+                <button onClick={markReviewed} type="button"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900 rounded-lg text-xs font-semibold hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-colors">
+                  <Check size={12} /> Mark Reviewed Today
+                </button>
+              )}
+            </div>
           </div>
         </fieldset>
         </div>
