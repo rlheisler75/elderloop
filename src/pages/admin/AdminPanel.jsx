@@ -6,10 +6,11 @@ import {
   Users, Building2, Settings, Plus, X, Edit2, Trash2,
   Search, Shield, Check, Mail, Key, ToggleLeft, ToggleRight,
   ChevronRight, AlertCircle, CheckCircle2, Clock, Ban,
-  Save, Globe, Phone, MapPin, User, List, Plug, FileText
+  Save, Globe, Phone, MapPin, User, List, Plug, FileText, Layers
 } from 'lucide-react'
 import AdminLists from './AdminLists'
 import UserPermissions from './UserPermissions'
+import RoleTemplates from './RoleTemplates'
 import BillingTab from './BillingTab'
 import PccAuthorizationLetter from './PccAuthorizationLetter'
 import { CreditCard } from 'lucide-react'
@@ -619,6 +620,7 @@ export default function AdminPanel() {
   const tabs = [
     { key: 'users',        label: 'Users',              icon: Users },
     { key: 'permissions',  label: 'Module Access',      icon: Shield },
+    { key: 'role_templates', label: 'Role Templates',   icon: Layers },
     { key: 'settings',     label: 'Org Settings',       icon: Settings },
     { key: 'lists',        label: 'Lists & Pick Lists', icon: List },
     { key: 'pcc',          label: 'PointClickCare',     icon: Plug },
@@ -825,6 +827,12 @@ export default function AdminPanel() {
       {/* ── PERMISSIONS TAB ── */}
       {tab === 'permissions' && (
         <UserPermissions
+          orgId={currentOrgId}
+          orgModules={orgModules.map(m => m.module_key || m).filter(Boolean)} />
+      )}
+      {/* ── ROLE TEMPLATES TAB ── */}
+      {tab === 'role_templates' && (
+        <RoleTemplates
           orgId={currentOrgId}
           orgModules={orgModules.map(m => m.module_key || m).filter(Boolean)} />
       )}

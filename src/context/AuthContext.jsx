@@ -12,6 +12,7 @@ export function AuthProvider({ children }) {
   const [organization, setOrg]        = useState(null)
   const [orgModules, setOrgModules]   = useState([])
   const [userPerms, setUserPerms]     = useState([])
+  const [roleVisibility, setRoleVisibility] = useState([])
   const [superAdmin, setSuperAdmin]   = useState(false)
    const [loading, setLoading]         = useState(true)
   const [suspended, setSuspended]     = useState(false)
@@ -29,7 +30,7 @@ export function AuthProvider({ children }) {
       if (session?.user) fetchProfile(session.user.id)
       else {
         setProfile(null); setOrg(null); setOrgModules([])
-        setUserPerms([]); setSuperAdmin(false); setLoading(false)
+        setUserPerms([]); setRoleVisibility([]); setSuperAdmin(false); setLoading(false)
       }
     })
     return () => subscription.unsubscribe()
@@ -65,12 +66,14 @@ export function AuthProvider({ children }) {
       const orgIdToLoad = storedOrgId || prof?.organization_id
 
       if (orgIdToLoad) {
-        const [orgRes, modsRes, permsRes] = await Promise.all([
+        const [orgRes, modsRes, permsRes, roleVisRes] = await Promise.all([
           supabase.from('organizations').select('*').eq('id', orgIdToLoad).single(),
           supabase.from('organization_modules').select('module_key, is_enabled')
             .eq('organization_id', orgIdToLoad),
           supabase.from('user_module_permissions').select('module_key, access_level')
             .eq('user_id', userId),
+          supabase.from('role_module_visibility').select('module_key')
+            .eq('organization_id', orgIdToLoad).eq('role', prof?.role),
         ])
         const org = orgRes.data
 
@@ -85,6 +88,7 @@ export function AuthProvider({ children }) {
         setOrg(org)
         setOrgModules(modsRes.data?.filter(m => m.is_enabled !== false).map(m => m.module_key) || [])
         setUserPerms(permsRes.data || [])
+        setRoleVisibility(roleVisRes.data?.map(r => r.module_key) || [])
         if (storedOrgId) setImpersonating(true)
       }
     } catch (e) {
@@ -118,6 +122,9 @@ export function AuthProvider({ children }) {
     if (['org_admin','ceo','super_admin'].includes(profile?.role) || superAdmin) return true
     // Role-based defaults: some modules auto-grant to specific roles
     if (ROLE_MODULE_DEFAULTS[key]?.includes(profile?.role)) return true
+    // Org-configurable role defaults (Admin Panel → Role Templates) — a sensible
+    // starting baseline per role, editable per org. Explicit grants below still win.
+    if (roleVisibility.includes(key)) return true
     // Otherwise fall back to explicit user_module_permissions
     return userPerms.some(p => p.module_key === key)
   }

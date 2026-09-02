@@ -37,7 +37,7 @@ export default function StaffGuide() {
           </SectionBlock>
 
           <SectionBlock id="adding" num="02" title="Adding a Staff Member"
-            dek="Creates a real login, not just a directory entry. Role sets their identity and a couple of default permissions — but on its own it does not grant them access to the modules they'll actually need. That's a separate, required step covered next."
+            dek="Creates a real login, not just a directory entry. Role sets their identity and, via your org's Role Templates, their default module access — no separate step required for the common case, though you can still fine-tune one person's access afterward."
             roleNote="Org Admin only">
             <Frame src={SHOT('add-staff-modal.png')} alt="Add Staff Member form" caption="No password field — they set their own from an emailed link" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
@@ -50,17 +50,17 @@ export default function StaffGuide() {
           </SectionBlock>
 
           <SectionBlock id="access" num="03" title="Module Access"
-            dek="The step that's easy to miss: a brand-new login can only see the Dashboard, plus Incident Reports and (for Supervisor and above) Surveys, until you explicitly grant them anything else — regardless of what Role you picked."
+            dek="A new login gets a sensible baseline automatically, based on their Role (set org-wide in Role Templates) — this screen is for granting or revoking access beyond that baseline for one specific person."
             roleNote="Org Admin only">
-            <Frame src={SHOT('module-access.jpg')} alt="Module Access by user" caption="Every module defaults to No Access for a new login — click a module pill to cycle Edit → View Only → No Access" />
+            <Frame src={SHOT('module-access.jpg')} alt="Module Access by user" caption="Click a module pill to cycle Edit → View Only → No Access — this overrides that person's Role Template default" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
             <Steps items={[
               { k: 1, text: <>Go to <b className="text-slate-900">Admin Panel → Module Access</b>, search for the person, and click their row to expand the full module list.</> },
-              { k: 2, text: <>Click a module pill to cycle it: <b className="text-slate-900">No Access → Edit → View Only → No Access</b>. Grant based on what the person's job actually needs — e.g. a nursing hire typically needs Edit on Nursing Notes, not necessarily anything in Marketing or Property Mgmt.</> },
+              { k: 2, text: <>Click a module pill to cycle it: <b className="text-slate-900">No Access → Edit → View Only → No Access</b>. Use this for exceptions — e.g. one Dietary staffer who also needs to see Marketing — not for the baseline every Dietary hire should get, which belongs in Role Templates instead.</> },
               { k: 3, text: <>Org Admins and CEOs always have full access to every enabled module and don't appear here needing configuration — this screen is for everyone else.</> },
             ]} />
-            <Tip warn>Do this right after creating the account. A new nursing or dietary hire who logs in before you've granted anything will see almost nothing useful — just the Dashboard and Incident Reports — and will assume something's broken.</Tip>
-            <Tip>Role isn't decorative, though: for a couple of built-in modules (Incident Reports for most operational roles, Surveys for Supervisor and above) it grants visibility automatically. And once someone <em>can</em> see a module — whether via that default or a grant you make here — their Role can still decide whether they get Edit or just View by default on some modules (e.g. Nursing role gets Edit on Nursing Notes out of the box). Module Access always wins if you've set it explicitly here.</Tip>
+            <Tip>The baseline itself lives in <b className="text-slate-900">Admin Panel → Role Templates</b>: an editable, per-role default (e.g. Dietary role → Dietary, Activities, Communication, Directory, Time Clock) that every new hire with that Role gets automatically, with no manual step required. An explicit grant or revoke here in Module Access for one person always overrides their Role Template default.</Tip>
+            <Tip warn>Org Admins, CEOs, and Super Admins aren't affected by Role Templates — they already have full access unconditionally. Family and Resident logins use a separate fixed portal, not this module list, so Role Templates has no effect on them either.</Tip>
           </SectionBlock>
 
           <SectionBlock id="certs" num="04" title="Certifications"
