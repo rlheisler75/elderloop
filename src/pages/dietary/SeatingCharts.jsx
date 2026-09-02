@@ -162,6 +162,7 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
   const [prefsResident, setPrefsResident] = useState(null)
 
   const todayDow = new Date().getDay()
+  const [viewDow, setViewDow] = useState(todayDow)
 
   useEffect(() => { if (orgId) fetchAll() }, [orgId])
 
@@ -252,6 +253,7 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
   const handlePrint = () => {
     const content = printRef.current.innerHTML
     const roomName = rooms.find(r => r.id === selectedRoomId)?.name || 'Dining Room'
+    const dayNote = viewDow === todayDow ? '' : ` — ${DAY_NAMES[viewDow]}`
     const win = window.open('', '_blank')
     win.document.write(`
       <html><head><title>Seating Chart - ${roomName} - ${MEAL_PERIODS.find(p => p.key === period)?.label}</title>
@@ -271,8 +273,59 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
       </style></head>
       <body>
         <h1>${roomName}</h1>
-        <div class="sub">${MEAL_PERIODS.find(p => p.key === period)?.label} Seating Chart</div>
+        <div class="sub">${MEAL_PERIODS.find(p => p.key === period)?.label} Seating Chart${dayNote}</div>
         <div class="tables">${content}</div>
+      </body></html>`)
+    win.document.close()
+    win.print()
+  }
+
+  // Builds the tables/seats HTML for an arbitrary day of week, independent of
+  // whatever day is currently on screen — used by the full-week print so
+  // each day's drink/silverware resolution is computed for that day, not
+  // just whichever one happens to be selected.
+  const buildTablesHTML = (dow) => roomTables.map(table => {
+    const seatsHtml = Array.from({ length: table.seat_count }, (_, i) => i + 1).map(seatNum => {
+      const assignment = getAssignment(table.id, seatNum)
+      const resident = assignment ? residentLookup.get(assignment.resident_id) : null
+      const resolved = resident ? resolvePreferences(prefs, resident.id, period, dow) : {}
+      const prefLine = ['drink', 'silverware', 'other'].flatMap(cat => (resolved[cat] || []).map(p => p.detail)).join(' · ')
+      const name = resident ? `${resident.first_name} ${resident.last_name}` : 'empty'
+      return `<div class="seat"><div>${seatNum}. <span class="${resident ? '' : 'empty'}">${name}</span></div>${resident && prefLine ? `<div class="pref-line">${prefLine}</div>` : ''}</div>`
+    }).join('')
+    return `<div class="table-card"><div class="table-label">${table.label}</div>${seatsHtml}</div>`
+  }).join('')
+
+  const handlePrintWeek = () => {
+    const roomName = rooms.find(r => r.id === selectedRoomId)?.name || 'Dining Room'
+    const mealLabel = MEAL_PERIODS.find(p => p.key === period)?.label
+    const daysHtml = DAY_NAMES.map((dayName, i) => `
+      <div class="day-section">
+        <h2>${dayName}</h2>
+        <div class="tables">${buildTablesHTML(i)}</div>
+      </div>`).join('')
+    const win = window.open('', '_blank')
+    win.document.write(`
+      <html><head><title>Seating Chart - ${roomName} - ${mealLabel} - Full Week</title>
+      <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        h1 { font-size: 18px; margin: 0 0 4px; }
+        .sub { color: #666; font-size: 13px; margin-bottom: 16px; }
+        .day-section { page-break-after: always; margin-bottom: 20px; }
+        .day-section:last-child { page-break-after: auto; }
+        .day-section h2 { font-size: 15px; border-bottom: 2px solid #333; padding-bottom: 4px; margin-bottom: 10px; }
+        .tables { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .table-card { border: 1px solid #ddd; border-radius: 8px; padding: 10px; break-inside: avoid; }
+        .table-label { font-weight: bold; font-size: 13px; margin-bottom: 6px; }
+        .seat { font-size: 12px; padding: 2px 0; border-bottom: 1px solid #eee; }
+        .empty { color: #aaa; font-style: italic; }
+        .pref-line { color: #0369a1; font-size: 11px; padding-left: 20px; }
+        @media print { button { display: none; } }
+      </style></head>
+      <body>
+        <h1>${roomName}</h1>
+        <div class="sub">${mealLabel} Seating Chart — Full Week</div>
+        ${daysHtml}
       </body></html>`)
     win.document.close()
     win.print()
@@ -364,9 +417,18 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
                 </button>
               ))}
             </div>
+            <select value={viewDow} onChange={e => setViewDow(Number(e.target.value))}
+              title="Which day's drink/silverware preferences to resolve — seating itself doesn't change by day"
+              className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+              {DAY_NAMES.map((d, i) => <option key={i} value={i}>{d}{i === todayDow ? ' (Today)' : ''}</option>)}
+            </select>
             <button onClick={handlePrint} disabled={!roomTables.length}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors">
               <Printer size={13} /> Print
+            </button>
+            <button onClick={handlePrintWeek} disabled={!roomTables.length}
+              className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 disabled:opacity-50 text-xs font-medium rounded-lg transition-colors">
+              <Printer size={13} /> Print Full Week
             </button>
           </div>
         </div>
@@ -391,7 +453,7 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
                     const assignment = getAssignment(table.id, seatNum)
                     const resident = assignment ? residentLookup.get(assignment.resident_id) : null
                     const profile = assignment ? dietLookup.get(assignment.resident_id) : null
-                    const resolved = resident ? resolvePreferences(prefs, resident.id, period, todayDow) : {}
+                    const resolved = resident ? resolvePreferences(prefs, resident.id, period, viewDow) : {}
                     const prefLine = ['drink', 'silverware', 'other'].flatMap(cat =>
                       (resolved[cat] || []).map(p => p.detail)
                     ).join(' · ')
