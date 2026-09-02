@@ -3,11 +3,12 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import CycleMenuBuilder from './CycleMenuBuilder'
 import ServiceRequests from './ServiceRequests'
+import SnackDrinks from './SnackDrinks'
 import { resolveMealItem, calcCycleDay, fetchMealCourses } from './mealResolution'
 import {
   Users, BookOpen, Printer, Plus, X, Edit2, Search, Eye,
   ChevronLeft, ChevronRight, AlertTriangle, Check,
-  UtensilsCrossed, RefreshCw, ArrowRight, Clipboard, Link2, CalendarCheck, Utensils
+  UtensilsCrossed, RefreshCw, ArrowRight, Clipboard, Link2, CalendarCheck, Utensils, Coffee
 } from 'lucide-react'
 import { DIETARY_STATE_REFS } from '../../lib/dietaryStateRefs'
 import RegRefBanner from '../../components/ui/RegRefBanner'
@@ -986,6 +987,7 @@ export default function Dietary() {
   const tabs = [
     { key: 'residents', label: 'Resident Profiles', icon: Users },
     { key: 'menus',     label: 'Cycle Menus',       icon: BookOpen },
+    { key: 'snacks',    label: 'Snacks & Drinks',   icon: Coffee },
     { key: 'requests',  label: 'Special Requests',  icon: Utensils },
   ]
 
@@ -1106,6 +1108,11 @@ export default function Dietary() {
             canEdit={canEditDietary}
           />
         </>
+      )}
+
+      {/* SNACKS & DRINKS TAB */}
+      {tab === 'snacks' && (
+        <SnackDrinks residents={residents} menus={menus} ALLERGENS={ALLERGENS} getDiet={getDiet} getCons={getCons} />
       )}
 
       {/* SPECIAL REQUESTS TAB */}
