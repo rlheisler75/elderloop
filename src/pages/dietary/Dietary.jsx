@@ -5,11 +5,12 @@ import CycleMenuBuilder from './CycleMenuBuilder'
 import ServiceRequests from './ServiceRequests'
 import SnackDrinks from './SnackDrinks'
 import OrderGuide from './OrderGuide'
+import SeatingCharts from './SeatingCharts'
 import { resolveMealItem, calcCycleDay, fetchMealCourses } from './mealResolution'
 import {
   Users, BookOpen, Printer, Plus, X, Edit2, Search, Eye,
   ChevronLeft, ChevronRight, AlertTriangle, Check,
-  UtensilsCrossed, RefreshCw, ArrowRight, Clipboard, Link2, CalendarCheck, Utensils, Coffee, ClipboardList
+  UtensilsCrossed, RefreshCw, ArrowRight, Clipboard, Link2, CalendarCheck, Utensils, Coffee, ClipboardList, Armchair
 } from 'lucide-react'
 import { DIETARY_STATE_REFS } from '../../lib/dietaryStateRefs'
 import RegRefBanner from '../../components/ui/RegRefBanner'
@@ -991,6 +992,7 @@ export default function Dietary() {
     { key: 'snacks',    label: 'Snacks & Drinks',   icon: Coffee },
     { key: 'requests',  label: 'Special Requests',  icon: Utensils },
     { key: 'ordering',  label: 'Order Guide',       icon: ClipboardList },
+    { key: 'seating',   label: 'Seating Charts',    icon: Armchair },
   ]
 
   const stateRef = DIETARY_STATE_REFS[organization?.compliance_state] || DIETARY_STATE_REFS.OTHER
@@ -1125,6 +1127,11 @@ export default function Dietary() {
       {/* ORDER GUIDE TAB */}
       {tab === 'ordering' && (
         <OrderGuide orgId={organization.id} residents={residents} menus={menus} menuItems={menuItems} canManage={canEditDietary} />
+      )}
+
+      {/* SEATING CHARTS TAB */}
+      {tab === 'seating' && (
+        <SeatingCharts orgId={organization.id} dietaryProfiles={residents} canManage={canEditDietary} />
       )}
 
       {/* Modals */}
