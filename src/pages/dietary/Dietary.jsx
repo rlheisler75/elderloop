@@ -4,11 +4,12 @@ import { useAuth } from '../../context/AuthContext'
 import CycleMenuBuilder from './CycleMenuBuilder'
 import ServiceRequests from './ServiceRequests'
 import SnackDrinks from './SnackDrinks'
+import OrderGuide from './OrderGuide'
 import { resolveMealItem, calcCycleDay, fetchMealCourses } from './mealResolution'
 import {
   Users, BookOpen, Printer, Plus, X, Edit2, Search, Eye,
   ChevronLeft, ChevronRight, AlertTriangle, Check,
-  UtensilsCrossed, RefreshCw, ArrowRight, Clipboard, Link2, CalendarCheck, Utensils, Coffee
+  UtensilsCrossed, RefreshCw, ArrowRight, Clipboard, Link2, CalendarCheck, Utensils, Coffee, ClipboardList
 } from 'lucide-react'
 import { DIETARY_STATE_REFS } from '../../lib/dietaryStateRefs'
 import RegRefBanner from '../../components/ui/RegRefBanner'
@@ -989,6 +990,7 @@ export default function Dietary() {
     { key: 'menus',     label: 'Cycle Menus',       icon: BookOpen },
     { key: 'snacks',    label: 'Snacks & Drinks',   icon: Coffee },
     { key: 'requests',  label: 'Special Requests',  icon: Utensils },
+    { key: 'ordering',  label: 'Order Guide',       icon: ClipboardList },
   ]
 
   const stateRef = DIETARY_STATE_REFS[organization?.compliance_state] || DIETARY_STATE_REFS.OTHER
@@ -1118,6 +1120,11 @@ export default function Dietary() {
       {/* SPECIAL REQUESTS TAB */}
       {tab === 'requests' && (
         <ServiceRequests orgId={organization.id} canManage={canEditDietary} />
+      )}
+
+      {/* ORDER GUIDE TAB */}
+      {tab === 'ordering' && (
+        <OrderGuide orgId={organization.id} residents={residents} menus={menus} menuItems={menuItems} canManage={canEditDietary} />
       )}
 
       {/* Modals */}

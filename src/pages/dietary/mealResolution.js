@@ -33,7 +33,7 @@ export async function fetchMealCourses(menuId, weekNum, dayOfWeek, mealPeriod) {
   if (!meal) return []
 
   const { data: courseData } = await supabase.from('meal_courses')
-    .select('*, menu_items:menu_items!meal_courses_menu_item_id_fkey(name,allergens,suitable_diets,suitable_consistencies)')
+    .select('*, menu_items:menu_items!meal_courses_menu_item_id_fkey(id,name,allergens,suitable_diets,suitable_consistencies)')
     .eq('meal_id', meal.id).order('sort_order')
 
   // Alternates by source_item_id (item-level, reusable across every cycle day

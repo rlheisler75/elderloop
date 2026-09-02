@@ -18,6 +18,11 @@ const MEAL_PERIODS = [
 const DAYS     = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
 const ALLERGENS = ['milk','eggs','fish','shellfish','tree_nuts','peanuts','wheat','gluten','soy','sesame']
 
+// Sensible per-resident serving units — a subset of the Central Supply
+// `supply_unit` enum (which also has purchase-batch units like case/box/pallet
+// that don't make sense for a single portion).
+const PORTION_UNITS = ['oz', 'fl_oz', 'cup', 'lb', 'each']
+
 // Must match the diet_type / consistency_level Postgres enums exactly — same
 // lists as Dietary.jsx's DIET_TYPES / CONSISTENCIES, kept in sync there.
 const DIET_TYPES = [
@@ -98,13 +103,13 @@ function ItemPicker({ items, value, onChange, placeholder = 'Select item...' }) 
 function MenuItemsCatalog({ items, onRefresh, orgId, canEdit }) {
   const [showForm, setShowForm] = useState(false)
   const [editItem, setEditItem] = useState(null)
-  const [form, setForm]         = useState({ name: '', description: '', allergens: [], suitable_diets: [], suitable_consistencies: [] })
+  const [form, setForm]         = useState({ name: '', description: '', allergens: [], suitable_diets: [], suitable_consistencies: [], portion_qty: '', portion_unit: '' })
   const [saving, setSaving]     = useState(false)
   const [search, setSearch]     = useState('')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
-  const openNew  = () => { setForm({ name: '', description: '', allergens: [], suitable_diets: [], suitable_consistencies: [] }); setEditItem(null); setShowForm(true) }
-  const openEdit = (item) => { setForm({ name: item.name, description: item.description || '', allergens: item.allergens || [], suitable_diets: item.suitable_diets || [], suitable_consistencies: item.suitable_consistencies || [] }); setEditItem(item); setShowForm(true) }
+  const openNew  = () => { setForm({ name: '', description: '', allergens: [], suitable_diets: [], suitable_consistencies: [], portion_qty: '', portion_unit: '' }); setEditItem(null); setShowForm(true) }
+  const openEdit = (item) => { setForm({ name: item.name, description: item.description || '', allergens: item.allergens || [], suitable_diets: item.suitable_diets || [], suitable_consistencies: item.suitable_consistencies || [], portion_qty: item.portion_qty ?? '', portion_unit: item.portion_unit || '' }); setEditItem(item); setShowForm(true) }
 
   const toggleAllergen  = (key) => set('allergens', form.allergens.includes(key) ? form.allergens.filter(a => a !== key) : [...form.allergens, key])
   const toggleDiet      = (key) => set('suitable_diets', form.suitable_diets.includes(key) ? form.suitable_diets.filter(d => d !== key) : [...form.suitable_diets, key])
@@ -113,7 +118,13 @@ function MenuItemsCatalog({ items, onRefresh, orgId, canEdit }) {
   const handleSave = async () => {
     if (!form.name.trim()) return
     setSaving(true)
-    const payload = { name: form.name.trim(), description: form.description || null, allergens: form.allergens, suitable_diets: form.suitable_diets, suitable_consistencies: form.suitable_consistencies, organization_id: orgId }
+    const payload = {
+      name: form.name.trim(), description: form.description || null, allergens: form.allergens,
+      suitable_diets: form.suitable_diets, suitable_consistencies: form.suitable_consistencies,
+      portion_qty: form.portion_qty !== '' ? Number(form.portion_qty) : null,
+      portion_unit: form.portion_unit || null,
+      organization_id: orgId,
+    }
     if (editItem) {
       await supabase.from('menu_items').update(payload).eq('id', editItem.id)
     } else {
@@ -157,6 +168,20 @@ function MenuItemsCatalog({ items, onRefresh, orgId, canEdit }) {
             <input value={form.description} onChange={e => set('description', e.target.value)}
               className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="Description (optional)" />
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Serving / Portion Size</label>
+              <div className="flex gap-2">
+                <input type="number" min="0" step="0.25" value={form.portion_qty} onChange={e => set('portion_qty', e.target.value)}
+                  className="w-28 px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  placeholder="e.g. 3" />
+                <select value={form.portion_unit} onChange={e => set('portion_unit', e.target.value)}
+                  className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                  <option value="">No unit</option>
+                  {PORTION_UNITS.map(u => <option key={u} value={u}>{u.replace('_', ' ')}</option>)}
+                </select>
+              </div>
+              <p className="text-xs text-slate-400 mt-1">Optional — used by the Order Guide to forecast how much of this item to buy from a resident count.</p>
+            </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Contains Allergens</label>
               <div className="flex flex-wrap gap-1.5">
@@ -209,6 +234,9 @@ function MenuItemsCatalog({ items, onRefresh, orgId, canEdit }) {
             <div className="flex-1 min-w-0">
               <div className="font-medium text-slate-800 dark:text-slate-100 text-sm">{item.name}</div>
               {item.description && <div className="text-xs text-slate-500 mt-0.5 truncate">{item.description}</div>}
+              {item.portion_qty && item.portion_unit && (
+                <div className="text-xs text-slate-400 mt-0.5">{item.portion_qty} {item.portion_unit.replace('_', ' ')} / serving</div>
+              )}
               {item.allergens?.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-1.5">
                   {item.allergens.map(a => (
