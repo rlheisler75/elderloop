@@ -5,7 +5,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import {
-  Armchair, Plus, X, Edit2, Trash2, Printer, ChevronDown, ChevronUp, Home
+  Armchair, Plus, X, Edit2, Trash2, Printer, ChevronDown, ChevronUp, Home, Coffee, Utensils, StickyNote
 } from 'lucide-react'
 
 const MEAL_PERIODS = [
@@ -16,12 +16,140 @@ const MEAL_PERIODS = [
   { key: 'dinner',    label: 'Dinner' },
 ]
 
+const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+const PREF_CATEGORIES = [
+  { key: 'drink',     label: 'Drink',      icon: Coffee },
+  { key: 'silverware',label: 'Silverware', icon: Utensils },
+  { key: 'other',     label: 'Other',      icon: StickyNote },
+]
+
+// Picks the most specific standing preference(s) for a resident at a given
+// meal + day: an exact day+meal override beats a same-meal every-day
+// default, which beats a fully general (every meal, every day) note. Drink
+// preferences resolve to a single "what to pour right now" answer; other
+// categories (silverware, other) just show everything that applies.
+function resolvePreferences(prefs, residentId, mealPeriod, dayOfWeek) {
+  const applicable = prefs.filter(p =>
+    p.resident_id === residentId &&
+    (p.meal_period === null || p.meal_period === mealPeriod) &&
+    (p.day_of_week === null || p.day_of_week === dayOfWeek)
+  )
+  const specificity = (p) => (p.meal_period !== null ? 1 : 0) + (p.day_of_week !== null ? 1 : 0)
+  const byCategory = {}
+  applicable.forEach(p => { (byCategory[p.category] ||= []).push(p) })
+  if (byCategory.drink?.length > 1) {
+    const maxSpec = Math.max(...byCategory.drink.map(specificity))
+    byCategory.drink = byCategory.drink.filter(p => specificity(p) === maxSpec)
+  }
+  return byCategory
+}
+
+// ── Standing preferences modal ──────────────────────────────
+function PreferencesModal({ resident, prefs, orgId, canManage, onClose, onChange }) {
+  const [category, setCategory] = useState('drink')
+  const [detail, setDetail]     = useState('')
+  const [mealPeriod, setMealPeriod] = useState('')
+  const [dayOfWeek, setDayOfWeek]   = useState('')
+  const [saving, setSaving]     = useState(false)
+
+  const residentPrefs = prefs.filter(p => p.resident_id === resident.id)
+
+  const handleAdd = async () => {
+    if (!detail.trim()) return
+    setSaving(true)
+    const { data } = await supabase.from('resident_meal_preferences').insert({
+      organization_id: orgId, resident_id: resident.id, category,
+      detail: detail.trim(), meal_period: mealPeriod || null,
+      day_of_week: dayOfWeek !== '' ? Number(dayOfWeek) : null,
+    }).select().single()
+    setSaving(false)
+    setDetail('')
+    if (data) onChange(p => [...p, data])
+  }
+
+  const handleDelete = async (id) => {
+    await supabase.from('resident_meal_preferences').delete().eq('id', id)
+    onChange(p => p.filter(x => x.id !== id))
+  }
+
+  const describeScope = (p) => {
+    const meal = p.meal_period ? MEAL_PERIODS.find(m => m.key === p.meal_period)?.label : 'every meal'
+    const day = p.day_of_week != null ? DAY_NAMES[p.day_of_week] : 'every day'
+    return `${meal} · ${day}`
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+          <div>
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Standing Preferences</h2>
+            <p className="text-xs text-slate-400">{resident.first_name} {resident.last_name}</p>
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
+          {residentPrefs.length === 0 ? (
+            <div className="text-slate-400 text-sm text-center py-4">No standing preferences yet.</div>
+          ) : residentPrefs.map(p => {
+            const Icon = PREF_CATEGORIES.find(c => c.key === p.category)?.icon || StickyNote
+            return (
+              <div key={p.id} className="flex items-start gap-2.5 p-2.5 border border-slate-100 dark:border-slate-800 rounded-lg">
+                <Icon size={14} className="text-brand-600 mt-0.5 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm text-slate-700 dark:text-slate-300">{p.detail}</div>
+                  <div className="text-xs text-slate-400">{describeScope(p)}</div>
+                </div>
+                {canManage && (
+                  <button onClick={() => handleDelete(p.id)} className="text-slate-400 hover:text-red-500 flex-shrink-0"><Trash2 size={13} /></button>
+                )}
+              </div>
+            )
+          })}
+        </div>
+
+        {canManage && (
+          <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex-shrink-0 space-y-2">
+            <div className="flex gap-2">
+              <select value={category} onChange={e => setCategory(e.target.value)}
+                className="px-2.5 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                {PREF_CATEGORIES.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
+              </select>
+              <input value={detail} onChange={e => setDetail(e.target.value)} placeholder="e.g. Orange Juice, Adaptive silverware"
+                className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            </div>
+            <div className="flex gap-2">
+              <select value={mealPeriod} onChange={e => setMealPeriod(e.target.value)}
+                className="flex-1 px-2.5 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <option value="">Every meal</option>
+                {MEAL_PERIODS.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}
+              </select>
+              <select value={dayOfWeek} onChange={e => setDayOfWeek(e.target.value)}
+                className="flex-1 px-2.5 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <option value="">Every day</option>
+                {DAY_NAMES.map((d, i) => <option key={i} value={i}>{d} only</option>)}
+              </select>
+              <button onClick={handleAdd} disabled={saving || !detail.trim()}
+                className="px-4 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-xs font-medium rounded-lg transition-colors flex-shrink-0">
+                Add
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
   const printRef = useRef()
   const [rooms, setRooms]           = useState([])
   const [tables, setTables]         = useState([])
   const [assignments, setAssignments] = useState([])
   const [allResidents, setAllResidents] = useState([])
+  const [prefs, setPrefs]           = useState([])
   const [loading, setLoading]       = useState(true)
   const [selectedRoomId, setSelectedRoomId] = useState(null)
   const [period, setPeriod]         = useState('lunch')
@@ -31,21 +159,26 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
   const [newTableLabel, setNewTableLabel] = useState('')
   const [newTableSeats, setNewTableSeats] = useState(4)
   const [error, setError]           = useState('')
+  const [prefsResident, setPrefsResident] = useState(null)
+
+  const todayDow = new Date().getDay()
 
   useEffect(() => { if (orgId) fetchAll() }, [orgId])
 
   async function fetchAll() {
     setLoading(true)
-    const [roomsRes, tablesRes, assignRes, residentsRes] = await Promise.all([
+    const [roomsRes, tablesRes, assignRes, residentsRes, prefsRes] = await Promise.all([
       supabase.from('dining_rooms').select('*').eq('organization_id', orgId).eq('is_active', true).order('name'),
       supabase.from('dining_tables').select('*').eq('organization_id', orgId).order('sort_order'),
       supabase.from('dining_seat_assignments').select('*').eq('organization_id', orgId),
       supabase.from('residents').select('id, first_name, last_name, room').eq('organization_id', orgId).eq('is_active', true).order('last_name'),
+      supabase.from('resident_meal_preferences').select('*').eq('organization_id', orgId),
     ])
     setRooms(roomsRes.data || [])
     setTables(tablesRes.data || [])
     setAssignments(assignRes.data || [])
     setAllResidents(residentsRes.data || [])
+    setPrefs(prefsRes.data || [])
     setSelectedRoomId(prev => prev || roomsRes.data?.[0]?.id || null)
     setLoading(false)
   }
@@ -131,6 +264,7 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
         .table-label { font-weight: bold; font-size: 13px; margin-bottom: 6px; }
         .seat { font-size: 12px; padding: 2px 0; border-bottom: 1px solid #eee; }
         .empty { color: #aaa; font-style: italic; }
+        .pref-line { color: #0369a1; font-size: 11px; padding-left: 20px; }
         select { display: none; }
         .print-only { display: inline !important; }
         @media print { button { display: none; } }
@@ -257,24 +391,39 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
                     const assignment = getAssignment(table.id, seatNum)
                     const resident = assignment ? residentLookup.get(assignment.resident_id) : null
                     const profile = assignment ? dietLookup.get(assignment.resident_id) : null
+                    const resolved = resident ? resolvePreferences(prefs, resident.id, period, todayDow) : {}
+                    const prefLine = ['drink', 'silverware', 'other'].flatMap(cat =>
+                      (resolved[cat] || []).map(p => p.detail)
+                    ).join(' · ')
                     return (
-                      <div key={seatNum} className="seat flex items-center gap-2 py-1 border-b border-slate-50 dark:border-slate-800 last:border-0">
-                        <span className="text-xs text-slate-400 w-4 flex-shrink-0">{seatNum}</span>
-                        {canManage && (
-                          <select value={assignment?.resident_id || ''} onChange={e => handleAssignSeat(table.id, seatNum, e.target.value)}
-                            className="flex-1 px-2 py-1 border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
-                            <option value="">— empty —</option>
-                            {allResidents.map(r => <option key={r.id} value={r.id}>{r.first_name} {r.last_name} {r.room ? `(Rm ${r.room})` : ''}</option>)}
-                          </select>
-                        )}
-                        {/* Plain-text resident name: hidden on-page when the select
-                            above already shows it, but the print window strips
-                            <select> entirely and force-shows this via CSS instead. */}
-                        <span className={`flex-1 text-xs ${canManage ? 'print-only hidden' : ''} ${resident ? 'text-slate-700 dark:text-slate-300' : 'empty text-slate-400 italic'}`}>
-                          {resident ? `${resident.first_name} ${resident.last_name}` : 'empty'}
-                        </span>
-                        {profile?.allergens?.length > 0 && (
-                          <span className="text-red-500 flex-shrink-0" title={`Allergies: ${profile.allergens.join(', ')}`}>⚠</span>
+                      <div key={seatNum} className="seat py-1 border-b border-slate-50 dark:border-slate-800 last:border-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-slate-400 w-4 flex-shrink-0">{seatNum}</span>
+                          {canManage && (
+                            <select value={assignment?.resident_id || ''} onChange={e => handleAssignSeat(table.id, seatNum, e.target.value)}
+                              className="flex-1 px-2 py-1 border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+                              <option value="">— empty —</option>
+                              {allResidents.map(r => <option key={r.id} value={r.id}>{r.first_name} {r.last_name} {r.room ? `(Rm ${r.room})` : ''}</option>)}
+                            </select>
+                          )}
+                          {/* Plain-text resident name: hidden on-page when the select
+                              above already shows it, but the print window strips
+                              <select> entirely and force-shows this via CSS instead. */}
+                          <span className={`flex-1 text-xs ${canManage ? 'print-only hidden' : ''} ${resident ? 'text-slate-700 dark:text-slate-300' : 'empty text-slate-400 italic'}`}>
+                            {resident ? `${resident.first_name} ${resident.last_name}` : 'empty'}
+                          </span>
+                          {profile?.allergens?.length > 0 && (
+                            <span className="text-red-500 flex-shrink-0" title={`Allergies: ${profile.allergens.join(', ')}`}>⚠</span>
+                          )}
+                          {resident && (
+                            <button onClick={() => setPrefsResident(resident)}
+                              className="text-slate-300 hover:text-brand-600 flex-shrink-0" title="Standing preferences">
+                              <Coffee size={12} />
+                            </button>
+                          )}
+                        </div>
+                        {resident && prefLine && (
+                          <div className="pref-line pl-6 text-[11px] text-brand-600 dark:text-brand-400">{prefLine}</div>
                         )}
                       </div>
                     )
@@ -285,6 +434,17 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
           </div>
         )}
       </div>
+
+      {prefsResident && (
+        <PreferencesModal
+          resident={prefsResident}
+          prefs={prefs}
+          orgId={orgId}
+          canManage={canManage}
+          onClose={() => setPrefsResident(null)}
+          onChange={(updater) => setPrefs(updater)}
+        />
+      )}
     </div>
   )
 }
