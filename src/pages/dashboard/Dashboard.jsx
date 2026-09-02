@@ -4,11 +4,12 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import PushPermissionModal from '../../components/modals/PushPermissionModal'
 import { ServiceRequestModal, REQUESTER_ROLES } from '../dietary/ServiceRequests'
+import { computeWeightAlerts } from '../dietary/malnutritionAlerts'
 import {
   MessageSquare, Wrench, UtensilsCrossed, SprayCan,
   Car, CalendarDays, AlertTriangle, BookUser, Gauge,
   Church, ArrowRight, Clock, CheckCircle2, TrendingUp,
-  Bell, Users, Activity, Zap, Shield, Utensils, CalendarCheck
+  Bell, Users, Activity, Zap, Shield, Utensils, CalendarCheck, TrendingDown
 } from 'lucide-react'
 
 // ── Stat Card ──────────────────────────────────────────────────
@@ -181,12 +182,17 @@ export default function Dashboard() {
     } else queries.push(Promise.resolve({ data: [] }))
 
     if (hasModule('dietary')) {
+      const vitalsCutoff = new Date()
+      vitalsCutoff.setDate(vitalsCutoff.getDate() - 190) // covers the 180-day weight-loss window with margin
       queries.push(
-        supabase.from('resident_dietary_profiles').select('id,review_due_date').eq('organization_id', orgId).eq('is_active', true).not('review_due_date', 'is', null)
+        supabase.from('resident_dietary_profiles').select('id,review_due_date').eq('organization_id', orgId).eq('is_active', true).not('review_due_date', 'is', null),
+        // Org-wide weight history, not limited to residents with a dietary
+        // profile — weight-loss risk matters before a profile exists too.
+        supabase.from('resident_vitals').select('resident_id,weight,recorded_at').eq('organization_id', orgId).not('weight', 'is', null).gte('recorded_at', vitalsCutoff.toISOString())
       )
-    } else queries.push(Promise.resolve({ data: [] }))
+    } else { queries.push(Promise.resolve({ data: [] })); queries.push(Promise.resolve({ data: [] })) }
 
-    const [woRes, annRes, incRes, tripRes, actRes, ilRes, resRes, secRoundsRes, secReportsRes, meterRes, dietRes] = await Promise.all(queries)
+    const [woRes, annRes, incRes, tripRes, actRes, ilRes, resRes, secRoundsRes, secReportsRes, meterRes, dietRes, vitalsRes] = await Promise.all(queries)
 
     const workOrders    = woRes.data    || []
     const announcements = annRes.data   || []
@@ -199,6 +205,7 @@ export default function Dashboard() {
     const secReports    = secReportsRes.data || []
     const meters        = meterRes.data || []
     const dietProfiles  = dietRes.data  || []
+    const weightAlerts  = computeWeightAlerts(vitalsRes.data || [])
 
     const todayActs = activities.filter(a => {
       if (a.start_date === todayStr) return true
@@ -241,6 +248,7 @@ export default function Dashboard() {
       meterCount: meters.length,
       dietReviewsDue: dietOverdue + dietDueSoon,
       dietReviewsOverdue: dietOverdue,
+      weightLossAlerts: weightAlerts.size,
       workOrders,
       incidents,
       tripsList: todayTrips,
@@ -268,6 +276,7 @@ export default function Dashboard() {
   if (data.ilPending > 0)    alerts.push({ icon: SprayCan,      color: 'text-orange-600', bg: 'bg-orange-100', label: `${data.ilPending} housekeeping request${data.ilPending > 1 ? 's' : ''} pending`, to: '/housekeeping' })
   if (data.urgentSecReports > 0) alerts.push({ icon: Shield,   color: 'text-red-700',    bg: 'bg-red-100',    label: `${data.urgentSecReports} urgent security report${data.urgentSecReports > 1 ? 's' : ''}`, to: '/app/security' })
   if (data.dietReviewsOverdue > 0) alerts.push({ icon: UtensilsCrossed, color: 'text-red-700', bg: 'bg-red-100', label: `${data.dietReviewsOverdue} RD review${data.dietReviewsOverdue > 1 ? 's' : ''} overdue`, to: '/app/dietary' })
+  if (data.weightLossAlerts > 0) alerts.push({ icon: TrendingDown, color: 'text-red-700', bg: 'bg-red-100', label: `${data.weightLossAlerts} resident${data.weightLossAlerts > 1 ? 's' : ''} with significant weight loss`, to: '/app/dietary' })
 
   return (
     <>
@@ -343,6 +352,11 @@ export default function Dashboard() {
             sub={data.dietReviewsOverdue > 0 ? `${data.dietReviewsOverdue} overdue` : 'Due within 14 days'}
             color="text-emerald-600" bg="bg-emerald-50" to="/app/dietary"
             alert={data.dietReviewsOverdue > 0} />
+        )}
+        {hasModule('dietary') && data.weightLossAlerts > 0 && (
+          <StatCard icon={TrendingDown} label="Weight Loss Alerts" value={data.weightLossAlerts}
+            sub="Significant unplanned loss" color="text-red-600" bg="bg-red-50" to="/app/dietary"
+            alert />
         )}
         {hasModule('meters') && data.meterCount > 0 && (
           <StatCard icon={Gauge} label="Meters" value={data.meterCount}

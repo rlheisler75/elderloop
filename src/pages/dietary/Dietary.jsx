@@ -7,6 +7,7 @@ import SnackDrinks from './SnackDrinks'
 import OrderGuide from './OrderGuide'
 import SeatingCharts from './SeatingCharts'
 import { resolveMealItem, calcCycleDay, fetchMealCourses } from './mealResolution'
+import { computeWeightAlerts } from './malnutritionAlerts'
 import {
   Users, BookOpen, Printer, Plus, X, Edit2, Search, Eye,
   ChevronLeft, ChevronRight, AlertTriangle, Check,
@@ -191,7 +192,7 @@ function ResidentPicker({ orgId, value, onSelect }) {
 }
 
 // ── Resident Profile Card ──────────────────────────────────────
-function ResidentCard({ resident, onEdit, onPrint, canEdit }) {
+function ResidentCard({ resident, onEdit, onPrint, canEdit, weightAlert }) {
   const hasAllergens = resident.allergens?.length > 0
   const dir = resident.residents  // joined directory record
   const dietColor = {
@@ -276,6 +277,12 @@ function ResidentCard({ resident, onEdit, onPrint, canEdit }) {
           if (days <= 14) return <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400">RD review due in {days}d</span>
           return null
         })()}
+        {weightAlert && (
+          <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-400"
+            title={`${weightAlert.baselineWeight} lbs on ${new Date(weightAlert.baselineDate).toLocaleDateString()} → ${weightAlert.latestWeight} lbs on ${new Date(weightAlert.latestDate).toLocaleDateString()}`}>
+            ⚠ Weight loss {weightAlert.pctLoss}% / {weightAlert.windowLabel}
+          </span>
+        )}
       </div>
 
       {hasAllergens && (
@@ -934,6 +941,7 @@ export default function Dietary() {
   const [residents, setResidents]   = useState([])
   const [menus, setMenus]           = useState([])
   const [menuItems, setMenuItems]   = useState([])
+  const [weightAlerts, setWeightAlerts] = useState(new Map())
   const [loading, setLoading]       = useState(true)
   const [search, setSearch]         = useState('')
   const [showProfileModal, setShowProfileModal] = useState(false)
@@ -946,7 +954,9 @@ export default function Dietary() {
 
   async function fetchAll() {
     setLoading(true)
-    const [resRes, menuRes, itemsRes] = await Promise.all([
+    const vitalsCutoff = new Date()
+    vitalsCutoff.setDate(vitalsCutoff.getDate() - 190) // covers the 180-day weight-loss window with margin
+    const [resRes, menuRes, itemsRes, vitalsRes] = await Promise.all([
       supabase.from('resident_dietary_profiles')
         // Join residents table to get live directory data (photo, care level, etc.)
         .select('*, residents(id, first_name, last_name, room, unit, care_level, photo_url)')
@@ -962,10 +972,18 @@ export default function Dietary() {
         .eq('organization_id', organization.id)
         .eq('is_active', true)
         .order('name'),
+      // Reuses Nursing's weight history (resident_vitals) rather than tracking
+      // weight separately in Dietary — see malnutritionAlerts.js.
+      supabase.from('resident_vitals')
+        .select('resident_id, weight, recorded_at')
+        .eq('organization_id', organization.id)
+        .not('weight', 'is', null)
+        .gte('recorded_at', vitalsCutoff.toISOString()),
     ])
     setResidents(resRes.data || [])
     setMenus(menuRes.data || [])
     setMenuItems(itemsRes.data || [])
+    setWeightAlerts(computeWeightAlerts(vitalsRes.data || []))
     setLoading(false)
   }
 
@@ -1072,7 +1090,8 @@ export default function Dietary() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filtered.map(r => (
-                <ResidentCard key={r.id} resident={r} onEdit={handleEdit} onPrint={handlePrint} canEdit={canEditDietary} />
+                <ResidentCard key={r.id} resident={r} onEdit={handleEdit} onPrint={handlePrint} canEdit={canEditDietary}
+                  weightAlert={r.resident_id ? weightAlerts.get(r.resident_id) : null} />
               ))}
             </div>
           )}
