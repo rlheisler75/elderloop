@@ -2,11 +2,12 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import CycleMenuBuilder from './CycleMenuBuilder'
+import ServiceRequests from './ServiceRequests'
 import { resolveMealItem, calcCycleDay, fetchMealCourses } from './mealResolution'
 import {
   Users, BookOpen, Printer, Plus, X, Edit2, Search, Eye,
   ChevronLeft, ChevronRight, AlertTriangle, Check,
-  UtensilsCrossed, RefreshCw, ArrowRight, Clipboard, Link2, CalendarCheck
+  UtensilsCrossed, RefreshCw, ArrowRight, Clipboard, Link2, CalendarCheck, Utensils
 } from 'lucide-react'
 import { DIETARY_STATE_REFS } from '../../lib/dietaryStateRefs'
 import RegRefBanner from '../../components/ui/RegRefBanner'
@@ -985,6 +986,7 @@ export default function Dietary() {
   const tabs = [
     { key: 'residents', label: 'Resident Profiles', icon: Users },
     { key: 'menus',     label: 'Cycle Menus',       icon: BookOpen },
+    { key: 'requests',  label: 'Special Requests',  icon: Utensils },
   ]
 
   const stateRef = DIETARY_STATE_REFS[organization?.compliance_state] || DIETARY_STATE_REFS.OTHER
@@ -1104,6 +1106,11 @@ export default function Dietary() {
             canEdit={canEditDietary}
           />
         </>
+      )}
+
+      {/* SPECIAL REQUESTS TAB */}
+      {tab === 'requests' && (
+        <ServiceRequests orgId={organization.id} canManage={canEditDietary} />
       )}
 
       {/* Modals */}

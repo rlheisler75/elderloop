@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import PushPermissionModal from '../../components/modals/PushPermissionModal'
+import { ServiceRequestModal, REQUESTER_ROLES } from '../dietary/ServiceRequests'
 import {
   MessageSquare, Wrench, UtensilsCrossed, SprayCan,
   Car, CalendarDays, AlertTriangle, BookUser, Gauge,
   Church, ArrowRight, Clock, CheckCircle2, TrendingUp,
-  Bell, Users, Activity, Zap, Shield
+  Bell, Users, Activity, Zap, Shield, Utensils, CalendarCheck
 } from 'lucide-react'
 
 // ── Stat Card ──────────────────────────────────────────────────
@@ -79,12 +80,13 @@ const today = () => {
 
 // ── Main Dashboard ─────────────────────────────────────────────
 export default function Dashboard() {
-  const { profile, organization, hasModule } = useAuth()
+  const { profile, organization, hasModule, orgModules } = useAuth()
   const navigate = useNavigate()
   const [data, setData]       = useState({})
   const [feed, setFeed]       = useState([])
   const [loading, setLoading]   = useState(true)
   const [showPushModal, setShowPushModal] = useState(false)
+  const [showFoodRequestModal, setShowFoodRequestModal] = useState(false)
 
   const greeting = () => {
     const h = new Date().getHours()
@@ -178,7 +180,13 @@ export default function Dashboard() {
       )
     } else queries.push(Promise.resolve({ data: [] }))
 
-    const [woRes, annRes, incRes, tripRes, actRes, ilRes, resRes, secRoundsRes, secReportsRes, meterRes] = await Promise.all(queries)
+    if (hasModule('dietary')) {
+      queries.push(
+        supabase.from('resident_dietary_profiles').select('id,review_due_date').eq('organization_id', orgId).eq('is_active', true).not('review_due_date', 'is', null)
+      )
+    } else queries.push(Promise.resolve({ data: [] }))
+
+    const [woRes, annRes, incRes, tripRes, actRes, ilRes, resRes, secRoundsRes, secReportsRes, meterRes, dietRes] = await Promise.all(queries)
 
     const workOrders    = woRes.data    || []
     const announcements = annRes.data   || []
@@ -190,6 +198,7 @@ export default function Dashboard() {
     const secRounds     = secRoundsRes.data  || []
     const secReports    = secReportsRes.data || []
     const meters        = meterRes.data || []
+    const dietProfiles  = dietRes.data  || []
 
     const todayActs = activities.filter(a => {
       if (a.start_date === todayStr) return true
@@ -208,6 +217,12 @@ export default function Dashboard() {
       return false
     })
 
+    const dietOverdue = dietProfiles.filter(p => p.review_due_date < todayStr).length
+    const dietDueSoon = dietProfiles.filter(p => {
+      const days = Math.floor((new Date(p.review_due_date) - new Date(todayStr)) / 86400000)
+      return days >= 0 && days <= 14
+    }).length
+
     setData({
       openWO:      workOrders.filter(w => w.status === 'open').length,
       urgentWO:    workOrders.filter(w => w.priority === 'urgent').length,
@@ -224,6 +239,8 @@ export default function Dashboard() {
       openSecReports:  secReports.filter(r => r.status === 'open').length,
       urgentSecReports:secReports.filter(r => r.priority === 'urgent').length,
       meterCount: meters.length,
+      dietReviewsDue: dietOverdue + dietDueSoon,
+      dietReviewsOverdue: dietOverdue,
       workOrders,
       incidents,
       tripsList: todayTrips,
@@ -250,6 +267,7 @@ export default function Dashboard() {
   if (data.openIncidents > 0) alerts.push({ icon: AlertTriangle, color: 'text-amber-700',  bg: 'bg-amber-100',  label: `${data.openIncidents} incident report${data.openIncidents > 1 ? 's' : ''} awaiting review`, to: '/app/incidents' })
   if (data.ilPending > 0)    alerts.push({ icon: SprayCan,      color: 'text-orange-600', bg: 'bg-orange-100', label: `${data.ilPending} housekeeping request${data.ilPending > 1 ? 's' : ''} pending`, to: '/housekeeping' })
   if (data.urgentSecReports > 0) alerts.push({ icon: Shield,   color: 'text-red-700',    bg: 'bg-red-100',    label: `${data.urgentSecReports} urgent security report${data.urgentSecReports > 1 ? 's' : ''}`, to: '/app/security' })
+  if (data.dietReviewsOverdue > 0) alerts.push({ icon: UtensilsCrossed, color: 'text-red-700', bg: 'bg-red-100', label: `${data.dietReviewsOverdue} RD review${data.dietReviewsOverdue > 1 ? 's' : ''} overdue`, to: '/app/dietary' })
 
   return (
     <>
@@ -319,6 +337,12 @@ export default function Dashboard() {
             sub={data.openSecReports > 0 ? `${data.openSecReports} open report${data.openSecReports > 1 ? 's' : ''}` : 'No open reports'}
             color="text-indigo-600" bg="bg-indigo-50" to="/app/security"
             alert={data.urgentSecReports > 0} />
+        )}
+        {hasModule('dietary') && data.dietReviewsDue > 0 && (
+          <StatCard icon={CalendarCheck} label="RD Reviews Due" value={data.dietReviewsDue}
+            sub={data.dietReviewsOverdue > 0 ? `${data.dietReviewsOverdue} overdue` : 'Due within 14 days'}
+            color="text-emerald-600" bg="bg-emerald-50" to="/app/dietary"
+            alert={data.dietReviewsOverdue > 0} />
         )}
         {hasModule('meters') && data.meterCount > 0 && (
           <StatCard icon={Gauge} label="Meters" value={data.meterCount}
@@ -468,10 +492,12 @@ export default function Dashboard() {
                 hasModule('transportation') && { label: 'Schedule a Trip',      to: '/app/transportation', icon: Car,           color: 'text-green-600' },
                 hasModule('incidents')      && { label: 'File Incident Report', to: '/app/incidents',      icon: AlertTriangle, color: 'text-red-600' },
                 hasModule('meters')         && { label: 'Enter Meter Reading',  to: '/app/meters',         icon: Gauge,         color: 'text-amber-600' },
+                orgModules.includes('dietary') && REQUESTER_ROLES.includes(profile?.role) &&
+                  { label: 'Request Meeting / Hospitality Meal', onClick: () => setShowFoodRequestModal(true), icon: Utensils, color: 'text-emerald-600' },
               ].filter(Boolean).map((link, i) => {
                 const Icon = link.icon
                 return (
-                  <button key={i} onClick={() => navigate(link.to)}
+                  <button key={i} onClick={() => link.onClick ? link.onClick() : navigate(link.to)}
                     className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group text-left">
                     <Icon size={15} className={link.color} />
                     <span className="text-sm text-slate-600 dark:text-slate-300 group-hover:text-slate-800 dark:group-hover:text-slate-100 transition-colors">{link.label}</span>
@@ -489,6 +515,13 @@ export default function Dashboard() {
         <PushPermissionModal
           profileId={profile?.id}
           onClose={() => { setShowPushModal(false); sessionStorage.setItem('push_modal_dismissed', '1') }}
+        />
+      )}
+      {showFoodRequestModal && (
+        <ServiceRequestModal
+          orgId={organization?.id}
+          onClose={() => setShowFoodRequestModal(false)}
+          onSaved={() => setShowFoodRequestModal(false)}
         />
       )}
     </>
