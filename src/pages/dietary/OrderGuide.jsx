@@ -7,6 +7,7 @@
 // supply_purchase_orders) rather than a parallel dietary-only system, so an
 // order placed here shows up alongside every other department's POs.
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { calcCycleDay, fetchMealCourses, resolveMealItem } from './mealResolution'
@@ -51,6 +52,7 @@ function convertUnit(qty, fromUnit, toUnit) {
 
 // ── Food Item form (Central Supply supply_items, category=Food) ──────────
 function ItemForm({ item, vendors, menuItems, orgId, onClose, onSaved, onAddVendor }) {
+  const { isOrgAdmin } = useAuth()
   const isNew = !item
   const [form, setForm] = useState({
     name: item?.name || '',
@@ -117,6 +119,15 @@ function ItemForm({ item, vendors, menuItems, orgId, onClose, onSaved, onAddVend
           <button onClick={handleAddVendor} disabled={addingVendor || !newVendorName.trim()}
             className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-lg disabled:opacity-50">Add</button>
         </div>
+        <p className="text-xs text-slate-400 mt-1">
+          Quick-add sets just the name. For contact info, phone, lead time, etc. —{' '}
+          {isOrgAdmin ? (
+            <>edit vendors in <Link to="/app/admin" className="text-brand-600 hover:underline">Admin Panel &rarr; Vendors</Link></>
+          ) : (
+            <>ask an Org Admin to add details in Admin Panel &rarr; Vendors</>
+          )}
+          {' '}— same vendor list used here and in Central Supply.
+        </p>
       </div>
 
       <div className="grid grid-cols-2 gap-3">

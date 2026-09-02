@@ -6,11 +6,12 @@ import {
   Users, Building2, Settings, Plus, X, Edit2, Trash2,
   Search, Shield, Check, Mail, Key, ToggleLeft, ToggleRight,
   ChevronRight, AlertCircle, CheckCircle2, Clock, Ban,
-  Save, Globe, Phone, MapPin, User, List, Plug, FileText, Layers
+  Save, Globe, Phone, MapPin, User, List, Plug, FileText, Layers, Truck
 } from 'lucide-react'
 import AdminLists from './AdminLists'
 import UserPermissions from './UserPermissions'
 import RoleTemplates from './RoleTemplates'
+import SupplyVendors from '../supply/SupplyVendors'
 import BillingTab from './BillingTab'
 import PccAuthorizationLetter from './PccAuthorizationLetter'
 import { CreditCard } from 'lucide-react'
@@ -621,6 +622,7 @@ export default function AdminPanel() {
     { key: 'users',        label: 'Users',              icon: Users },
     { key: 'permissions',  label: 'Module Access',      icon: Shield },
     { key: 'role_templates', label: 'Role Templates',   icon: Layers },
+    { key: 'vendors',      label: 'Vendors',            icon: Truck },
     { key: 'settings',     label: 'Org Settings',       icon: Settings },
     { key: 'lists',        label: 'Lists & Pick Lists', icon: List },
     { key: 'pcc',          label: 'PointClickCare',     icon: Plug },
@@ -836,6 +838,11 @@ export default function AdminPanel() {
           orgId={currentOrgId}
           orgModules={orgModules.map(m => m.module_key || m).filter(Boolean)} />
       )}
+      {/* ── VENDORS TAB ── */}
+      {/* Same supply_vendors table Central Supply uses — surfaced here too so
+          orgs without the Central Supply module (e.g. Dietary-only orgs using
+          the Order Guide) can still manage vendors. */}
+      {tab === 'vendors' && <SupplyVendors />}
       {/* ── BILLING TAB ── */}
       {tab === 'billing' && <BillingTab />}
 
