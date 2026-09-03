@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { resolveMealItem } from './mealResolution'
+import { scaleIngredients } from './recipeScaling'
 import {
   Plus, X, Edit2, Trash2, ChevronLeft, ChevronRight,
-  BookOpen, Package, Save, ArrowLeft, RefreshCw, Check, ShieldCheck
+  BookOpen, Package, Save, ArrowLeft, RefreshCw, Check, ShieldCheck,
+  ChefHat, ChevronDown, ChevronUp
 } from 'lucide-react'
 
 const MEAL_PERIODS = [
@@ -22,6 +24,10 @@ const ALLERGENS = ['milk','eggs','fish','shellfish','tree_nuts','peanuts','wheat
 // `supply_unit` enum (which also has purchase-batch units like case/box/pallet
 // that don't make sense for a single portion).
 const PORTION_UNITS = ['oz', 'fl_oz', 'cup', 'lb', 'each']
+
+// Units sensible for a recipe ingredient quantity — portion units plus the
+// small-quantity cooking measures (tsp/tbsp) that portions don't need.
+const RECIPE_UNITS = ['tsp', 'tbsp', 'oz', 'fl_oz', 'cup', 'lb', 'gallon', 'each']
 
 // Must match the diet_type / consistency_level Postgres enums exactly — same
 // lists as Dietary.jsx's DIET_TYPES / CONSISTENCIES, kept in sync there.
@@ -99,10 +105,116 @@ function ItemPicker({ items, value, onChange, placeholder = 'Select item...' }) 
   )
 }
 
+// ── Recipe (yield + ingredients) ────────────────────────────────
+function RecipeModal({ item, orgId, canEdit, onClose, onSaved }) {
+  const [yieldServings, setYieldServings] = useState(item.yield_servings ?? '')
+  const [ingredients, setIngredients] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving]   = useState(false)
+
+  useEffect(() => {
+    supabase.from('recipe_ingredients').select('*').eq('menu_item_id', item.id).order('sort_order')
+      .then(({ data }) => {
+        setIngredients((data || []).map(i => ({ id: i.id, ingredient_name: i.ingredient_name, quantity: i.quantity, unit: i.unit })))
+        setLoading(false)
+      })
+  }, [item.id])
+
+  const addRow    = () => setIngredients(rows => [...rows, { ingredient_name: '', quantity: '', unit: 'oz' }])
+  const removeRow = (idx) => setIngredients(rows => rows.filter((_, i) => i !== idx))
+  const updateRow = (idx, key, val) => setIngredients(rows => rows.map((r, i) => i === idx ? { ...r, [key]: val } : r))
+
+  const handleSave = async () => {
+    setSaving(true)
+    await supabase.from('menu_items').update({ yield_servings: yieldServings !== '' ? Number(yieldServings) : null }).eq('id', item.id)
+    await supabase.from('recipe_ingredients').delete().eq('menu_item_id', item.id)
+    const validRows = ingredients.filter(r => r.ingredient_name.trim() && r.quantity !== '')
+    if (validRows.length > 0) {
+      await supabase.from('recipe_ingredients').insert(validRows.map((r, idx) => ({
+        organization_id: orgId, menu_item_id: item.id,
+        ingredient_name: r.ingredient_name.trim(), quantity: Number(r.quantity), unit: r.unit, sort_order: idx,
+      })))
+    }
+    setSaving(false)
+    onSaved()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+          <div>
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2"><ChefHat size={17} className="text-brand-600" /> Recipe</h2>
+            <p className="text-xs text-slate-400">{item.name}</p>
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Recipe Yield</label>
+            <div className="flex items-center gap-2">
+              <input type="number" min="1" step="1" disabled={!canEdit} value={yieldServings} onChange={e => setYieldServings(e.target.value)}
+                placeholder="e.g. 25"
+                className="w-28 px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60" />
+              <span className="text-sm text-slate-500 dark:text-slate-400">servings, as written below</span>
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide">Ingredients</label>
+              {canEdit && (
+                <button onClick={addRow} className="text-xs text-brand-600 hover:underline flex items-center gap-1"><Plus size={11} /> Add ingredient</button>
+              )}
+            </div>
+            {loading ? (
+              <div className="text-slate-400 text-sm py-2">Loading...</div>
+            ) : ingredients.length === 0 ? (
+              <div className="text-slate-400 text-sm py-2">No ingredients yet.</div>
+            ) : (
+              <div className="space-y-2">
+                {ingredients.map((row, idx) => (
+                  <div key={idx} className="flex gap-2 items-center">
+                    <input value={row.ingredient_name} onChange={e => updateRow(idx, 'ingredient_name', e.target.value)} disabled={!canEdit}
+                      placeholder="Ingredient (e.g. Ground Beef)"
+                      className="flex-1 px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60" />
+                    <input type="number" min="0" step="0.01" value={row.quantity} onChange={e => updateRow(idx, 'quantity', e.target.value)} disabled={!canEdit}
+                      placeholder="Qty"
+                      className="w-20 px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60" />
+                    <select value={row.unit} onChange={e => updateRow(idx, 'unit', e.target.value)} disabled={!canEdit}
+                      className="w-24 px-2 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60">
+                      {RECIPE_UNITS.map(u => <option key={u} value={u}>{u.replace('_', ' ')}</option>)}
+                    </select>
+                    {canEdit && (
+                      <button onClick={() => removeRow(idx)} className="text-slate-400 hover:text-red-500 flex-shrink-0"><X size={14} /></button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">{canEdit ? 'Cancel' : 'Close'}</button>
+          {canEdit && (
+            <button onClick={handleSave} disabled={saving}
+              className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
+              {saving ? 'Saving...' : 'Save Recipe'}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Menu Items Catalog ─────────────────────────────────────────
 function MenuItemsCatalog({ items, onRefresh, orgId, canEdit }) {
   const [showForm, setShowForm] = useState(false)
   const [editItem, setEditItem] = useState(null)
+  const [recipeItem, setRecipeItem] = useState(null)
   const [form, setForm]         = useState({ name: '', description: '', allergens: [], suitable_diets: [], suitable_consistencies: [], portion_qty: '', portion_unit: '' })
   const [saving, setSaving]     = useState(false)
   const [search, setSearch]     = useState('')
@@ -237,6 +349,9 @@ function MenuItemsCatalog({ items, onRefresh, orgId, canEdit }) {
               {item.portion_qty && item.portion_unit && (
                 <div className="text-xs text-slate-400 mt-0.5">{item.portion_qty} {item.portion_unit.replace('_', ' ')} / serving</div>
               )}
+              {item.yield_servings && (
+                <div className="text-xs text-slate-400 mt-0.5">Recipe yields {item.yield_servings} servings</div>
+              )}
               {item.allergens?.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-1.5">
                   {item.allergens.map(a => (
@@ -252,18 +367,27 @@ function MenuItemsCatalog({ items, onRefresh, orgId, canEdit }) {
                 </div>
               )}
             </div>
-            {canEdit && (
-              <div className="flex gap-1 flex-shrink-0">
-                <button onClick={() => openEdit(item)} className="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 transition-colors"><Edit2 size={13} /></button>
-                <button onClick={() => handleDelete(item.id)} className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors"><Trash2 size={13} /></button>
-              </div>
-            )}
+            <div className="flex gap-1 flex-shrink-0">
+              <button onClick={() => setRecipeItem(item)} className="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 transition-colors" title={canEdit ? 'Edit recipe' : 'View recipe'}><ChefHat size={13} /></button>
+              {canEdit && (
+                <>
+                  <button onClick={() => openEdit(item)} className="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 transition-colors"><Edit2 size={13} /></button>
+                  <button onClick={() => handleDelete(item.id)} className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors"><Trash2 size={13} /></button>
+                </>
+              )}
+            </div>
           </div>
         ))}
         {filtered.length === 0 && (
           <div className="col-span-3 text-center py-10 text-slate-400 text-sm">No items yet — add your first menu item above.</div>
         )}
       </div>
+
+      {recipeItem && (
+        <RecipeModal item={recipeItem} orgId={orgId} canEdit={canEdit}
+          onClose={() => setRecipeItem(null)}
+          onSaved={() => { setRecipeItem(null); onRefresh() }} />
+      )}
     </div>
   )
 }
@@ -453,6 +577,8 @@ function DayMealCell({ weekNum, dayIdx, period, dayData, items, onSave, canEdit 
 // how many portions of each item the kitchen needs to prepare.
 function CooksCount({ weekNum, dayIdx, menu, orgId }) {
   const [result, setResult]   = useState(null)
+  const [recipes, setRecipes] = useState(new Map()) // menu_item_id -> { yieldServings, ingredients }
+  const [expanded, setExpanded] = useState(new Set()) // item ids currently showing a scaled recipe
   const [loading, setLoading] = useState(true)
   const [period, setPeriod]   = useState('lunch')
 
@@ -471,7 +597,7 @@ function CooksCount({ weekNum, dayIdx, menu, orgId }) {
 
     const [{ data: courseData }, { data: residentProfiles }] = await Promise.all([
       supabase.from('meal_courses')
-        .select('*, menu_items:menu_items!meal_courses_menu_item_id_fkey(id,name,allergens,suitable_diets,suitable_consistencies)')
+        .select('*, menu_items:menu_items!meal_courses_menu_item_id_fkey(id,name,allergens,suitable_diets,suitable_consistencies,yield_servings)')
         .eq('meal_id', meal.id).order('sort_order'),
       supabase.from('resident_dietary_profiles')
         .select('resident_id, diet_type, consistency, allergens, dislikes, cycle_menu_id')
@@ -485,7 +611,7 @@ function CooksCount({ weekNum, dayIdx, menu, orgId }) {
     let altData = []
     if (menuItemIds.length > 0) {
       const { data: alts } = await supabase.from('course_alternates')
-        .select('id, source_item_id, priority, conditions, item:menu_items!course_alternates_menu_item_id_fkey(id,name,allergens,suitable_diets,suitable_consistencies)')
+        .select('id, source_item_id, priority, conditions, item:menu_items!course_alternates_menu_item_id_fkey(id,name,allergens,suitable_diets,suitable_consistencies,yield_servings)')
         .in('source_item_id', menuItemIds)
         .order('priority')
       altData = alts || []
@@ -498,26 +624,52 @@ function CooksCount({ weekNum, dayIdx, menu, orgId }) {
       r.cycle_menu_id === menu.id || (!r.cycle_menu_id && menu.is_current)
     )
 
+    const yieldById = new Map() // item id -> yield_servings, for every item that could get served
     const rows = (courseData || []).map(course => {
       const alternates = altData.filter(a => a.source_item_id === course.menu_item_id)
-      const tally = {} // item name -> count
+      const tally = new Map() // item id -> { id, name, count }
       let unresolved = 0
       residents.forEach(resident => {
         const { servedItem } = resolveMealItem(course.menu_items, alternates, resident)
         if (!servedItem) { unresolved++; return }
-        tally[servedItem.name] = (tally[servedItem.name] || 0) + 1
+        if (servedItem.yield_servings) yieldById.set(servedItem.id, servedItem.yield_servings)
+        const key = servedItem.id || servedItem.name
+        const existing = tally.get(key)
+        tally.set(key, { id: servedItem.id, name: servedItem.name, count: (existing?.count || 0) + 1 })
       })
       return {
         course_name: course.course_name,
         mainName: course.menu_items?.name || null,
-        tally: Object.entries(tally).sort((a, b) => b[1] - a[1]),
+        tally: Array.from(tally.values()).sort((a, b) => b.count - a.count),
         unresolved,
       }
     })
 
+    // Fetch ingredient lists for every served item that has a recipe yield set.
+    const recipeItemIds = Array.from(yieldById.keys())
+    const recipeMap = new Map()
+    if (recipeItemIds.length > 0) {
+      const { data: ingredientRows } = await supabase.from('recipe_ingredients')
+        .select('*').in('menu_item_id', recipeItemIds).order('sort_order')
+      recipeItemIds.forEach(id => {
+        recipeMap.set(id, {
+          yieldServings: yieldById.get(id),
+          ingredients: (ingredientRows || []).filter(i => i.menu_item_id === id),
+        })
+      })
+    }
+
+    setRecipes(recipeMap)
+    setExpanded(new Set())
     setResult({ rows, totalResidents: residents.length })
     setLoading(false)
   }
+
+  const toggleExpanded = (id) => setExpanded(s => {
+    const next = new Set(s)
+    next.has(id) ? next.delete(id) : next.add(id)
+    return next
+  })
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5">
@@ -551,18 +703,43 @@ function CooksCount({ weekNum, dayIdx, menu, orgId }) {
                   <td className="py-2 text-xs">
                     {r.tally.length === 0 && r.unresolved === 0
                       ? <span className="text-slate-400">—</span>
-                      : r.tally.map(([name, count], j) => (
-                          <div key={j} className={name === r.mainName ? 'text-slate-700 dark:text-slate-300' : 'text-slate-500 dark:text-slate-400 italic'}>
-                            {name}{name !== r.mainName && ' (alt)'}
-                          </div>
-                        ))}
+                      : r.tally.map((t, j) => {
+                          const recipe = t.id ? recipes.get(t.id) : null
+                          const isExpanded = expanded.has(t.id)
+                          const scaled = recipe && isExpanded ? scaleIngredients(recipe.ingredients, recipe.yieldServings, t.count) : null
+                          return (
+                            <div key={j} className="mb-1">
+                              <div className={`flex items-center gap-1.5 ${t.name === r.mainName ? 'text-slate-700 dark:text-slate-300' : 'text-slate-500 dark:text-slate-400 italic'}`}>
+                                {t.name}{t.name !== r.mainName && ' (alt)'}
+                                {recipe && (
+                                  <button onClick={() => toggleExpanded(t.id)}
+                                    className="not-italic flex items-center gap-0.5 text-brand-600 dark:text-brand-400 font-medium flex-shrink-0">
+                                    <ChefHat size={11} /> Recipe {isExpanded ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+                                  </button>
+                                )}
+                              </div>
+                              {scaled && (
+                                <div className="mt-1 mb-2 pl-3 border-l-2 border-brand-100 dark:border-brand-900 space-y-0.5">
+                                  <div className="text-slate-400 not-italic">
+                                    Yields {recipe.yieldServings} → scaled to {t.count} ({(t.count / recipe.yieldServings).toFixed(2)}x)
+                                  </div>
+                                  {scaled.map((ing, k) => (
+                                    <div key={k} className="text-slate-600 dark:text-slate-300 not-italic">
+                                      {ing.scaledQuantity} {ing.unit.replace('_', ' ')} {ing.ingredient_name}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
                     {r.unresolved > 0 && (
                       <div className="text-red-600 dark:text-red-400 font-medium">⚠ Verify with kitchen</div>
                     )}
                   </td>
                   <td className="py-2 text-xs text-right">
-                    {r.tally.map(([name, count], j) => (
-                      <div key={j} className="text-slate-700 dark:text-slate-300 font-semibold">{count}</div>
+                    {r.tally.map((t, j) => (
+                      <div key={j} className="text-slate-700 dark:text-slate-300 font-semibold">{t.count}</div>
                     ))}
                     {r.unresolved > 0 && (
                       <div className="text-red-600 dark:text-red-400 font-semibold">{r.unresolved}</div>
