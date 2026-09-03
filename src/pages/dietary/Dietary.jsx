@@ -8,6 +8,7 @@ import OrderGuide from './OrderGuide'
 import SeatingCharts from './SeatingCharts'
 import FoodWaste from './FoodWaste'
 import CostReport from './CostReport'
+import MealOrders from './MealOrders'
 import { resolveMealItem, calcCycleDay, fetchMealCourses, sumNutrition } from './mealResolution'
 import { computeWeightAlerts } from './malnutritionAlerts'
 import {
@@ -1035,6 +1036,7 @@ export default function Dietary() {
     { key: 'seating',   label: 'Seating Charts',    icon: Armchair },
     { key: 'waste',     label: 'Food Waste',        icon: Trash2 },
     { key: 'cost',      label: 'Cost Report',       icon: DollarSign },
+    { key: 'orders',    label: 'Meal Orders',       icon: UtensilsCrossed },
   ]
 
   const stateRef = DIETARY_STATE_REFS[organization?.compliance_state] || DIETARY_STATE_REFS.OTHER
@@ -1185,6 +1187,11 @@ export default function Dietary() {
       {/* COST REPORT TAB */}
       {tab === 'cost' && (
         <CostReport orgId={organization.id} canManage={canEditDietary} />
+      )}
+
+      {/* MEAL ORDERS TAB */}
+      {tab === 'orders' && (
+        <MealOrders orgId={organization.id} canManage={canEditDietary} />
       )}
 
       {/* Modals */}

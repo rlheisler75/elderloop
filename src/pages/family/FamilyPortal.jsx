@@ -3,13 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import UserProfileModal from '../../components/UserProfileModal'
+import MealOrderModal, { MEAL_TYPES, MEAL_STATUS } from '../../components/MealOrderModal'
 import {
   Heart, Bell, MessageSquare, CalendarDays, ChevronRight,
   Plus, X, Send, Star, Activity, ArrowLeft, LogOut,
   Wrench, Camera, Phone, User, Home, ChevronDown,
   CheckCircle2, Clock, AlertCircle, Image, Users,
   Cake, MapPin, HeartHandshake, Shield, ClipboardList,
-  Church, Play, Radio,
+  Church, Play, Radio, UtensilsCrossed,
 } from 'lucide-react'
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -653,9 +654,67 @@ function MaintenanceTab({ myWorkOrders, onNewRequest }) {
   )
 }
 
+// ── Dining Tab (order meal delivery for the selected resident) ─
+function DiningTab({ resident, dietProfile, mealOrders, onNewOrder }) {
+  return (
+    <div className="space-y-4">
+      <button onClick={onNewOrder}
+        className="w-full flex items-center justify-center gap-2 py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-2xl transition-colors shadow-sm">
+        <UtensilsCrossed size={18} /> Order Meal Delivery for {resident?.first_name}
+      </button>
+
+      {dietProfile && (dietProfile.diet_type || dietProfile.allergens?.length > 0) && (
+        <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-xs text-slate-600 dark:text-slate-300 space-y-1">
+          {dietProfile.diet_type && (
+            <div><span className="font-semibold">Diet type:</span> <span className="capitalize">{dietProfile.diet_type.replace('_', ' ')}</span></div>
+          )}
+          {dietProfile.consistency && (
+            <div><span className="font-semibold">Texture:</span> <span className="capitalize">{dietProfile.consistency.replace(/_/g, ' ')}</span></div>
+          )}
+          {dietProfile.allergens?.length > 0 && (
+            <div><span className="font-semibold">Allergies:</span> {dietProfile.allergens.join(', ')}</div>
+          )}
+        </div>
+      )}
+
+      {mealOrders.length > 0 ? (
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+          <div className="px-5 py-3 border-b border-slate-50 dark:border-slate-800">
+            <h4 className="font-semibold text-slate-700 dark:text-slate-300 text-sm">Recent Orders</h4>
+          </div>
+          <div className="divide-y divide-slate-50 dark:divide-slate-800">
+            {mealOrders.slice(0, 5).map(o => {
+              const st = MEAL_STATUS[o.status] || MEAL_STATUS.pending
+              const mt = MEAL_TYPES.find(m => m.key === o.meal_type)
+              return (
+                <div key={o.id} className="px-5 py-3 flex items-center gap-3">
+                  <div className={`w-8 h-8 ${st.bg} rounded-xl flex items-center justify-center flex-shrink-0`}>
+                    {mt && <mt.icon size={14} className={st.color} />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">{o.items}</div>
+                    <div className="text-xs text-slate-400">{mt?.label} · {relativeTime(o.created_at)}</div>
+                  </div>
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${st.bg} ${st.color} flex-shrink-0`}>{st.label}</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      ) : (
+        <div className="text-center py-12 text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+          <UtensilsCrossed size={32} className="mx-auto mb-3 opacity-30" />
+          <p className="font-medium text-slate-500 dark:text-slate-400">No orders yet</p>
+          <p className="text-sm mt-1">Order a meal delivery above and the kitchen will be notified.</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Main Family Portal ─────────────────────────────────────────
 export default function FamilyPortal() {
-  const { profile, organization, signOut } = useAuth()
+  const { profile, organization, orgModules, signOut } = useAuth()
   const navigate = useNavigate()
 
   const [residents, setResidents]           = useState([])
@@ -671,6 +730,9 @@ export default function FamilyPortal() {
   const [liveService, setLiveService]       = useState(null)
   const [emergencyContacts, setEmergencyContacts] = useState([])
   const [medicalContacts, setMedicalContacts]     = useState([])
+  const [dietProfile, setDietProfile]       = useState(null)
+  const [mealOrders, setMealOrders]         = useState([])
+  const [showOrderModal, setShowOrderModal] = useState(false)
   const [loading, setLoading]               = useState(true)
   const [showProfile, setShowProfile]       = useState(false)
   const [notifs, setNotifs]         = useState([])
@@ -735,7 +797,7 @@ export default function FamilyPortal() {
     const _next = new Date(Date.now() + 7*24*60*60*1000)
     const nextWeek = `${_next.getFullYear()}-${String(_next.getMonth()+1).padStart(2,'0')}-${String(_next.getDate()).padStart(2,'0')}`
 
-    const [updatesRes, msgsRes, annRes, actRes, ecRes, mcRes, woRes, chapRes] = await Promise.all([
+    const [updatesRes, msgsRes, annRes, actRes, ecRes, mcRes, woRes, chapRes, dietRes, mealRes] = await Promise.all([
       supabase.from('resident_updates')
         .select('*, profiles(first_name,last_name,role)')
         .eq('resident_id', selectedResident.id)
@@ -769,6 +831,11 @@ export default function FamilyPortal() {
       supabase.from('chapel_services').select('*')
         .eq('organization_id', orgId).eq('is_active', true)
         .order('service_date', { ascending: false }).limit(20),
+      supabase.from('resident_dietary_profiles')
+        .select('*').eq('resident_id', selectedResident.id).eq('is_active', true).limit(1),
+      supabase.from('meal_delivery_orders')
+        .select('*').eq('resident_id', selectedResident.id)
+        .order('created_at', { ascending: false }).limit(10),
     ])
 
     setUpdates(updatesRes.data || [])
@@ -784,6 +851,9 @@ export default function FamilyPortal() {
     const svcs = chapRes.data || []
     setChapelServices(svcs)
     setLiveService(svcs.find(s => s.is_live) || null)
+
+    setDietProfile(dietRes.data?.[0] || null)
+    setMealOrders(mealRes.data || [])
 
     // Photos: extract updates with photos
     const photoUpdates = (updatesRes.data || []).filter(u => u.photo_url)
@@ -832,6 +902,7 @@ export default function FamilyPortal() {
     { key: 'profile',      label: 'Profile',      badge: null },
     { key: 'messages',     label: 'Messages',     badge: unreadCount },
     { key: 'maintenance',  label: 'Requests',     badge: openWOCount },
+    ...(orgModules.includes('dietary') ? [{ key: 'dining', label: 'Dining', badge: null }] : []),
     { key: 'photos',       label: 'Photos',       badge: null },
     { key: 'activities',   label: 'Activities',   badge: null },
     { key: 'chapel',       label: 'Chapel',       badge: liveService ? 1 : null, badgePulse: true },
@@ -1123,6 +1194,16 @@ export default function FamilyPortal() {
                 />
               )}
 
+              {/* ── DINING ── */}
+              {tab === 'dining' && (
+                <DiningTab
+                  resident={selectedResident}
+                  dietProfile={dietProfile}
+                  mealOrders={mealOrders}
+                  onNewOrder={() => setShowOrderModal(true)}
+                />
+              )}
+
               {/* ── PHOTOS ── */}
               {tab === 'photos' && <PhotosTab photos={photos} />}
 
@@ -1291,6 +1372,16 @@ export default function FamilyPortal() {
           profile={profile}
           onClose={() => setShowMaintenanceModal(false)}
           onSubmitted={() => { setShowMaintenanceModal(false); fetchResidentData() }}
+        />
+      )}
+
+      {showOrderModal && selectedResident && (
+        <MealOrderModal
+          resident={selectedResident}
+          profile={profile}
+          orgId={organization?.id || profile?.organization_id}
+          onClose={() => setShowOrderModal(false)}
+          onSaved={() => { setShowOrderModal(false); fetchResidentData() }}
         />
       )}
     </div>
