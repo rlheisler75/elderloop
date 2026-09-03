@@ -33,7 +33,7 @@ export async function fetchMealCourses(menuId, weekNum, dayOfWeek, mealPeriod) {
   if (!meal) return []
 
   const { data: courseData } = await supabase.from('meal_courses')
-    .select('*, menu_items:menu_items!meal_courses_menu_item_id_fkey(id,name,allergens,suitable_diets,suitable_consistencies)')
+    .select('*, menu_items:menu_items!meal_courses_menu_item_id_fkey(id,name,allergens,suitable_diets,suitable_consistencies,calories,protein_g,carbs_g,fat_g,sodium_mg)')
     .eq('meal_id', meal.id).order('sort_order')
 
   // Alternates by source_item_id (item-level, reusable across every cycle day
@@ -42,7 +42,7 @@ export async function fetchMealCourses(menuId, weekNum, dayOfWeek, mealPeriod) {
   let altData = []
   if (menuItemIds.length > 0) {
     const { data: alts } = await supabase.from('course_alternates')
-      .select('id, source_item_id, priority, conditions, item:menu_items!course_alternates_menu_item_id_fkey(id,name,allergens,suitable_diets,suitable_consistencies)')
+      .select('id, source_item_id, priority, conditions, item:menu_items!course_alternates_menu_item_id_fkey(id,name,allergens,suitable_diets,suitable_consistencies,calories,protein_g,carbs_g,fat_g,sodium_mg)')
       .in('source_item_id', menuItemIds)
       .order('priority')
     altData = alts || []
@@ -97,4 +97,26 @@ export function resolveMealItem(mainItem, alternates, resident) {
   }
 
   return { servedItem: null, substitutedFor: mainItem }
+}
+
+// Sums per-serving nutrition facts across every resolved course for one
+// resident's meal — the meal ticket's "nutrition for this tray" figure.
+// Courses whose resolved item has no nutrition data entered are silently
+// skipped from the totals but counted, so the ticket can flag the total as
+// partial rather than presenting it as complete when it isn't.
+const NUTRIENT_KEYS = ['calories', 'protein_g', 'carbs_g', 'fat_g', 'sodium_mg']
+
+export function sumNutrition(courses, resident) {
+  const totals = { calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, sodium_mg: 0 }
+  let hasAny = false
+  let missingCount = 0
+  ;(courses || []).forEach(course => {
+    const { servedItem } = resolveMealItem(course.menu_items, course.alternates, resident)
+    if (!servedItem) return
+    const hasData = NUTRIENT_KEYS.some(k => servedItem[k] != null)
+    if (!hasData) { missingCount++; return }
+    hasAny = true
+    NUTRIENT_KEYS.forEach(k => { totals[k] += servedItem[k] || 0 })
+  })
+  return hasAny ? { ...totals, missingCount } : null
 }

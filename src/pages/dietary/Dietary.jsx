@@ -6,7 +6,7 @@ import ServiceRequests from './ServiceRequests'
 import SnackDrinks from './SnackDrinks'
 import OrderGuide from './OrderGuide'
 import SeatingCharts from './SeatingCharts'
-import { resolveMealItem, calcCycleDay, fetchMealCourses } from './mealResolution'
+import { resolveMealItem, calcCycleDay, fetchMealCourses, sumNutrition } from './mealResolution'
 import { computeWeightAlerts } from './malnutritionAlerts'
 import {
   Users, BookOpen, Printer, Plus, X, Edit2, Search, Eye,
@@ -760,6 +760,16 @@ function PrintTicket({ resident, menus, onClose }) {
                     </div>
                   )
                 })}
+                {(() => {
+                  const nutrition = sumNutrition(courses, resident)
+                  if (!nutrition) return null
+                  return (
+                    <div className="nutrition" style={{ marginTop: 8, fontSize: 12, color: '#444' }}>
+                      <strong>Approx. nutrition:</strong> {nutrition.calories} cal · {nutrition.protein_g.toFixed(1)}g protein · {nutrition.carbs_g.toFixed(1)}g carbs · {nutrition.fat_g.toFixed(1)}g fat · {nutrition.sodium_mg}mg sodium
+                      {nutrition.missingCount > 0 && <span style={{ color: '#999', fontStyle: 'italic' }}> (partial — {nutrition.missingCount} item{nutrition.missingCount > 1 ? 's' : ''} missing data)</span>}
+                    </div>
+                  )
+                })()}
               </div>
             ) : (
               <p style={{ color: '#999', fontSize: 13 }}>No menu items set for this meal.</p>
@@ -908,6 +918,16 @@ function BulkPrintModal({ residents, menus, onClose }) {
                             </div>
                           )
                         })}
+                        {(() => {
+                          const nutrition = sumNutrition(courses, resident)
+                          if (!nutrition) return null
+                          return (
+                            <div className="nutrition" style={{ marginTop: 8, fontSize: 12, color: '#444' }}>
+                              <strong>Approx. nutrition:</strong> {nutrition.calories} cal · {nutrition.protein_g.toFixed(1)}g protein · {nutrition.carbs_g.toFixed(1)}g carbs · {nutrition.fat_g.toFixed(1)}g fat · {nutrition.sodium_mg}mg sodium
+                              {nutrition.missingCount > 0 && <span style={{ color: '#999', fontStyle: 'italic' }}> (partial)</span>}
+                            </div>
+                          )
+                        })()}
                       </div>
                     ) : (
                       <p style={{ color: '#999', fontSize: 13 }}>No menu items set for this meal.</p>

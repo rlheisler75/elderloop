@@ -215,13 +215,20 @@ function MenuItemsCatalog({ items, onRefresh, orgId, canEdit }) {
   const [showForm, setShowForm] = useState(false)
   const [editItem, setEditItem] = useState(null)
   const [recipeItem, setRecipeItem] = useState(null)
-  const [form, setForm]         = useState({ name: '', description: '', allergens: [], suitable_diets: [], suitable_consistencies: [], portion_qty: '', portion_unit: '' })
+  const blankForm = { name: '', description: '', allergens: [], suitable_diets: [], suitable_consistencies: [], portion_qty: '', portion_unit: '', calories: '', protein_g: '', carbs_g: '', fat_g: '', sodium_mg: '' }
+  const [form, setForm]         = useState(blankForm)
   const [saving, setSaving]     = useState(false)
   const [search, setSearch]     = useState('')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
-  const openNew  = () => { setForm({ name: '', description: '', allergens: [], suitable_diets: [], suitable_consistencies: [], portion_qty: '', portion_unit: '' }); setEditItem(null); setShowForm(true) }
-  const openEdit = (item) => { setForm({ name: item.name, description: item.description || '', allergens: item.allergens || [], suitable_diets: item.suitable_diets || [], suitable_consistencies: item.suitable_consistencies || [], portion_qty: item.portion_qty ?? '', portion_unit: item.portion_unit || '' }); setEditItem(item); setShowForm(true) }
+  const openNew  = () => { setForm(blankForm); setEditItem(null); setShowForm(true) }
+  const openEdit = (item) => { setForm({
+    name: item.name, description: item.description || '', allergens: item.allergens || [],
+    suitable_diets: item.suitable_diets || [], suitable_consistencies: item.suitable_consistencies || [],
+    portion_qty: item.portion_qty ?? '', portion_unit: item.portion_unit || '',
+    calories: item.calories ?? '', protein_g: item.protein_g ?? '', carbs_g: item.carbs_g ?? '',
+    fat_g: item.fat_g ?? '', sodium_mg: item.sodium_mg ?? '',
+  }); setEditItem(item); setShowForm(true) }
 
   const toggleAllergen  = (key) => set('allergens', form.allergens.includes(key) ? form.allergens.filter(a => a !== key) : [...form.allergens, key])
   const toggleDiet      = (key) => set('suitable_diets', form.suitable_diets.includes(key) ? form.suitable_diets.filter(d => d !== key) : [...form.suitable_diets, key])
@@ -235,6 +242,11 @@ function MenuItemsCatalog({ items, onRefresh, orgId, canEdit }) {
       suitable_diets: form.suitable_diets, suitable_consistencies: form.suitable_consistencies,
       portion_qty: form.portion_qty !== '' ? Number(form.portion_qty) : null,
       portion_unit: form.portion_unit || null,
+      calories: form.calories !== '' ? Number(form.calories) : null,
+      protein_g: form.protein_g !== '' ? Number(form.protein_g) : null,
+      carbs_g: form.carbs_g !== '' ? Number(form.carbs_g) : null,
+      fat_g: form.fat_g !== '' ? Number(form.fat_g) : null,
+      sodium_mg: form.sodium_mg !== '' ? Number(form.sodium_mg) : null,
       organization_id: orgId,
     }
     if (editItem) {
@@ -295,6 +307,37 @@ function MenuItemsCatalog({ items, onRefresh, orgId, canEdit }) {
               <p className="text-xs text-slate-400 mt-1">Optional — used by the Order Guide to forecast how much of this item to buy from a resident count.</p>
             </div>
             <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Nutrition Facts (per serving)</label>
+              <div className="grid grid-cols-5 gap-2">
+                <div>
+                  <input type="number" min="0" step="1" value={form.calories} onChange={e => set('calories', e.target.value)}
+                    className="w-full px-2 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="0" />
+                  <span className="text-[10px] text-slate-400">Calories</span>
+                </div>
+                <div>
+                  <input type="number" min="0" step="0.1" value={form.protein_g} onChange={e => set('protein_g', e.target.value)}
+                    className="w-full px-2 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="0" />
+                  <span className="text-[10px] text-slate-400">Protein (g)</span>
+                </div>
+                <div>
+                  <input type="number" min="0" step="0.1" value={form.carbs_g} onChange={e => set('carbs_g', e.target.value)}
+                    className="w-full px-2 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="0" />
+                  <span className="text-[10px] text-slate-400">Carbs (g)</span>
+                </div>
+                <div>
+                  <input type="number" min="0" step="0.1" value={form.fat_g} onChange={e => set('fat_g', e.target.value)}
+                    className="w-full px-2 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="0" />
+                  <span className="text-[10px] text-slate-400">Fat (g)</span>
+                </div>
+                <div>
+                  <input type="number" min="0" step="1" value={form.sodium_mg} onChange={e => set('sodium_mg', e.target.value)}
+                    className="w-full px-2 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="0" />
+                  <span className="text-[10px] text-slate-400">Sodium (mg)</span>
+                </div>
+              </div>
+              <p className="text-xs text-slate-400 mt-1">Optional — shown as a per-meal total on printed meal tickets.</p>
+            </div>
+            <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Contains Allergens</label>
               <div className="flex flex-wrap gap-1.5">
                 {ALLERGENS.map(a => (
@@ -351,6 +394,13 @@ function MenuItemsCatalog({ items, onRefresh, orgId, canEdit }) {
               )}
               {item.yield_servings && (
                 <div className="text-xs text-slate-400 mt-0.5">Recipe yields {item.yield_servings} servings</div>
+              )}
+              {item.calories != null && (
+                <div className="text-xs text-slate-400 mt-0.5">
+                  {item.calories} cal
+                  {item.protein_g != null && ` · ${item.protein_g}g protein`}
+                  {item.sodium_mg != null && ` · ${item.sodium_mg}mg sodium`}
+                </div>
               )}
               {item.allergens?.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-1.5">
