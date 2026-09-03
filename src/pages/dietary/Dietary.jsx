@@ -9,12 +9,13 @@ import SeatingCharts from './SeatingCharts'
 import FoodWaste from './FoodWaste'
 import CostReport from './CostReport'
 import MealOrders from './MealOrders'
+import PhysicianOrders from './PhysicianOrders'
 import { resolveMealItem, calcCycleDay, fetchMealCourses, sumNutrition } from './mealResolution'
 import { computeWeightAlerts } from './malnutritionAlerts'
 import {
   Users, BookOpen, Printer, Plus, X, Edit2, Search, Eye,
   ChevronLeft, ChevronRight, AlertTriangle, Check,
-  UtensilsCrossed, RefreshCw, ArrowRight, Clipboard, Link2, CalendarCheck, Utensils, Coffee, ClipboardList, Armchair, Trash2, DollarSign
+  UtensilsCrossed, RefreshCw, ArrowRight, Clipboard, Link2, CalendarCheck, Utensils, Coffee, ClipboardList, Armchair, Trash2, DollarSign, ClipboardCheck
 } from 'lucide-react'
 import { DIETARY_STATE_REFS } from '../../lib/dietaryStateRefs'
 import RegRefBanner from '../../components/ui/RegRefBanner'
@@ -1037,6 +1038,7 @@ export default function Dietary() {
     { key: 'waste',     label: 'Food Waste',        icon: Trash2 },
     { key: 'cost',      label: 'Cost Report',       icon: DollarSign },
     { key: 'orders',    label: 'Meal Orders',       icon: UtensilsCrossed },
+    { key: 'physician', label: 'Physician Orders',  icon: ClipboardCheck },
   ]
 
   const stateRef = DIETARY_STATE_REFS[organization?.compliance_state] || DIETARY_STATE_REFS.OTHER
@@ -1192,6 +1194,11 @@ export default function Dietary() {
       {/* MEAL ORDERS TAB */}
       {tab === 'orders' && (
         <MealOrders orgId={organization.id} canManage={canEditDietary} />
+      )}
+
+      {/* PHYSICIAN ORDERS TAB */}
+      {tab === 'physician' && (
+        <PhysicianOrders orgId={organization.id} canManage={canEditDietary} />
       )}
 
       {/* Modals */}
