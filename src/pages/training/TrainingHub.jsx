@@ -13,8 +13,8 @@ const GUIDES = [
     to: '/training/dietary',
     icon: UtensilsCrossed,
     title: 'Dietary',
-    desc: 'Resident dietary profiles, meal ticket printing, cycle menu building, Cook’s Count, and the menu items catalog behind automatic substitutions.',
-    tag: '7 sections',
+    desc: 'Resident dietary profiles, meal ticket printing, cycle menu building, Cook’s Count, food waste and cost reporting, meal delivery orders, and physician diet order tracking.',
+    tag: '11 sections',
   },
   {
     to: '/training/nursing',
