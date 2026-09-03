@@ -6,12 +6,13 @@ import ServiceRequests from './ServiceRequests'
 import SnackDrinks from './SnackDrinks'
 import OrderGuide from './OrderGuide'
 import SeatingCharts from './SeatingCharts'
+import FoodWaste from './FoodWaste'
 import { resolveMealItem, calcCycleDay, fetchMealCourses, sumNutrition } from './mealResolution'
 import { computeWeightAlerts } from './malnutritionAlerts'
 import {
   Users, BookOpen, Printer, Plus, X, Edit2, Search, Eye,
   ChevronLeft, ChevronRight, AlertTriangle, Check,
-  UtensilsCrossed, RefreshCw, ArrowRight, Clipboard, Link2, CalendarCheck, Utensils, Coffee, ClipboardList, Armchair
+  UtensilsCrossed, RefreshCw, ArrowRight, Clipboard, Link2, CalendarCheck, Utensils, Coffee, ClipboardList, Armchair, Trash2
 } from 'lucide-react'
 import { DIETARY_STATE_REFS } from '../../lib/dietaryStateRefs'
 import RegRefBanner from '../../components/ui/RegRefBanner'
@@ -1031,6 +1032,7 @@ export default function Dietary() {
     { key: 'requests',  label: 'Special Requests',  icon: Utensils },
     { key: 'ordering',  label: 'Order Guide',       icon: ClipboardList },
     { key: 'seating',   label: 'Seating Charts',    icon: Armchair },
+    { key: 'waste',     label: 'Food Waste',        icon: Trash2 },
   ]
 
   const stateRef = DIETARY_STATE_REFS[organization?.compliance_state] || DIETARY_STATE_REFS.OTHER
@@ -1171,6 +1173,11 @@ export default function Dietary() {
       {/* SEATING CHARTS TAB */}
       {tab === 'seating' && (
         <SeatingCharts orgId={organization.id} dietaryProfiles={residents} canManage={canEditDietary} />
+      )}
+
+      {/* FOOD WASTE TAB */}
+      {tab === 'waste' && (
+        <FoodWaste orgId={organization.id} menuItems={menuItems} canManage={canEditDietary} />
       )}
 
       {/* Modals */}
