@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import AttendanceModal from './AttendanceModal'
 import {
   Plus, X, Edit2, Trash2, ChevronLeft, ChevronRight,
   Calendar, Clock, MapPin, Printer, List, Grid3x3,
   Dumbbell, Palette, Gamepad2, Users, Music, BookOpen,
   Church, Bus, UtensilsCrossed, Heart, Tv, Star,
-  RefreshCw, Eye, EyeOff
+  RefreshCw, Eye, EyeOff, ClipboardCheck
 } from 'lucide-react'
 
 // ── Constants ─────────────────────────────────────────────────
@@ -456,7 +457,7 @@ function PrintSchedule({ activities, month, year, orgName, onClose }) {
 }
 
 // ── Upcoming List (resident-style) ─────────────────────────────
-function UpcomingList({ activities, onEdit, canEdit }) {
+function UpcomingList({ activities, onEdit, canEdit, attendanceCounts, onTakeAttendance }) {
   const upcoming = activities
     .filter(a => a._date >= today())
     .slice(0, 30)
@@ -484,15 +485,15 @@ function UpcomingList({ activities, onEdit, canEdit }) {
               {grouped[date].map((a, i) => {
                 const cat = getCat(a.category)
                 const Icon = cat.icon
+                const count = attendanceCounts?.[`${a.id}|${a._date}`] || 0
                 return (
                   <div key={i}
-                    onClick={() => onEdit(a)}
-                    className="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-4 flex items-center gap-4 cursor-pointer hover:shadow-sm hover:border-brand-200 transition-all group">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                    className="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-4 flex items-center gap-4 hover:shadow-sm hover:border-brand-200 transition-all group">
+                    <div onClick={() => onEdit(a)} className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 cursor-pointer"
                       style={{ background: a.color + '22', border: `2px solid ${a.color}44` }}>
                       <Icon size={18} style={{ color: a.color }} />
                     </div>
-                    <div className="flex-1 min-w-0">
+                    <div onClick={() => onEdit(a)} className="flex-1 min-w-0 cursor-pointer">
                       <div className="flex items-center gap-2">
                         <span className="font-semibold text-slate-800 dark:text-slate-100 text-sm">{a.title}</span>
                         {a.recur_type !== 'none' && <RefreshCw size={11} className="text-slate-400 flex-shrink-0" />}
@@ -507,10 +508,12 @@ function UpcomingList({ activities, onEdit, canEdit }) {
                         {a.department && <span className="text-slate-300">· {a.department}</span>}
                       </div>
                     </div>
-                    <span className="text-xs px-2 py-1 rounded-full font-medium flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                      style={{ background: a.color + '22', color: a.color }}>
-                      {canEdit ? 'Edit' : 'View'}
-                    </span>
+                    {canEdit && (
+                      <button onClick={() => onTakeAttendance(a)}
+                        className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg font-medium flex-shrink-0 border transition-colors ${count > 0 ? 'bg-brand-50 dark:bg-brand-950/30 border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-400' : 'border-slate-200 dark:border-slate-700 text-slate-500 hover:border-brand-300'}`}>
+                        <ClipboardCheck size={12} />{count > 0 ? `${count} attended` : 'Attendance'}
+                      </button>
+                    )}
                   </div>
                 )
               })}
@@ -545,8 +548,10 @@ export default function Activities() {
   const [defaultDate, setDefaultDate]   = useState(null)
   const [showPrint, setShowPrint]   = useState(false)
   const [filterCat, setFilterCat]   = useState('all')
+  const [attendanceActivity, setAttendanceActivity] = useState(null)
+  const [attendanceCounts, setAttendanceCounts] = useState({})
 
-  useEffect(() => { if (organization) fetchActivities() }, [organization])
+  useEffect(() => { if (organization) { fetchActivities(); fetchAttendanceCounts() } }, [organization])
 
   async function fetchActivities() {
     setLoading(true)
@@ -556,6 +561,16 @@ export default function Activities() {
       .order('start_date').order('start_time')
     setActivities(data || [])
     setLoading(false)
+  }
+
+  async function fetchAttendanceCounts() {
+    const { data } = await supabase.from('activity_attendance').select('activity_id, occurrence_date').eq('organization_id', organization.id)
+    const counts = {}
+    ;(data || []).forEach(r => {
+      const key = `${r.activity_id}|${r.occurrence_date}`
+      counts[key] = (counts[key] || 0) + 1
+    })
+    setAttendanceCounts(counts)
   }
 
   const handleDelete = async (id) => {
@@ -700,7 +715,8 @@ export default function Activities() {
         loading ? (
           <div className="text-center py-16 text-slate-400">Loading...</div>
         ) : (
-          <UpcomingList activities={expandedList} onEdit={handleEdit} canEdit={canEditActivities} />
+          <UpcomingList activities={expandedList} onEdit={handleEdit} canEdit={canEditActivities}
+            attendanceCounts={attendanceCounts} onTakeAttendance={setAttendanceActivity} />
         )
       )}
 
@@ -719,6 +735,12 @@ export default function Activities() {
           activities={expanded} month={calMonth} year={calYear}
           orgName={organization?.name}
           onClose={() => setShowPrint(false)} />
+      )}
+      {attendanceActivity && (
+        <AttendanceModal
+          activity={attendanceActivity}
+          orgId={organization.id}
+          onClose={() => { setAttendanceActivity(null); fetchAttendanceCounts() }} />
       )}
     </div>
   )
