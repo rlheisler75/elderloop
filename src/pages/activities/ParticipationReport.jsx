@@ -5,7 +5,8 @@
 // attendance already being taken.
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
-import { BarChart3, Users, CalendarCheck, TrendingUp } from 'lucide-react'
+import { computeEngagementAlerts } from './engagementAlerts'
+import { BarChart3, Users, CalendarCheck, TrendingUp, UserX } from 'lucide-react'
 
 function localDateStr(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -21,20 +22,26 @@ export default function ParticipationReport({ orgId }) {
   const [residents, setResidents] = useState([])
   const [loading, setLoading] = useState(true)
   const [residentSort, setResidentSort] = useState('asc') // 'asc' surfaces low engagement first
+  const [engagementAlerts, setEngagementAlerts] = useState(new Map())
 
   useEffect(() => { if (orgId) fetchReport() }, [orgId, dateFrom, dateTo])
 
   async function fetchReport() {
     setLoading(true)
-    const [attRes, actRes, resRes] = await Promise.all([
+    const alertCutoff = new Date()
+    alertCutoff.setDate(alertCutoff.getDate() - 65) // independent of the picked range — always looks at "now"
+    const [attRes, actRes, resRes, alertAttRes] = await Promise.all([
       supabase.from('activity_attendance').select('activity_id, occurrence_date, resident_id')
         .eq('organization_id', orgId).gte('occurrence_date', dateFrom).lte('occurrence_date', dateTo),
       supabase.from('activities').select('id, title, category, department').eq('organization_id', orgId),
       supabase.from('residents').select('id, first_name, last_name, room').eq('organization_id', orgId).eq('is_active', true),
+      supabase.from('activity_attendance').select('resident_id, occurrence_date')
+        .eq('organization_id', orgId).gte('occurrence_date', alertCutoff.toISOString().slice(0, 10)),
     ])
     setAttendance(attRes.data || [])
     setActivities(actRes.data || [])
     setResidents(resRes.data || [])
+    setEngagementAlerts(computeEngagementAlerts(alertAttRes.data || []))
     setLoading(false)
   }
 
@@ -172,12 +179,23 @@ export default function ParticipationReport({ orgId }) {
               <div className="max-h-80 overflow-y-auto">
                 <table className="w-full">
                   <tbody>
-                    {residentRows.map(({ resident, count }) => (
-                      <tr key={resident.id} className="border-b border-slate-50 dark:border-slate-800">
-                        <td className="py-2 text-sm text-slate-700 dark:text-slate-300">{resident.first_name} {resident.last_name}{resident.room && <span className="text-slate-400"> · Rm {resident.room}</span>}</td>
-                        <td className={`py-2 text-sm text-right font-semibold ${count === 0 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-800 dark:text-slate-100'}`}>{count} {count === 1 ? 'session' : 'sessions'}</td>
-                      </tr>
-                    ))}
+                    {residentRows.map(({ resident, count }) => {
+                      const alert = engagementAlerts.get(resident.id)
+                      return (
+                        <tr key={resident.id} className="border-b border-slate-50 dark:border-slate-800">
+                          <td className="py-2 text-sm text-slate-700 dark:text-slate-300">
+                            {resident.first_name} {resident.last_name}{resident.room && <span className="text-slate-400"> · Rm {resident.room}</span>}
+                            {alert && (
+                              <span className="inline-flex items-center gap-1 ml-2 text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 px-1.5 py-0.5 rounded-full"
+                                title={`Attended ${alert.priorCount}x in the prior ${alert.windowLabel}, zero since`}>
+                                <UserX size={11} /> {alert.windowLabel} silent
+                              </span>
+                            )}
+                          </td>
+                          <td className={`py-2 text-sm text-right font-semibold ${count === 0 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-800 dark:text-slate-100'}`}>{count} {count === 1 ? 'session' : 'sessions'}</td>
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>

@@ -5,11 +5,12 @@ import { useAuth } from '../../context/AuthContext'
 import PushPermissionModal from '../../components/modals/PushPermissionModal'
 import { ServiceRequestModal, REQUESTER_ROLES } from '../dietary/ServiceRequests'
 import { computeWeightAlerts } from '../dietary/malnutritionAlerts'
+import { computeEngagementAlerts } from '../activities/engagementAlerts'
 import {
   MessageSquare, Wrench, UtensilsCrossed, SprayCan,
   Car, CalendarDays, AlertTriangle, BookUser, Gauge,
   Church, ArrowRight, Clock, CheckCircle2, TrendingUp,
-  Bell, Users, Activity, Zap, Shield, Utensils, CalendarCheck, TrendingDown
+  Bell, Users, Activity, Zap, Shield, Utensils, CalendarCheck, TrendingDown, UserX
 } from 'lucide-react'
 
 // ── Stat Card ──────────────────────────────────────────────────
@@ -147,10 +148,13 @@ export default function Dashboard() {
     } else queries.push(Promise.resolve({ data: [] }))
 
     if (hasModule('activities')) {
+      const attendanceCutoff = new Date()
+      attendanceCutoff.setDate(attendanceCutoff.getDate() - 65) // covers the 30-day engagement window + its prior window, with margin
       queries.push(
-        supabase.from('activities').select('id,title,start_time,start_date,category,recur_type,recur_end_date').eq('organization_id', orgId).eq('is_active', true)
+        supabase.from('activities').select('id,title,start_time,start_date,category,recur_type,recur_end_date').eq('organization_id', orgId).eq('is_active', true),
+        supabase.from('activity_attendance').select('resident_id,occurrence_date').eq('organization_id', orgId).gte('occurrence_date', attendanceCutoff.toISOString().slice(0, 10))
       )
-    } else queries.push(Promise.resolve({ data: [] }))
+    } else { queries.push(Promise.resolve({ data: [] })); queries.push(Promise.resolve({ data: [] })) }
 
     if (hasModule('housekeeping')) {
       queries.push(
@@ -192,7 +196,7 @@ export default function Dashboard() {
       )
     } else { queries.push(Promise.resolve({ data: [] })); queries.push(Promise.resolve({ data: [] })) }
 
-    const [woRes, annRes, incRes, tripRes, actRes, ilRes, resRes, secRoundsRes, secReportsRes, meterRes, dietRes, vitalsRes] = await Promise.all(queries)
+    const [woRes, annRes, incRes, tripRes, actRes, attRes, ilRes, resRes, secRoundsRes, secReportsRes, meterRes, dietRes, vitalsRes] = await Promise.all(queries)
 
     const workOrders    = woRes.data    || []
     const announcements = annRes.data   || []
@@ -206,6 +210,7 @@ export default function Dashboard() {
     const meters        = meterRes.data || []
     const dietProfiles  = dietRes.data  || []
     const weightAlerts  = computeWeightAlerts(vitalsRes.data || [])
+    const engagementAlerts = computeEngagementAlerts(attRes.data || [])
 
     const todayActs = activities.filter(a => {
       if (a.start_date === todayStr) return true
@@ -249,6 +254,7 @@ export default function Dashboard() {
       dietReviewsDue: dietOverdue + dietDueSoon,
       dietReviewsOverdue: dietOverdue,
       weightLossAlerts: weightAlerts.size,
+      engagementAlerts: engagementAlerts.size,
       workOrders,
       incidents,
       tripsList: todayTrips,
@@ -277,6 +283,7 @@ export default function Dashboard() {
   if (data.urgentSecReports > 0) alerts.push({ icon: Shield,   color: 'text-red-700',    bg: 'bg-red-100',    label: `${data.urgentSecReports} urgent security report${data.urgentSecReports > 1 ? 's' : ''}`, to: '/app/security' })
   if (data.dietReviewsOverdue > 0) alerts.push({ icon: UtensilsCrossed, color: 'text-red-700', bg: 'bg-red-100', label: `${data.dietReviewsOverdue} RD review${data.dietReviewsOverdue > 1 ? 's' : ''} overdue`, to: '/app/dietary' })
   if (data.weightLossAlerts > 0) alerts.push({ icon: TrendingDown, color: 'text-red-700', bg: 'bg-red-100', label: `${data.weightLossAlerts} resident${data.weightLossAlerts > 1 ? 's' : ''} with significant weight loss`, to: '/app/dietary' })
+  if (data.engagementAlerts > 0) alerts.push({ icon: UserX, color: 'text-red-700', bg: 'bg-red-100', label: `${data.engagementAlerts} resident${data.engagementAlerts > 1 ? 's' : ''} with declining activity participation`, to: '/app/activities' })
 
   return (
     <>
@@ -356,6 +363,11 @@ export default function Dashboard() {
         {hasModule('dietary') && data.weightLossAlerts > 0 && (
           <StatCard icon={TrendingDown} label="Weight Loss Alerts" value={data.weightLossAlerts}
             sub="Significant unplanned loss" color="text-red-600" bg="bg-red-50" to="/app/dietary"
+            alert />
+        )}
+        {hasModule('activities') && data.engagementAlerts > 0 && (
+          <StatCard icon={UserX} label="Engagement Alerts" value={data.engagementAlerts}
+            sub="Declining participation" color="text-red-600" bg="bg-red-50" to="/app/activities"
             alert />
         )}
         {hasModule('meters') && data.meterCount > 0 && (
