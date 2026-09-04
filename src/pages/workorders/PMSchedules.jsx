@@ -6,6 +6,9 @@ import {
   RefreshCw, AlertTriangle, Play, ChevronRight
 } from 'lucide-react'
 
+const toDateStr = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+const todayDateStr = () => toDateStr(new Date())
+
 const FREQ_OPTIONS = [
   { key: 'weekly',    label: 'Weekly',    days: 7   },
   { key: 'monthly',   label: 'Monthly',   days: 30  },
@@ -234,15 +237,16 @@ export default function PMSchedules({ orgId: orgIdProp, profile: profileProp }) 
     const nextDue  = new Date()
     nextDue.setDate(nextDue.getDate() + freqDays)
     await supabase.from('pm_schedules').update({
-      last_generated: new Date().toISOString().split('T')[0],
-      next_due: nextDue.toISOString().split('T')[0],
+      last_generated: todayDateStr(),
+      next_due: toDateStr(nextDue),
     }).eq('id', schedule.id)
     fetchAll()
     setGenerating(null)
   }
 
-  const todayStr = new Date().toISOString().split('T')[0]
-  const soonStr  = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+  const todayStr = todayDateStr()
+  const _soon = new Date(); _soon.setDate(_soon.getDate() + 30)
+  const soonStr  = toDateStr(_soon)
 
   const overdue  = schedules.filter(s => s.next_due < todayStr).length
   const dueSoon  = schedules.filter(s => s.next_due >= todayStr && s.next_due <= soonStr).length

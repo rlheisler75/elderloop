@@ -93,7 +93,9 @@ export default function SupplyReceive() {
     if (selectedPO) {
       const { data: allLines } = await supabase.from('supply_po_line_items').select('is_received').eq('po_id', selectedPO.id)
       const allDone = allLines?.every(l => l.is_received)
-      await supabase.from('supply_purchase_orders').update({ status: allDone ? 'received' : 'partially_received', ...(allDone ? { received_date: new Date().toISOString().split('T')[0], received_by: profile.id } : {}) }).eq('id', selectedPO.id)
+      const _now = new Date()
+      const todayStr = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`
+      await supabase.from('supply_purchase_orders').update({ status: allDone ? 'received' : 'partially_received', ...(allDone ? { received_date: todayStr, received_by: profile.id } : {}) }).eq('id', selectedPO.id)
     }
 
     setSaving(false)

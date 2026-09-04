@@ -24,13 +24,15 @@ function poTotal(lines) {
   return lines.reduce((s, l) => s + (Number(l.quantity_ordered) * Number(l.unit_cost || 0)), 0)
 }
 
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
+
 // ── Create PO Modal ────────────────────────────────────────────
 function CreatePOModal({ orgId, profileId, vendors, items, editPO, editLines, onClose, onSaved }) {
   const isEdit = !!editPO
   const [poType, setPoType]   = useState(editPO?.po_type || 'stock')
   const [vendorId, setVendorId] = useState(editPO?.vendor_id || '')
   const [vendorFree, setVendorFree] = useState(editPO?.vendor_name_free || '')
-  const [orderedDate, setOrderedDate] = useState(editPO?.ordered_date || new Date().toISOString().split('T')[0])
+  const [orderedDate, setOrderedDate] = useState(editPO?.ordered_date || today())
   const [expectedDate, setExpectedDate] = useState(editPO?.expected_date || '')
   const [notes, setNotes]     = useState(editPO?.notes || '')
   const [lines, setLines]     = useState(editLines?.length ? editLines.map(l => ({ supply_item_id: l.supply_item_id || '', description: l.description, unit: l.unit, quantity_ordered: l.quantity_ordered, unit_cost: l.unit_cost ?? '' })) : [{ supply_item_id: '', description: '', unit: 'each', quantity_ordered: 1, unit_cost: '' }])

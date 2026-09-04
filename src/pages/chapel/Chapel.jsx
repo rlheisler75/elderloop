@@ -261,7 +261,8 @@ export default function Chapel() {
     fetchServices()
   }
 
-  const todayStr  = new Date().toISOString().split('T')[0]
+  const _now = new Date()
+  const todayStr  = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`
   const upcoming  = services.filter(s => s.service_date >= todayStr).reverse()
   const past      = services.filter(s => s.service_date < todayStr)
 

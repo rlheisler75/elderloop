@@ -223,8 +223,10 @@ export default function WorkOrderAssets({ orgId, profile }) {
     setLoading(false)
   }
 
-  const todayStr = new Date().toISOString().split('T')[0]
-  const soon = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+  const _now = new Date()
+  const todayStr = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`
+  const _soon = new Date(); _soon.setDate(_soon.getDate() + 30)
+  const soon = `${_soon.getFullYear()}-${String(_soon.getMonth()+1).padStart(2,'0')}-${String(_soon.getDate()).padStart(2,'0')}`
 
   const filtered = assets.filter(a => {
     const matchSearch = !search || `${a.name} ${a.asset_number} ${a.location} ${a.manufacturer}`.toLowerCase().includes(search.toLowerCase())
@@ -293,10 +295,10 @@ export default function WorkOrderAssets({ orgId, profile }) {
             const cat    = getCat(asset.category)
             const status = ASSET_STATUSES.find(s => s.key === asset.status) || ASSET_STATUSES[0]
             const overdue = asset.next_service_date && asset.next_service_date < todayStr
-            const soon    = asset.next_service_date && asset.next_service_date >= todayStr && asset.next_service_date <= new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0]
+            const isDueSoon = asset.next_service_date && asset.next_service_date >= todayStr && asset.next_service_date <= soon
             return (
               <div key={asset.id}
-                className={`bg-white dark:bg-slate-900 rounded-2xl border shadow-sm p-4 hover:shadow-md transition-all ${overdue ? 'border-red-200 dark:border-red-900' : soon ? 'border-amber-200 dark:border-amber-900' : 'border-slate-100 dark:border-slate-800'}`}>
+                className={`bg-white dark:bg-slate-900 rounded-2xl border shadow-sm p-4 hover:shadow-md transition-all ${overdue ? 'border-red-200 dark:border-red-900' : isDueSoon ? 'border-amber-200 dark:border-amber-900' : 'border-slate-100 dark:border-slate-800'}`}>
                 {/* Asset photo */}
                 {asset.photo_url && (
                   <img src={asset.photo_url} alt="" className="w-full h-28 object-cover rounded-xl mb-3" />
@@ -315,7 +317,7 @@ export default function WorkOrderAssets({ orgId, profile }) {
                   {asset.manufacturer && <div>🏭 {asset.manufacturer} {asset.model}</div>}
                   {asset.serial_number && <div>🔢 SN: {asset.serial_number}</div>}
                 </div>
-                <div className={`flex items-center justify-between text-xs ${overdue ? 'text-red-600 font-medium' : soon ? 'text-amber-600 font-medium' : 'text-slate-400'}`}>
+                <div className={`flex items-center justify-between text-xs ${overdue ? 'text-red-600 font-medium' : isDueSoon ? 'text-amber-600 font-medium' : 'text-slate-400'}`}>
                   <span className="flex items-center gap-1">
                     <Calendar size={11} />
                     {overdue ? `Service overdue since ${fmt(asset.next_service_date)}` :

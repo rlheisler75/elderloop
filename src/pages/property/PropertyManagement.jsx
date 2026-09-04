@@ -80,6 +80,7 @@ const fmtMoney = (n) => n != null && n !== '' ? `$${Number(n).toLocaleString('en
 const getUnitStatus   = (key) => UNIT_STATUSES.find(s=>s.key===key)  || UNIT_STATUSES[0]
 const getLeaseStatus  = (key) => LEASE_STATUSES.find(s=>s.key===key) || LEASE_STATUSES[0]
 const getNoticeStatus = (key) => NOTICE_STATUSES.find(s=>s.key===key)|| NOTICE_STATUSES[0]
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
 
 // ── Shared UI ─────────────────────────────────────────────────
 
@@ -402,7 +403,7 @@ function LeaseForm({ lease, units, tenants, orgId, onSave, onClose }) {
 function LedgerModal({ lease, onClose }) {
   const { profile } = useAuth()
   const [entries, setEntries]   = useState([])
-  const [form, setForm]         = useState({ entry_type:'payment', amount:'', description:'', payment_date: new Date().toISOString().slice(0,10), payment_method:'check', check_number:'', due_date:'' })
+  const [form, setForm]         = useState({ entry_type:'payment', amount:'', description:'', payment_date: today(), payment_method:'check', check_number:'', due_date:'' })
   const [saving, setSaving]     = useState(false)
 
   const fetchEntries = async () => {
@@ -431,7 +432,7 @@ function LedgerModal({ lease, onClose }) {
       check_number: form.check_number || null,
     })
     await fetchEntries()
-    setForm({ entry_type:'payment', amount:'', description:'', payment_date: new Date().toISOString().slice(0,10), payment_method:'check', check_number:'', due_date:'' })
+    setForm({ entry_type:'payment', amount:'', description:'', payment_date: today(), payment_method:'check', check_number:'', due_date:'' })
     setSaving(false)
   }
 
@@ -555,7 +556,7 @@ function NoticeForm({ leases, tenants, units, orgId, notice, onSave, onClose }) 
   const [form, setForm] = useState({
     lease_id:'', unit_id:'', tenant_id:'', notice_type:'late_rent',
     status:'draft', amount_owed:'', cure_deadline:'',
-    issued_date: new Date().toISOString().slice(0,10),
+    issued_date: today(),
     delivery_method:'hand_delivered', notes:'',
     ...notice,
   })
@@ -769,7 +770,7 @@ function KeysTab({ orgId, units, leases, tenants, staff }) {
   const [form, setForm] = useState({
     unit_id:'', lease_id:'', tenant_id:'', key_type:'unit',
     key_identifier:'', copies_issued:1,
-    issued_date: new Date().toISOString().slice(0,10), lost:false,
+    issued_date: today(), lost:false,
     replacement_fee:'', notes:'',
   })
   const [saving, setSaving] = useState(false)
@@ -798,12 +799,12 @@ function KeysTab({ orgId, units, leases, tenants, staff }) {
   }
 
   const markReturned = async (id) => {
-    await supabase.from('il_keys').update({ returned_date: new Date().toISOString().slice(0,10), returned_to: profile?.id }).eq('id', id)
+    await supabase.from('il_keys').update({ returned_date: today(), returned_to: profile?.id }).eq('id', id)
     fetchKeys()
   }
 
   const markLost = async (id) => {
-    await supabase.from('il_keys').update({ lost: true, lost_date: new Date().toISOString().slice(0,10) }).eq('id', id)
+    await supabase.from('il_keys').update({ lost: true, lost_date: today() }).eq('id', id)
     fetchKeys()
   }
 

@@ -13,6 +13,7 @@ const CONTACT_TYPES = [
 ]
 
 const getContactType = (key) => CONTACT_TYPES.find(c => c.key === key) || CONTACT_TYPES[0]
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
 const inputCls = 'w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100'
 
 function CaseNoteModal({ note, residents, orgId, canWrite, onClose, onSaved }) {
@@ -20,7 +21,7 @@ function CaseNoteModal({ note, residents, orgId, canWrite, onClose, onSaved }) {
   const isNew = !note
   const [form, setForm] = useState({
     resident_id:       note?.resident_id       || '',
-    contact_date:       note?.contact_date       || new Date().toISOString().split('T')[0],
+    contact_date:       note?.contact_date       || today(),
     contact_type:       note?.contact_type       || 'in_person',
     duration_minutes:   note?.duration_minutes   || '',
     summary:             note?.summary             || '',

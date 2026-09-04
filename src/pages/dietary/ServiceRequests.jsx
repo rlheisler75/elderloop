@@ -212,7 +212,8 @@ export default function ServiceRequests({ orgId, canManage }) {
 
   const pending   = requests.filter(r => r.status === 'requested').length
   const confirmed = requests.filter(r => r.status === 'confirmed').length
-  const today     = new Date().toISOString().split('T')[0]
+  const _now = new Date()
+  const today     = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`
   const upcoming  = requests.filter(r => !['completed', 'cancelled'].includes(r.status) && r.needed_date >= today).length
 
   return (

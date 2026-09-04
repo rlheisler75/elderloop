@@ -36,7 +36,7 @@ export default function ParticipationReport({ orgId }) {
       supabase.from('activities').select('id, title, category, department').eq('organization_id', orgId),
       supabase.from('residents').select('id, first_name, last_name, room').eq('organization_id', orgId).eq('is_active', true),
       supabase.from('activity_attendance').select('resident_id, occurrence_date')
-        .eq('organization_id', orgId).gte('occurrence_date', alertCutoff.toISOString().slice(0, 10)),
+        .eq('organization_id', orgId).gte('occurrence_date', `${alertCutoff.getFullYear()}-${String(alertCutoff.getMonth()+1).padStart(2,'0')}-${String(alertCutoff.getDate()).padStart(2,'0')}`),
     ])
     setAttendance(attRes.data || [])
     setActivities(actRes.data || [])

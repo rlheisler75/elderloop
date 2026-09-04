@@ -35,7 +35,7 @@ const BG_PRESETS = [
 
 const getCat      = (key) => CATEGORIES.find(c => c.key === key) || CATEGORIES[0]
 const toDateInput = (iso) => iso ? iso.split('T')[0] : ''
-const today       = () => new Date().toISOString().split('T')[0]
+const today       = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
 const isScheduled = (item) => item.starts_at && new Date(item.starts_at) > new Date()
 const isExpired   = (item) => item.expires_at && new Date(item.expires_at) < new Date()
 

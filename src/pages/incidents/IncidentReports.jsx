@@ -40,6 +40,7 @@ const STATUSES = [
 const getType     = (key) => INCIDENT_TYPES.find(t => t.key === key) || INCIDENT_TYPES[INCIDENT_TYPES.length - 1]
 const getSeverity = (key) => SEVERITIES.find(s => s.key === key) || SEVERITIES[0]
 const getStatus   = (key) => STATUSES.find(s => s.key === key) || STATUSES[0]
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
 
 const fmt12 = (t) => {
   if (!t) return ''
@@ -222,7 +223,7 @@ function IncidentModal({ incident, canEdit, canReview, viewOnly, residents, onCl
 
   const [form, setForm] = useState({
     incident_type:           incident?.incident_type           || 'fall',
-    incident_date:           incident?.incident_date           || new Date().toISOString().split('T')[0],
+    incident_date:           incident?.incident_date           || today(),
     incident_time:           incident?.incident_time           || '',
     location:                incident?.location                || '',
     severity:                incident?.severity                || 'minor',

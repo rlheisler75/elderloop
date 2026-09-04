@@ -35,6 +35,8 @@ const fmt = (dateStr) => dateStr
   ? new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   : '—'
 
+const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
+
 // ── Add Custom Category Modal ─────────────────────────────────
 function AddCategoryModal({ orgId, onClose, onSaved }) {
   const [form, setForm] = useState({
@@ -144,7 +146,7 @@ function InspectionModal({ category, orgId, profile, onClose, onSaved }) {
   const [items, setItems]       = useState([])
   const [results, setResults]   = useState({})
   const [form, setForm]         = useState({
-    inspection_date: new Date().toISOString().split('T')[0],
+    inspection_date: todayStr(),
     inspector_name:  `${profile.first_name} ${profile.last_name}`,
     next_due_date:   '',
     status:          'pass',

@@ -22,13 +22,16 @@ const fmtShort = (dateStr) => dateStr
   ? new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   : '—'
 
+const toDateStr = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+const todayStr = () => toDateStr(new Date())
+
 // ── Print Report Modal ────────────────────────────────────────
 export default function CompliancePrintReport({ orgId, orgName, stateCode, stateRef, categories, onClose }) {
   const [dateFrom, setDateFrom]     = useState(() => {
     const d = new Date(); d.setFullYear(d.getFullYear() - 1)
-    return d.toISOString().split('T')[0]
+    return toDateStr(d)
   })
-  const [dateTo, setDateTo]         = useState(() => new Date().toISOString().split('T')[0])
+  const [dateTo, setDateTo]         = useState(() => todayStr())
   const [inspections, setInspections] = useState([])
   const [itemResults, setItemResults] = useState({}) // inspectionId -> results
   const [loading, setLoading]       = useState(false)
@@ -222,8 +225,8 @@ export default function CompliancePrintReport({ orgId, orgName, stateCode, state
                 <button key={r.label}
                   onClick={() => {
                     const d = new Date(); d.setMonth(d.getMonth() - r.months)
-                    setDateFrom(d.toISOString().split('T')[0])
-                    setDateTo(new Date().toISOString().split('T')[0])
+                    setDateFrom(toDateStr(d))
+                    setDateTo(todayStr())
                     setLoaded(false)
                   }}
                   className="px-3 py-2 border border-slate-200 rounded-lg text-xs text-slate-600 hover:border-brand-300 hover:text-brand-600 transition-colors">

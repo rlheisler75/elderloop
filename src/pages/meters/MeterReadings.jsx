@@ -23,7 +23,7 @@ const getIcon = (icon) => ICON_MAP[icon] || Gauge
 
 const fmtNum = (n, decimals = 2) => n != null ? Number(n).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) : '—'
 const fmtCost = (n) => n != null ? `$${fmtNum(n)}` : '—'
-const today = () => new Date().toISOString().split('T')[0]
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
 const monthName = (d) => new Date(d + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
 
 // ── Utility Type Manager ───────────────────────────────────────

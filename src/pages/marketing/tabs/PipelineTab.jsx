@@ -28,7 +28,7 @@ export function LeadForm({ lead, sources, staff, units = [], onSave, onClose }) 
     status: 'new',
     referral_source_id: '',
     source_detail: '',
-    inquiry_date: new Date().toISOString().slice(0,10),
+    inquiry_date: (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` })(),
     budget_min: '', budget_max: '',
     assigned_to: '',
     notes: '',

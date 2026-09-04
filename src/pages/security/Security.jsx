@@ -33,6 +33,8 @@ const timeAgo = (ts) => {
 }
 
 const fmt = (ts) => ts ? new Date(ts).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '—'
+const localDateStr = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+const todayStr = () => localDateStr(new Date())
 
 // ── GPS Checkpoint Modal ───────────────────────────────────────
 function CheckpointModal({ checkpoint, onClose, onSave }) {
@@ -798,7 +800,7 @@ export default function Security() {
   }
 
   // Stats
-  const todayRounds   = rounds.filter(r => r.started_at?.startsWith(new Date().toISOString().split('T')[0]))
+  const todayRounds   = rounds.filter(r => r.started_at && localDateStr(new Date(r.started_at)) === todayStr())
   const activeRound   = rounds.find(r => r.status === 'in_progress')
   const overdueCount  = checkpoints.filter(cp => {
     const last = lastCheckins[cp.id]

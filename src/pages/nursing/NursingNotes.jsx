@@ -36,6 +36,8 @@ const fmtDate = (d) => d
   ? new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   : '—'
 
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
+
 const fmtTime = (ts) => ts
   ? new Date(ts).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
   : '—'
@@ -440,7 +442,7 @@ function NoteModal({ note, resident, orgId, profile, onClose, onSaved }) {
     body:       note?.body     || '',
     is_flagged: note?.is_flagged || false,
     flag_reason:note?.flag_reason || '',
-    note_date:  note?.note_date || new Date().toISOString().split('T')[0],
+    note_date:  note?.note_date || today(),
   })
   const [saving, setSaving]     = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -608,11 +610,11 @@ function ResidentPanel({ resident, orgId, profile, canEdit, onSaved }) {
   const weightData = vitals.slice(0, 10).reverse().map(v => v.weight).filter(Boolean)
   const o2Data     = vitals.slice(0, 10).reverse().map(v => v.o2_sat).filter(Boolean)
 
-  const activeMeds = meds.filter(m => !m.end_date || m.end_date >= new Date().toISOString().split('T')[0])
+  const todayStr = today()
+  const activeMeds = meds.filter(m => !m.end_date || m.end_date >= todayStr)
   const prnMeds    = activeMeds.filter(m => m.is_prn)
   const scheduledMeds = activeMeds.filter(m => !m.is_prn)
 
-  const todayStr = new Date().toISOString().split('T')[0]
   const todayNotes = notes.filter(n => n.note_date === todayStr)
   const flaggedNotes = notes.filter(n => n.is_flagged)
 
@@ -929,7 +931,7 @@ export default function NursingNotes() {
 
   async function fetchAll() {
     setLoading(true)
-    const todayStr  = new Date().toISOString().split('T')[0]
+    const todayStr  = today()
     const now       = new Date()
     const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
     const endOfDay   = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999).toISOString()

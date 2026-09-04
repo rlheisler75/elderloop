@@ -39,7 +39,9 @@ function downloadCsv(events) {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `elderloop-commissions-${new Date().toISOString().slice(0, 10)}.csv`
+  const _now = new Date()
+  const _todayStr = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`
+  a.download = `elderloop-commissions-${_todayStr}.csv`
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)

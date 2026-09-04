@@ -1055,8 +1055,10 @@ export default function WorkOrders() {
 
       {/* Overdue alert banner */}
       {(() => {
+        const _now = new Date()
+        const _todayStr = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`
         const overdue = workOrders.filter(w =>
-          w.due_date && w.due_date < new Date().toISOString().split('T')[0] &&
+          w.due_date && w.due_date < _todayStr &&
           !['closed','cancelled'].includes(w.status)
         )
         const slaBreached = workOrders.filter(w =>

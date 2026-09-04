@@ -86,7 +86,7 @@ function GPSStatus({ gps, geofence }) {
 function PayrollExport({ orgId }) {
   const now     = new Date()
   const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
-  const today   = now.toISOString().split('T')[0]
+  const today   = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`
 
   const [dateFrom, setDateFrom]   = useState(firstOfMonth)
   const [dateTo,   setDateTo]     = useState(today)
@@ -97,7 +97,8 @@ function PayrollExport({ orgId }) {
   const setRange = (from, to) => { setDateFrom(from); setDateTo(to); setReport(null) }
   const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0]
   const lastMonthEnd   = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0]
-  const weekStart      = new Date(now.getTime() - now.getDay() * 86400000).toISOString().split('T')[0]
+  const weekStartDate  = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay())
+  const weekStart      = `${weekStartDate.getFullYear()}-${String(weekStartDate.getMonth()+1).padStart(2,'0')}-${String(weekStartDate.getDate()).padStart(2,'0')}`
 
   const generateReport = async () => {
     setLoading(true)

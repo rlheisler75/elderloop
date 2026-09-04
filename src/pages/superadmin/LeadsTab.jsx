@@ -20,6 +20,7 @@ const STAGES = [
 ]
 
 const getStage = (key) => STAGES.find(s => s.key === key) || STAGES[0]
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
 
 const fmtDate = (iso) => iso ? new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : null
 const fmtRelative = (iso) => {
@@ -223,7 +224,7 @@ export default function LeadsTab() {
   const active    = leads.filter(l => l.status === 'active').length
   const inPipeline = leads.filter(l => !['cancelled','not_interested','not_a_fit'].includes(l.status)).length
   const totalArr  = leads.filter(l => l.arr).reduce((sum, l) => sum + (l.arr || 0), 0)
-  const followUpToday = leads.filter(l => l.next_follow_up === new Date().toISOString().split('T')[0]).length
+  const followUpToday = leads.filter(l => l.next_follow_up === today()).length
 
   return (
     <>
@@ -279,8 +280,8 @@ export default function LeadsTab() {
           <div className="space-y-2">
             {filtered.map(lead => {
               const stage = getStage(lead.status)
-              const overdue = lead.next_follow_up && lead.next_follow_up < new Date().toISOString().split('T')[0]
-              const dueToday = lead.next_follow_up === new Date().toISOString().split('T')[0]
+              const overdue = lead.next_follow_up && lead.next_follow_up < today()
+              const dueToday = lead.next_follow_up === today()
               return (
                 <button key={lead.id} onClick={() => setSelected(lead)}
                   className="w-full bg-slate-800/50 border border-slate-700/50 hover:border-slate-600 rounded-2xl p-4 flex items-center gap-4 text-left transition-all group">

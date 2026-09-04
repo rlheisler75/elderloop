@@ -39,7 +39,7 @@ const fmt12 = (t) => {
   return `${hour > 12 ? hour - 12 : hour || 12}:${m} ${hour >= 12 ? 'PM' : 'AM'}`
 }
 
-const toDateStr = (d) => d.toISOString().split('T')[0]
+const toDateStr = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
 const today     = () => toDateStr(new Date())
 
 // Hours between two times (handles overnight)

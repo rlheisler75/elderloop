@@ -22,6 +22,7 @@ const GOAL_STATUSES = [
 
 const getCategory = (key) => GOAL_CATEGORIES.find(c => c.key === key) || GOAL_CATEGORIES[GOAL_CATEGORIES.length - 1]
 const getStatus   = (key) => GOAL_STATUSES.find(s => s.key === key) || GOAL_STATUSES[0]
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
 const inputCls = 'w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100'
 const formatDate = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''
 
@@ -46,7 +47,7 @@ function GoalModal({ goal, residents, orgId, canWrite, onClose, onSaved }) {
     setForm(f => ({
       ...f,
       status,
-      achieved_date: status === 'met' ? (f.achieved_date || new Date().toISOString().split('T')[0]) : '',
+      achieved_date: status === 'met' ? (f.achieved_date || today()) : '',
     }))
   }
 
@@ -202,10 +203,10 @@ export default function Goals({ canWrite }) {
     return g.title?.toLowerCase().includes(search.toLowerCase())
   })
 
-  const today = new Date().toISOString().split('T')[0]
+  const todayStr = today()
   const active   = goals.filter(g => !['met', 'discontinued'].includes(g.status)).length
   const met      = goals.filter(g => g.status === 'met').length
-  const overdue  = goals.filter(g => !['met', 'discontinued'].includes(g.status) && g.target_date && g.target_date < today).length
+  const overdue  = goals.filter(g => !['met', 'discontinued'].includes(g.status) && g.target_date && g.target_date < todayStr).length
 
   return (
     <div className="space-y-4">
@@ -266,7 +267,7 @@ export default function Goals({ canWrite }) {
             const cat = getCategory(g.category)
             const status = getStatus(g.status)
             const CatIcon = cat.icon
-            const isOverdue = !['met', 'discontinued'].includes(g.status) && g.target_date && g.target_date < today
+            const isOverdue = !['met', 'discontinued'].includes(g.status) && g.target_date && g.target_date < todayStr
             return (
               <button key={g.id} onClick={() => { setEditing(g); setShowModal(true) }}
                 className="w-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all p-4 text-left">

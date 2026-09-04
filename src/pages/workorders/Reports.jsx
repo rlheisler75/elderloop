@@ -54,12 +54,13 @@ function isBreached(w) {
   const compareTo = w.completed_at || new Date().toISOString()
   return new Date(compareTo) > new Date(w.sla_completion_due)
 }
-function todayStr() { return new Date().toISOString().split('T')[0] }
+function toDateStr(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
+function todayStr() { return toDateStr(new Date()) }
 
 export default function Reports({ orgId, profile }) {
   const [preset, setPreset]         = useState('30')
   const [customFrom, setCustomFrom] = useState(() => {
-    const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().split('T')[0]
+    const d = new Date(); d.setDate(d.getDate() - 30); return toDateStr(d)
   })
   const [customTo, setCustomTo]     = useState(todayStr())
   const [tab, setTab]               = useState('response')
@@ -70,7 +71,7 @@ export default function Reports({ orgId, profile }) {
     if (preset === 'custom') return { dateFrom: customFrom, dateTo: customTo }
     const to = new Date()
     const from = new Date(); from.setDate(from.getDate() - parseInt(preset))
-    return { dateFrom: from.toISOString().split('T')[0], dateTo: to.toISOString().split('T')[0] }
+    return { dateFrom: toDateStr(from), dateTo: toDateStr(to) }
   }, [preset, customFrom, customTo])
 
   useEffect(() => { if (orgId) fetchData() }, [orgId, dateFrom, dateTo])

@@ -641,6 +641,8 @@ export default function StaffManagement() {
 
   async function fetchAll() {
     setLoading(true)
+    const _cutoff = new Date(); _cutoff.setDate(_cutoff.getDate() + 30)
+    const cutoffStr = `${_cutoff.getFullYear()}-${String(_cutoff.getMonth()+1).padStart(2,'0')}-${String(_cutoff.getDate()).padStart(2,'0')}`
     const [staffRes, certTypesRes, certRes] = await Promise.all([
       supabase.from('profiles').select('*')
         .eq('organization_id', organization.id)
@@ -652,7 +654,7 @@ export default function StaffManagement() {
       supabase.from('staff_certifications').select('*, profiles(first_name,last_name)')
         .eq('organization_id', organization.id)
         .not('expiry_date', 'is', null)
-        .lte('expiry_date', new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+        .lte('expiry_date', cutoffStr)
         .order('expiry_date'),
     ])
     setStaff(staffRes.data || [])
