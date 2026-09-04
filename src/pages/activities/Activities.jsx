@@ -2,12 +2,13 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import AttendanceModal from './AttendanceModal'
+import ParticipationReport from './ParticipationReport'
 import {
   Plus, X, Edit2, Trash2, ChevronLeft, ChevronRight,
   Calendar, Clock, MapPin, Printer, List, Grid3x3,
   Dumbbell, Palette, Gamepad2, Users, Music, BookOpen,
   Church, Bus, UtensilsCrossed, Heart, Tv, Star,
-  RefreshCw, Eye, EyeOff, ClipboardCheck
+  RefreshCw, Eye, EyeOff, ClipboardCheck, BarChart3
 } from 'lucide-react'
 
 // ── Constants ─────────────────────────────────────────────────
@@ -661,25 +662,31 @@ export default function Activities() {
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${view === 'list' ? 'bg-white dark:bg-slate-900 text-brand-700 shadow-sm' : 'text-slate-500'}`}>
             <List size={14} /> Upcoming
           </button>
+          <button onClick={() => setView('reports')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${view === 'reports' ? 'bg-white dark:bg-slate-900 text-brand-700 shadow-sm' : 'text-slate-500'}`}>
+            <BarChart3 size={14} /> Reports
+          </button>
         </div>
 
         {/* Category filter */}
-        <div className="flex gap-1.5 flex-wrap">
-          <button onClick={() => setFilterCat('all')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${filterCat === 'all' ? 'bg-brand-600 text-white border-brand-600' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}`}>
-            All
-          </button>
-          {CATEGORIES.map(c => {
-            const Icon = c.icon
-            return (
-              <button key={c.key} onClick={() => setFilterCat(c.key)}
-                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${filterCat === c.key ? 'text-white border-transparent' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}`}
-                style={filterCat === c.key ? { background: c.color, borderColor: c.color } : {}}>
-                <Icon size={11} />{c.label}
-              </button>
-            )
-          })}
-        </div>
+        {view !== 'reports' && (
+          <div className="flex gap-1.5 flex-wrap">
+            <button onClick={() => setFilterCat('all')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${filterCat === 'all' ? 'bg-brand-600 text-white border-brand-600' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}`}>
+              All
+            </button>
+            {CATEGORIES.map(c => {
+              const Icon = c.icon
+              return (
+                <button key={c.key} onClick={() => setFilterCat(c.key)}
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${filterCat === c.key ? 'text-white border-transparent' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}`}
+                  style={filterCat === c.key ? { background: c.color, borderColor: c.color } : {}}>
+                  <Icon size={11} />{c.label}
+                </button>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {/* CALENDAR VIEW */}
@@ -718,6 +725,11 @@ export default function Activities() {
           <UpcomingList activities={expandedList} onEdit={handleEdit} canEdit={canEditActivities}
             attendanceCounts={attendanceCounts} onTakeAttendance={setAttendanceActivity} />
         )
+      )}
+
+      {/* REPORTS VIEW */}
+      {view === 'reports' && (
+        <ParticipationReport orgId={organization.id} />
       )}
 
       {/* Modals */}
