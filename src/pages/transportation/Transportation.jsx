@@ -38,7 +38,7 @@ const fmt12 = (t) => {
   return `${hour > 12 ? hour - 12 : hour || 12}:${m} ${hour >= 12 ? 'PM' : 'AM'}`
 }
 
-const toDateStr = (d) => d.toISOString().split('T')[0]
+const toDateStr = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
 const today = () => toDateStr(new Date())
 
 // ── Status Badge ───────────────────────────────────────────────
@@ -570,7 +570,7 @@ export default function Transportation() {
   const todayTrips    = trips.filter(t => t.trip_date === today())
   const upcomingCount = trips.filter(t => t.trip_date > today() && t.status === 'scheduled').length
   const thisMonth     = trips.filter(t => {
-    const d = new Date(t.trip_date)
+    const d = new Date(t.trip_date + 'T12:00:00')
     const n = new Date()
     return d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear()
   }).length
