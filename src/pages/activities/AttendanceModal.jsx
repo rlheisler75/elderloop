@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
-import { X, Search, Check, ClipboardCheck } from 'lucide-react'
+import { X, Search, Check, ClipboardCheck, CalendarCheck } from 'lucide-react'
 
 export default function AttendanceModal({ activity, orgId, onClose }) {
   const { profile } = useAuth()
   const [residents, setResidents] = useState([])
   const [attended, setAttended] = useState(new Set()) // resident_id set
+  const [rsvpd, setRsvpd] = useState(new Set()) // resident_id set — who said they were coming
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [pending, setPending] = useState(new Set()) // resident_id currently being toggled
@@ -15,12 +16,14 @@ export default function AttendanceModal({ activity, orgId, onClose }) {
 
   async function fetchAll() {
     setLoading(true)
-    const [residentsRes, attendanceRes] = await Promise.all([
+    const [residentsRes, attendanceRes, rsvpRes] = await Promise.all([
       supabase.from('residents').select('id, first_name, last_name, room').eq('organization_id', orgId).eq('is_active', true).order('last_name'),
       supabase.from('activity_attendance').select('resident_id').eq('activity_id', activity.id).eq('occurrence_date', activity._date),
+      supabase.from('activity_rsvps').select('resident_id').eq('activity_id', activity.id).eq('occurrence_date', activity._date),
     ])
     setResidents(residentsRes.data || [])
     setAttended(new Set((attendanceRes.data || []).map(r => r.resident_id)))
+    setRsvpd(new Set((rsvpRes.data || []).map(r => r.resident_id)))
     setLoading(false)
   }
 
@@ -88,6 +91,7 @@ export default function AttendanceModal({ activity, orgId, onClose }) {
                   {isAttended && <Check size={12} className="text-white" />}
                 </div>
                 <span className="text-sm text-slate-700 dark:text-slate-300 flex-1">{r.first_name} {r.last_name}</span>
+                {rsvpd.has(r.id) && <CalendarCheck size={13} className="text-brand-500 dark:text-brand-400 flex-shrink-0" title="RSVP'd" />}
                 {r.room && <span className="text-xs text-slate-400">Rm {r.room}</span>}
               </button>
             )

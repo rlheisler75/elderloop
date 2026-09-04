@@ -458,7 +458,7 @@ function PrintSchedule({ activities, month, year, orgName, onClose }) {
 }
 
 // ── Upcoming List (resident-style) ─────────────────────────────
-function UpcomingList({ activities, onEdit, canEdit, attendanceCounts, onTakeAttendance }) {
+function UpcomingList({ activities, onEdit, canEdit, attendanceCounts, onTakeAttendance, rsvpCounts }) {
   const upcoming = activities
     .filter(a => a._date >= today())
     .slice(0, 30)
@@ -487,6 +487,7 @@ function UpcomingList({ activities, onEdit, canEdit, attendanceCounts, onTakeAtt
                 const cat = getCat(a.category)
                 const Icon = cat.icon
                 const count = attendanceCounts?.[`${a.id}|${a._date}`] || 0
+                const rsvpCount = rsvpCounts?.[`${a.id}|${a._date}`] || 0
                 return (
                   <div key={i}
                     className="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-4 flex items-center gap-4 hover:shadow-sm hover:border-brand-200 transition-all group">
@@ -507,6 +508,7 @@ function UpcomingList({ activities, onEdit, canEdit, attendanceCounts, onTakeAtt
                         {a.all_day && <span>All Day</span>}
                         {a.location && <span className="flex items-center gap-1"><MapPin size={11} />{a.location}</span>}
                         {a.department && <span className="text-slate-300">· {a.department}</span>}
+                        {rsvpCount > 0 && <span className="text-brand-500 dark:text-brand-400">· {rsvpCount} RSVP'd</span>}
                       </div>
                     </div>
                     {canEdit && (
@@ -551,8 +553,9 @@ export default function Activities() {
   const [filterCat, setFilterCat]   = useState('all')
   const [attendanceActivity, setAttendanceActivity] = useState(null)
   const [attendanceCounts, setAttendanceCounts] = useState({})
+  const [rsvpCounts, setRsvpCounts] = useState({})
 
-  useEffect(() => { if (organization) { fetchActivities(); fetchAttendanceCounts() } }, [organization])
+  useEffect(() => { if (organization) { fetchActivities(); fetchAttendanceCounts(); fetchRsvpCounts() } }, [organization])
 
   async function fetchActivities() {
     setLoading(true)
@@ -572,6 +575,16 @@ export default function Activities() {
       counts[key] = (counts[key] || 0) + 1
     })
     setAttendanceCounts(counts)
+  }
+
+  async function fetchRsvpCounts() {
+    const { data } = await supabase.from('activity_rsvps').select('activity_id, occurrence_date').eq('organization_id', organization.id)
+    const counts = {}
+    ;(data || []).forEach(r => {
+      const key = `${r.activity_id}|${r.occurrence_date}`
+      counts[key] = (counts[key] || 0) + 1
+    })
+    setRsvpCounts(counts)
   }
 
   const handleDelete = async (id) => {
@@ -723,7 +736,7 @@ export default function Activities() {
           <div className="text-center py-16 text-slate-400">Loading...</div>
         ) : (
           <UpcomingList activities={expandedList} onEdit={handleEdit} canEdit={canEditActivities}
-            attendanceCounts={attendanceCounts} onTakeAttendance={setAttendanceActivity} />
+            attendanceCounts={attendanceCounts} onTakeAttendance={setAttendanceActivity} rsvpCounts={rsvpCounts} />
         )
       )}
 

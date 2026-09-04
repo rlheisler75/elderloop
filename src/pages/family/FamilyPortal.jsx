@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import UserProfileModal from '../../components/UserProfileModal'
 import MealOrderModal, { MEAL_TYPES, MEAL_STATUS } from '../../components/MealOrderModal'
+import RSVPButton from '../../components/RSVPButton'
 import {
   Heart, Bell, MessageSquare, CalendarDays, ChevronRight,
   Plus, X, Send, Star, Activity, ArrowLeft, LogOut,
@@ -722,6 +723,7 @@ export default function FamilyPortal() {
   const [updates, setUpdates]               = useState([])
   const [announcements, setAnnouncements]   = useState([])
   const [activities, setActivities]         = useState([])
+  const [rsvps, setRsvps]                   = useState(new Set())
   const [threads, setThreads]               = useState([])
   const [activeThread, setActiveThread]     = useState(null)
   const [photos, setPhotos]                 = useState([])
@@ -797,7 +799,7 @@ export default function FamilyPortal() {
     const _next = new Date(Date.now() + 7*24*60*60*1000)
     const nextWeek = `${_next.getFullYear()}-${String(_next.getMonth()+1).padStart(2,'0')}-${String(_next.getDate()).padStart(2,'0')}`
 
-    const [updatesRes, msgsRes, annRes, actRes, ecRes, mcRes, woRes, chapRes, dietRes, mealRes] = await Promise.all([
+    const [updatesRes, msgsRes, annRes, actRes, ecRes, mcRes, woRes, chapRes, dietRes, mealRes, rsvpRes] = await Promise.all([
       supabase.from('resident_updates')
         .select('*, profiles(first_name,last_name,role)')
         .eq('resident_id', selectedResident.id)
@@ -836,11 +838,14 @@ export default function FamilyPortal() {
       supabase.from('meal_delivery_orders')
         .select('*').eq('resident_id', selectedResident.id)
         .order('created_at', { ascending: false }).limit(10),
+      supabase.from('activity_rsvps')
+        .select('activity_id, occurrence_date').eq('resident_id', selectedResident.id),
     ])
 
     setUpdates(updatesRes.data || [])
     setAnnouncements(annRes.data || [])
     setActivities(actRes.data || [])
+    setRsvps(new Set((rsvpRes.data || []).map(r => `${r.activity_id}|${r.occurrence_date}`)))
     setEmergencyContacts(ecRes.data || [])
     setMedicalContacts(mcRes.data || [])
 
@@ -896,6 +901,14 @@ export default function FamilyPortal() {
   }
 
   const handleSignOut = async () => { await signOut(); navigate('/login') }
+
+  const toggleRsvpLocal = (key) => {
+    setRsvps(prev => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key); else next.add(key)
+      return next
+    })
+  }
 
   const TAB_CONFIG = [
     { key: 'updates',      label: 'Updates',      badge: null },
@@ -1224,7 +1237,7 @@ export default function FamilyPortal() {
                       <div key={a.id} className={`bg-white dark:bg-slate-900 rounded-2xl border shadow-sm p-4 ${isToday ? 'border-brand-200 dark:border-brand-800' : 'border-slate-100 dark:border-slate-800'}`}>
                         <div className="flex items-start gap-3">
                           <div className="w-2 h-2 rounded-full mt-2 flex-shrink-0" style={{ background: a.color || '#0c90e1' }} />
-                          <div className="flex-1">
+                          <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
                               <span className="font-semibold text-slate-800 dark:text-slate-100 text-sm">{a.title}</span>
                               {isToday && <span className="text-xs bg-brand-100 dark:bg-brand-950/50 text-brand-700 dark:text-brand-400 px-1.5 py-0.5 rounded-full font-medium">Today</span>}
@@ -1236,6 +1249,10 @@ export default function FamilyPortal() {
                             </div>
                             {a.description && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{a.description}</p>}
                           </div>
+                          <RSVPButton activity={a} occurrenceDate={a.start_date} resident={selectedResident} profile={profile}
+                            orgId={organization?.id || profile?.organization_id}
+                            isRSVPd={rsvps.has(`${a.id}|${a.start_date}`)}
+                            onToggled={() => toggleRsvpLocal(`${a.id}|${a.start_date}`)} />
                         </div>
                       </div>
                     )

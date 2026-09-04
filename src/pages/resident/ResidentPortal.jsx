@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import UserProfileModal from '../../components/UserProfileModal'
 import MealOrderModal, { MEAL_TYPES, MEAL_STATUS } from '../../components/MealOrderModal'
+import RSVPButton from '../../components/RSVPButton'
 import {
   Bell, Wrench, UtensilsCrossed, Calendar, Church,
   Play, Plus, X, LogOut, ChevronRight, Clock,
@@ -312,6 +313,7 @@ export default function ResidentPortal() {
   const [resident, setResident]         = useState(null)
   const [announcements, setAnnouncements] = useState([])
   const [activities, setActivities]     = useState([])
+  const [rsvps, setRsvps]               = useState(new Set())
   const [chapelServices, setChapelServices] = useState([])
   const [liveService, setLiveService]   = useState(null)
   const [workOrders, setWorkOrders]     = useState([])
@@ -353,9 +355,15 @@ export default function ResidentPortal() {
         .order('created_at', { ascending: false }).limit(20),
     ])
 
-    setResident(residentRes.data?.[0] || null)
+    const residentRecord = residentRes.data?.[0] || null
+    setResident(residentRecord)
     setAnnouncements(annRes.data || [])
     setActivities(actRes.data || [])
+
+    if (residentRecord) {
+      const { data: rsvpData } = await supabase.from('activity_rsvps').select('activity_id, occurrence_date').eq('resident_id', residentRecord.id)
+      setRsvps(new Set((rsvpData || []).map(r => `${r.activity_id}|${r.occurrence_date}`)))
+    }
 
     const svcs = chapRes.data || []
     setChapelServices(svcs)
@@ -369,6 +377,14 @@ export default function ResidentPortal() {
   }
 
   const handleSignOut = async () => { await signOut(); navigate('/login') }
+
+  const toggleRsvpLocal = (key) => {
+    setRsvps(prev => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key); else next.add(key)
+      return next
+    })
+  }
 
   const today = new Date()
   const upcomingChapel = chapelServices
@@ -646,13 +662,22 @@ export default function ResidentPortal() {
                           {todayActivities.map(a => (
                             <div key={a.id} className="bg-white dark:bg-slate-900 rounded-2xl border-l-4 border-slate-100 dark:border-slate-800 shadow-sm p-4"
                               style={{ borderLeftColor: a.color || '#0c90e1' }}>
-                              <div className="font-semibold text-slate-800 dark:text-slate-100 text-sm">{a.title}</div>
-                              <div className="text-xs text-slate-400 mt-0.5">
-                                {a.start_time ? fmt12(a.start_time) : 'All day'}
-                                {a.end_time ? ` – ${fmt12(a.end_time)}` : ''}
-                                {a.location ? ` · ${a.location}` : ''}
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-semibold text-slate-800 dark:text-slate-100 text-sm">{a.title}</div>
+                                  <div className="text-xs text-slate-400 mt-0.5">
+                                    {a.start_time ? fmt12(a.start_time) : 'All day'}
+                                    {a.end_time ? ` – ${fmt12(a.end_time)}` : ''}
+                                    {a.location ? ` · ${a.location}` : ''}
+                                  </div>
+                                  {a.description && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{a.description}</p>}
+                                </div>
+                                {resident && (
+                                  <RSVPButton activity={a} occurrenceDate={a.start_date} resident={resident} profile={profile} orgId={orgId}
+                                    isRSVPd={rsvps.has(`${a.id}|${a.start_date}`)}
+                                    onToggled={() => toggleRsvpLocal(`${a.id}|${a.start_date}`)} />
+                                )}
                               </div>
-                              {a.description && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{a.description}</p>}
                             </div>
                           ))}
                         </div>
@@ -676,6 +701,11 @@ export default function ResidentPortal() {
                                   </div>
                                   {a.description && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{a.description}</p>}
                                 </div>
+                                {resident && (
+                                  <RSVPButton activity={a} occurrenceDate={a.start_date} resident={resident} profile={profile} orgId={orgId}
+                                    isRSVPd={rsvps.has(`${a.id}|${a.start_date}`)}
+                                    onToggled={() => toggleRsvpLocal(`${a.id}|${a.start_date}`)} />
+                                )}
                               </div>
                             )
                           })}
