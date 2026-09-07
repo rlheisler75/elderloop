@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import {
@@ -52,19 +52,65 @@ function StatusBadge({ status }) {
   )
 }
 
-// ── Daily Trip Sheet Print ─────────────────────────────────────
-function TripSheetPrint({ trips, date, orgName, onClose }) {
-  const printRef = useRef()
+// ── Trip Sheet Print (single day or a custom date range) ────────
+function fmtLongDate(dateStr) {
+  return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+}
+
+function TripSheetPrint({ allTrips, defaultDate, orgName, onClose }) {
+  const [dateFrom, setDateFrom] = useState(defaultDate)
+  const [dateTo, setDateTo]     = useState(defaultDate)
+
+  const rangeTrips = allTrips.filter(t => t.trip_date >= dateFrom && t.trip_date <= dateTo)
+  const isSingleDay = dateFrom === dateTo
+
+  // Group by date so a multi-day range prints as one section per day,
+  // same structure Activities' PrintSchedule uses for a date range.
+  const byDate = new Map()
+  rangeTrips.forEach(t => {
+    if (!byDate.has(t.trip_date)) byDate.set(t.trip_date, [])
+    byDate.get(t.trip_date).push(t)
+  })
+  const sortedDates = Array.from(byDate.keys()).sort()
+
+  const rowsHtml = (dayTrips) => dayTrips.map((t, i) => `
+    <tr>
+      <td>${i + 1}</td>
+      <td><strong>${t.resident_name}</strong>${t.phone ? `<br><small>${t.phone}</small>` : ''}</td>
+      <td>${t.unit || '—'}</td>
+      <td>${fmt12(t.pickup_time)}</td>
+      <td>${getApptType(t.appointment_type)}</td>
+      <td>${t.provider_name || '—'}${t.provider_address ? `<br><small>${t.provider_address}</small>` : ''}</td>
+      <td>${t.appointment_time ? fmt12(t.appointment_time) : '—'}</td>
+      <td>${t.return_time ? fmt12(t.return_time) : '—'}</td>
+      <td>${t.driver_name || '—'}</td>
+      <td><span class="status ${t.status}">${getStatus(t.status).label}</span></td>
+      <td>${t.mileage_start || ''}${t.mileage_start && t.mileage_end ? ' → ' + t.mileage_end : ''}</td>
+    </tr>
+  `).join('')
+
+  const tableHtml = (dayTrips) => `
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>Resident</th><th>Unit</th><th>Pickup</th><th>Appointment</th>
+          <th>Provider</th><th>Appt Time</th><th>Est. Return</th><th>Driver</th><th>Status</th><th>Mileage</th>
+        </tr>
+      </thead>
+      <tbody>${rowsHtml(dayTrips)}</tbody>
+    </table>`
 
   const handlePrint = () => {
     const win = window.open('', '_blank')
     win.document.write(`
-      <html><head><title>Daily Trip Sheet - ${date}</title>
+      <html><head><title>Trip Sheet - ${dateFrom}${isSingleDay ? '' : ' to ' + dateTo}</title>
       <style>
         body { font-family: Arial, sans-serif; padding: 24px; font-size: 13px; }
         h2 { margin: 0; font-size: 18px; }
         .sub { color: #666; margin-bottom: 16px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+        .day-header { font-weight: bold; font-size: 14px; color: #0c90e1; border-bottom: 2px solid #0c90e1; padding-bottom: 4px; margin: 20px 0 4px; }
+        .day-header:first-of-type { margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 4px; }
         th { background: #f1f5f9; padding: 8px 10px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0; }
         td { padding: 8px 10px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
         .status { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
@@ -78,41 +124,11 @@ function TripSheetPrint({ trips, date, orgName, onClose }) {
       </style></head>
       <body>
         <h2>${orgName}</h2>
-        <div class="sub">Daily Transportation Sheet &mdash; ${new Date(date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</div>
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Resident</th>
-              <th>Unit</th>
-              <th>Pickup</th>
-              <th>Appointment</th>
-              <th>Provider</th>
-              <th>Appt Time</th>
-              <th>Est. Return</th>
-              <th>Driver</th>
-              <th>Status</th>
-              <th>Mileage</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${trips.map((t, i) => `
-              <tr>
-                <td>${i + 1}</td>
-                <td><strong>${t.resident_name}</strong>${t.phone ? `<br><small>${t.phone}</small>` : ''}</td>
-                <td>${t.unit || '—'}</td>
-                <td>${fmt12(t.pickup_time)}</td>
-                <td>${getApptType(t.appointment_type)}</td>
-                <td>${t.provider_name || '—'}${t.provider_address ? `<br><small>${t.provider_address}</small>` : ''}</td>
-                <td>${t.appointment_time ? fmt12(t.appointment_time) : '—'}</td>
-                <td>${t.return_time ? fmt12(t.return_time) : '—'}</td>
-                <td>${t.driver_name || '—'}</td>
-                <td><span class="status ${t.status}">${getStatus(t.status).label}</span></td>
-                <td>${t.mileage_start || ''}${t.mileage_start && t.mileage_end ? ' → ' + t.mileage_end : ''}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
+        <div class="sub">Transportation Trip Sheet &mdash; ${isSingleDay ? fmtLongDate(dateFrom) : `${fmtLongDate(dateFrom)} to ${fmtLongDate(dateTo)}`}</div>
+        ${sortedDates.length === 0 ? '<p style="color:#999">No trips in this date range.</p>' : sortedDates.map(d => `
+          ${isSingleDay ? '' : `<div class="day-header">${fmtLongDate(d)}</div>`}
+          ${tableHtml(byDate.get(d))}
+        `).join('')}
         <div style="margin-top:32px">
           <div class="sig-line">Driver Signature</div>
           &nbsp;&nbsp;&nbsp;
@@ -128,33 +144,52 @@ function TripSheetPrint({ trips, date, orgName, onClose }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
-          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Daily Trip Sheet</h2>
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Trip Sheet</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"><X size={20} /></button>
         </div>
         <div className="px-6 py-5">
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div>
+              <label className="block text-xs font-medium text-slate-500 mb-1">From</label>
+              <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-500 mb-1">To</label>
+              <input type="date" value={dateTo} min={dateFrom} onChange={e => setDateTo(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            </div>
+          </div>
           <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 mb-4">
             <div className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-              {new Date(date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+              {isSingleDay ? fmtLongDate(dateFrom) : `${fmtLongDate(dateFrom)} – ${fmtLongDate(dateTo)}`}
             </div>
-            <div className="text-xs text-slate-500">{trips.length} trip{trips.length !== 1 ? 's' : ''} scheduled</div>
+            <div className="text-xs text-slate-500">{rangeTrips.length} trip{rangeTrips.length !== 1 ? 's' : ''} scheduled{!isSingleDay && sortedDates.length > 0 ? ` across ${sortedDates.length} day${sortedDates.length !== 1 ? 's' : ''}` : ''}</div>
           </div>
-          <div className="space-y-2 max-h-64 overflow-y-auto">
-            {trips.map((t, i) => (
-              <div key={t.id} className="flex items-center gap-3 text-sm p-2 rounded-lg border border-slate-100 dark:border-slate-800">
-                <span className="text-xs font-bold text-slate-400 w-5">{i + 1}</span>
-                <div className="flex-1">
-                  <span className="font-medium text-slate-800 dark:text-slate-100">{t.resident_name}</span>
-                  <span className="text-slate-400 ml-2 text-xs">{fmt12(t.pickup_time)} · {getApptType(t.appointment_type)}</span>
+          <div className="space-y-3 max-h-64 overflow-y-auto">
+            {sortedDates.map(d => (
+              <div key={d}>
+                {!isSingleDay && <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">{new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</div>}
+                <div className="space-y-2">
+                  {byDate.get(d).map((t, i) => (
+                    <div key={t.id} className="flex items-center gap-3 text-sm p-2 rounded-lg border border-slate-100 dark:border-slate-800">
+                      <span className="text-xs font-bold text-slate-400 w-5">{i + 1}</span>
+                      <div className="flex-1">
+                        <span className="font-medium text-slate-800 dark:text-slate-100">{t.resident_name}</span>
+                        <span className="text-slate-400 ml-2 text-xs">{fmt12(t.pickup_time)} · {getApptType(t.appointment_type)}</span>
+                      </div>
+                      <StatusBadge status={t.status} />
+                    </div>
+                  ))}
                 </div>
-                <StatusBadge status={t.status} />
               </div>
             ))}
-            {trips.length === 0 && <p className="text-slate-400 text-sm text-center py-4">No trips for this date.</p>}
+            {rangeTrips.length === 0 && <p className="text-slate-400 text-sm text-center py-4">No trips in this date range.</p>}
           </div>
         </div>
         <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
           <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Close</button>
-          <button onClick={handlePrint} disabled={trips.length === 0}
+          <button onClick={handlePrint} disabled={rangeTrips.length === 0}
             className="flex items-center gap-2 px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
             <Printer size={15} /> Print Sheet
           </button>
@@ -855,7 +890,7 @@ export default function Transportation() {
           onClose={() => setShowModal(false)} onSave={handleSave} />
       )}
       {showPrint && (
-        <TripSheetPrint trips={dayTrips} date={selectedDate}
+        <TripSheetPrint allTrips={trips} defaultDate={selectedDate}
           orgName={organization?.name} onClose={() => setShowPrint(false)} />
       )}
     </div>
