@@ -71,7 +71,7 @@ export default function SocialServices() {
         {tab === 'conferences' && <CareConferences   canWrite={canWrite} />}
         {tab === 'discharge'   && <DischargePlanning canWrite={canWrite} />}
         {tab === 'resources'   && <Resources         canWrite={canWrite} />}
-        {tab === 'dashboard'   && <SocialDashboard />}
+        {tab === 'dashboard'   && <SocialDashboard onNavigate={setTab} />}
       </div>
     </div>
   )

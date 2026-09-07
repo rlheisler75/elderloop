@@ -42,6 +42,19 @@ function StatCard({ label, value, sub, icon: Icon, color = 'text-brand-600', bg 
   )
 }
 
+// Compliance-alert tile — clickable so a director can jump straight to the
+// tab that actually resolves the flagged item, instead of just seeing a count.
+function Tile({ urgent, tone = 'red', onClick, children }) {
+  const bg = urgent
+    ? (tone === 'amber' ? 'bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900' : 'bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900')
+    : 'bg-white dark:bg-slate-900 border border-green-100 dark:border-green-900'
+  return (
+    <button type="button" onClick={onClick} className={`rounded-xl p-3 text-center transition-opacity hover:opacity-80 ${bg}`}>
+      {children}
+    </button>
+  )
+}
+
 function SectionHeader({ title, sub }) {
   return (
     <div className="mb-4">
@@ -112,7 +125,7 @@ function TrendDots({ weeks }) {
   )
 }
 
-export default function SocialDashboard() {
+export default function SocialDashboard({ onNavigate }) {
   const { profile, organization } = useAuth()
   const isDirector = DIRECTOR_ROLES.includes(profile?.role)
 
@@ -346,8 +359,12 @@ export default function SocialDashboard() {
             <span className="text-xs font-semibold text-red-700 dark:text-red-400 uppercase tracking-wide">Mandatory Abuse Reporting</span>
           </div>
           <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{stateRef.abuseReporting.agency}</p>
-          <div className="flex items-center gap-3 mt-1 text-xs text-slate-600 dark:text-slate-300">
+          <div className="flex items-center gap-3 mt-1 text-xs text-slate-600 dark:text-slate-300 flex-wrap">
             {stateRef.abuseReporting.phone && <span className="font-mono font-semibold">{stateRef.abuseReporting.phone}</span>}
+            {stateRef.abuseReporting.website && (
+              <a href={stateRef.abuseReporting.website} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-1 text-brand-600 hover:text-brand-700 font-medium"><Globe size={11} /> Report Online</a>
+            )}
             <span>{stateRef.abuseReporting.window}</span>
           </div>
         </div>
@@ -366,7 +383,7 @@ export default function SocialDashboard() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className={`rounded-xl p-3 text-center ${+compliance.missing_assessment > 0 ? 'bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900' : 'bg-white dark:bg-slate-900 border border-green-100 dark:border-green-900'}`}>
+            <Tile urgent={+compliance.missing_assessment > 0} onClick={() => onNavigate?.('profiles')}>
               <div className={`text-3xl font-bold font-display ${+compliance.missing_assessment > 0 ? 'text-red-600' : 'text-green-600'}`}>
                 {compliance.missing_assessment}
               </div>
@@ -374,9 +391,9 @@ export default function SocialDashboard() {
               {+compliance.missing_assessment > 0 && (
                 <div className="text-xs text-red-500 font-medium mt-1">Action required</div>
               )}
-            </div>
+            </Tile>
 
-            <div className={`rounded-xl p-3 text-center ${+compliance.overdue_review > 0 ? 'bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900' : 'bg-white dark:bg-slate-900 border border-green-100 dark:border-green-900'}`}>
+            <Tile urgent={+compliance.overdue_review > 0} tone="amber" onClick={() => onNavigate?.('profiles')}>
               <div className={`text-3xl font-bold font-display ${+compliance.overdue_review > 0 ? 'text-amber-600' : 'text-green-600'}`}>
                 {compliance.overdue_review}
               </div>
@@ -384,16 +401,16 @@ export default function SocialDashboard() {
               {+compliance.overdue_review > 0 && (
                 <div className="text-xs text-amber-600 font-medium mt-1">Past review due date</div>
               )}
-            </div>
+            </Tile>
 
-            <div className={`rounded-xl p-3 text-center ${+compliance.missing_advance_directive > 0 ? 'bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900' : 'bg-white dark:bg-slate-900 border border-green-100 dark:border-green-900'}`}>
+            <Tile urgent={+compliance.missing_advance_directive > 0} tone="amber" onClick={() => onNavigate?.('profiles')}>
               <div className={`text-3xl font-bold font-display ${+compliance.missing_advance_directive > 0 ? 'text-amber-600' : 'text-green-600'}`}>
                 {compliance.missing_advance_directive}
               </div>
               <div className="text-xs text-slate-500 mt-0.5 leading-tight">No Advance Directive on File</div>
-            </div>
+            </Tile>
 
-            <div className={`rounded-xl p-3 text-center ${+compliance.overdue_grievances > 0 ? 'bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900' : 'bg-white dark:bg-slate-900 border border-green-100 dark:border-green-900'}`}>
+            <Tile urgent={+compliance.overdue_grievances > 0} onClick={() => onNavigate?.('grievances')}>
               <div className={`text-3xl font-bold font-display ${+compliance.overdue_grievances > 0 ? 'text-red-600' : 'text-green-600'}`}>
                 {compliance.overdue_grievances}
               </div>
@@ -401,7 +418,7 @@ export default function SocialDashboard() {
               {+compliance.overdue_grievances > 0 && (
                 <div className="text-xs text-red-500 font-medium mt-1">Overdue resolution</div>
               )}
-            </div>
+            </Tile>
           </div>
 
           {/* Assessment completion bar */}

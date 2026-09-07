@@ -42,6 +42,7 @@ export const SOCIAL_STATE_REFS = {
     abuseReporting: {
       agency: 'Missouri DHSS Adult Abuse & Neglect / Nursing Home Hotline',
       phone: '1-800-392-0210',
+      website: 'https://moapss.health.mo.gov/',
       statute: 'RSMo § 198.070',
       window: 'Report immediately. DHSS must investigate within 24 hours; facility must notify the reporter in writing within 5 working days.',
       confidence: 'high',

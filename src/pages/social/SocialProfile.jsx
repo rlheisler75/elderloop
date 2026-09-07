@@ -272,6 +272,7 @@ function ProfileEditor({ resident, orgId, profile: existingProfile, staff, canWr
 export default function SocialProfile({ canWrite }) {
   const { organization } = useAuth()
   const [residents,  setResidents]  = useState([])
+  const [profilesByResident, setProfilesByResident] = useState(new Map())
   const [staff,      setStaff]      = useState([])
   const [search,     setSearch]     = useState('')
   const [selected,   setSelected]   = useState(null)
@@ -283,7 +284,7 @@ export default function SocialProfile({ canWrite }) {
 
   async function fetchResidents() {
     setLoading(true)
-    const [{ data }, { data: staffData }] = await Promise.all([
+    const [{ data }, { data: staffData }, { data: profilesData }] = await Promise.all([
       supabase.from('residents')
         .select('id, first_name, last_name, room, care_level')
         .eq('organization_id', organization.id)
@@ -294,10 +295,25 @@ export default function SocialProfile({ canWrite }) {
         .eq('is_active', true)
         .in('role', ['social_services', 'supervisor', 'manager', 'org_admin', 'ceo'])
         .order('last_name'),
+      supabase.from('ss_social_profiles').select('resident_id, review_due_date')
+        .eq('organization_id', organization.id),
     ])
     setStaff(staffData || [])
     setResidents(data || [])
+    setProfilesByResident(new Map((profilesData || []).map(p => [p.resident_id, p])))
     setLoading(false)
+  }
+
+  // Mirrors the review-status badge shown in the detail header, so the same
+  // "needs attention" signal is visible without clicking into each resident.
+  function actionBadge(residentId) {
+    const prof = profilesByResident.get(residentId)
+    if (!prof) return { label: 'No profile', color: 'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400' }
+    if (!prof.review_due_date) return null
+    const days = Math.floor((new Date(prof.review_due_date) - new Date()) / (1000 * 60 * 60 * 24))
+    if (days < 0) return { label: 'Overdue', color: 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-400' }
+    if (days <= 30) return { label: 'Due soon', color: 'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400' }
+    return null
   }
 
   async function selectResident(r) {
@@ -337,20 +353,26 @@ export default function SocialProfile({ canWrite }) {
             <div className="py-12 text-center text-slate-400 text-sm">Loading residents...</div>
           ) : filtered.length === 0 ? (
             <div className="py-12 text-center text-slate-400 text-sm">No residents found</div>
-          ) : filtered.map(r => (
-            <button key={r.id} onClick={() => selectResident(r)}
-              className={`w-full flex items-center gap-3 px-4 py-3 text-left border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors
-                ${selected?.id === r.id ? 'bg-brand-50 border-l-2 border-l-brand-500' : ''}`}>
-              <div className="w-9 h-9 rounded-xl bg-brand-100 flex items-center justify-center text-brand-700 font-bold text-sm flex-shrink-0">
-                {r.first_name[0]}{r.last_name[0]}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="font-medium text-slate-800 dark:text-slate-100 text-sm truncate">{r.first_name} {r.last_name}</div>
-                <div className="text-xs text-slate-400">Room {r.room}</div>
-              </div>
-              <ChevronRight size={14} className="text-slate-300 flex-shrink-0" />
-            </button>
-          ))}
+          ) : filtered.map(r => {
+            const badge = actionBadge(r.id)
+            return (
+              <button key={r.id} onClick={() => selectResident(r)}
+                className={`w-full flex items-center gap-3 px-4 py-3 text-left border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors
+                  ${selected?.id === r.id ? 'bg-brand-50 border-l-2 border-l-brand-500' : ''}`}>
+                <div className="w-9 h-9 rounded-xl bg-brand-100 flex items-center justify-center text-brand-700 font-bold text-sm flex-shrink-0">
+                  {r.first_name[0]}{r.last_name[0]}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-slate-800 dark:text-slate-100 text-sm truncate">{r.first_name} {r.last_name}</div>
+                  <div className="text-xs text-slate-400">Room {r.room}</div>
+                </div>
+                {badge && (
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${badge.color}`}>{badge.label}</span>
+                )}
+                <ChevronRight size={14} className="text-slate-300 flex-shrink-0" />
+              </button>
+            )
+          })}
         </div>
       </div>
 
