@@ -91,9 +91,14 @@ function TripSheetPrint({ allTrips, defaultDate, orgName, onClose }) {
 
   const tableHtml = (dayTrips) => `
     <table>
+      <colgroup>
+        <col style="width:3%"><col style="width:14%"><col style="width:6%"><col style="width:7%">
+        <col style="width:8%"><col style="width:22%"><col style="width:7%"><col style="width:7%">
+        <col style="width:9%"><col style="width:8%"><col style="width:9%">
+      </colgroup>
       <thead>
         <tr>
-          <th>#</th><th>Resident</th><th>Unit</th><th>Pickup</th><th>Appointment</th>
+          <th>#</th><th>Resident</th><th>Unit</th><th>Pickup</th><th>Appt Type</th>
           <th>Provider</th><th>Appt Time</th><th>Est. Return</th><th>Driver</th><th>Status</th><th>Mileage</th>
         </tr>
       </thead>
@@ -105,22 +110,24 @@ function TripSheetPrint({ allTrips, defaultDate, orgName, onClose }) {
     win.document.write(`
       <html><head><title>Trip Sheet - ${dateFrom}${isSingleDay ? '' : ' to ' + dateTo}</title>
       <style>
-        body { font-family: Arial, sans-serif; padding: 24px; font-size: 13px; }
+        @page { size: landscape; margin: 0.4in; }
+        body { font-family: Arial, sans-serif; padding: 24px; font-size: 12px; }
         h2 { margin: 0; font-size: 18px; }
         .sub { color: #666; margin-bottom: 16px; }
         .day-header { font-weight: bold; font-size: 14px; color: #0c90e1; border-bottom: 2px solid #0c90e1; padding-bottom: 4px; margin: 20px 0 4px; }
         .day-header:first-of-type { margin-top: 0; }
-        table { width: 100%; border-collapse: collapse; margin-top: 4px; }
-        th { background: #f1f5f9; padding: 8px 10px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0; }
-        td { padding: 8px 10px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
-        .status { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+        table { width: 100%; table-layout: fixed; border-collapse: collapse; margin-top: 4px; }
+        th { background: #f1f5f9; padding: 6px 8px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0; word-wrap: break-word; }
+        td { padding: 6px 8px; border-bottom: 1px solid #e2e8f0; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word; }
+        td small { color: #888; }
+        .status { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: bold; white-space: nowrap; }
         .scheduled { background: #dbeafe; color: #1d4ed8; }
         .completed { background: #dcfce7; color: #16a34a; }
         .cancelled { background: #f1f5f9; color: #64748b; }
         .no_show { background: #fee2e2; color: #dc2626; }
         .in_progress { background: #dbeafe; color: #0072bf; }
         .sig-line { margin-top: 40px; border-top: 1px solid #000; width: 200px; display: inline-block; padding-top: 4px; font-size: 11px; color: #666; }
-        @media print { button { display: none; } }
+        @media print { button { display: none; } body { padding: 0; } }
       </style></head>
       <body>
         <h2>${orgName}</h2>
