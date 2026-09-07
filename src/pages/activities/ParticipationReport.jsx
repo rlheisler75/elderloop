@@ -6,7 +6,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { computeEngagementAlerts } from './engagementAlerts'
-import { BarChart3, Users, CalendarCheck, TrendingUp, UserX } from 'lucide-react'
+import { BarChart3, Users, CalendarCheck, TrendingUp, UserX, CalendarPlus, CheckCircle2 } from 'lucide-react'
 
 function localDateStr(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -18,6 +18,7 @@ export default function ParticipationReport({ orgId }) {
   const [dateFrom, setDateFrom] = useState(daysAgo(30))
   const [dateTo, setDateTo] = useState(today)
   const [attendance, setAttendance] = useState([])
+  const [rsvps, setRsvps] = useState([])
   const [activities, setActivities] = useState([])
   const [residents, setResidents] = useState([])
   const [loading, setLoading] = useState(true)
@@ -30,8 +31,10 @@ export default function ParticipationReport({ orgId }) {
     setLoading(true)
     const alertCutoff = new Date()
     alertCutoff.setDate(alertCutoff.getDate() - 65) // independent of the picked range — always looks at "now"
-    const [attRes, actRes, resRes, alertAttRes] = await Promise.all([
+    const [attRes, rsvpRes, actRes, resRes, alertAttRes] = await Promise.all([
       supabase.from('activity_attendance').select('activity_id, occurrence_date, resident_id')
+        .eq('organization_id', orgId).gte('occurrence_date', dateFrom).lte('occurrence_date', dateTo),
+      supabase.from('activity_rsvps').select('activity_id, occurrence_date, resident_id, submitted_by_role')
         .eq('organization_id', orgId).gte('occurrence_date', dateFrom).lte('occurrence_date', dateTo),
       supabase.from('activities').select('id, title, category, department').eq('organization_id', orgId),
       supabase.from('residents').select('id, first_name, last_name, room').eq('organization_id', orgId).eq('is_active', true),
@@ -39,6 +42,7 @@ export default function ParticipationReport({ orgId }) {
         .eq('organization_id', orgId).gte('occurrence_date', `${alertCutoff.getFullYear()}-${String(alertCutoff.getMonth()+1).padStart(2,'0')}-${String(alertCutoff.getDate()).padStart(2,'0')}`),
     ])
     setAttendance(attRes.data || [])
+    setRsvps(rsvpRes.data || [])
     setActivities(actRes.data || [])
     setResidents(resRes.data || [])
     setEngagementAlerts(computeEngagementAlerts(alertAttRes.data || []))
@@ -65,6 +69,24 @@ export default function ParticipationReport({ orgId }) {
     byDept.set(dept, (byDept.get(dept) || 0) + 1)
   })
   const deptRows = Array.from(byDept.entries()).sort((a, b) => b[1] - a[1])
+
+  const attendanceKeys = new Set(attendance.map(a => `${a.activity_id}|${a.occurrence_date}|${a.resident_id}`))
+  const rsvpsAttended = rsvps.filter(r => attendanceKeys.has(`${r.activity_id}|${r.occurrence_date}|${r.resident_id}`)).length
+  const rsvpConversionRate = rsvps.length > 0 ? Math.round((rsvpsAttended / rsvps.length) * 100) : null
+
+  const byActivityRsvp = new Map()
+  rsvps.forEach(r => {
+    const title = activityLookup.get(r.activity_id)?.title || 'Unknown Activity'
+    byActivityRsvp.set(title, (byActivityRsvp.get(title) || 0) + 1)
+  })
+  const activityRsvpRows = Array.from(byActivityRsvp.entries()).sort((a, b) => b[1] - a[1])
+
+  const bySubmitterRole = new Map()
+  rsvps.forEach(r => {
+    const role = r.submitted_by_role === 'family' ? 'Family' : r.submitted_by_role === 'resident' ? 'Resident' : 'Other'
+    bySubmitterRole.set(role, (bySubmitterRole.get(role) || 0) + 1)
+  })
+  const submitterRows = Array.from(bySubmitterRole.entries()).sort((a, b) => b[1] - a[1])
 
   const byResident = new Map(residents.map(r => [r.id, 0]))
   attendance.forEach(a => { if (byResident.has(a.resident_id)) byResident.set(a.resident_id, byResident.get(a.resident_id) + 1) })
@@ -157,6 +179,61 @@ export default function ParticipationReport({ orgId }) {
                     </tbody>
                   </table>
                 )}
+              </div>
+            </div>
+
+            <div className="border-t border-slate-100 dark:border-slate-800 pt-5 mb-6">
+              <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-1.5"><CalendarPlus size={13} /> RSVP Activity</h4>
+              <div className="grid grid-cols-2 gap-3 mb-5">
+                <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
+                  <div className="text-xl font-display font-bold text-slate-800 dark:text-slate-100">{rsvps.length}</div>
+                  <div className="text-xs text-slate-400">Total RSVPs</div>
+                </div>
+                <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
+                  <div className="text-xl font-display font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                    {rsvpConversionRate != null ? `${rsvpConversionRate}%` : '—'}
+                    {rsvpConversionRate != null && <CheckCircle2 size={14} className="text-green-500" />}
+                  </div>
+                  <div className="text-xs text-slate-400">RSVP → Attended</div>
+                </div>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-6">
+                <div>
+                  <h5 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Most RSVP'd Activities</h5>
+                  {activityRsvpRows.length === 0 ? (
+                    <div className="text-slate-400 text-sm py-4 text-center">No RSVPs in this range.</div>
+                  ) : (
+                    <table className="w-full">
+                      <tbody>
+                        {activityRsvpRows.slice(0, 8).map(([title, count]) => (
+                          <tr key={title} className="border-b border-slate-50 dark:border-slate-800">
+                            <td className="py-2 text-sm text-slate-700 dark:text-slate-300">{title}</td>
+                            <td className="py-2 text-sm text-right font-semibold text-slate-800 dark:text-slate-100">{count}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+
+                <div>
+                  <h5 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">By Submitter</h5>
+                  {submitterRows.length === 0 ? (
+                    <div className="text-slate-400 text-sm py-4 text-center">No RSVPs in this range.</div>
+                  ) : (
+                    <table className="w-full">
+                      <tbody>
+                        {submitterRows.map(([role, count]) => (
+                          <tr key={role} className="border-b border-slate-50 dark:border-slate-800">
+                            <td className="py-2 text-sm text-slate-700 dark:text-slate-300">{role}</td>
+                            <td className="py-2 text-sm text-right font-semibold text-slate-800 dark:text-slate-100">{count}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
               </div>
             </div>
 
