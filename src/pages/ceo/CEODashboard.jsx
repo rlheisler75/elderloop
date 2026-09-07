@@ -274,11 +274,31 @@ export default function CEODashboard() {
                 <div className="flex-1">
                   <div className="font-semibold text-red-800 dark:text-red-300 text-sm mb-1">Attention Required</div>
                   <div className="flex flex-wrap gap-x-4 gap-y-1 text-red-600 dark:text-red-400 text-xs">
-                    {data.criticalInc > 0 && <span>⚠ {data.criticalInc} critical incident{data.criticalInc > 1 ? 's' : ''} open</span>}
-                    {data.urgentWO > 0 && <span>🔧 {data.urgentWO} urgent maintenance request{data.urgentWO > 1 ? 's' : ''}</span>}
-                    {data.overdueCompliance > 0 && <span>📋 {data.overdueCompliance} compliance inspection{data.overdueCompliance > 1 ? 's' : ''} overdue</span>}
-                    {data.overduePM > 0 && <span>🛠 {data.overduePM} PM schedule{data.overduePM > 1 ? 's' : ''} overdue</span>}
-                    {data.supplyCritical > 0 && <span>📦 {data.supplyCritical} supply item{data.supplyCritical > 1 ? 's' : ''} out or critical</span>}
+                    {data.criticalInc > 0 && (
+                      <button onClick={() => navigate('/app/incidents')} className="hover:underline">
+                        ⚠ {data.criticalInc} critical incident{data.criticalInc > 1 ? 's' : ''} open
+                      </button>
+                    )}
+                    {data.urgentWO > 0 && (
+                      <button onClick={() => navigate('/app/maintenance')} className="hover:underline">
+                        🔧 {data.urgentWO} urgent maintenance request{data.urgentWO > 1 ? 's' : ''}
+                      </button>
+                    )}
+                    {data.overdueCompliance > 0 && (
+                      <button onClick={() => navigate('/app/maintenance')} className="hover:underline">
+                        📋 {data.overdueCompliance} compliance inspection{data.overdueCompliance > 1 ? 's' : ''} overdue
+                      </button>
+                    )}
+                    {data.overduePM > 0 && (
+                      <button onClick={() => navigate('/app/maintenance')} className="hover:underline">
+                        🛠 {data.overduePM} PM schedule{data.overduePM > 1 ? 's' : ''} overdue
+                      </button>
+                    )}
+                    {data.supplyCritical > 0 && (
+                      <button onClick={() => navigate('/app/central-supply')} className="hover:underline">
+                        📦 {data.supplyCritical} supply item{data.supplyCritical > 1 ? 's' : ''} out or critical
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
