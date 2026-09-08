@@ -347,8 +347,8 @@ export default function MoodTracker({ canWrite }) {
           {canWrite && <p className="text-sm mt-1">Click "Quick Log Mood" to add the first entry</p>}
         </div>
       ) : (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
-          <table className="w-full">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-x-auto">
+          <table className="w-full min-w-[820px]">
             <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800">
               <tr>
                 {['Resident', 'Date / Shift', 'Mood', 'Score', 'Concerns', 'Triggers / Notes', 'Logged By'].map(h => (

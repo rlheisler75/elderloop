@@ -547,7 +547,8 @@ export default function SocialDashboard({ onNavigate }) {
             <p className="text-xs mt-1">Assign the "Social Services" role to staff in Admin → Users</p>
           </div>
         ) : (
-          <table className="w-full">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[720px]">
             <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800">
               <tr>
                 {['Staff Member', 'Role', 'Assigned Residents', 'Open Grievances', 'Scheduled Conferences', 'Workload'].map(h => (
@@ -602,6 +603,7 @@ export default function SocialDashboard({ onNavigate }) {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>
