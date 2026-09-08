@@ -184,6 +184,7 @@ export default function FamilyMessaging() {
   const [showPostUpdate, setShowPostUpdate] = useState(false)
   const [attachment, setAttachment] = useState(null)
   const [unreadCount, setUnreadCount] = useState(0)
+  const threadDetailRef = useRef(null)
 
   useEffect(() => { if (organization) fetchAll() }, [organization])
 
@@ -244,6 +245,11 @@ export default function FamilyMessaging() {
 
   const handleOpenThread = async (thread) => {
     setActiveThread(thread)
+    // Below the lg breakpoint the thread detail stacks under the thread
+    // list rather than sitting beside it — jump to it on selection.
+    if (window.innerWidth < 1024) {
+      setTimeout(() => threadDetailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
+    }
     // Mark family messages as read
     const tid = thread[0].thread_id || thread[0].id
     await supabase.from('messages')
@@ -294,7 +300,7 @@ export default function FamilyMessaging() {
   return (
     <div className="max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Family Communication</h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm mt-0.5">Manage family messages and resident updates</p>
@@ -333,9 +339,9 @@ export default function FamilyMessaging() {
 
       {/* MESSAGES */}
       {tab === 'messages' && (
-        <div className="grid grid-cols-5 gap-5" style={{ height: '65vh' }}>
+        <div className="flex flex-col lg:grid lg:grid-cols-5 gap-5 lg:h-[65vh]">
           {/* Thread list */}
-          <div className="col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col overflow-hidden">
+          <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col overflow-hidden">
             <div className="p-3 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
               <select value={filterDept} onChange={e => setFilterDept(e.target.value)}
                 className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
@@ -343,7 +349,7 @@ export default function FamilyMessaging() {
                 {DEPTS.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
               </select>
             </div>
-            <div className="flex-1 overflow-y-auto">
+            <div className="max-h-[360px] lg:max-h-none lg:flex-1 overflow-y-auto">
               {threads.length === 0 ? (
                 <div className="text-center py-10 text-slate-400 text-sm p-4">
                   <MessageSquare size={24} className="mx-auto mb-2 opacity-30" />
@@ -380,7 +386,7 @@ export default function FamilyMessaging() {
           </div>
 
           {/* Thread detail */}
-          <div className="col-span-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col overflow-hidden">
+          <div ref={threadDetailRef} className="lg:col-span-3 min-h-[320px] bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col overflow-hidden">
             {!activeThread ? (
               <div className="flex-1 flex items-center justify-center text-center p-8">
                 <div>
