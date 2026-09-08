@@ -310,8 +310,54 @@ function ActivityPill({ activity, onClick }) {
   )
 }
 
+// ── Day Detail Modal (all activities for one day, e.g. from "+N more") ──
+function DayDetailModal({ date, activities, onEdit, onNewActivity, canEdit, onClose }) {
+  const dateLabel = new Date(date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md max-h-[85vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">{dateLabel}</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-2">
+          {activities.map((a, idx) => {
+            const cat = getCat(a.category)
+            const Icon = cat.icon
+            return (
+              <button key={`${a.id}-${idx}`} onClick={() => onEdit(a)}
+                className="w-full flex items-center gap-3 text-left p-3 rounded-xl border border-slate-100 dark:border-slate-800 hover:border-brand-200 hover:shadow-sm transition-all">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: a.color + '22', border: `2px solid ${a.color}44` }}>
+                  <Icon size={16} style={{ color: a.color }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-slate-800 dark:text-slate-100 text-sm">{a.title}</div>
+                  <div className="text-xs text-slate-400">
+                    {a.all_day ? 'All Day' : a.start_time ? fmt12(a.start_time) : ''}
+                    {a.location ? ` · ${a.location}` : ''}
+                  </div>
+                </div>
+              </button>
+            )
+          })}
+          {activities.length === 0 && <p className="text-slate-400 text-sm text-center py-8">No activities this day.</p>}
+        </div>
+        {canEdit && (
+          <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex-shrink-0">
+            <button onClick={() => onNewActivity(date)}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
+              <Plus size={15} /> Add Activity
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ── Month Calendar ─────────────────────────────────────────────
-function MonthCalendar({ year, month, expanded, onEditActivity, onNewActivity, canEdit }) {
+function MonthCalendar({ year, month, expanded, onEditActivity, onNewActivity, onShowMore, canEdit }) {
   const firstDay  = new Date(year, month, 1).getDay()
   const daysCount = new Date(year, month + 1, 0).getDate()
   const todayStr  = today()
@@ -354,7 +400,10 @@ function MonthCalendar({ year, month, expanded, onEditActivity, onNewActivity, c
                   <ActivityPill key={`${a.id}-${idx}`} activity={a} onClick={(a) => onEditActivity(a)} />
                 ))}
                 {dayActivities.length > 3 && (
-                  <div className="text-xs text-slate-400 pl-1">+{dayActivities.length - 3} more</div>
+                  <button onClick={(e) => { e.stopPropagation(); onShowMore(ds, dayActivities) }}
+                    className="text-xs text-slate-400 hover:text-brand-600 hover:underline pl-1">
+                    +{dayActivities.length - 3} more
+                  </button>
                 )}
               </div>
             </div>
@@ -450,6 +499,117 @@ function PrintSchedule({ activities, month, year, orgName, onClose }) {
           <button onClick={handlePrint}
             className="flex items-center gap-2 px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg transition-colors">
             <Printer size={15} /> Print Schedule
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Print Calendar (full month wall calendar, for hanging in a room) ────
+const CALENDAR_BORDERS = {
+  none:      { label: 'Plain',   css: '', corner: '' },
+  classic:   { label: 'Classic', css: 'border:10px double #0c90e1; padding:20px;', corner: '' },
+  floral:    { label: 'Floral',  css: 'border:14px solid #fce7f3; padding:16px;', corner: '🌸' },
+  sunny:     { label: 'Sunny',   css: 'border:14px solid #fef9c3; padding:16px;', corner: '☀️' },
+  wintery:   { label: 'Wintery', css: 'border:14px solid #e0f2fe; padding:16px;', corner: '❄️' },
+}
+
+function PrintCalendarModal({ activities, month, year, orgName, onClose }) {
+  const [border, setBorder] = useState('none')
+  const monthName = MONTHS[month]
+
+  const firstDay  = new Date(year, month, 1).getDay()
+  const daysCount = new Date(year, month + 1, 0).getDate()
+  const getDateStr = (d) => `${year}-${String(month + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`
+  const activitiesForDay = (d) => activities.filter(a => a._date === getDateStr(d))
+
+  const cellsHtml = () => {
+    let html = ''
+    for (let i = 0; i < firstDay; i++) html += `<td class="empty"></td>`
+    for (let d = 1; d <= daysCount; d++) {
+      const dayActs = activitiesForDay(d)
+      const shown = dayActs.slice(0, 5)
+      html += `
+        <td>
+          <div class="daynum">${d}</div>
+          ${shown.map(a => `
+            <div class="ev">
+              <span class="dot" style="background:${a.color || '#0c90e1'}"></span>
+              ${a.all_day ? '' : `<span class="t">${fmt12(a.start_time).replace(':00','')}</span> `}${a.title}
+            </div>`).join('')}
+          ${dayActs.length > 5 ? `<div class="more">+${dayActs.length - 5} more</div>` : ''}
+        </td>`
+      if ((firstDay + d) % 7 === 0) html += `</tr><tr>`
+    }
+    const totalCells = firstDay + daysCount
+    const remainder = totalCells % 7
+    if (remainder !== 0) for (let i = 0; i < 7 - remainder; i++) html += `<td class="empty"></td>`
+    return html
+  }
+
+  const handlePrint = () => {
+    const b = CALENDAR_BORDERS[border]
+    const win = window.open('', '_blank')
+    win.document.write(`
+      <html><head><title>${monthName} ${year} Calendar</title>
+      <style>
+        @page { size: landscape; margin: 0.3in; }
+        body { font-family: Arial, sans-serif; margin: 0; ${b.css} position: relative; }
+        .corner { position: absolute; font-size: 28px; }
+        .c-tl { top: 2px; left: 2px; } .c-tr { top: 2px; right: 2px; }
+        .c-bl { bottom: 2px; left: 2px; } .c-br { bottom: 2px; right: 2px; }
+        h1 { text-align: center; margin: 0 0 2px; font-size: 26px; color: #0c90e1; }
+        .org { text-align: center; color: #888; font-size: 12px; margin-bottom: 10px; }
+        table { width: 100%; height: 92%; border-collapse: collapse; table-layout: fixed; }
+        th { background: #f1f5f9; padding: 4px; font-size: 11px; text-transform: uppercase; color: #64748b; border: 1px solid #e2e8f0; }
+        td { border: 1px solid #e2e8f0; vertical-align: top; padding: 3px 4px; height: 90px; font-size: 9px; overflow: hidden; }
+        td.empty { background: #fafafa; }
+        .daynum { font-weight: bold; font-size: 13px; margin-bottom: 2px; }
+        .ev { line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 2px; }
+        .t { color: #888; }
+        .more { color: #999; font-style: italic; }
+        @media print { button { display: none; } }
+      </style></head>
+      <body>
+        ${b.corner ? `<span class="corner c-tl">${b.corner}</span><span class="corner c-tr">${b.corner}</span><span class="corner c-bl">${b.corner}</span><span class="corner c-br">${b.corner}</span>` : ''}
+        <h1>${monthName} ${year}</h1>
+        <div class="org">${orgName} &middot; Activity Calendar</div>
+        <table>
+          <thead><tr>${DAYS.map(d => `<th>${d}</th>`).join('')}</tr></thead>
+          <tbody><tr>${cellsHtml()}</tr></tbody>
+        </table>
+      </body></html>`)
+    win.document.close()
+    win.print()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Print Calendar — {monthName} {year}</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+        </div>
+        <div className="px-6 py-5">
+          <p className="text-sm text-slate-500 mb-4">A full-month wall calendar, landscape-oriented — good for posting in a resident's room or a common area.</p>
+          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Border</label>
+          <div className="grid grid-cols-3 gap-2">
+            {Object.entries(CALENDAR_BORDERS).map(([key, b]) => (
+              <button key={key} onClick={() => setBorder(key)}
+                className={`flex flex-col items-center gap-1 p-3 rounded-xl border text-xs font-medium transition-all ${border === key ? 'border-brand-400 ring-2 ring-brand-100 bg-brand-50 dark:bg-brand-950/30' : 'border-slate-200 dark:border-slate-700 text-slate-500 hover:border-slate-300'}`}>
+                <span className="text-lg">{b.corner || '▭'}</span>
+                {b.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Close</button>
+          <button onClick={handlePrint}
+            className="flex items-center gap-2 px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg transition-colors">
+            <Printer size={15} /> Print Calendar
           </button>
         </div>
       </div>
@@ -554,6 +714,8 @@ export default function Activities() {
   const [attendanceActivity, setAttendanceActivity] = useState(null)
   const [attendanceCounts, setAttendanceCounts] = useState({})
   const [rsvpCounts, setRsvpCounts] = useState({})
+  const [dayDetail, setDayDetail] = useState(null) // { date, activities } | null
+  const [showPrintCalendar, setShowPrintCalendar] = useState(false)
 
   useEffect(() => { if (organization) { fetchActivities(); fetchAttendanceCounts(); fetchRsvpCounts() } }, [organization])
 
@@ -614,6 +776,11 @@ export default function Activities() {
   const filteredBase = filterCat === 'all' ? activities : activities.filter(a => a.category === filterCat)
   const expanded = expandActivities(filteredBase, monthStart, monthEnd)
 
+  // Unfiltered by category — a printed room calendar should always show the
+  // full month regardless of whatever category filter staff happen to have
+  // active on screen at the moment.
+  const expandedForPrintCalendar = expandActivities(activities, monthStart, monthEnd)
+
   // For list view — expand 3 months ahead
   const listEnd = toDateStr(new Date(new Date().setMonth(new Date().getMonth() + 3)))
   const expandedList = expandActivities(filteredBase, today(), listEnd)
@@ -639,6 +806,10 @@ export default function Activities() {
           <button onClick={() => setShowPrint(true)}
             className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
             <Printer size={15} /> Print Schedule
+          </button>
+          <button onClick={() => setShowPrintCalendar(true)}
+            className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
+            <Calendar size={15} /> Print Calendar
           </button>
           {canEditActivities && (
             <button onClick={() => { setEditActivity(null); setDefaultDate(today()); setShowModal(true) }}
@@ -724,6 +895,7 @@ export default function Activities() {
               expanded={expanded}
               onEditActivity={handleEdit}
               onNewActivity={handleNewOnDate}
+              onShowMore={(date, dayActivities) => setDayDetail({ date, activities: dayActivities })}
               canEdit={canEditActivities} />
           )}
           <p className="text-xs text-slate-400 text-center mt-3">Click any day to add an activity · Click an event to edit it</p>
@@ -760,6 +932,20 @@ export default function Activities() {
           activities={expanded} month={calMonth} year={calYear}
           orgName={organization?.name}
           onClose={() => setShowPrint(false)} />
+      )}
+      {showPrintCalendar && (
+        <PrintCalendarModal
+          activities={expandedForPrintCalendar} month={calMonth} year={calYear}
+          orgName={organization?.name}
+          onClose={() => setShowPrintCalendar(false)} />
+      )}
+      {dayDetail && (
+        <DayDetailModal
+          date={dayDetail.date} activities={dayDetail.activities}
+          onEdit={(a) => { setDayDetail(null); handleEdit(a) }}
+          onNewActivity={(date) => { setDayDetail(null); handleNewOnDate(date) }}
+          canEdit={canEditActivities}
+          onClose={() => setDayDetail(null)} />
       )}
       {attendanceActivity && (
         <AttendanceModal
