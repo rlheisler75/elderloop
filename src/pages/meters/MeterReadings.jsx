@@ -417,7 +417,8 @@ function MeterHistoryModal({ meter, utilityType, onClose }) {
           ) : readings.length === 0 ? (
             <div className="text-center py-10 text-slate-400 text-sm">No readings yet.</div>
           ) : (
-            <table className="w-full">
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-[540px]">
               <thead className="sticky top-0 bg-white dark:bg-slate-900">
                 <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Date</th>
@@ -453,6 +454,7 @@ function MeterHistoryModal({ meter, utilityType, onClose }) {
                 })}
               </tbody>
             </table>
+            </div>
           )}
         </div>
         <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end flex-shrink-0">
@@ -555,12 +557,12 @@ export default function MeterReadings() {
   return (
     <div className="max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-6">
         <div>
           <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Meter Readings</h1>
           <p className="text-slate-500 text-sm mt-0.5">Utility tracking and usage calculation</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <button onClick={() => setShowUtilityManager(true)}
             className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
             <Settings size={15} /> Utility Types
@@ -612,7 +614,7 @@ export default function MeterReadings() {
           {activeType && (
             <>
               {/* Stats */}
-              <div className="grid grid-cols-4 gap-3 mb-5">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
                 {[
                   { label: 'Meters',      value: typeMeters.length,           unit: '' },
                   { label: 'Unread',      value: unread,                      unit: '', alert: unread > 0 },

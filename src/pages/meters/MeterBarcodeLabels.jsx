@@ -188,9 +188,9 @@ export default function MeterBarcodeLabels({ onClose }) {
           </div>
         )}
 
-        <div className="flex flex-1 min-h-0 mt-4">
+        <div className="flex flex-col lg:flex-row flex-1 min-h-0 mt-4">
           {/* Left — meter selector */}
-          <div className="w-64 flex-shrink-0 border-r border-slate-100 dark:border-slate-800 flex flex-col">
+          <div className="w-full lg:w-64 flex-shrink-0 border-b lg:border-b-0 lg:border-r border-slate-100 dark:border-slate-800 flex flex-col">
             <div className="p-3 border-b border-slate-100 dark:border-slate-800 space-y-2">
               <div className="relative">
                 <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -205,7 +205,7 @@ export default function MeterBarcodeLabels({ onClose }) {
                 <CheckSquare size={13} /> Select / deselect all
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto">
+            <div className="max-h-[200px] lg:max-h-none lg:flex-1 overflow-y-auto">
               {loading ? <div className="p-4 text-xs text-slate-400">Loading...</div> :
                 filtered.map(m => (
                   <button key={m.id} onClick={() => m.meter_number && toggleMeter(m.id)} disabled={!m.meter_number}
