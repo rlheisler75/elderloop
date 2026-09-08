@@ -514,12 +514,28 @@ function PrintSchedule({ activities, month, year, orgName, onClose }) {
 }
 
 // ── Print Calendar (full month wall calendar, for hanging in a room) ────
+// `corners` is [top-left, top-right, bottom-left, bottom-right] — themes
+// can repeat one emoji in all four spots or alternate a couple for a
+// livelier look (e.g. birthday balloons + confetti).
 const CALENDAR_BORDERS = {
-  none:      { label: 'Plain',   css: '', corner: '' },
-  classic:   { label: 'Classic', css: 'border:10px double #0c90e1; padding:20px;', corner: '' },
-  floral:    { label: 'Floral',  css: 'border:14px solid #fce7f3; padding:16px;', corner: '🌸' },
-  sunny:     { label: 'Sunny',   css: 'border:14px solid #fef9c3; padding:16px;', corner: '☀️' },
-  wintery:   { label: 'Wintery', css: 'border:14px solid #e0f2fe; padding:16px;', corner: '❄️' },
+  none:        { label: 'Plain',        css: '', corners: ['', '', '', ''] },
+  classic:     { label: 'Classic',      css: 'border:10px double #0c90e1; padding:20px;', corners: ['', '', '', ''] },
+  floral:      { label: 'Floral',       css: 'border:14px solid #fce7f3; padding:16px;', corners: ['🌸','🌸','🌸','🌸'] },
+  garden:      { label: 'Garden',       css: 'border:14px solid #ecfccb; padding:16px;', corners: ['🌻','🌼','🌼','🌻'] },
+  spring:      { label: 'Spring',       css: 'border:14px solid #fae8ff; padding:16px;', corners: ['🌷','🌷','🌷','🌷'] },
+  sunny:       { label: 'Sunny',        css: 'border:14px solid #fef9c3; padding:16px;', corners: ['☀️','☀️','☀️','☀️'] },
+  rainbow:     { label: 'Rainbow',      css: 'border:14px solid #e0e7ff; padding:16px;', corners: ['🌈','🌈','🌈','🌈'] },
+  birthday:    { label: 'Birthday',     css: 'border:14px solid #fdf2f8; padding:16px;', corners: ['🎈','🎉','🎉','🎈'] },
+  patriotic:   { label: 'Patriotic',    css: 'border:14px solid #eff6ff; padding:16px;', corners: ['⭐','🎆','🎆','⭐'] },
+  autumn:      { label: 'Autumn',       css: 'border:14px solid #ffedd5; padding:16px;', corners: ['🍁','🍂','🍂','🍁'] },
+  halloween:   { label: 'Halloween',    css: 'border:14px solid #fff7ed; padding:16px;', corners: ['🎃','👻','👻','🎃'] },
+  thanksgiving:{ label: 'Thanksgiving', css: 'border:14px solid #fef3c7; padding:16px;', corners: ['🦃','🍂','🍂','🦃'] },
+  wintery:     { label: 'Wintery',      css: 'border:14px solid #e0f2fe; padding:16px;', corners: ['❄️','❄️','❄️','❄️'] },
+  christmas:   { label: 'Christmas',    css: 'border:14px solid #fee2e2; padding:16px;', corners: ['🎄','🎁','🎁','🎄'] },
+  hanukkah:    { label: 'Hanukkah',     css: 'border:14px solid #eff6ff; padding:16px;', corners: ['🕎','✡️','✡️','🕎'] },
+  valentines:  { label: "Valentine's",  css: 'border:14px solid #ffe4e6; padding:16px;', corners: ['💕','💐','💐','💕'] },
+  stpatricks:  { label: "St. Patrick's",css: 'border:14px solid #dcfce7; padding:16px;', corners: ['🍀','🍀','🍀','🍀'] },
+  easter:      { label: 'Easter',       css: 'border:14px solid #fef9c3; padding:16px;', corners: ['🐰','🥚','🥚','🐰'] },
 }
 
 function PrintCalendarModal({ activities, month, year, orgName, onClose }) {
@@ -580,7 +596,10 @@ function PrintCalendarModal({ activities, month, year, orgName, onClose }) {
         @media print { button { display: none; } }
       </style></head>
       <body>
-        ${b.corner ? `<span class="corner c-tl">${b.corner}</span><span class="corner c-tr">${b.corner}</span><span class="corner c-bl">${b.corner}</span><span class="corner c-br">${b.corner}</span>` : ''}
+        ${b.corners[0] ? `<span class="corner c-tl">${b.corners[0]}</span>` : ''}
+        ${b.corners[1] ? `<span class="corner c-tr">${b.corners[1]}</span>` : ''}
+        ${b.corners[2] ? `<span class="corner c-bl">${b.corners[2]}</span>` : ''}
+        ${b.corners[3] ? `<span class="corner c-br">${b.corners[3]}</span>` : ''}
         <h1>${monthName} ${year}</h1>
         <div class="org">${orgName} &middot; Activity Calendar</div>
         <table>
@@ -602,11 +621,11 @@ function PrintCalendarModal({ activities, month, year, orgName, onClose }) {
         <div className="px-6 py-5">
           <p className="text-sm text-slate-500 mb-4">A full-month wall calendar, landscape-oriented — good for posting in a resident's room or a common area.</p>
           <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Border</label>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-2 max-h-72 overflow-y-auto pr-1">
             {Object.entries(CALENDAR_BORDERS).map(([key, b]) => (
               <button key={key} onClick={() => setBorder(key)}
                 className={`flex flex-col items-center gap-1 p-3 rounded-xl border text-xs font-medium transition-all ${border === key ? 'border-brand-400 ring-2 ring-brand-100 bg-brand-50 dark:bg-brand-950/30' : 'border-slate-200 dark:border-slate-700 text-slate-500 hover:border-slate-300'}`}>
-                <span className="text-lg">{b.corner || '▭'}</span>
+                <span className="text-lg">{b.corners[0] || '▭'}</span>
                 {b.label}
               </button>
             ))}
