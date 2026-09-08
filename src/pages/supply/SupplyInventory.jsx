@@ -608,7 +608,7 @@ export default function SupplyInventory() {
         </div>
 
         {/* Inactive toggle + Add */}
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button onClick={() => setShowInactive(!showInactive)}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border transition-all ${
               showInactive ? 'bg-slate-700 text-white border-slate-700' : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
@@ -678,7 +678,7 @@ export default function SupplyInventory() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[680px]">
               <thead>
                 <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                   {['Item', 'Category', 'Barcode', 'Stock', 'Cost', 'Status', ''].map(h => (

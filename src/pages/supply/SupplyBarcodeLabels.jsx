@@ -173,9 +173,9 @@ export default function SupplyBarcodeLabels({ onClose }) {
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"><X size={20} /></button>
         </div>
 
-        <div className="flex flex-1 min-h-0">
+        <div className="flex flex-col lg:flex-row flex-1 min-h-0">
           {/* Left — item selector */}
-          <div className="w-64 flex-shrink-0 border-r border-slate-100 dark:border-slate-800 flex flex-col">
+          <div className="w-full lg:w-64 flex-shrink-0 border-b lg:border-b-0 lg:border-r border-slate-100 dark:border-slate-800 flex flex-col">
             <div className="p-3 border-b border-slate-100 dark:border-slate-800">
               <div className="relative mb-2">
                 <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -186,7 +186,7 @@ export default function SupplyBarcodeLabels({ onClose }) {
                 {selected.size === filtered.length ? 'Deselect all' : 'Select all'}
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto">
+            <div className="max-h-[200px] lg:max-h-none lg:flex-1 overflow-y-auto">
               {loading ? <div className="p-4 text-xs text-slate-400">Loading...</div> :
                 filtered.map(item => (
                   <button key={item.id} onClick={() => toggleItem(item.id)}

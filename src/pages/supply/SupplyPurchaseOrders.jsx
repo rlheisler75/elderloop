@@ -173,7 +173,7 @@ function CreatePOModal({ orgId, profileId, vendors, items, editPO, editLines, on
                     ) : (
                       <input value={line.description} onChange={e => setLine(i, 'description', e.target.value)} className={inputCls} placeholder="Item description" />
                     )}
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                       <div>
                         <input type="number" min="1" value={line.quantity_ordered} onChange={e => setLine(i, 'quantity_ordered', e.target.value)} className={inputCls} placeholder="Qty" />
                       </div>
@@ -564,8 +564,8 @@ function PODetail({ po, orgId, profileId, canEdit, onBack, onRefresh, onEdit }) 
       )}
 
       {/* Line items table */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        <table className="w-full">
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-x-auto">
+        <table className="w-full min-w-[760px]">
           <thead>
             <tr className="border-b border-slate-100 bg-slate-50">
               {['Item / Description', 'Qty Ordered', 'Qty Received', 'Unit Cost', 'Line Total', 'Status', 'Receive'].map(h => (
@@ -678,7 +678,7 @@ export default function SupplyPurchaseOrders() {
         ))}
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-x-auto">
         {loading ? (
           <div className="text-center py-16 text-slate-400"><ClipboardList size={32} className="mx-auto mb-3 opacity-30" /><p className="text-sm">Loading...</p></div>
         ) : filtered.length === 0 ? (
@@ -689,7 +689,7 @@ export default function SupplyPurchaseOrders() {
             {pos.length === 0 && canEditSupply && <button onClick={() => setShowCreate(true)} className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white text-sm font-medium rounded-xl"><Plus size={15} /> New PO</button>}
           </div>
         ) : (
-          <table className="w-full">
+          <table className="w-full min-w-[680px]">
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50">
                 {['PO #', 'Type', 'Vendor', 'Date', 'Expected', 'Status', ''].map(h => (

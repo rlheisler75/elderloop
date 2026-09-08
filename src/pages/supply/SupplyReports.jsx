@@ -190,7 +190,8 @@ export default function SupplyReports() {
               <p className="font-display text-slate-600 dark:text-slate-300">All items are at or above par level</p>
             </div>
           ) : (
-            <table className="w-full">
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-[640px]">
               <thead>
                 <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                   {['Item', 'Category', 'On Hand', 'Par', 'Reorder Point', 'Status'].map(h => (
@@ -218,6 +219,7 @@ export default function SupplyReports() {
                 })}
               </tbody>
             </table>
+            </div>
           )}
         </div>
       )}
@@ -237,7 +239,8 @@ export default function SupplyReports() {
             ) : filteredTx.length === 0 ? (
               <div className="text-center py-10 text-slate-400 text-sm">No transactions in this period.</div>
             ) : (
-              <table className="w-full">
+              <div className="overflow-x-auto">
+              <table className="w-full min-w-[640px]">
                 <thead>
                   <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                     {['Date', 'Item', 'Type', 'Qty', 'To / From', 'By'].map(h => (
@@ -265,6 +268,7 @@ export default function SupplyReports() {
                   })}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         </>
