@@ -214,7 +214,7 @@ function ILRequestModal({ request, onClose, onSave }) {
               <label className="block text-xs font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
                 <Calendar size={13} /> Booking Details
               </label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <div className="col-span-1">
                   <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Date</label>
                   <input type="date" value={form.booked_date} onChange={e => set('booked_date', e.target.value)}
@@ -376,6 +376,63 @@ function InspectionModal({ area, checklistItems, onClose, onSave }) {
   )
 }
 
+// ── Past Inspection Detail (view a completed inspection's checklist) ──
+function InspectionDetailModal({ inspection, checklistItems, onClose }) {
+  const results = inspection.ltc_inspection_results || []
+  const getLabel = (id) => checklistItems.find(c => c.id === id)?.label || 'Item no longer on checklist'
+  const failCount = results.filter(r => !r.passed).length
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+          <div>
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">{inspection.inspection_areas?.name || 'Inspection'}</h2>
+            <p className="text-xs text-slate-400 mt-0.5">
+              {new Date(inspection.inspected_at).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+              {inspection.profiles && ` · Inspected by ${inspection.profiles.first_name} ${inspection.profiles.last_name}`}
+            </p>
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"><X size={20} /></button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-3">
+          <div className={`flex items-center gap-2 text-sm font-medium p-3 rounded-xl ${inspection.overall_pass ? 'bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400' : 'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400'}`}>
+            {inspection.overall_pass ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
+            {inspection.overall_pass ? 'All items passed' : `${failCount} item${failCount > 1 ? 's' : ''} failed`}
+          </div>
+
+          {results.map(r => (
+            <div key={r.checklist_item_id} className={`p-3 rounded-xl border ${r.passed ? 'bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-900' : 'bg-red-50 border-red-200 dark:bg-red-950/30 dark:border-red-900'}`}>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{getLabel(r.checklist_item_id)}</span>
+                <span className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium flex-shrink-0 ${r.passed ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
+                  {r.passed ? <><Check size={12} /> Pass</> : <><XIcon size={12} /> Fail</>}
+                </span>
+              </div>
+              {r.note && <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">{r.note}</p>}
+            </div>
+          ))}
+          {results.length === 0 && (
+            <p className="text-sm text-slate-400 text-center py-6">No checklist items were recorded for this inspection.</p>
+          )}
+
+          {inspection.notes && (
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">General Notes</label>
+              <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-sm text-slate-600 dark:text-slate-300">{inspection.notes}</div>
+            </div>
+          )}
+        </div>
+
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end flex-shrink-0">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Close</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Main Housekeeping Page ─────────────────────────────────────
 export default function Housekeeping() {
   const { profile, organization } = useAuth()
@@ -390,6 +447,7 @@ export default function Housekeeping() {
 
   // Modals
   const [inspectArea, setInspectArea]       = useState(null)
+  const [viewInspection, setViewInspection] = useState(null)
   const [showILModal, setShowILModal]       = useState(false)
   const [editILRequest, setEditILRequest]   = useState(null)
   const [printRequest, setPrintRequest]     = useState(null)
@@ -405,7 +463,7 @@ export default function Housekeeping() {
       supabase.from('inspection_areas').select('*').eq('organization_id', organization.id).eq('is_active', true).order('sort_order'),
       supabase.from('inspection_checklist_items').select('*').eq('organization_id', organization.id).eq('is_active', true).order('sort_order'),
       supabase.from('ltc_inspections')
-        .select('*, inspection_areas(name), profiles(first_name,last_name), ltc_inspection_results(passed, checklist_item_id)')
+        .select('*, inspection_areas(name), profiles(first_name,last_name), ltc_inspection_results(passed, checklist_item_id, note)')
         .eq('organization_id', organization.id)
         .order('inspected_at', { ascending: false }).limit(100),
       supabase.from('il_cleaning_requests')
@@ -502,7 +560,7 @@ export default function Housekeeping() {
             confidence={stateRef.pestControl.confidence}
             note={stateRef.pestControl.note}
           />
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
             <p className="text-sm text-slate-500">{areas.length} areas · {inspections.length} inspections logged</p>
             <button onClick={() => setShowAddArea(s => !s)}
               className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
@@ -575,8 +633,8 @@ export default function Housekeeping() {
               {/* Inspection log */}
               <div>
                 <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 mb-3">Inspection Log</h2>
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
-                  <table className="w-full">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-x-auto">
+                  <table className="w-full min-w-[600px]">
                     <thead>
                       <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                         <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Area</th>
@@ -588,7 +646,8 @@ export default function Housekeeping() {
                     </thead>
                     <tbody>
                       {inspections.slice(0, 30).map(ins => (
-                        <tr key={ins.id} className="border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        <tr key={ins.id} onClick={() => setViewInspection(ins)}
+                          className="border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
                           <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300 font-medium">{ins.inspection_areas?.name}</td>
                           <td className="px-4 py-3">
                             {ins.overall_pass
@@ -717,6 +776,10 @@ export default function Housekeeping() {
       {inspectArea && (
         <InspectionModal area={inspectArea} checklistItems={checklistItems}
           onClose={() => setInspectArea(null)} onSave={() => { setInspectArea(null); fetchAll() }} />
+      )}
+      {viewInspection && (
+        <InspectionDetailModal inspection={viewInspection} checklistItems={checklistItems}
+          onClose={() => setViewInspection(null)} />
       )}
       {showILModal && (
         <ILRequestModal request={editILRequest}
