@@ -501,8 +501,8 @@ function LedgerModal({ lease, onClose }) {
       </div>
 
       {/* Ledger table */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl overflow-x-auto">
+        <table className="w-full text-sm min-w-[560px]">
           <thead>
             <tr className="bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800">
               <th className="text-left px-4 py-2.5 font-medium text-slate-500 text-xs">Date</th>
@@ -715,7 +715,8 @@ function WalkthroughForm({ units, leases, tenants, orgId, onSave, onClose }) {
 
       <div className="mb-4">
         <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Room-by-Room Checklist</p>
-        <div className="space-y-4">
+        <div className="overflow-x-auto">
+        <div className="min-w-[520px] space-y-4">
           {rooms.map(room => (
             <div key={room}>
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">{room}</p>
@@ -741,6 +742,7 @@ function WalkthroughForm({ units, leases, tenants, orgId, onSave, onClose }) {
               </div>
             </div>
           ))}
+        </div>
         </div>
       </div>
 
@@ -820,7 +822,7 @@ function KeysTab({ orgId, units, leases, tenants, staff }) {
 
       {showForm && (
         <div className="mb-4 p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl">
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Field label="Unit" required>
               <select className={selectCls} value={form.unit_id} onChange={e=>set('unit_id',e.target.value)}>
                 <option value="">—</option>
@@ -858,8 +860,8 @@ function KeysTab({ orgId, units, leases, tenants, staff }) {
         </div>
       )}
 
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-x-auto">
+        <table className="w-full text-sm min-w-[640px]">
           <thead>
             <tr className="bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800">
               <th className="text-left px-4 py-3 font-medium text-slate-500 text-xs">Unit</th>
@@ -1162,8 +1164,8 @@ export default function PropertyManagement() {
         {/* ── TENANTS TAB ── */}
         {tab === 'tenants' && (
           <div>
-            <div className="flex items-center gap-3 mb-5">
-              <div className="relative flex-1 max-w-sm">
+            <div className="flex flex-wrap items-center gap-3 mb-5">
+              <div className="relative flex-1 min-w-48 max-w-sm">
                 <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input className="pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm w-full focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
                   placeholder="Search tenants…" value={tenantSearch} onChange={e=>setTenantSearch(e.target.value)} />
@@ -1243,8 +1245,8 @@ export default function PropertyManagement() {
                 <Plus size={15}/> New Lease
               </button>
             </div>
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
-              <table className="w-full text-sm">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-x-auto">
+              <table className="w-full text-sm min-w-[640px]">
                 <thead>
                   <tr className="bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800">
                     <th className="text-left px-4 py-3 font-medium text-slate-500 text-xs">Lease #</th>
