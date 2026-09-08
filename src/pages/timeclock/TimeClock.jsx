@@ -291,14 +291,14 @@ function PayrollExport({ orgId }) {
         <>
           {/* Summary totals + export buttons */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
               <div>
                 <h3 className="font-semibold text-slate-700 dark:text-slate-300">
                   Summary — {new Date(report.dateFrom + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} to {new Date(report.dateTo + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">{report.rows.length} employee{report.rows.length !== 1 ? 's' : ''} with clock data in this period</p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <button onClick={exportSummaryCSV}
                   className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 rounded-xl text-xs font-medium transition-colors">
                   <Download size={13} /> Summary CSV
@@ -310,7 +310,8 @@ function PayrollExport({ orgId }) {
               </div>
             </div>
 
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[720px]">
               <thead>
                 <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                   {['Employee','Role','Dept','Days','Regular Hrs','OT Hrs','Total Hrs'].map(h => (
@@ -355,6 +356,7 @@ function PayrollExport({ orgId }) {
                 )}
               </tbody>
             </table>
+            </div>
           </div>
 
           {/* Per-employee detail */}
@@ -367,7 +369,8 @@ function PayrollExport({ orgId }) {
                 </div>
                 <div className="text-xs text-slate-400">{pairs.length} shift{pairs.length !== 1 ? 's' : ''}</div>
               </div>
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[680px]">
                 <thead><tr className="border-b border-slate-50 dark:border-slate-800">
                   {['Date','Clock In','Clock Out','Regular','OT','Total','On-Site'].map(h => (
                     <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">{h}</th>
@@ -401,6 +404,7 @@ function PayrollExport({ orgId }) {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           ))}
         </>
@@ -661,7 +665,7 @@ export default function TimeClock() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit">
+      <div className="flex gap-1 mb-6 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit flex-wrap">
         {[
           { key: 'clock', label: 'My Clock', icon: Clock },
           { key: 'history', label: 'My History', icon: Calendar },
@@ -770,7 +774,8 @@ export default function TimeClock() {
             <h3 className="font-semibold text-slate-700 dark:text-slate-300">My Punch History</h3>
             <div className="text-xs text-slate-400">{punches.length} records</div>
           </div>
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[620px]">
             <thead><tr className="border-b border-slate-100 dark:border-slate-800">
               {['Type','Date','Time','Location','Distance','Duration'].map(h => (
                 <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">{h}</th>
@@ -803,6 +808,7 @@ export default function TimeClock() {
               })}
             </tbody>
           </table>
+          </div>
           {punches.length === 0 && <div className="text-center py-12 text-slate-400 text-sm">No punch history yet</div>}
         </div>
       )}
@@ -842,7 +848,8 @@ export default function TimeClock() {
             <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800">
               <h3 className="font-semibold text-slate-700 dark:text-slate-300">Payroll Summary — All Time</h3>
             </div>
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[480px]">
               <thead><tr className="border-b border-slate-100 dark:border-slate-800">
                 {['Staff Member','Role','Total Hours','Status'].map(h => (
                   <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">{h}</th>
@@ -865,6 +872,7 @@ export default function TimeClock() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </div>
       )}
