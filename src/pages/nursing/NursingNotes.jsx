@@ -921,6 +921,17 @@ export default function NursingNotes() {
   const [search, setSearch]           = useState('')
   const [loading, setLoading]         = useState(true)
   const [todayStats, setTodayStats]   = useState({ vitalsToday: 0, notesToday: 0, flagged: 0 })
+  const detailPanelRef = useRef(null)
+
+  // Below the lg breakpoint the detail panel stacks under the resident list
+  // rather than sitting beside it — jump to it on selection, same pattern
+  // as the Social Profile master-detail view.
+  const handleSelect = (r) => {
+    setSelected(r)
+    if (window.innerWidth < 1024) {
+      setTimeout(() => detailPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
+    }
+  }
 
   // Nursing/supervisor/manager get edit by default; org admins can override
   // per-user via Admin Panel > Module Access (grant edit to other roles, or
@@ -963,9 +974,9 @@ export default function NursingNotes() {
   )
 
   return (
-    <div className="max-w-7xl mx-auto flex gap-6" style={{ height: 'calc(100vh - 120px)' }}>
+    <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6 lg:h-[calc(100vh-120px)]">
       {/* Left panel — resident list */}
-      <div className="w-72 flex-shrink-0 flex flex-col">
+      <div className="w-full lg:w-72 flex-shrink-0 flex flex-col lg:h-full">
         <div className="mb-4">
           <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Nursing Notes</h1>
           <p className="text-slate-500 text-sm mt-0.5">Vitals, medications, and care notes</p>
@@ -993,11 +1004,11 @@ export default function NursingNotes() {
         </div>
 
         {/* Resident list */}
-        <div className="flex-1 overflow-y-auto space-y-1">
+        <div className="max-h-[360px] lg:max-h-none lg:flex-1 overflow-y-auto space-y-1">
           {loading ? (
             <div className="text-center py-8 text-slate-400 text-sm">Loading...</div>
           ) : filtered.map(r => (
-            <button key={r.id} onClick={() => setSelected(r)}
+            <button key={r.id} onClick={() => handleSelect(r)}
               className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all ${selected?.id === r.id ? 'bg-brand-600 text-white' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'}`}>
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${selected?.id === r.id ? 'bg-brand-500 text-white' : 'bg-brand-100 text-brand-700'}`}>
                 {r.first_name?.[0]}{r.last_name?.[0]}
@@ -1019,7 +1030,7 @@ export default function NursingNotes() {
       </div>
 
       {/* Right panel — resident detail */}
-      <div className="flex-1 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col overflow-hidden">
+      <div ref={detailPanelRef} className="flex-1 min-h-[320px] bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col overflow-hidden">
         {!selected ? (
           <div className="flex-1 flex items-center justify-center text-center p-8">
             <div>
