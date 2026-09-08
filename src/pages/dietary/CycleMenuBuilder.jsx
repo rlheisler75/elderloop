@@ -308,7 +308,7 @@ function MenuItemsCatalog({ items, onRefresh, orgId, canEdit }) {
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Nutrition Facts (per serving)</label>
-              <div className="grid grid-cols-5 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                 <div>
                   <input type="number" min="0" step="1" value={form.calories} onChange={e => set('calories', e.target.value)}
                     className="w-full px-2 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="0" />

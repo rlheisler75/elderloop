@@ -430,7 +430,7 @@ function ResidentProfileModal({ resident, menus, canEdit, onClose, onSave }) {
           </div>
 
           {/* ── Name / Location ── */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
                 First Name *
@@ -478,7 +478,7 @@ function ResidentProfileModal({ resident, menus, canEdit, onClose, onSave }) {
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Diet Type</label>
             <p className="text-xs text-slate-400 mb-2">Based on Academy of Nutrition and Dietetics (AND) terminology</p>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {DIET_TYPES.map(d => (
                 <button key={d.key} onClick={() => set('diet_type', d.key)}
                   className={`px-3 py-2.5 rounded-xl border text-left transition-all ${form.diet_type === d.key ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 dark:border-slate-700 hover:border-brand-300'}`}>
@@ -495,7 +495,7 @@ function ResidentProfileModal({ resident, menus, canEdit, onClose, onSave }) {
             <p className="text-xs text-slate-400 mb-2">Based on IDDSI Framework (International Dysphagia Diet Standardisation Initiative)</p>
             <div className="space-y-2">
               <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Food Textures</div>
-              <div className="grid grid-cols-2 gap-2 mb-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
                 {CONSISTENCIES.filter(c => !['slightly_thick','mildly_thick','moderately_thick','extremely_thick','thickened_liquid','liquid'].includes(c.key)).map(c => (
                   <button key={c.key} onClick={() => set('consistency', c.key)}
                     className={`px-3 py-2.5 rounded-xl border text-left transition-all ${form.consistency === c.key ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 dark:border-slate-700 hover:border-brand-300'}`}>
@@ -508,7 +508,7 @@ function ResidentProfileModal({ resident, menus, canEdit, onClose, onSave }) {
                 ))}
               </div>
               <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Liquid Thickness</div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {CONSISTENCIES.filter(c => ['slightly_thick','mildly_thick','moderately_thick','extremely_thick','thickened_liquid','liquid'].includes(c.key)).map(c => (
                   <button key={c.key} onClick={() => set('consistency', c.key)}
                     className={`px-3 py-2.5 rounded-xl border text-left transition-all ${form.consistency === c.key ? 'bg-teal-600 text-white border-teal-600' : 'border-slate-200 dark:border-slate-700 hover:border-teal-300'}`}>
@@ -526,7 +526,7 @@ function ResidentProfileModal({ resident, menus, canEdit, onClose, onSave }) {
           {/* ── Allergens ── */}
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Allergens</label>
-            <div className="grid grid-cols-5 gap-2 mb-2">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-2">
               {ALLERGENS.map(a => (
                 <button key={a.key} onClick={() => toggleAllergen(a.key)}
                   className={`px-2 py-1.5 rounded-lg border text-xs font-medium transition-all flex items-center gap-1 ${form.allergens.includes(a.key) ? 'bg-red-500 text-white border-red-500' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-red-300'}`}>
@@ -540,7 +540,7 @@ function ResidentProfileModal({ resident, menus, canEdit, onClose, onSave }) {
           </div>
 
           {/* ── Likes / Dislikes ── */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Likes</label>
               <textarea value={form.likes} onChange={e => set('likes', e.target.value)} rows={2}
@@ -556,7 +556,7 @@ function ResidentProfileModal({ resident, menus, canEdit, onClose, onSave }) {
           </div>
 
           {/* ── Fluid / Assistance ── */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50 rounded-xl">
               <label className="flex items-center gap-2 cursor-pointer mb-2">
                 <input type="checkbox" checked={form.fluid_restriction} onChange={e => set('fluid_restriction', e.target.checked)} className="w-4 h-4 rounded text-blue-600" />
@@ -1046,22 +1046,22 @@ export default function Dietary() {
   return (
     <div className="max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Dietary</h1>
           <p className="text-slate-500 text-sm mt-0.5">Resident profiles, dietary restrictions, and cycle menus</p>
         </div>
         {tab === 'residents' && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {residents.length > 0 && (
               <button onClick={() => setShowBulkPrint(true)}
-                className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 rounded-xl text-sm font-medium transition-colors">
+                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 rounded-xl text-xs sm:text-sm font-medium transition-colors">
                 <Printer size={16} /> Print All Tickets
               </button>
             )}
             {canEditDietary && (
               <button onClick={handleNew}
-                className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
+                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs sm:text-sm font-medium transition-colors">
                 <Plus size={16} /> New Resident Profile
               </button>
             )}
@@ -1069,17 +1069,21 @@ export default function Dietary() {
         )}
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit">
-        {tabs.map(t => {
-          const Icon = t.icon
-          return (
-            <button key={t.key} onClick={() => setTab(t.key)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === t.key ? 'bg-white dark:bg-slate-900 text-brand-700 dark:text-brand-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
-              <Icon size={15} />{t.label}
-            </button>
-          )
-        })}
+      {/* Tabs — horizontally scrollable below the width where all 10 tabs
+          fit, rather than wrapping into a messy multi-row block or
+          overflowing the page. */}
+      <div className="overflow-x-auto mb-6 -mx-1 px-1">
+        <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit">
+          {tabs.map(t => {
+            const Icon = t.icon
+            return (
+              <button key={t.key} onClick={() => setTab(t.key)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${tab === t.key ? 'bg-white dark:bg-slate-900 text-brand-700 dark:text-brand-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
+                <Icon size={15} />{t.label}
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       {/* RESIDENTS TAB */}
