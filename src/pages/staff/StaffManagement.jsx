@@ -224,6 +224,7 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
     last_name:                staff?.last_name                || '',
     email:                    staff?.email                    || '',
     job_title:                staff?.job_title                || '',
+    role:                     staff?.role                     || 'staff',
     department:               staff?.department               || '',
     phone:                    staff?.phone                    || '',
     status:                   staff?.status                   || 'active',
@@ -332,6 +333,21 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
                     className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                     <option value="">Select department</option>
                     {departments.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Role</label>
+                  <select value={form.role} onChange={e => set('role', e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    <option value="staff">Staff</option>
+                    <option value="nursing">Nursing</option>
+                    <option value="maintenance">Maintenance</option>
+                    <option value="dietary">Dietary</option>
+                    <option value="housekeeping">Housekeeping</option>
+                    <option value="it">IT</option>
+                    <option value="supervisor">Supervisor</option>
+                    <option value="manager">Manager</option>
+                    <option value="org_admin">Admin</option>
                   </select>
                 </div>
                 <div>
