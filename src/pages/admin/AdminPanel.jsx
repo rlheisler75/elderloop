@@ -16,18 +16,14 @@ import BillingTab from './BillingTab'
 import PccAuthorizationLetter from './PccAuthorizationLetter'
 import { CreditCard } from 'lucide-react'
 import { ALL_STATES } from '../../lib/complianceStates'
+import { DepartmentLevelEditor, getOrgDepartments } from '../staff/StaffManagement'
 
+// Department + level (Housekeeping Supervisor, etc.) is assigned separately below —
+// see DepartmentLevelEditor. Account Type here is just the special tier.
 const ALL_ROLES = [
   { key: 'ceo',         label: 'CEO',         desc: 'Executive dashboard + full access' },
   { key: 'org_admin',   label: 'Org Admin',   desc: 'Full access to organization' },
-  { key: 'manager',     label: 'Manager',     desc: 'Department management' },
-  { key: 'supervisor',  label: 'Supervisor',  desc: 'Manage staff and approve work' },
-  { key: 'maintenance', label: 'Maintenance', desc: 'Work orders access' },
-  { key: 'dietary',     label: 'Dietary',     desc: 'Dietary module access' },
-  { key: 'housekeeping',label: 'Housekeeping',desc: 'Housekeeping module access' },
-  { key: 'nursing',     label: 'Nursing',     desc: 'Clinical access' },
-  { key: 'social_services', label: 'Social Services', desc: 'Social Services module access' },
-  { key: 'staff',       label: 'Staff',       desc: 'General staff — module access assigned separately' },
+  { key: 'staff',       label: 'Staff',       desc: 'General staff — department/level and module access assigned separately' },
   { key: 'resident',    label: 'Resident',    desc: 'Resident portal access' },
   { key: 'family',      label: 'Family',      desc: 'Family portal access' },
 ]
@@ -47,12 +43,13 @@ const getBilling = (key, plan) => {
 }
 
 // ── Create User Modal ──────────────────────────────────────────
-function CreateUserModal({ orgId, orgName, onClose, onSave }) {
+function CreateUserModal({ orgId, orgName, departments, onClose, onSave }) {
   const { profile } = useAuth()
   const [form, setForm] = useState({
     email: '', first_name: '', last_name: '',
     role: 'staff', phone: '', unit: ''
   })
+  const [deptAssignments, setDeptAssignments] = useState([])
   const [saving, setSaving]     = useState(false)
   const [error, setError]       = useState('')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
@@ -80,6 +77,12 @@ function CreateUserModal({ orgId, orgName, onClose, onSave }) {
       setError(fnErr?.message || data?.error || 'User creation failed')
       setSaving(false)
       return
+    }
+
+    if (deptAssignments.length > 0) {
+      await supabase.from('staff_department_roles').insert(
+        deptAssignments.map(a => ({ profile_id: data.user_id, organization_id: orgId, department: a.department, level: a.level }))
+      )
     }
 
     setSaving(false)
@@ -121,7 +124,7 @@ function CreateUserModal({ orgId, orgName, onClose, onSave }) {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Role</label>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Account Type</label>
             <div className="grid grid-cols-2 gap-2">
               {ALL_ROLES.map(r => (
                 <button key={r.key} onClick={() => set('role', r.key)}
@@ -132,6 +135,10 @@ function CreateUserModal({ orgId, orgName, onClose, onSave }) {
               ))}
             </div>
           </div>
+
+          {form.role === 'staff' && (
+            <DepartmentLevelEditor assignments={deptAssignments} onChange={setDeptAssignments} departments={departments} />
+          )}
 
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Phone</label>
@@ -153,7 +160,7 @@ function CreateUserModal({ orgId, orgName, onClose, onSave }) {
 }
 
 // ── Edit User Modal ────────────────────────────────────────────
-function EditUserModal({ user, onClose, onSave }) {
+function EditUserModal({ user, orgId, departments, onClose, onSave }) {
   const [form, setForm] = useState({
     first_name:  user.first_name  || '',
     last_name:   user.last_name   || '',
@@ -167,8 +174,17 @@ function EditUserModal({ user, onClose, onSave }) {
     notes:       user.notes       || '',
     is_active:   user.is_active   ?? true,
   })
+  const [deptAssignments, setDeptAssignments] = useState([])
   const [saving, setSaving] = useState(false)
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+  useEffect(() => { fetchDeptRoles() }, [user.id])
+
+  async function fetchDeptRoles() {
+    const { data } = await supabase.from('staff_department_roles')
+      .select('department, level').eq('profile_id', user.id)
+    setDeptAssignments(data || [])
+  }
 
   const handleSave = async () => {
     setSaving(true)
@@ -186,6 +202,14 @@ function EditUserModal({ user, onClose, onSave }) {
       is_active:   form.is_active,
       updated_at:  new Date().toISOString(),
     }).eq('id', user.id)
+
+    await supabase.from('staff_department_roles').delete().eq('profile_id', user.id)
+    if (deptAssignments.length > 0) {
+      await supabase.from('staff_department_roles').insert(
+        deptAssignments.map(a => ({ profile_id: user.id, organization_id: orgId, department: a.department, level: a.level }))
+      )
+    }
+
     setSaving(false)
     onSave()
   }
@@ -220,7 +244,7 @@ function EditUserModal({ user, onClose, onSave }) {
 
           {/* Role */}
           <div>
-            <label className={labelCls}>Role</label>
+            <label className={labelCls}>Account Type</label>
             <div className="grid grid-cols-3 gap-2">
               {ALL_ROLES.map(r => (
                 <button key={r.key} onClick={() => set('role', r.key)}
@@ -231,6 +255,10 @@ function EditUserModal({ user, onClose, onSave }) {
               ))}
             </div>
           </div>
+
+          {form.role === 'staff' && (
+            <DepartmentLevelEditor assignments={deptAssignments} onChange={setDeptAssignments} departments={departments} />
+          )}
 
           {/* Job info */}
           <div className="grid grid-cols-2 gap-3">
@@ -243,8 +271,8 @@ function EditUserModal({ user, onClose, onSave }) {
               <label className={labelCls}>Department</label>
               <select value={form.department} onChange={e => set('department', e.target.value)} className={inputCls}>
                 <option value="">— Select —</option>
-                {['nursing','dietary','housekeeping','maintenance','security','transportation','administration','activities','other'].map(d => (
-                  <option key={d} value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</option>
+                {departments.map(d => (
+                  <option key={d.key} value={d.key}>{d.label}</option>
                 ))}
               </select>
             </div>
@@ -895,12 +923,15 @@ export default function AdminPanel() {
         <CreateUserModal
           orgId={currentOrgId}
           orgName={selectedOrg?.name || organization?.name}
+          departments={getOrgDepartments(selectedOrg || organization)}
           onClose={() => setShowCreateUser(false)}
           onSave={() => { setShowCreateUser(false); fetchUsers() }} />
       )}
       {showEditUser && editingUser && (
         <EditUserModal
           user={editingUser}
+          orgId={currentOrgId}
+          departments={getOrgDepartments(selectedOrg || organization)}
           onClose={() => { setShowEditUser(false); setEditingUser(null) }}
           onSave={() => { setShowEditUser(false); setEditingUser(null); fetchUsers() }} />
       )}

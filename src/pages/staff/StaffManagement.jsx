@@ -12,7 +12,7 @@ import {
 // ── Constants ─────────────────────────────────────────────────
 // Fallback only — orgs manage their real department list in Admin Panel > Settings
 // (organizations.departments). See getOrgDepartments().
-const FALLBACK_DEPARTMENTS = [
+export const FALLBACK_DEPARTMENTS = [
   { key: 'nursing',        label: 'Nursing' },
   { key: 'maintenance',    label: 'Maintenance' },
   { key: 'dietary',        label: 'Dietary' },
@@ -27,13 +27,13 @@ const FALLBACK_DEPARTMENTS = [
   { key: 'other',          label: 'Other' },
 ]
 
-const STAFF_LEVELS = [
+export const STAFF_LEVELS = [
   { key: 'employee',   label: 'Employee' },
   { key: 'supervisor', label: 'Supervisor' },
   { key: 'manager',    label: 'Manager' },
 ]
 
-const getOrgDepartments = (organization) =>
+export const getOrgDepartments = (organization) =>
   organization?.departments?.length ? organization.departments : FALLBACK_DEPARTMENTS
 
 const STAFF_STATUSES = [
@@ -224,7 +224,7 @@ function CertModal({ cert, staffId, orgId, certTypes, onClose, onSave }) {
 
 // ── Department + Level assignments (multiple departments per person,
 // each with its own level — e.g. Housekeeping/Employee + Maintenance/Supervisor) ──
-function DepartmentLevelEditor({ assignments, onChange, departments }) {
+export function DepartmentLevelEditor({ assignments, onChange, departments }) {
   const addRow = () => {
     const used = new Set(assignments.map(a => a.department))
     const next = departments.find(d => !used.has(d.key))
