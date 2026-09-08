@@ -617,8 +617,8 @@ function SurveyResults({ survey, onClose }) {
               {/* Individual responses */}
               <div>
                 <h3 className="font-display font-semibold text-slate-700 dark:text-slate-300 mb-3">All Responses</h3>
-                <div className="border border-slate-100 dark:border-slate-800 rounded-2xl overflow-hidden">
-                  <table className="w-full">
+                <div className="border border-slate-100 dark:border-slate-800 rounded-2xl overflow-x-auto">
+                  <table className="w-full min-w-[560px]">
                     <thead>
                       <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                         <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Respondent</th>
@@ -716,7 +716,7 @@ export default function Surveys() {
   return (
     <div className="max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Surveys</h1>
           <p className="text-slate-500 text-sm mt-0.5">Build surveys, collect responses, analyze results</p>
@@ -765,7 +765,7 @@ export default function Surveys() {
             const count = responseCounts[s.id] || 0
             return (
               <div key={s.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5 hover:shadow-md transition-all">
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <span className="font-display font-semibold text-slate-800 dark:text-slate-100">{s.title}</span>
