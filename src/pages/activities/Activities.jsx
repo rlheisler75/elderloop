@@ -163,7 +163,7 @@ function ActivityModal({ activity, canEdit, onClose, onSave, onDelete }) {
           {/* Category */}
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Category</label>
-            <div className="grid grid-cols-4 gap-1.5">
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5">
               {CATEGORIES.map(c => {
                 const Icon = c.icon
                 return (
@@ -180,7 +180,7 @@ function ActivityModal({ activity, canEdit, onClose, onSave, onDelete }) {
           {/* Schedule */}
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Schedule</label>
-            <div className="grid grid-cols-3 gap-2 mb-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2">
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Date *</label>
                 <input type="date" value={form.start_date} onChange={e => set('start_date', e.target.value)}
@@ -255,7 +255,7 @@ function ActivityModal({ activity, canEdit, onClose, onSave, onDelete }) {
           </div>
 
           {/* Display options */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label className={`flex items-center gap-2 cursor-pointer p-3 rounded-xl border transition-all ${form.show_on_portal ? 'bg-brand-50 dark:bg-brand-950/30 border-brand-200 dark:border-brand-800' : 'border-slate-200 dark:border-slate-700'}`}>
               <input type="checkbox" checked={form.show_on_portal} onChange={e => set('show_on_portal', e.target.checked)} className="w-4 h-4 rounded text-brand-600" />
               <div>
@@ -375,40 +375,47 @@ function MonthCalendar({ year, month, expanded, onEditActivity, onNewActivity, o
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
-      {/* Day headers */}
-      <div className="grid grid-cols-7 border-b border-slate-100 dark:border-slate-800">
-        {DAYS.map(d => (
-          <div key={d} className="py-2 text-center text-xs font-semibold text-slate-400 uppercase tracking-wide">{d}</div>
-        ))}
-      </div>
-      {/* Cells */}
-      <div className="grid grid-cols-7">
-        {cells.map((d, i) => {
-          if (!d) return <div key={`empty-${i}`} className="min-h-[90px] border-b border-r border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50" />
-          const ds = getDateStr(d)
-          const isToday = ds === todayStr
-          const dayActivities = activitiesForDay(d)
-          return (
-            <div key={d}
-              className={`min-h-[90px] border-b border-r border-slate-100 dark:border-slate-800 p-1.5 transition-colors ${canEdit ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800' : ''} ${isToday ? 'bg-brand-50 dark:bg-brand-950/30' : ''}`}
-              onClick={() => canEdit && onNewActivity(ds)}>
-              <div className={`text-xs font-semibold mb-1 w-6 h-6 flex items-center justify-center rounded-full ${isToday ? 'bg-brand-600 text-white' : 'text-slate-600 dark:text-slate-300'}`}>
-                {d}
-              </div>
-              <div>
-                {dayActivities.slice(0, 3).map((a, idx) => (
-                  <ActivityPill key={`${a.id}-${idx}`} activity={a} onClick={(a) => onEditActivity(a)} />
-                ))}
-                {dayActivities.length > 3 && (
-                  <button onClick={(e) => { e.stopPropagation(); onShowMore(ds, dayActivities) }}
-                    className="text-xs text-slate-400 hover:text-brand-600 hover:underline pl-1">
-                    +{dayActivities.length - 3} more
-                  </button>
-                )}
-              </div>
-            </div>
-          )
-        })}
+      {/* Below ~630px this scrolls horizontally instead of squishing 7 columns
+          down to an unreadable width — a swipe-to-see-the-week-past-Wed calendar
+          beats one where every activity title is truncated to 2 characters. */}
+      <div className="overflow-x-auto">
+        <div className="min-w-[630px]">
+          {/* Day headers */}
+          <div className="grid grid-cols-7 border-b border-slate-100 dark:border-slate-800">
+            {DAYS.map(d => (
+              <div key={d} className="py-2 text-center text-xs font-semibold text-slate-400 uppercase tracking-wide">{d}</div>
+            ))}
+          </div>
+          {/* Cells */}
+          <div className="grid grid-cols-7">
+            {cells.map((d, i) => {
+              if (!d) return <div key={`empty-${i}`} className="min-h-[90px] border-b border-r border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50" />
+              const ds = getDateStr(d)
+              const isToday = ds === todayStr
+              const dayActivities = activitiesForDay(d)
+              return (
+                <div key={d}
+                  className={`min-h-[90px] border-b border-r border-slate-100 dark:border-slate-800 p-1.5 transition-colors ${canEdit ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800' : ''} ${isToday ? 'bg-brand-50 dark:bg-brand-950/30' : ''}`}
+                  onClick={() => canEdit && onNewActivity(ds)}>
+                  <div className={`text-xs font-semibold mb-1 w-6 h-6 flex items-center justify-center rounded-full ${isToday ? 'bg-brand-600 text-white' : 'text-slate-600 dark:text-slate-300'}`}>
+                    {d}
+                  </div>
+                  <div>
+                    {dayActivities.slice(0, 3).map((a, idx) => (
+                      <ActivityPill key={`${a.id}-${idx}`} activity={a} onClick={(a) => onEditActivity(a)} />
+                    ))}
+                    {dayActivities.length > 3 && (
+                      <button onClick={(e) => { e.stopPropagation(); onShowMore(ds, dayActivities) }}
+                        className="text-xs text-slate-400 hover:text-brand-600 hover:underline pl-1">
+                        +{dayActivities.length - 3} more
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -650,25 +657,27 @@ function UpcomingList({ activities, onEdit, canEdit, attendanceCounts, onTakeAtt
                 const rsvpCount = rsvpCounts?.[`${a.id}|${a._date}`] || 0
                 return (
                   <div key={i}
-                    className="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-4 flex items-center gap-4 hover:shadow-sm hover:border-brand-200 transition-all group">
-                    <div onClick={() => onEdit(a)} className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 cursor-pointer"
-                      style={{ background: a.color + '22', border: `2px solid ${a.color}44` }}>
-                      <Icon size={18} style={{ color: a.color }} />
-                    </div>
-                    <div onClick={() => onEdit(a)} className="flex-1 min-w-0 cursor-pointer">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-slate-800 dark:text-slate-100 text-sm">{a.title}</span>
-                        {a.recur_type !== 'none' && <RefreshCw size={11} className="text-slate-400 flex-shrink-0" />}
-                        {!a.show_on_portal && <EyeOff size={11} className="text-slate-300 flex-shrink-0" title="Hidden from residents" />}
+                    className="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 hover:shadow-sm hover:border-brand-200 transition-all group">
+                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                      <div onClick={() => onEdit(a)} className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 cursor-pointer"
+                        style={{ background: a.color + '22', border: `2px solid ${a.color}44` }}>
+                        <Icon size={18} style={{ color: a.color }} />
                       </div>
-                      <div className="flex items-center gap-3 mt-0.5 text-xs text-slate-400">
-                        {!a.all_day && a.start_time && (
-                          <span className="flex items-center gap-1"><Clock size={11} />{fmt12(a.start_time)}{a.end_time && ` – ${fmt12(a.end_time)}`}</span>
-                        )}
-                        {a.all_day && <span>All Day</span>}
-                        {a.location && <span className="flex items-center gap-1"><MapPin size={11} />{a.location}</span>}
-                        {a.department && <span className="text-slate-300">· {a.department}</span>}
-                        {rsvpCount > 0 && <span className="text-brand-500 dark:text-brand-400">· {rsvpCount} RSVP'd</span>}
+                      <div onClick={() => onEdit(a)} className="flex-1 min-w-0 cursor-pointer">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-slate-800 dark:text-slate-100 text-sm">{a.title}</span>
+                          {a.recur_type !== 'none' && <RefreshCw size={11} className="text-slate-400 flex-shrink-0" />}
+                          {!a.show_on_portal && <EyeOff size={11} className="text-slate-300 flex-shrink-0" title="Hidden from residents" />}
+                        </div>
+                        <div className="flex items-center gap-3 mt-0.5 text-xs text-slate-400 flex-wrap">
+                          {!a.all_day && a.start_time && (
+                            <span className="flex items-center gap-1"><Clock size={11} />{fmt12(a.start_time)}{a.end_time && ` – ${fmt12(a.end_time)}`}</span>
+                          )}
+                          {a.all_day && <span>All Day</span>}
+                          {a.location && <span className="flex items-center gap-1"><MapPin size={11} />{a.location}</span>}
+                          {a.department && <span className="text-slate-300">· {a.department}</span>}
+                          {rsvpCount > 0 && <span className="text-brand-500 dark:text-brand-400">· {rsvpCount} RSVP'd</span>}
+                        </div>
                       </div>
                     </div>
                     {canEdit && (
@@ -797,23 +806,23 @@ export default function Activities() {
   return (
     <div className="max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Activities</h1>
           <p className="text-slate-500 text-sm mt-0.5">Activity calendar and resident programming</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <button onClick={() => setShowPrint(true)}
-            className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
+            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 rounded-xl text-xs sm:text-sm font-medium transition-colors">
             <Printer size={15} /> Print Schedule
           </button>
           <button onClick={() => setShowPrintCalendar(true)}
-            className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
+            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 rounded-xl text-xs sm:text-sm font-medium transition-colors">
             <Calendar size={15} /> Print Calendar
           </button>
           {canEditActivities && (
             <button onClick={() => { setEditActivity(null); setDefaultDate(today()); setShowModal(true) }}
-              className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs sm:text-sm font-medium transition-colors">
               <Plus size={15} /> Add Activity
             </button>
           )}
@@ -821,7 +830,7 @@ export default function Activities() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         {[
           { label: "Today",         value: todayExpanded.length, color: 'text-brand-600',  bg: 'bg-brand-50' },
           { label: 'This Week',     value: weekExpanded.length,  color: 'text-blue-600',   bg: 'bg-blue-50' },
