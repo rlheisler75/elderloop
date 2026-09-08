@@ -195,7 +195,7 @@ function AnnouncementModal({ item, onClose, onSave }) {
           {/* Category */}
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Category</label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
               {CATEGORIES.map(cat => {
                 const Icon = cat.icon
                 return (
@@ -247,7 +247,7 @@ function AnnouncementModal({ item, onClose, onSave }) {
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1.5">
               <Palette size={14} /> Background Color <span className="text-slate-400 font-normal">(signage display)</span>
             </label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {BG_PRESETS.map(preset => (
                 <button key={preset.value} onClick={() => handleBgSelect(preset.value)}
                   className={`px-2 py-2 rounded-lg border text-xs font-medium transition-all flex items-center gap-1.5
@@ -381,20 +381,20 @@ export default function Communication() {
     <div className="max-w-4xl mx-auto">
 
       {/* Page header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Communication</h1>
           <p className="text-slate-500 text-sm mt-0.5">Announcements, events, and community updates</p>
         </div>
         {activeTab === 'announcements' && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <a href="/signage?org=sunrise-gardens" target="_blank"
-              className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-brand-600 hover:border-brand-300 rounded-xl text-sm font-medium transition-colors">
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-brand-600 hover:border-brand-300 rounded-xl text-xs sm:text-sm font-medium transition-colors">
               <Monitor size={16} /> Digital Signage
             </a>
             {canPost && (
               <button onClick={handleNew}
-                className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
+                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs sm:text-sm font-medium transition-colors">
                 <Plus size={16} /> New Announcement
               </button>
             )}

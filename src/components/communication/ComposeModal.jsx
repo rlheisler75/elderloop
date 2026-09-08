@@ -283,7 +283,7 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
         {showTemplates && templates.length > 0 && (
           <div className="px-6 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
             <p className="text-xs font-medium text-slate-500 mb-2 uppercase tracking-wide">Quick Templates</p>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {templates.map(t => (
                 <button key={t.name} onClick={() => applyTemplate(t)}
                   className="text-left px-3 py-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-brand-300 hover:bg-brand-50 transition-colors text-xs">
@@ -304,7 +304,7 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
           {/* Channels */}
           <div>
             <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Send via</label>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {[
                 { key: 'push',  label: 'In-App',  icon: Bell,          activeClass: 'bg-brand-50 border-brand-400 text-brand-700' },
                 { key: 'email', label: 'Email',   icon: Mail,          activeClass: 'bg-blue-50 border-blue-400 text-blue-700' },
@@ -353,7 +353,7 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
           {/* Audience */}
           <div>
             <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Send to</label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {audienceOptions.map(opt => {
                 const Icon = opt.icon
                 const active = form.audience_type === opt.key

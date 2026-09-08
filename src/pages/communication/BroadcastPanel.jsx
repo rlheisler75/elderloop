@@ -138,7 +138,7 @@ export default function BroadcastPanel({ isStarter = false, restrictToDepartment
     <div className="space-y-6">
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">{title || 'Broadcast Messaging'}</h2>
           <p className="text-slate-400 text-sm mt-0.5">{subtitle || 'Send email, push, and SMS to residents, family, and staff'}</p>
