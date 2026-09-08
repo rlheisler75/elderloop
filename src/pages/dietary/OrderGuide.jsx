@@ -143,7 +143,7 @@ function ItemForm({ item, vendors, menuItems, orgId, onClose, onSaved, onAddVend
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <div>
           <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Cost / Unit</label>
           <input type="number" min="0" step="0.01" value={form.cost_per_unit} onChange={e => set('cost_per_unit', e.target.value)} className={inputCls} placeholder="$" />
@@ -432,35 +432,37 @@ export default function OrderGuide({ orgId, residents, menus, menuItems, canMana
                     )
                   )}
                 </div>
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-slate-100 dark:border-slate-800">
-                      <th className="text-left text-xs font-semibold text-slate-500 pb-2">Item</th>
-                      <th className="text-right text-xs font-semibold text-slate-500 pb-2">Servings Needed</th>
-                      <th className="text-right text-xs font-semibold text-slate-500 pb-2">Raw Qty Needed</th>
-                      <th className="text-right text-xs font-semibold text-slate-500 pb-2">On Hand</th>
-                      <th className="text-right text-xs font-semibold text-slate-500 pb-2">Par</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows.map(({ item, menuItem, servings, rawQty }) => (
-                      <tr key={item.id} className="border-b border-slate-50 dark:border-slate-800">
-                        <td className="py-2 text-xs">
-                          <div className="text-slate-700 dark:text-slate-300 font-medium">{item.name}</div>
-                          <div className="text-slate-400">for {menuItem?.name || '—'}</div>
-                        </td>
-                        <td className="py-2 text-xs text-right text-slate-700 dark:text-slate-300 font-semibold">{servings}</td>
-                        <td className="py-2 text-xs text-right">
-                          {rawQty != null
-                            ? <span className="text-slate-700 dark:text-slate-300">{rawQty} {menuItem.portion_unit.replace('_', ' ')}</span>
-                            : <span className="text-amber-600 dark:text-amber-400 flex items-center justify-end gap-1"><AlertTriangle size={11} /> set portion size</span>}
-                        </td>
-                        <td className="py-2 text-xs text-right text-slate-500">{item.quantity_on_hand} {item.unit.replace('_', ' ')}</td>
-                        <td className="py-2 text-xs text-right text-slate-500">{item.par_level ?? '—'}</td>
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[520px]">
+                    <thead>
+                      <tr className="border-b border-slate-100 dark:border-slate-800">
+                        <th className="text-left text-xs font-semibold text-slate-500 pb-2">Item</th>
+                        <th className="text-right text-xs font-semibold text-slate-500 pb-2">Servings Needed</th>
+                        <th className="text-right text-xs font-semibold text-slate-500 pb-2">Raw Qty Needed</th>
+                        <th className="text-right text-xs font-semibold text-slate-500 pb-2">On Hand</th>
+                        <th className="text-right text-xs font-semibold text-slate-500 pb-2">Par</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {rows.map(({ item, menuItem, servings, rawQty }) => (
+                        <tr key={item.id} className="border-b border-slate-50 dark:border-slate-800">
+                          <td className="py-2 text-xs">
+                            <div className="text-slate-700 dark:text-slate-300 font-medium">{item.name}</div>
+                            <div className="text-slate-400">for {menuItem?.name || '—'}</div>
+                          </td>
+                          <td className="py-2 text-xs text-right text-slate-700 dark:text-slate-300 font-semibold">{servings}</td>
+                          <td className="py-2 text-xs text-right">
+                            {rawQty != null
+                              ? <span className="text-slate-700 dark:text-slate-300">{rawQty} {menuItem.portion_unit.replace('_', ' ')}</span>
+                              : <span className="text-amber-600 dark:text-amber-400 flex items-center justify-end gap-1"><AlertTriangle size={11} /> set portion size</span>}
+                          </td>
+                          <td className="py-2 text-xs text-right text-slate-500">{item.quantity_on_hand} {item.unit.replace('_', ' ')}</td>
+                          <td className="py-2 text-xs text-right text-slate-500">{item.par_level ?? '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             ))}
           </div>
