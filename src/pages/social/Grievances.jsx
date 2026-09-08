@@ -134,7 +134,7 @@ function GrievanceModal({ residents, staff, orgId, grievance, canWrite, onClose,
           )}
 
           {/* Resident */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Resident (if applicable)</label>
               <select value={form.resident_id} onChange={e => set('resident_id', e.target.value)} disabled={readOnly}
@@ -170,7 +170,7 @@ function GrievanceModal({ residents, staff, orgId, grievance, canWrite, onClose,
               ))}
             </div>
             {form.complainant_type !== 'resident' && (
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="col-span-1">
                   <input value={form.complainant_name} onChange={e => set('complainant_name', e.target.value)} readOnly={readOnly}
                     placeholder="Complainant name"

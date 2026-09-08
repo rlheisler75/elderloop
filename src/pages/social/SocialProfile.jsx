@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { Search, Plus, ChevronRight, User, Save, X, Check,
@@ -279,8 +279,23 @@ export default function SocialProfile({ canWrite }) {
   const [ssProfile,  setSsProfile]  = useState(null)
   const [loading,    setLoading]    = useState(true)
   const [profLoading,setProfLoading] = useState(false)
+  const profilePanelRef = useRef(null)
 
   useEffect(() => { fetchResidents() }, [])
+
+  // Below the lg breakpoint the profile panel stacks under the (scrollable,
+  // fairly tall) resident list rather than sitting beside it — jump to it on
+  // selection so picking a resident doesn't leave staff scrolling to find it.
+  // Called imperatively (rather than from a [selected, profLoading] effect)
+  // because the fetch inside selectResident can resolve fast enough that the
+  // loading→loaded states batch into a single render, which left an
+  // effect-based scroll racing the taller "loaded" content's layout.
+  function scrollToProfileOnMobile() {
+    if (window.innerWidth >= 1024) return
+    setTimeout(() => {
+      profilePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 50)
+  }
 
   async function fetchResidents() {
     setLoading(true)
@@ -322,6 +337,7 @@ export default function SocialProfile({ canWrite }) {
       .select('*').eq('resident_id', r.id).limit(1)
     setSsProfile(data?.[0] || null)
     setProfLoading(false)
+    scrollToProfileOnMobile()
   }
 
   const filtered = residents.filter(r =>
@@ -377,7 +393,7 @@ export default function SocialProfile({ canWrite }) {
       </div>
 
       {/* Profile panel */}
-      <div className="lg:col-span-2">
+      <div ref={profilePanelRef} className="lg:col-span-2">
         {!selected ? (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm h-64 flex items-center justify-center text-slate-400">
             <div className="text-center">
