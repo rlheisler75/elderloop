@@ -679,7 +679,7 @@ export default function ITTickets() {
     <div className="max-w-6xl mx-auto">
       <style>{`.label{display:block;font-size:.65rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.375rem}.input{width:100%;padding:.5rem .75rem;border:1px solid #e2e8f0;border-radius:.5rem;font-size:.875rem;outline:none}.input:focus{ring:2px solid #0c90e1}.dark .input{background:#1e293b;border-color:#334155;color:#f1f5f9}.dark .label{color:#94a3b8}`}</style>
 
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">IT & Technology</h1>
           <p className="text-slate-500 text-sm mt-0.5">Support tickets and device inventory</p>
@@ -850,8 +850,8 @@ export default function ITTickets() {
               <p className="font-display text-lg">No assets found</p>
             </div>
           ) : (
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
-              <table className="w-full text-sm">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-x-auto">
+              <table className="w-full text-sm min-w-[960px]">
                 <thead>
                   <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                     {['Tag','Name','Type','Make / Model','Location','Assigned To','Warranty','Status',''].map(h => (
@@ -945,8 +945,8 @@ export default function ITTickets() {
               <p className="font-display text-lg">No licenses found</p>
             </div>
           ) : (
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
-              <table className="w-full text-sm">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-x-auto">
+              <table className="w-full text-sm min-w-[840px]">
                 <thead>
                   <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                     {['Software','Vendor','Type','Seats','Owner','Renewal','Status',''].map(h => (
