@@ -140,7 +140,7 @@ function ServiceModal({ service, onClose, onSave }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Date *</label>
               <input type="date" value={form.service_date} onChange={e => set('service_date', e.target.value)}
@@ -278,7 +278,7 @@ export default function Chapel() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Chapel Management</h1>
           <p className="text-slate-500 text-sm mt-0.5">Chaplain Portal — Manage services and live streams</p>
@@ -290,7 +290,7 @@ export default function Chapel() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         {[
           { label: 'Upcoming Services', value: upcoming.length, icon: Calendar, color: 'text-brand-600' },
           { label: 'Avg Attendance',    value: avgAttendance,   icon: Users,    color: 'text-purple-600' },
@@ -313,7 +313,7 @@ export default function Chapel() {
         })}
       </div>
 
-      <div className="grid grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Live Stream Control */}
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
@@ -421,8 +421,8 @@ export default function Chapel() {
         {past.length === 0 ? (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-8 text-center text-slate-400">No past services yet.</div>
         ) : (
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
-            <table className="w-full">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-x-auto">
+            <table className="w-full min-w-[680px]">
               <thead>
                 <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Service</th>
