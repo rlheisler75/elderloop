@@ -158,6 +158,17 @@ export function AuthProvider({ children }) {
     return (LEVEL_RANK[assignment.level] ?? -1) >= (LEVEL_RANK[minLevel] ?? 0)
   }
 
+  // hasAnyDepartmentLevel(minLevel) — for org-wide "supervisor perks" that aren't
+  // tied to one specific department (Broadcast tab, deleting others' messages,
+  // managing the schedule, etc.). There's no free-floating Supervisor/Manager
+  // account anymore — every one is attached to a department — so this is true
+  // when the person supervises/manages AT LEAST ONE department. org_admin/ceo/
+  // super_admin always pass.
+  const hasAnyDepartmentLevel = (minLevel = 'supervisor') => {
+    if (['org_admin','ceo','super_admin'].includes(profile?.role) || superAdmin) return true
+    return departmentRoles.some(d => (LEVEL_RANK[d.level] ?? -1) >= (LEVEL_RANK[minLevel] ?? 0))
+  }
+
   const accessibleModules = orgModules.filter(key => hasModule(key))
 
   // Pre-computed booleans — NOT functions — so JSX conditions like {isOrgAdmin && ...} work correctly
@@ -238,7 +249,7 @@ export function AuthProvider({ children }) {
       loading, suspended, hasModule, canEdit, accessibleModules,
       isOrgAdmin, isSuperAdmin, isCEO, signOut, refreshModules, refreshProfile, refreshOrganization,
       impersonating, impersonateOrg, exitImpersonation,
-      departmentRoles, hasDepartmentAccess, refreshDepartmentRoles,
+      departmentRoles, hasDepartmentAccess, hasAnyDepartmentLevel, refreshDepartmentRoles,
     }}>
       {children}
 

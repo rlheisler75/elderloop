@@ -659,10 +659,10 @@ function SurveyResults({ survey, onClose }) {
 
 // ── Main Surveys Page ──────────────────────────────────────────
 export default function Surveys() {
-  const { profile, organization } = useAuth()
+  const { profile, organization, hasAnyDepartmentLevel } = useAuth()
 
-  // Progressive access: supervisor = view results + copy link only; manager+ = full
-  const canManage = ['manager','ceo','org_admin','super_admin'].includes(profile?.role)
+  // Progressive access: supervisor (of any department) = view results + copy link only; manager+ = full
+  const canManage = hasAnyDepartmentLevel('manager')
 
   const [surveys, setSurveys]   = useState([])
   const [loading, setLoading]   = useState(true)

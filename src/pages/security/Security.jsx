@@ -514,9 +514,9 @@ const getReportStatus = (key) => REPORT_STATUSES.find(s => s.key === key) || REP
 const getReportPriority = (key) => REPORT_PRIORITIES.find(p => p.key === key) || REPORT_PRIORITIES[0]
 
 function SecurityReportModal({ report, roundId, checkpoints, onClose, onSave }) {
-  const { profile } = useAuth()
+  const { profile, hasAnyDepartmentLevel } = useAuth()
   const isNew = !report
-  const isSupervisor = ['super_admin','org_admin','supervisor','manager'].includes(profile?.role)
+  const isSupervisor = hasAnyDepartmentLevel('supervisor')
 
   const [form, setForm] = useState({
     report_type:         report?.report_type         || 'general',
@@ -725,7 +725,7 @@ function SecurityReportModal({ report, roundId, checkpoints, onClose, onSave }) 
 
 // ── Main Security Page ─────────────────────────────────────────
 export default function Security() {
-  const { profile, organization } = useAuth()
+  const { profile, organization, hasAnyDepartmentLevel } = useAuth()
   const [tab, setTab]               = useState('overview')
   const [checkpoints, setCheckpoints] = useState([])
   const [rounds, setRounds]           = useState([])
@@ -742,7 +742,7 @@ export default function Security() {
   const [showReport, setShowReport]     = useState(false)
   const [editReport, setEditReport]     = useState(null)
 
-  const isSupervisor = ['super_admin','org_admin','supervisor','manager'].includes(profile?.role)
+  const isSupervisor = hasAnyDepartmentLevel('supervisor')
 
   useEffect(() => {
     const handler = (e) => {

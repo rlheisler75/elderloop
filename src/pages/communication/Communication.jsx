@@ -318,7 +318,7 @@ function AnnouncementModal({ item, onClose, onSave }) {
 
 // ── Main Communication Page ────────────────────────────────────
 export default function Communication() {
-  const { profile, organization } = useAuth()
+  const { profile, organization, hasAnyDepartmentLevel } = useAuth()
   const [announcements, setAnnouncements] = useState([])
   const [loading, setLoading]             = useState(true)
   const [search, setSearch]               = useState('')
@@ -331,11 +331,11 @@ export default function Communication() {
   const [activeTab, setActiveTab] = useState('announcements')
 
   const canPost    = profile && ['super_admin','org_admin','ceo','supervisor','manager','staff','maintenance','dietary','housekeeping'].includes(profile.role)
-  const canDelete  = profile && ['super_admin','org_admin','ceo','supervisor','manager'].includes(profile.role)
-  const canEditAll = profile && ['super_admin','org_admin','ceo','supervisor','manager'].includes(profile.role)
+  const canDelete  = hasAnyDepartmentLevel('supervisor')
+  const canEditAll = hasAnyDepartmentLevel('supervisor')
 
-  // Only org_admin/ceo/manager/supervisor see the Broadcast tab
-  const canSeeBroadcast = profile && ['super_admin','org_admin','ceo','manager','supervisor'].includes(profile.role)
+  // Only org admins or someone who supervises/manages at least one department see the Broadcast tab
+  const canSeeBroadcast = hasAnyDepartmentLevel('supervisor')
 
   useEffect(() => { fetchAnnouncements() }, [organization])
 

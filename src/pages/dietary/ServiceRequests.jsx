@@ -4,10 +4,6 @@ import { useAuth } from '../../context/AuthContext'
 import { Plus, X, Users, MapPin, CalendarClock, Check, Loader2, AlertCircle,
          Utensils, Heart, PartyPopper, MoreHorizontal, Ban, ChevronDown } from 'lucide-react'
 
-// Roles allowed to submit a meeting/hospitality food request — separate from
-// who can manage the Dietary module itself (canEditDietary handles that).
-export const REQUESTER_ROLES = ['nursing', 'supervisor', 'manager', 'ceo', 'org_admin', 'super_admin']
-
 const REQUEST_TYPES = [
   { key: 'meeting',     label: 'Staff Meeting',        icon: Users },
   { key: 'move_in',     label: 'Move-In Welcome',      icon: PartyPopper },
@@ -171,14 +167,15 @@ export function ServiceRequestModal({ orgId, residents = [], onClose, onSaved })
 
 // ── Management view — lives inside the Dietary module ──────────
 export default function ServiceRequests({ orgId, canManage }) {
-  const { profile } = useAuth()
+  const { profile, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
   const [requests, setRequests]   = useState([])
   const [residents, setResidents] = useState([])
   const [loading, setLoading]     = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [statusFilter, setStatusFilter] = useState('active')
 
-  const canSubmit = canManage || REQUESTER_ROLES.includes(profile?.role)
+  // Anyone in Nursing (any level) or any org-wide department supervisor/manager/admin
+  const canSubmit = canManage || hasDepartmentAccess('nursing', 'employee') || hasAnyDepartmentLevel('supervisor')
 
   useEffect(() => { fetchAll() }, [orgId])
 

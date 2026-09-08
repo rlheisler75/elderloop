@@ -775,7 +775,7 @@ function SwapPanel({ orgId, profile, staff, shifts, isMgr, onRefresh }) {
 
 // ── Main Scheduling Page ───────────────────────────────────────
 export default function Scheduling() {
-  const { profile, organization } = useAuth()
+  const { profile, organization, hasAnyDepartmentLevel } = useAuth()
   const DEPTS = organization?.departments?.length ? organization.departments : DEPARTMENTS_DEFAULT
   const [shifts, setShifts]       = useState([])
   const [staff, setStaff]         = useState([])
@@ -791,7 +791,7 @@ export default function Scheduling() {
   const [dayDetail, setDayDetail]   = useState(null)
   const [showTemplates, setShowTemplates] = useState(false)
 
-  const isMgr = ['org_admin','ceo','super_admin','supervisor','manager'].includes(profile?.role)
+  const isMgr = hasAnyDepartmentLevel('supervisor')
 
   useEffect(() => { if (organization) fetchAll() }, [organization])
 

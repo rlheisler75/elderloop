@@ -39,8 +39,6 @@ import MaintenanceSettings from './MaintenanceSettings'
 import LocationPicker from '../../components/ui/LocationPicker'
 import BroadcastPanel from '../communication/BroadcastPanel'
 
-const MAINTENANCE_COMMS_ROLES = ['super_admin', 'org_admin', 'ceo', 'supervisor', 'manager', 'maintenance']
-
 const STATUSES = [
   { key: 'open',             label: 'Open',             color: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-900',     dot: 'bg-blue-500' },
   { key: 'pending_approval', label: 'Pending Approval', color: 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950/50 dark:text-yellow-400 dark:border-yellow-900', dot: 'bg-yellow-500' },
@@ -1045,7 +1043,6 @@ export default function WorkOrders() {
         <BroadcastPanel
           isStarter={organization?.plan === 'starter'}
           restrictToDepartment="maintenance"
-          canSendRoles={MAINTENANCE_COMMS_ROLES}
           title="Maintenance Communication"
           subtitle="Internal messages to the maintenance department — not visible to other departments"
         />

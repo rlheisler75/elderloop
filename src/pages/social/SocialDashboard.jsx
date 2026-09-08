@@ -8,7 +8,6 @@ import {
 import { SOCIAL_STATE_REFS } from '../../lib/socialStateRefs'
 
 // ── Access guard — directors and admins only ──────────────────
-const DIRECTOR_ROLES = ['social_services','supervisor','manager','org_admin','ceo','super_admin']
 
 // ── Mood config matching MoodTracker.jsx ─────────────────────
 const MOOD_CONFIG = {
@@ -126,8 +125,9 @@ function TrendDots({ weeks }) {
 }
 
 export default function SocialDashboard({ onNavigate }) {
-  const { profile, organization } = useAuth()
-  const isDirector = DIRECTOR_ROLES.includes(profile?.role)
+  const { profile, organization, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
+  // Anyone in Social Services (any level) or any org-wide department supervisor/manager/admin
+  const isDirector = hasDepartmentAccess('social_services', 'employee') || hasAnyDepartmentLevel('supervisor')
 
   // Hooks must all be declared before any conditional return
   const [loading,       setLoading]       = useState(true)

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import PushPermissionModal from '../../components/modals/PushPermissionModal'
-import { ServiceRequestModal, REQUESTER_ROLES } from '../dietary/ServiceRequests'
+import { ServiceRequestModal } from '../dietary/ServiceRequests'
 import { computeWeightAlerts } from '../dietary/malnutritionAlerts'
 import { computeEngagementAlerts } from '../activities/engagementAlerts'
 import {
@@ -82,7 +82,7 @@ const today = () => {
 
 // ── Main Dashboard ─────────────────────────────────────────────
 export default function Dashboard() {
-  const { profile, organization, hasModule, orgModules } = useAuth()
+  const { profile, organization, hasModule, orgModules, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
   const navigate = useNavigate()
   const [data, setData]       = useState({})
   const [feed, setFeed]       = useState([])
@@ -518,7 +518,7 @@ export default function Dashboard() {
                 hasModule('transportation') && { label: 'Schedule a Trip',      to: '/app/transportation', icon: Car,           color: 'text-green-600' },
                 hasModule('incidents')      && { label: 'File Incident Report', to: '/app/incidents',      icon: AlertTriangle, color: 'text-red-600' },
                 hasModule('meters')         && { label: 'Enter Meter Reading',  to: '/app/meters',         icon: Gauge,         color: 'text-amber-600' },
-                orgModules.includes('dietary') && REQUESTER_ROLES.includes(profile?.role) &&
+                orgModules.includes('dietary') && (hasDepartmentAccess('nursing', 'employee') || hasAnyDepartmentLevel('supervisor')) &&
                   { label: 'Request Meeting / Hospitality Meal', onClick: () => setShowFoodRequestModal(true), icon: Utensils, color: 'text-emerald-600' },
               ].filter(Boolean).map((link, i) => {
                 const Icon = link.icon

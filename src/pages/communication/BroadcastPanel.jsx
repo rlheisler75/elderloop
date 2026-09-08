@@ -29,8 +29,6 @@ const AUDIENCE_LABELS = {
   individual:    'Individuals',
 }
 
-const CAN_SEND_ROLES = ['super_admin', 'org_admin', 'ceo', 'manager', 'supervisor']
-
 // department_scope tags every message sent through a department-restricted
 // composer (see restrictToDepartment below), independent of audience_type —
 // this keeps a department's own message log self-contained even for
@@ -71,11 +69,15 @@ function StatCard({ icon: Icon, label, value, sub, color }) {
   )
 }
 
-export default function BroadcastPanel({ isStarter = false, restrictToDepartment, canSendRoles, title, subtitle }) {
-  const { profile, organization } = useAuth()
+export default function BroadcastPanel({ isStarter = false, restrictToDepartment, title, subtitle }) {
+  const { profile, organization, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
 
-  const sendRoles = canSendRoles || CAN_SEND_ROLES
-  const canSend = sendRoles.includes(profile?.role)
+  // Anyone in the restricted department (any level) can send, same as any
+  // org-wide department supervisor/manager/admin; unrestricted panels (the
+  // main Communication > Broadcast tab) only allow the latter.
+  const canSend = restrictToDepartment
+    ? hasDepartmentAccess(restrictToDepartment, 'employee') || hasAnyDepartmentLevel('supervisor')
+    : hasAnyDepartmentLevel('supervisor')
 
   const [messages, setMessages]           = useState([])
   const [loading, setLoading]             = useState(true)

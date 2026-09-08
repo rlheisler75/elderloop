@@ -24,10 +24,11 @@ const TABS = [
 ]
 
 export default function SocialServices() {
-  const { profile, canEdit } = useAuth()
+  const { profile, canEdit, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
   const [tab, setTab] = useState('profiles')
 
   const canWrite = canEdit('social_services', ['social_services', 'supervisor', 'manager'])
+  const isDirector = hasDepartmentAccess('social_services', 'employee') || hasAnyDepartmentLevel('supervisor')
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -48,7 +49,7 @@ export default function SocialServices() {
 
       {/* Tab bar */}
       <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl flex-wrap">
-        {TABS.filter(t => !t.directorOnly || ['social_services','supervisor','manager','org_admin','ceo','super_admin'].includes(profile?.role)).map(t => (
+        {TABS.filter(t => !t.directorOnly || isDirector).map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex-1 justify-center
               ${tab === t.key

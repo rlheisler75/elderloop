@@ -42,9 +42,6 @@ const ROLE_LABELS = {
   staff:        { label: 'Staff',        color: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' },
 }
 
-const isPrivileged = (role) =>
-  ['org_admin','ceo','super_admin','supervisor','manager'].includes(role)
-
 const getRoleCfg = (role) => ROLE_LABELS[role] || { label: role, color: 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400' }
 
 const initials = (first, last) =>
@@ -311,7 +308,7 @@ function StaffCard({ member, canSeeAll, isSelf, canEdit, departments, onEdit, on
 
 // ── Main Staff Directory ───────────────────────────────────────
 export default function StaffDirectory() {
-  const { profile, organization } = useAuth()
+  const { profile, organization, hasAnyDepartmentLevel } = useAuth()
   const departments = getOrgDepartments(organization)
   const getDept = (key) => departments.find(d => d.key === key)?.label || key || '—'
   const navigate = useNavigate()
@@ -321,8 +318,8 @@ export default function StaffDirectory() {
   const [filterDept, setFilterDept] = useState('all')
   const [editMember, setEditMember] = useState(null)
 
-  const canSeeAll    = isPrivileged(profile?.role)
-  const canEditOthers = isPrivileged(profile?.role)
+  const canSeeAll    = hasAnyDepartmentLevel('supervisor')
+  const canEditOthers = hasAnyDepartmentLevel('supervisor')
 
   useEffect(() => { if (organization) fetchStaff() }, [organization])
 
