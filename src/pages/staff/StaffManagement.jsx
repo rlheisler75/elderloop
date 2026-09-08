@@ -584,6 +584,10 @@ function CreateStaffModal({ orgId, departments, onClose, onSave }) {
                 className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100">
                 <option value="staff">Staff</option>
                 <option value="nursing">Nursing</option>
+                <option value="maintenance">Maintenance</option>
+                <option value="dietary">Dietary</option>
+                <option value="housekeeping">Housekeeping</option>
+                <option value="it">IT</option>
                 <option value="supervisor">Supervisor</option>
                 <option value="manager">Manager</option>
                 <option value="org_admin">Admin</option>

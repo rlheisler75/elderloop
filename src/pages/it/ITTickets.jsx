@@ -567,7 +567,7 @@ function LicenseModal({ license, orgId, staffList, onClose, onSave }) {
 
 // ── Main ───────────────────────────────────────────────────────
 export default function ITTickets() {
-  const { profile, organization, isOrgAdmin } = useAuth()
+  const { profile, organization } = useAuth()
   const [tickets, setTickets]       = useState([])
   const [assets, setAssets]         = useState([])
   const [licenses, setLicenses]     = useState([])
@@ -578,7 +578,9 @@ export default function ITTickets() {
   const [assetLocations, setAssetLocations] = useState([])
   const [loading, setLoading]       = useState(true)
   const [tab, setTab]               = useState('tickets')
-  const [ticketView, setTicketView] = useState(isOrgAdmin ? 'all' : 'mine') // non-admins default to their own tickets
+  const [ticketView, setTicketView] = useState(
+    profile && ['super_admin','org_admin','ceo','supervisor','manager','it'].includes(profile.role) ? 'all' : 'mine'
+  ) // IT staff/admins default to the full queue; everyone else only ever sees their own
   const [filterStatus, setFilterStatus]   = useState('open')
   const [filterPriority, setFilterPriority] = useState('all')
   const [search, setSearch]         = useState('')
@@ -595,7 +597,10 @@ export default function ITTickets() {
   const [licenseSearch, setLicenseSearch] = useState('')
   const [licenseStatusFilter, setLicenseStatusFilter] = useState('all')
 
-  const admin  = isOrgAdmin  // boolean — not a function call
+  // IT staff + supervisors/managers/admins can see and work the full ticket queue;
+  // everyone else can only submit tickets and see their own (query-scoped below, not just UI-hidden).
+  const isITStaff = profile && ['super_admin','org_admin','ceo','supervisor','manager','it'].includes(profile.role)
+  const admin  = isITStaff  // boolean — not a function call
   const orgId  = organization?.id || profile?.organization_id
   const userId = profile?.id
 
@@ -603,10 +608,14 @@ export default function ITTickets() {
 
   async function fetchAll() {
     setLoading(true)
+    let ticketQuery = supabase.from('it_tickets')
+      .select('*, submitter:submitted_by(first_name,last_name), assignee:assigned_to(first_name,last_name)')
+      .eq('organization_id', orgId).order('created_at', { ascending: false })
+    // Non-IT-staff only ever see their own submissions — enforced in the query, not just the UI.
+    if (!isITStaff) ticketQuery = ticketQuery.eq('submitted_by', userId)
+
     const [ticketRes, assetRes, licenseRes, staffRes, dropdownRes] = await Promise.all([
-      supabase.from('it_tickets')
-        .select('*, submitter:submitted_by(first_name,last_name), assignee:assigned_to(first_name,last_name)')
-        .eq('organization_id', orgId).order('created_at', { ascending: false }),
+      ticketQuery,
       supabase.from('it_assets').select('*, assignee:assigned_to(first_name,last_name)')
         .eq('organization_id', orgId).eq('is_active', true).order('asset_tag'),
       supabase.from('it_licenses').select('*, assignee:assigned_to(first_name,last_name)')
@@ -730,7 +739,7 @@ export default function ITTickets() {
           <div className="flex flex-wrap items-center gap-3 mb-4">
             <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs">
               {[
-                { key: 'all',      label: 'All' },
+                ...(admin ? [{ key: 'all', label: 'All' }] : []),
                 { key: 'mine',     label: 'My Tickets' },
                 ...(admin ? [{ key: 'assigned', label: 'Assigned to Me' }] : []),
               ].map(v => (
