@@ -449,7 +449,7 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
               </div>
 
               {/* Name */}
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">First Name *</label>
                   <input value={form.first_name} onChange={e => set('first_name', e.target.value)}
@@ -484,7 +484,7 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
               </div>
 
               {/* Location */}
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Room</label>
                   <input value={form.room} onChange={e => set('room', e.target.value)}
@@ -637,7 +637,7 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
                         <input value={familyForm.relationship} onChange={e => setFf('relationship', e.target.value)}
                           placeholder="e.g. Daughter, Son, Spouse" className="w-full px-3 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500" />
                       </div>
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-4 flex-wrap">
                         <label className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 cursor-pointer">
                           <input type="checkbox" checked={familyForm.is_primary} onChange={e => setFf('is_primary', e.target.checked)} className="accent-brand-600" />
                           Primary contact
@@ -882,7 +882,7 @@ export default function ResidentDirectory() {
   return (
     <div className="max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Resident Directory</h1>
           <p className="text-slate-500 text-sm mt-0.5">{residents.length} resident{residents.length !== 1 ? 's' : ''} on file</p>
@@ -896,7 +896,7 @@ export default function ResidentDirectory() {
       </div>
 
       {/* Care level stats */}
-      <div className="grid grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         {CARE_LEVELS.map(c => (
           <button key={c.key} onClick={() => setFilterCare(filterCare === c.key ? 'all' : c.key)}
             className={`rounded-2xl p-4 text-left transition-all border-2 ${filterCare === c.key ? 'ring-2 ring-brand-400 border-brand-400' : 'border-transparent'} ${c.color.replace('text-', 'border-transparent bg-').split(' ')[0]} dark:bg-slate-900`}
