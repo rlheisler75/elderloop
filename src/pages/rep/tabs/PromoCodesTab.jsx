@@ -192,7 +192,7 @@ export default function PromoCodesTab() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-serif font-bold text-slate-900">Promo Codes & My Link</h1>
           <p className="text-sm text-slate-500 mt-1">
@@ -201,7 +201,7 @@ export default function PromoCodesTab() {
         </div>
         <button
           onClick={() => { resetForm(); setShowModal(true) }}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded-lg font-medium hover:bg-blue-800"
+          className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded-lg font-medium hover:bg-blue-800 flex-shrink-0"
         >
           + New Promo Code
         </button>
@@ -209,8 +209,8 @@ export default function PromoCodesTab() {
 
       <MyLinkCard />
 
-      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="bg-white rounded-lg border border-slate-200 overflow-x-auto">
+        <table className="w-full text-sm min-w-[700px]">
           <thead>
             <tr className="text-left text-xs uppercase text-slate-400 border-b border-slate-200">
               <th className="px-4 py-3 font-medium">Code</th>

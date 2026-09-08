@@ -116,7 +116,8 @@ export default function CommissionsTab() {
             <p className="text-sm mt-1">Events appear here as your referred accounts go active and renew.</p>
           </div>
         ) : (
-          <table className="w-full">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[680px]">
             <thead className="bg-slate-50 border-b border-slate-100">
               <tr>
                 {['Account', 'Type', 'Plan', 'Period', 'Amount', 'Status'].map(h => (
@@ -143,6 +144,7 @@ export default function CommissionsTab() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

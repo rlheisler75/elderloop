@@ -65,14 +65,14 @@ export default function BusinessCardTab() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4 print:hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 print:hidden">
         <div>
           <h1 className="text-2xl font-serif font-bold text-slate-900 dark:text-slate-100">Business Card</h1>
           <p className="text-sm text-slate-500 mt-1">
             Your digital card — share the link on your phone, or print physical cards with a scannable QR code straight to your signup link.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <button onClick={handleCopy}
             className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-medium rounded-xl transition-colors">
             {copied ? <><Check size={15} /> Copied!</> : <><Copy size={15} /> Copy Link</>}
@@ -115,7 +115,7 @@ export default function BusinessCardTab() {
       {printMode === 'single' ? (
         <>
           {/* Screen preview — single pair */}
-          <div className="print:hidden flex flex-wrap gap-8 items-start">
+          <div className="print:hidden flex flex-wrap gap-8 items-start overflow-x-auto">
             <FrontCard {...cardProps} />
             <BackCard qrSrc={qrSrc} signupDisplay={signupDisplay} />
           </div>
@@ -133,7 +133,7 @@ export default function BusinessCardTab() {
           </p>
 
           {/* Screen preview — mini versions of both sheets side by side */}
-          <div className="print:hidden flex gap-10 flex-wrap items-start">
+          <div className="print:hidden flex gap-10 flex-wrap items-start overflow-x-auto">
             {[{ label: 'Front Sheet', node: <FrontCard {...cardProps} /> }, { label: 'Back Sheet', node: <BackCard qrSrc={qrSrc} signupDisplay={signupDisplay} /> }].map(({ label, node }) => (
               <div key={label}>
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">{label}</p>

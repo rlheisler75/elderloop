@@ -27,7 +27,7 @@ export default function SalesSheetTab() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6 print:hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 print:hidden">
         <div>
           <h1 className="text-2xl font-serif font-bold text-slate-900 dark:text-slate-100">Sales Sheet</h1>
           <p className="text-sm text-slate-500 mt-1">
@@ -35,7 +35,7 @@ export default function SalesSheetTab() {
           </p>
         </div>
         <button onClick={() => window.print()}
-          className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl transition-colors">
+          className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl transition-colors flex-shrink-0">
           <Printer size={15} /> Print / Save as PDF
         </button>
       </div>
@@ -49,6 +49,7 @@ export default function SalesSheetTab() {
         }
       `}</style>
 
+      <div className="overflow-x-auto print:overflow-visible">
       <div id="sales-sheet" className="mx-auto bg-white shadow-xl" style={{ width: '8.5in', minHeight: '11in', padding: '0.55in 0.6in', color: '#16202b', fontFamily: '"Source Sans 3", system-ui, sans-serif' }}>
 
         <div className="flex items-center justify-between pb-4 mb-4" style={{ borderBottom: '2px solid #0c2340' }}>
@@ -165,6 +166,7 @@ export default function SalesSheetTab() {
           </div>
         </div>
 
+      </div>
       </div>
     </div>
   )

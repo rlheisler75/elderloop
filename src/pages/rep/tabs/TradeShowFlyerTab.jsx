@@ -23,7 +23,7 @@ export default function TradeShowFlyerTab() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6 print:hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 print:hidden">
         <div>
           <h1 className="text-2xl font-serif font-bold text-slate-900 dark:text-slate-100">Trade Show Flyer</h1>
           <p className="text-sm text-slate-500 mt-1">
@@ -31,7 +31,7 @@ export default function TradeShowFlyerTab() {
           </p>
         </div>
         <button onClick={() => window.print()}
-          className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl transition-colors">
+          className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl transition-colors flex-shrink-0">
           <Printer size={15} /> Print / Save as PDF
         </button>
       </div>
@@ -45,6 +45,7 @@ export default function TradeShowFlyerTab() {
         }
       `}</style>
 
+      <div className="overflow-x-auto print:overflow-visible">
       <div id="tradeshow-flyer" className="mx-auto bg-white shadow-xl flex flex-col items-center text-center"
         style={{ width: '8.5in', minHeight: '11in', padding: '0.6in 0.55in', color: '#16202b', fontFamily: '"Source Sans 3", system-ui, sans-serif' }}>
 
@@ -87,6 +88,7 @@ export default function TradeShowFlyerTab() {
           <div style={{ fontSize: 14, fontWeight: 700, color: '#076bb0' }}>{repName}</div>
           {repPhone && <div style={{ fontSize: 12.5, color: '#55636f', marginTop: 2 }}>{repPhone}</div>}
         </div>
+      </div>
       </div>
     </div>
   )

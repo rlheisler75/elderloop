@@ -111,8 +111,8 @@ export default function OrgSupportModal({ org, onClose }) {
                 {staff.length === 0 ? (
                   <p className="text-sm text-slate-400">No staff accounts yet.</p>
                 ) : (
-                  <div className="border border-slate-100 rounded-xl overflow-hidden">
-                    <table className="w-full">
+                  <div className="border border-slate-100 rounded-xl overflow-x-auto">
+                    <table className="w-full min-w-[480px]">
                       <thead className="bg-slate-50">
                         <tr>
                           {['Name', 'Role', 'Email', 'Status'].map(h => (

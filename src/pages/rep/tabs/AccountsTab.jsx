@@ -116,7 +116,8 @@ export default function AccountsTab({ repCode }) {
             <p className="text-sm mt-1">Share your referral link to start earning credit for signups.</p>
           </div>
         ) : (
-          <table className="w-full">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[600px]">
             <thead className="bg-slate-50 border-b border-slate-100">
               <tr>
                 {['Community', 'Plan', 'Status', 'Onboarded', 'Renews'].map(h => (
@@ -154,6 +155,7 @@ export default function AccountsTab({ repCode }) {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

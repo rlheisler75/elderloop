@@ -264,13 +264,13 @@ export default function ProspectsTab() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h2 className="font-display font-bold text-slate-800 text-lg">Prospecting Pipeline</h2>
           <p className="text-xs text-slate-400 mt-0.5">Communities you're working to sign up</p>
         </div>
         <button onClick={() => setEditing('new')}
-          className="flex items-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl shadow-sm transition-colors">
+          className="flex items-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl shadow-sm transition-colors flex-shrink-0">
           <Plus size={15} /> New Prospect
         </button>
       </div>
