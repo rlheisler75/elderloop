@@ -567,7 +567,7 @@ function LicenseModal({ license, orgId, staffList, onClose, onSave }) {
 
 // ── Main ───────────────────────────────────────────────────────
 export default function ITTickets() {
-  const { profile, organization } = useAuth()
+  const { profile, organization, hasDepartmentAccess } = useAuth()
   const [tickets, setTickets]       = useState([])
   const [assets, setAssets]         = useState([])
   const [licenses, setLicenses]     = useState([])
@@ -579,8 +579,8 @@ export default function ITTickets() {
   const [loading, setLoading]       = useState(true)
   const [tab, setTab]               = useState('tickets')
   const [ticketView, setTicketView] = useState(
-    profile && ['super_admin','org_admin','ceo','supervisor','manager','it'].includes(profile.role) ? 'all' : 'mine'
-  ) // IT staff/admins default to the full queue; everyone else only ever sees their own
+    hasDepartmentAccess('it', 'employee') ? 'all' : 'mine'
+  ) // Anyone in the IT department (any level) defaults to the full queue; everyone else only ever sees their own
   const [filterStatus, setFilterStatus]   = useState('open')
   const [filterPriority, setFilterPriority] = useState('all')
   const [search, setSearch]         = useState('')
@@ -597,9 +597,9 @@ export default function ITTickets() {
   const [licenseSearch, setLicenseSearch] = useState('')
   const [licenseStatusFilter, setLicenseStatusFilter] = useState('all')
 
-  // IT staff + supervisors/managers/admins can see and work the full ticket queue;
+  // Anyone in the IT department (any level) + org admins can see and work the full ticket queue;
   // everyone else can only submit tickets and see their own (query-scoped below, not just UI-hidden).
-  const isITStaff = profile && ['super_admin','org_admin','ceo','supervisor','manager','it'].includes(profile.role)
+  const isITStaff = hasDepartmentAccess('it', 'employee')
   const admin  = isITStaff  // boolean — not a function call
   const orgId  = organization?.id || profile?.organization_id
   const userId = profile?.id

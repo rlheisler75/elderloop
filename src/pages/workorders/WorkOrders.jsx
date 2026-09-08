@@ -928,7 +928,7 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
 
 // ── Main Page ─────────────────────────────────────────────────
 export default function WorkOrders() {
-  const { profile, organization } = useAuth()
+  const { profile, organization, hasDepartmentAccess } = useAuth()
   const [workOrders, setWorkOrders]   = useState([])
   const [staffList, setStaffList]     = useState([])
   const [residentList, setResidentList] = useState([])
@@ -943,11 +943,13 @@ export default function WorkOrders() {
   const [mainView, setMainView]       = useState('work_orders') // 'work_orders' | 'compliance'
 
   const canCreate      = profile && ['super_admin','org_admin','ceo','supervisor','manager','maintenance','staff','dietary','housekeeping'].includes(profile.role)
-  const canEdit        = profile && ['super_admin','org_admin','ceo','supervisor','manager','maintenance'].includes(profile.role)
-  const canAssign      = profile && ['super_admin','org_admin','ceo','supervisor','manager'].includes(profile.role)
-  const canClose       = profile && ['super_admin','org_admin','ceo','supervisor','manager','maintenance'].includes(profile.role)
+  // Any level (employee/supervisor/manager) in the maintenance department works the shared queue;
+  // assigning a work order to someone else requires supervisor+ within that department.
+  const canEdit        = hasDepartmentAccess('maintenance', 'employee')
+  const canAssign      = hasDepartmentAccess('maintenance', 'supervisor')
+  const canClose       = hasDepartmentAccess('maintenance', 'employee')
   // Privileged roles see all WOs; others only see their own submissions
-  const isPrivileged   = profile && ['super_admin','org_admin','ceo','supervisor','manager','maintenance'].includes(profile.role)
+  const isPrivileged   = hasDepartmentAccess('maintenance', 'employee')
 
   useEffect(() => { if (organization) { fetchAll() } }, [organization])
 
