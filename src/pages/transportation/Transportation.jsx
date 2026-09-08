@@ -277,43 +277,50 @@ function TripMonthCalendar({ trips, year, month, onDayClick, onTripClick }) {
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
-      <div className="grid grid-cols-7 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
-        {MONTH_DAYS.map(d => (
-          <div key={d} className="py-2 text-center text-xs font-semibold text-slate-400 uppercase tracking-wide">{d}</div>
-        ))}
-      </div>
-      <div className="grid grid-cols-7">
-        {cells.map((d, i) => {
-          if (!d) return <div key={`e-${i}`} className="min-h-[100px] border-b border-r border-slate-50 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-800/30" />
-          const ds        = dateStr(d)
-          const isToday   = ds === todayStr
-          const dayTrips  = tripsForDay(d)
-          const isPast    = ds < todayStr
-          return (
-            <div key={d}
-              onClick={() => onDayClick(ds)}
-              className={`min-h-[100px] border-b border-r border-slate-100 dark:border-slate-800 p-1.5 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${isToday ? 'bg-brand-50 dark:bg-brand-950/30' : isPast ? 'bg-slate-50/50 dark:bg-slate-800/50' : ''}`}>
-              <div className={`text-xs font-semibold mb-1 w-6 h-6 flex items-center justify-center rounded-full ${isToday ? 'bg-brand-600 text-white' : isPast ? 'text-slate-400' : 'text-slate-700 dark:text-slate-300'}`}>
-                {d}
-              </div>
-              <div className="space-y-0.5">
-                {dayTrips.slice(0, 3).map((t, idx) => {
-                  const s = TRIP_STATUSES.find(s => s.key === t.status) || TRIP_STATUSES[0]
-                  return (
-                    <div key={idx}
-                      onClick={e => { e.stopPropagation(); onTripClick(t) }}
-                      className={`text-xs px-1.5 py-0.5 rounded truncate cursor-pointer hover:opacity-80 transition-opacity ${s.color} border`}>
-                      {t.pickup_time ? t.pickup_time.slice(0,5) : ''} {t.resident_name.split(' ')[1] || t.resident_name}
-                    </div>
-                  )
-                })}
-                {dayTrips.length > 3 && (
-                  <div className="text-xs text-slate-400 pl-1">+{dayTrips.length - 3} more</div>
-                )}
-              </div>
-            </div>
-          )
-        })}
+      {/* Below ~630px this scrolls horizontally instead of squishing 7
+          columns down to an unreadable width, matching the Activities
+          calendar's mobile treatment. */}
+      <div className="overflow-x-auto">
+        <div className="min-w-[630px]">
+          <div className="grid grid-cols-7 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
+            {MONTH_DAYS.map(d => (
+              <div key={d} className="py-2 text-center text-xs font-semibold text-slate-400 uppercase tracking-wide">{d}</div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7">
+            {cells.map((d, i) => {
+              if (!d) return <div key={`e-${i}`} className="min-h-[100px] border-b border-r border-slate-50 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-800/30" />
+              const ds        = dateStr(d)
+              const isToday   = ds === todayStr
+              const dayTrips  = tripsForDay(d)
+              const isPast    = ds < todayStr
+              return (
+                <div key={d}
+                  onClick={() => onDayClick(ds)}
+                  className={`min-h-[100px] border-b border-r border-slate-100 dark:border-slate-800 p-1.5 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${isToday ? 'bg-brand-50 dark:bg-brand-950/30' : isPast ? 'bg-slate-50/50 dark:bg-slate-800/50' : ''}`}>
+                  <div className={`text-xs font-semibold mb-1 w-6 h-6 flex items-center justify-center rounded-full ${isToday ? 'bg-brand-600 text-white' : isPast ? 'text-slate-400' : 'text-slate-700 dark:text-slate-300'}`}>
+                    {d}
+                  </div>
+                  <div className="space-y-0.5">
+                    {dayTrips.slice(0, 3).map((t, idx) => {
+                      const s = TRIP_STATUSES.find(s => s.key === t.status) || TRIP_STATUSES[0]
+                      return (
+                        <div key={idx}
+                          onClick={e => { e.stopPropagation(); onTripClick(t) }}
+                          className={`text-xs px-1.5 py-0.5 rounded truncate cursor-pointer hover:opacity-80 transition-opacity ${s.color} border`}>
+                          {t.pickup_time ? t.pickup_time.slice(0,5) : ''} {t.resident_name.split(' ')[1] || t.resident_name}
+                        </div>
+                      )
+                    })}
+                    {dayTrips.length > 3 && (
+                      <div className="text-xs text-slate-400 pl-1">+{dayTrips.length - 3} more</div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -410,7 +417,7 @@ function TripModal({ trip, vehicles, residents, defaultDate, onClose, onSave }) 
           {/* Schedule */}
           <div>
             <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">Schedule</label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Date *</label>
                 <input type="date" value={form.trip_date} onChange={e => set('trip_date', e.target.value)}
@@ -622,25 +629,25 @@ export default function Transportation() {
   return (
     <div className="max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Transportation</h1>
           <p className="text-slate-500 text-sm mt-0.5">Medical transport scheduling and trip logs</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <button onClick={() => setShowPrint(true)}
-            className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
+            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 rounded-xl text-xs sm:text-sm font-medium transition-colors">
             <Printer size={15} /> Trip Sheet
           </button>
           <button onClick={handleNew}
-            className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
+            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs sm:text-sm font-medium transition-colors">
             <Plus size={15} /> Schedule Trip
           </button>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         {[
           { label: "Today's Trips",  value: todayTrips.length,  color: 'text-brand-600',  bg: 'bg-brand-50 dark:bg-brand-950/40' },
           { label: 'Upcoming',       value: upcomingCount,      color: 'text-blue-600',   bg: 'bg-blue-50 dark:bg-blue-950/40' },
@@ -844,8 +851,8 @@ export default function Transportation() {
             </select>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
-            <table className="w-full">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-x-auto">
+            <table className="w-full min-w-[720px]">
               <thead>
                 <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Resident</th>
