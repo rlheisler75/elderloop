@@ -957,8 +957,8 @@ export default function FamilyPortal() {
               ElderLoop
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            <div ref={notifRef} className="relative">
+          <div ref={notifRef} className="flex items-center gap-2 relative">
+            <div>
               <button onClick={handleOpenNotifs}
                 className="relative p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
                 <Bell size={16} />
@@ -969,7 +969,7 @@ export default function FamilyPortal() {
                 )}
               </button>
               {showNotifs && (
-                <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 z-50 overflow-hidden">
+                <div className="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 z-50 overflow-hidden">
                   <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-800">
                     <span className="font-semibold text-slate-800 dark:text-slate-100 text-sm">Notifications</span>
                     {unread === 0 && <span className="text-xs text-slate-400">All caught up</span>}
