@@ -72,7 +72,7 @@ export default function Marketing() {
   return (
     <div className="max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Marketing</h1>
           <p className="text-slate-500 text-sm mt-0.5">Lead pipeline, campaigns, landing pages, and referral tracking</p>
