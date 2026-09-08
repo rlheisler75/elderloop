@@ -20,6 +20,9 @@ const FALLBACK_DEPARTMENTS = [
   { key: 'administration', label: 'Administration' },
   { key: 'activities',     label: 'Activities' },
   { key: 'security',       label: 'Security' },
+  { key: 'it',             label: 'IT' },
+  { key: 'hr',             label: 'HR' },
+  { key: 'payroll',        label: 'Payroll' },
   { key: 'other',          label: 'Other' },
 ]
 

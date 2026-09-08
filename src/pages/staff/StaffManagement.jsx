@@ -21,7 +21,16 @@ const FALLBACK_DEPARTMENTS = [
   { key: 'administration', label: 'Administration' },
   { key: 'activities',     label: 'Activities' },
   { key: 'security',       label: 'Security' },
+  { key: 'it',             label: 'IT' },
+  { key: 'hr',             label: 'HR' },
+  { key: 'payroll',        label: 'Payroll' },
   { key: 'other',          label: 'Other' },
+]
+
+const STAFF_LEVELS = [
+  { key: 'employee',   label: 'Employee' },
+  { key: 'supervisor', label: 'Supervisor' },
+  { key: 'manager',    label: 'Manager' },
 ]
 
 const getOrgDepartments = (organization) =>
@@ -213,6 +222,53 @@ function CertModal({ cert, staffId, orgId, certTypes, onClose, onSave }) {
   )
 }
 
+// ── Department + Level assignments (multiple departments per person,
+// each with its own level — e.g. Housekeeping/Employee + Maintenance/Supervisor) ──
+function DepartmentLevelEditor({ assignments, onChange, departments }) {
+  const addRow = () => {
+    const used = new Set(assignments.map(a => a.department))
+    const next = departments.find(d => !used.has(d.key))
+    if (!next) return
+    onChange([...assignments, { department: next.key, level: 'employee' }])
+  }
+  const updateRow = (i, patch) => onChange(assignments.map((a, idx) => idx === i ? { ...a, ...patch } : a))
+  const removeRow = (i) => onChange(assignments.filter((_, idx) => idx !== i))
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide">Departments & Access Levels</label>
+        <button type="button" onClick={addRow} disabled={assignments.length >= departments.length}
+          className="text-xs text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed">
+          <Plus size={12} /> Add
+        </button>
+      </div>
+      {assignments.length === 0 ? (
+        <p className="text-xs text-slate-400">No departments assigned yet — in modules like IT Tickets or Work Orders they'll only see their own submissions.</p>
+      ) : (
+        <div className="space-y-2">
+          {assignments.map((a, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <select value={a.department} onChange={e => updateRow(i, { department: e.target.value })}
+                className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                {departments.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
+              </select>
+              <select value={a.level} onChange={e => updateRow(i, { level: e.target.value })}
+                className="w-32 px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                {STAFF_LEVELS.map(l => <option key={l.key} value={l.key}>{l.label}</option>)}
+              </select>
+              <button type="button" onClick={() => removeRow(i)}
+                className="p-2 text-slate-300 hover:text-red-500 rounded-lg transition-colors flex-shrink-0">
+                <X size={14} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Staff Detail Modal ─────────────────────────────────────────
 function StaffDetail({ staff, certTypes, onClose, onSave }) {
   const { profile, organization } = useAuth()
@@ -236,11 +292,19 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
   const [certs, setCerts] = useState([])
   const [showCertModal, setShowCertModal] = useState(false)
   const [editCert, setEditCert] = useState(null)
+  const [deptAssignments, setDeptAssignments] = useState([])
   const [saving, setSaving] = useState(false)
   const [error, setError]   = useState('')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
   useEffect(() => { if (staff?.id) fetchCerts() }, [staff?.id])
+  useEffect(() => { if (staff?.id) fetchDeptRoles() }, [staff?.id])
+
+  async function fetchDeptRoles() {
+    const { data } = await supabase.from('staff_department_roles')
+      .select('department, level').eq('profile_id', staff.id)
+    setDeptAssignments(data || [])
+  }
 
   async function fetchCerts() {
     const { data } = await supabase.from('staff_certifications')
@@ -259,6 +323,14 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
     const { error: err } = await supabase.from('profiles')
       .update(payload).eq('id', staff.id)
     if (err) { setError(err.message); setSaving(false); return }
+
+    await supabase.from('staff_department_roles').delete().eq('profile_id', staff.id)
+    if (deptAssignments.length > 0) {
+      await supabase.from('staff_department_roles').insert(
+        deptAssignments.map(a => ({ profile_id: staff.id, organization_id: organization.id, department: a.department, level: a.level }))
+      )
+    }
+
     setSaving(false)
     onSave()
   }
@@ -336,19 +408,14 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Role</label>
+                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Account Type</label>
                   <select value={form.role} onChange={e => set('role', e.target.value)}
                     className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                     <option value="staff">Staff</option>
-                    <option value="nursing">Nursing</option>
-                    <option value="maintenance">Maintenance</option>
-                    <option value="dietary">Dietary</option>
-                    <option value="housekeeping">Housekeeping</option>
-                    <option value="it">IT</option>
-                    <option value="supervisor">Supervisor</option>
-                    <option value="manager">Manager</option>
-                    <option value="org_admin">Admin</option>
+                    <option value="org_admin">Org Admin</option>
+                    <option value="ceo">CEO</option>
                   </select>
+                  <p className="text-xs text-slate-400 mt-1">Department + level (Housekeeping Supervisor, etc.) is set below.</p>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Phone</label>
@@ -380,6 +447,8 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
                   ))}
                 </div>
               </div>
+
+              <DepartmentLevelEditor assignments={deptAssignments} onChange={setDeptAssignments} departments={departments} />
 
               <div className="grid grid-cols-2 gap-3 p-4 bg-red-50 dark:bg-red-950/50 border border-red-100 dark:border-red-900 rounded-xl">
                 <div className="col-span-2 text-xs font-semibold text-red-700 dark:text-red-400 uppercase tracking-wide mb-1 flex items-center gap-1.5">
@@ -503,6 +572,7 @@ function CreateStaffModal({ orgId, departments, onClose, onSave }) {
     first_name: '', last_name: '', email: '',
     job_title: '', department: '', phone: '', role: 'staff',
   })
+  const [deptAssignments, setDeptAssignments] = useState([])
   const [saving, setSaving] = useState(false)
   const [error, setError]   = useState('')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
@@ -535,6 +605,12 @@ function CreateStaffModal({ orgId, departments, onClose, onSave }) {
         department: form.department || null,
         job_title:  form.job_title  || null,
       }).eq('id', data.user_id)
+    }
+
+    if (deptAssignments.length > 0) {
+      await supabase.from('staff_department_roles').insert(
+        deptAssignments.map(a => ({ profile_id: data.user_id, organization_id: orgId, department: a.department, level: a.level }))
+      )
     }
 
     setSaving(false)
@@ -595,21 +671,17 @@ function CreateStaffModal({ orgId, departments, onClose, onSave }) {
                 className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Role</label>
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Account Type</label>
               <select value={form.role} onChange={e => set('role', e.target.value)}
                 className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100">
                 <option value="staff">Staff</option>
-                <option value="nursing">Nursing</option>
-                <option value="maintenance">Maintenance</option>
-                <option value="dietary">Dietary</option>
-                <option value="housekeeping">Housekeeping</option>
-                <option value="it">IT</option>
-                <option value="supervisor">Supervisor</option>
-                <option value="manager">Manager</option>
-                <option value="org_admin">Admin</option>
+                <option value="org_admin">Org Admin</option>
+                <option value="ceo">CEO</option>
               </select>
             </div>
           </div>
+
+          <DepartmentLevelEditor assignments={deptAssignments} onChange={setDeptAssignments} departments={departments} />
         </div>
 
         <div className="flex gap-3 px-6 py-4 border-t border-slate-100 dark:border-slate-800">

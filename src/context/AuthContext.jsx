@@ -13,6 +13,7 @@ export function AuthProvider({ children }) {
   const [orgModules, setOrgModules]   = useState([])
   const [userPerms, setUserPerms]     = useState([])
   const [roleVisibility, setRoleVisibility] = useState([])
+  const [departmentRoles, setDepartmentRoles] = useState([]) // [{ department, level }] for the current user
   const [superAdmin, setSuperAdmin]   = useState(false)
    const [loading, setLoading]         = useState(true)
   const [suspended, setSuspended]     = useState(false)
@@ -66,7 +67,7 @@ export function AuthProvider({ children }) {
       const orgIdToLoad = storedOrgId || prof?.organization_id
 
       if (orgIdToLoad) {
-        const [orgRes, modsRes, permsRes, roleVisRes] = await Promise.all([
+        const [orgRes, modsRes, permsRes, roleVisRes, deptRolesRes] = await Promise.all([
           supabase.from('organizations').select('*').eq('id', orgIdToLoad).single(),
           supabase.from('organization_modules').select('module_key, is_enabled')
             .eq('organization_id', orgIdToLoad),
@@ -74,6 +75,8 @@ export function AuthProvider({ children }) {
             .eq('user_id', userId),
           supabase.from('role_module_visibility').select('module_key')
             .eq('organization_id', orgIdToLoad).eq('role', prof?.role),
+          supabase.from('staff_department_roles').select('department, level')
+            .eq('profile_id', userId),
         ])
         const org = orgRes.data
 
@@ -89,6 +92,7 @@ export function AuthProvider({ children }) {
         setOrgModules(modsRes.data?.filter(m => m.is_enabled !== false).map(m => m.module_key) || [])
         setUserPerms(permsRes.data || [])
         setRoleVisibility(roleVisRes.data?.map(r => r.module_key) || [])
+        setDepartmentRoles(deptRolesRes.data || [])
         if (storedOrgId) setImpersonating(true)
       }
     } catch (e) {
@@ -142,6 +146,18 @@ export function AuthProvider({ children }) {
     return defaultRoles.includes(profile?.role)
   }
 
+  // hasDepartmentAccess(dept, minLevel) — for the "everyone can submit, only the
+  // owning department's supervisors/managers see and work the full queue" pattern
+  // (IT Tickets, Work Orders, etc.). org_admin/ceo/super_admin always pass.
+  // Level rank: employee < supervisor < manager.
+  const LEVEL_RANK = { employee: 0, supervisor: 1, manager: 2 }
+  const hasDepartmentAccess = (dept, minLevel = 'employee') => {
+    if (['org_admin','ceo','super_admin'].includes(profile?.role) || superAdmin) return true
+    const assignment = departmentRoles.find(d => d.department === dept)
+    if (!assignment) return false
+    return (LEVEL_RANK[assignment.level] ?? -1) >= (LEVEL_RANK[minLevel] ?? 0)
+  }
+
   const accessibleModules = orgModules.filter(key => hasModule(key))
 
   // Pre-computed booleans — NOT functions — so JSX conditions like {isOrgAdmin && ...} work correctly
@@ -175,6 +191,13 @@ export function AuthProvider({ children }) {
     if (!user?.id) return
     const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single()
     if (data) setProfile(data)
+  }
+
+  const refreshDepartmentRoles = async () => {
+    if (!user?.id) return
+    const { data } = await supabase.from('staff_department_roles').select('department, level')
+      .eq('profile_id', user.id)
+    setDepartmentRoles(data || [])
   }
 
   const refreshOrganization = async () => {
@@ -215,6 +238,7 @@ export function AuthProvider({ children }) {
       loading, suspended, hasModule, canEdit, accessibleModules,
       isOrgAdmin, isSuperAdmin, isCEO, signOut, refreshModules, refreshProfile, refreshOrganization,
       impersonating, impersonateOrg, exitImpersonation,
+      departmentRoles, hasDepartmentAccess, refreshDepartmentRoles,
     }}>
       {children}
 
