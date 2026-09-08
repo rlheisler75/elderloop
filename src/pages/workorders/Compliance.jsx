@@ -250,7 +250,7 @@ function InspectionModal({ category, orgId, profile, onClose, onSaved }) {
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
           {error && <div className="px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Inspection Date *</label>
               <input type="date" value={form.inspection_date} onChange={e => set('inspection_date', e.target.value)}
@@ -562,7 +562,7 @@ export default function CompliancePanel({ orgId, profile }) {
   return (
     <div>
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-3 mb-5">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
         {[
           { label: 'Compliant',   value: compliantCats,                               color: 'text-green-600',  bg: 'bg-green-50' },
           { label: 'Due Soon',    value: dueSoonCats,   color: dueSoonCats > 0   ? 'text-amber-600' : 'text-slate-400', bg: dueSoonCats > 0   ? 'bg-amber-50'  : 'bg-slate-100' },

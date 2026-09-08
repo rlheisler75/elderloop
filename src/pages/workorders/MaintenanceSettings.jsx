@@ -141,38 +141,40 @@ export default function MaintenanceSettings({ orgId, profile }) {
           </h2>
           <p className="text-slate-400 text-xs mt-0.5">Set target response and completion times per priority level. Work orders that breach these targets are flagged.</p>
         </div>
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden">
-          <div className="grid grid-cols-4 gap-4 px-5 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
-            <span>Priority</span><span>Response Target</span><span>Completion Target</span><span>Notes</span>
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-x-auto">
+          <div className="min-w-[560px]">
+            <div className="grid grid-cols-4 gap-4 px-5 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+              <span>Priority</span><span>Response Target</span><span>Completion Target</span><span>Notes</span>
+            </div>
+            {PRIORITIES.map(p => {
+              const rule = slaRules[p.key] || {}
+              return (
+                <div key={p.key} className="grid grid-cols-4 gap-4 items-center px-5 py-4 border-b border-slate-50 dark:border-slate-800 last:border-0">
+                  <div>
+                    <div className={`font-semibold text-sm ${p.color}`}>{p.label}</div>
+                    <div className="text-xs text-slate-400">{p.desc}</div>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <input type="number" value={rule.response_hours || ''}
+                      onChange={e => setSlaRules(s => ({ ...s, [p.key]: { ...s[p.key], response_hours: e.target.value } }))}
+                      className="w-16 px-2 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm text-center focus:outline-none focus:ring-2 focus:ring-brand-500"
+                      min="0" placeholder="4" />
+                    <span className="text-xs text-slate-400">hours</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <input type="number" value={rule.completion_hours || ''}
+                      onChange={e => setSlaRules(s => ({ ...s, [p.key]: { ...s[p.key], completion_hours: e.target.value } }))}
+                      className="w-20 px-2 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm text-center focus:outline-none focus:ring-2 focus:ring-brand-500"
+                      min="0" placeholder="24" />
+                    <span className="text-xs text-slate-400">hours</span>
+                  </div>
+                  <div className="text-xs text-slate-400">
+                    {rule.completion_hours ? `${Math.floor(rule.completion_hours / 24) > 0 ? Math.floor(rule.completion_hours / 24) + 'd ' : ''}${rule.completion_hours % 24 > 0 ? rule.completion_hours % 24 + 'h' : ''}` : ''}
+                  </div>
+                </div>
+              )
+            })}
           </div>
-          {PRIORITIES.map(p => {
-            const rule = slaRules[p.key] || {}
-            return (
-              <div key={p.key} className="grid grid-cols-4 gap-4 items-center px-5 py-4 border-b border-slate-50 dark:border-slate-800 last:border-0">
-                <div>
-                  <div className={`font-semibold text-sm ${p.color}`}>{p.label}</div>
-                  <div className="text-xs text-slate-400">{p.desc}</div>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <input type="number" value={rule.response_hours || ''}
-                    onChange={e => setSlaRules(s => ({ ...s, [p.key]: { ...s[p.key], response_hours: e.target.value } }))}
-                    className="w-16 px-2 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm text-center focus:outline-none focus:ring-2 focus:ring-brand-500"
-                    min="0" placeholder="4" />
-                  <span className="text-xs text-slate-400">hours</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <input type="number" value={rule.completion_hours || ''}
-                    onChange={e => setSlaRules(s => ({ ...s, [p.key]: { ...s[p.key], completion_hours: e.target.value } }))}
-                    className="w-20 px-2 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm text-center focus:outline-none focus:ring-2 focus:ring-brand-500"
-                    min="0" placeholder="24" />
-                  <span className="text-xs text-slate-400">hours</span>
-                </div>
-                <div className="text-xs text-slate-400">
-                  {rule.completion_hours ? `${Math.floor(rule.completion_hours / 24) > 0 ? Math.floor(rule.completion_hours / 24) + 'd ' : ''}${rule.completion_hours % 24 > 0 ? rule.completion_hours % 24 + 'h' : ''}` : ''}
-                </div>
-              </div>
-            )
-          })}
         </div>
       </div>
       )}

@@ -320,7 +320,7 @@ export default function Reports({ orgId, profile }) {
       ) : (<>
 
       {/* Summary stat strip */}
-      <div className="grid grid-cols-5 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
         {[
           { label: 'Work Orders',    value: overall.total,               color: 'text-slate-800 dark:text-slate-100', bg: 'bg-slate-50' },
           { label: 'Closed',         value: overall.closed,              color: 'text-green-600',  bg: 'bg-green-50' },
@@ -354,49 +354,53 @@ export default function Reports({ orgId, profile }) {
 
       {/* Response & Completion Time */}
       {tab === 'response' && (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden">
-          <div className="grid grid-cols-5 gap-4 px-5 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
-            <span>Priority</span><span>Work Orders</span><span>Avg Response</span><span>Avg Completion</span><span>SLA Breach %</span>
-          </div>
-          {responseReport.map(p => (
-            <div key={p.key} className="grid grid-cols-5 gap-4 items-center px-5 py-4 border-b border-slate-50 dark:border-slate-800 last:border-0">
-              <div className="font-semibold text-sm" style={{ color: p.color }}>{p.label}</div>
-              <div className="text-sm text-slate-700 dark:text-slate-300">{p.total}</div>
-              <div className="text-sm text-slate-700 dark:text-slate-300">{fmtHrs(p.avgResponse)}</div>
-              <div className="text-sm text-slate-700 dark:text-slate-300">{fmtHrs(p.avgCompletion)}</div>
-              <div className={`text-sm font-medium flex items-center gap-1 ${p.breachPct > 10 ? 'text-red-600' : 'text-slate-500'}`}>
-                {p.breachPct > 10 && <AlertTriangle size={12} />} {p.breachPct}%
-              </div>
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-x-auto">
+          <div className="min-w-[640px]">
+            <div className="grid grid-cols-5 gap-4 px-5 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+              <span>Priority</span><span>Work Orders</span><span>Avg Response</span><span>Avg Completion</span><span>SLA Breach %</span>
             </div>
-          ))}
+            {responseReport.map(p => (
+              <div key={p.key} className="grid grid-cols-5 gap-4 items-center px-5 py-4 border-b border-slate-50 dark:border-slate-800 last:border-0">
+                <div className="font-semibold text-sm" style={{ color: p.color }}>{p.label}</div>
+                <div className="text-sm text-slate-700 dark:text-slate-300">{p.total}</div>
+                <div className="text-sm text-slate-700 dark:text-slate-300">{fmtHrs(p.avgResponse)}</div>
+                <div className="text-sm text-slate-700 dark:text-slate-300">{fmtHrs(p.avgCompletion)}</div>
+                <div className={`text-sm font-medium flex items-center gap-1 ${p.breachPct > 10 ? 'text-red-600' : 'text-slate-500'}`}>
+                  {p.breachPct > 10 && <AlertTriangle size={12} />} {p.breachPct}%
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
       {/* Work Load by Staff */}
       {tab === 'workload' && (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden">
-          <div className="grid grid-cols-5 gap-4 px-5 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
-            <span>Staff</span><span>Total</span><span>Open</span><span>Closed</span><span>Overdue / Est. Hours</span>
-          </div>
-          {workloadReport.map(s => (
-            <div key={s.name} className="grid grid-cols-5 gap-4 items-center px-5 py-4 border-b border-slate-50 dark:border-slate-800 last:border-0">
-              <div className="text-sm font-medium text-slate-700 dark:text-slate-300">{s.name}</div>
-              <div className="text-sm text-slate-700 dark:text-slate-300">{s.total}</div>
-              <div className="text-sm text-slate-700 dark:text-slate-300">{s.open}</div>
-              <div className="text-sm text-slate-700 dark:text-slate-300">{s.closed}</div>
-              <div className="text-xs text-slate-500 flex items-center gap-2">
-                {s.overdue > 0 && <span className="text-red-600 font-medium">{s.overdue} overdue</span>}
-                {s.estHours > 0 && <span>{s.estHours.toFixed(1)}h est.</span>}
-                {s.overdue === 0 && !s.estHours && '—'}
-              </div>
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-x-auto">
+          <div className="min-w-[640px]">
+            <div className="grid grid-cols-5 gap-4 px-5 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+              <span>Staff</span><span>Total</span><span>Open</span><span>Closed</span><span>Overdue / Est. Hours</span>
             </div>
-          ))}
+            {workloadReport.map(s => (
+              <div key={s.name} className="grid grid-cols-5 gap-4 items-center px-5 py-4 border-b border-slate-50 dark:border-slate-800 last:border-0">
+                <div className="text-sm font-medium text-slate-700 dark:text-slate-300">{s.name}</div>
+                <div className="text-sm text-slate-700 dark:text-slate-300">{s.total}</div>
+                <div className="text-sm text-slate-700 dark:text-slate-300">{s.open}</div>
+                <div className="text-sm text-slate-700 dark:text-slate-300">{s.closed}</div>
+                <div className="text-xs text-slate-500 flex items-center gap-2">
+                  {s.overdue > 0 && <span className="text-red-600 font-medium">{s.overdue} overdue</span>}
+                  {s.estHours > 0 && <span>{s.estHours.toFixed(1)}h est.</span>}
+                  {s.overdue === 0 && !s.estHours && '—'}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
       {/* Category & Source Breakdown */}
       {tab === 'breakdown' && (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-5">
             <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-4">By Category</h3>
             <div className="space-y-2.5">

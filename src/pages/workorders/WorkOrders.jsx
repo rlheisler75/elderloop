@@ -534,7 +534,7 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
             </div>
 
             {/* Category / Priority / Status row */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Category</label>
                 {editing
@@ -1001,7 +1001,7 @@ export default function WorkOrders() {
   return (
     <div className="max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Maintenance</h1>
           <p className="text-slate-500 text-sm mt-0.5">Work orders, inspections, and Life Safety compliance</p>
@@ -1080,7 +1080,7 @@ export default function WorkOrders() {
       })()}
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         {[
           { label: 'Open',        value: stats.open,     color: 'text-blue-600',   bg: 'bg-blue-50' },
           { label: 'In Progress', value: stats.progress, color: 'text-brand-600',  bg: 'bg-brand-50' },
@@ -1131,7 +1131,7 @@ export default function WorkOrders() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[780px]">
               <thead>
                 <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Issue</th>

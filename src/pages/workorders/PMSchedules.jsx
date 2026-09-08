@@ -126,7 +126,7 @@ function PMModal({ schedule, assets, staff, orgId, profile, onClose, onSaved }) 
               </div>
             )}
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Next Due *</label>
               <input type="date" value={form.next_due} onChange={e => set('next_due', e.target.value)}
@@ -253,7 +253,7 @@ export default function PMSchedules({ orgId: orgIdProp, profile: profileProp }) 
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
         <div>
           <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Preventive Maintenance</h2>
           <p className="text-slate-400 text-xs mt-0.5">Recurring maintenance schedules with automatic work order generation</p>

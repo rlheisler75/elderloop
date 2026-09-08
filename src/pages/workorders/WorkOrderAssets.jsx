@@ -241,7 +241,7 @@ export default function WorkOrderAssets({ orgId, profile }) {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
         <div>
           <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Asset Registry</h2>
           <p className="text-slate-400 text-xs mt-0.5">Track equipment, HVAC, lifts, and facility assets</p>
@@ -253,7 +253,7 @@ export default function WorkOrderAssets({ orgId, profile }) {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-3 mb-5">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
         {[
           { label: 'Total Assets',    value: assets.length, color: 'text-brand-600',  bg: 'bg-brand-50' },
           { label: 'Service Overdue', value: overdue,       color: overdue > 0 ? 'text-red-600' : 'text-slate-400', bg: overdue > 0 ? 'bg-red-50' : 'bg-slate-100', alert: overdue > 0 },
