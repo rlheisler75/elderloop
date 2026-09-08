@@ -687,7 +687,7 @@ export default function StaffManagement() {
   return (
     <div className="max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Staff Management</h1>
           <p className="text-slate-500 text-sm mt-0.5">Staff profiles, certifications, and compliance tracking</p>
@@ -701,7 +701,7 @@ export default function StaffManagement() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         {[
           { label: 'Active Staff',     value: activeCount,  color: 'text-brand-600',  bg: 'bg-brand-50' },
           { label: 'On Leave',         value: onLeaveCount, color: 'text-amber-600',  bg: 'bg-amber-50 dark:bg-amber-950/50' },
