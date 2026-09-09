@@ -161,10 +161,11 @@ function PostUpdateModal({ residents, orgId, profile, onClose, onSaved }) {
 
 // ── Main Family Messaging (Staff Side) ─────────────────────────
 export default function FamilyMessaging() {
-  const { profile, organization, canEdit } = useAuth()
-  // Supervisors/managers get edit (reply + post updates) by default for family
-  // messaging; org admins can grant/restrict per-user via Admin Panel > Module Access
-  const canEditMessaging = canEdit('family', ['supervisor','manager'])
+  const { profile, organization, canEdit, hasAnyDepartmentLevel } = useAuth()
+  // Any org-wide Supervisor+ gets edit (reply + post updates) by default for family
+  // messaging — not tied to a specific department; org admins can grant/restrict
+  // per-user via Admin Panel > Module Access
+  const canEditMessaging = canEdit('family', ['supervisor','manager']) || hasAnyDepartmentLevel('supervisor')
   const DEPTS = organization?.departments?.length ? organization.departments : [
     {key:'nursing',label:'Nursing'},{key:'maintenance',label:'Maintenance'},
     {key:'dietary',label:'Dietary'},{key:'housekeeping',label:'Housekeeping'},

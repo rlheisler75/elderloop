@@ -725,10 +725,10 @@ function UpcomingList({ activities, onEdit, canEdit, attendanceCounts, onTakeAtt
 
 // ── Main Activities Page ───────────────────────────────────────
 export default function Activities() {
-  const { profile, organization, canEdit } = useAuth()
+  const { profile, organization, canEdit, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
   // Supervisors/managers get edit by default for activities; org admins can
   // grant/restrict edit access per-user via Admin Panel > Module Access
-  const canEditActivities = canEdit('activities', ['supervisor','manager'])
+  const canEditActivities = canEdit('activities', ['supervisor','manager']) || hasDepartmentAccess('activities','employee') || hasAnyDepartmentLevel('supervisor')
   const [activities, setActivities] = useState([])
   const [loading, setLoading]       = useState(true)
   const [view, setView]             = useState('calendar') // 'calendar' | 'list'
