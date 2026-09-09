@@ -514,9 +514,9 @@ const getReportStatus = (key) => REPORT_STATUSES.find(s => s.key === key) || REP
 const getReportPriority = (key) => REPORT_PRIORITIES.find(p => p.key === key) || REPORT_PRIORITIES[0]
 
 function SecurityReportModal({ report, roundId, checkpoints, onClose, onSave }) {
-  const { profile, hasAnyDepartmentLevel } = useAuth()
+  const { profile, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
   const isNew = !report
-  const isSupervisor = hasAnyDepartmentLevel('supervisor')
+  const isSupervisor = hasDepartmentAccess('security', 'supervisor') || hasAnyDepartmentLevel('manager')
 
   const [form, setForm] = useState({
     report_type:         report?.report_type         || 'general',
@@ -725,7 +725,7 @@ function SecurityReportModal({ report, roundId, checkpoints, onClose, onSave }) 
 
 // ── Main Security Page ─────────────────────────────────────────
 export default function Security() {
-  const { profile, organization, hasAnyDepartmentLevel } = useAuth()
+  const { profile, organization, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
   const [tab, setTab]               = useState('overview')
   const [checkpoints, setCheckpoints] = useState([])
   const [rounds, setRounds]           = useState([])
@@ -742,7 +742,8 @@ export default function Security() {
   const [showReport, setShowReport]     = useState(false)
   const [editReport, setEditReport]     = useState(null)
 
-  const isSupervisor = hasAnyDepartmentLevel('supervisor')
+  // Scoped to the Security department specifically — any org-wide Manager still covers everything
+  const isSupervisor = hasDepartmentAccess('security', 'supervisor') || hasAnyDepartmentLevel('manager')
 
   useEffect(() => {
     const handler = (e) => {
