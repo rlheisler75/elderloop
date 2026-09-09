@@ -957,10 +957,14 @@ function BulkPrintModal({ residents, menus, onClose }) {
 
 // ── Main Dietary Page ──────────────────────────────────────────
 export default function Dietary() {
-  const { profile, organization, canEdit } = useAuth()
+  const { profile, organization, canEdit, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
   // Dietary/kitchen staff, supervisors, and managers get edit by default;
-  // org admins can override per-user via Admin Panel > Module Access
+  // org admins can override per-user via Admin Panel > Module Access. The legacy
+  // role fallback is kept for not-yet-reassigned staff; the department/level checks
+  // are what a newly-assigned Dietary employee (any level) or any org-wide
+  // supervisor+ actually rely on today.
   const canEditDietary = canEdit('dietary', ['dietary','supervisor','manager'])
+    || hasDepartmentAccess('dietary', 'employee') || hasAnyDepartmentLevel('supervisor')
   const [tab, setTab]               = useState('residents')
   const [residents, setResidents]   = useState([])
   const [menus, setMenus]           = useState([])
