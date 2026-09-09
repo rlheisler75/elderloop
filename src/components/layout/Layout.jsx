@@ -10,6 +10,7 @@ import {
 import { useState, useEffect, useRef } from 'react'
 import { Bell } from 'lucide-react'
 import { ShoppingBag } from 'lucide-react'
+import { getOrgDepartments, STAFF_LEVELS, LEVEL_RANK } from '../../lib/departments'
 
 // Grouped + ordered sidebar nav. A group with no visible items (module access,
 // see visibleGroups below) is skipped entirely — no empty headers.
@@ -71,13 +72,31 @@ const NAV_GROUPS = [
 ]
 
 export default function Layout() {
-  const { profile, organization, hasModule, isOrgAdmin, isSuperAdmin, signOut, impersonating, exitImpersonation } = useAuth()
+  const { profile, organization, hasModule, isOrgAdmin, isSuperAdmin, signOut, impersonating, exitImpersonation, departmentRoles } = useAuth()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [notifs, setNotifs]       = useState([])
   const [showNotifs, setShowNotifs] = useState(false)
   const notifRef = useRef(null)
 
   const unread = notifs.filter(n => !n.is_read).length
+
+  const SPECIAL_ROLE_LABELS = { ceo: 'CEO', org_admin: 'Org Admin', super_admin: 'Super Admin' }
+  const deptLabel = (key) => getOrgDepartments(organization).find(d => d.key === key)?.label ?? key
+  const levelLabel = (key) => STAFF_LEVELS.find(l => l.key === key)?.label ?? key
+
+  let sidebarSubtitle = profile?.role?.replace('_', ' ')
+  let sidebarSubtitleTitle
+  if (profile?.role && SPECIAL_ROLE_LABELS[profile.role]) {
+    sidebarSubtitle = SPECIAL_ROLE_LABELS[profile.role]
+  } else if (departmentRoles?.length) {
+    const sorted = [...departmentRoles].sort((a, b) => (LEVEL_RANK[b.level] ?? 0) - (LEVEL_RANK[a.level] ?? 0))
+    const top = sorted[0]
+    sidebarSubtitle = `${deptLabel(top.department)} ${levelLabel(top.level)}`
+    if (departmentRoles.length > 1) {
+      sidebarSubtitle += ` +${departmentRoles.length - 1}`
+      sidebarSubtitleTitle = sorted.map(d => `${deptLabel(d.department)} ${levelLabel(d.level)}`).join(', ')
+    }
+  }
 
   useEffect(() => {
     if (profile?.id) fetchNotifs()
@@ -205,7 +224,7 @@ export default function Layout() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-white text-xs font-medium truncate">{profile?.first_name} {profile?.last_name}</div>
-              <div className="text-brand-400 text-xs capitalize">{profile?.role?.replace('_', ' ')}</div>
+              <div className="text-brand-400 text-xs capitalize truncate" title={sidebarSubtitleTitle}>{sidebarSubtitle}</div>
             </div>
             <button onClick={handleSignOut} className="text-brand-400 hover:text-red-400 transition-colors">
               <LogOut size={16} />

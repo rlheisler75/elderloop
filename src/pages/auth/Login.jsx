@@ -4,17 +4,20 @@ import { supabase } from '../../lib/supabase'
 
 const DEMO_PASSWORD = 'Demo2024!'
 
+// Labels are a snapshot of each demo account's real staff_department_roles as of
+// 2026-09-09 — not computed live (the login page is unauthenticated). If a demo
+// account's department/level assignment changes, update the label here to match.
 const DEMO_ROLES = [
-  { role: 'CEO',          email: 'demo.ceo@elderloop.xyz',          color: 'bg-brand-700 hover:bg-brand-600' },
-  { role: 'Org Admin',    email: 'demo.admin@elderloop.xyz',        color: 'bg-brand-600 hover:bg-brand-700' },
-  { role: 'Supervisor',   email: 'demo.supervisor@elderloop.xyz',   color: 'bg-purple-600 hover:bg-purple-700' },
-  { role: 'Nursing',      email: 'demo.nursing@elderloop.xyz',      color: 'bg-rose-600 hover:bg-rose-700' },
-  { role: 'Maintenance',  email: 'demo.maintenance@elderloop.xyz',  color: 'bg-amber-600 hover:bg-amber-700' },
-  { role: 'Dietary',      email: 'demo.dietary@elderloop.xyz',      color: 'bg-green-700 hover:bg-green-600' },
-  { role: 'Housekeeping', email: 'demo.housekeeping@elderloop.xyz', color: 'bg-teal-600 hover:bg-teal-700' },
-  { role: 'Staff',        email: 'demo.staff@elderloop.xyz',        color: 'bg-slate-700 hover:bg-slate-600' },
-  { role: 'Family',       email: 'demo.family@elderloop.xyz',       color: 'bg-sky-600 hover:bg-sky-700' },
-  { role: 'Resident',     email: 'demo.resident@elderloop.xyz',     color: 'bg-indigo-600 hover:bg-indigo-700' },
+  { role: 'CEO',                email: 'demo.ceo@elderloop.xyz',          color: 'bg-brand-700 hover:bg-brand-600' },
+  { role: 'Org Admin',          email: 'demo.admin@elderloop.xyz',        color: 'bg-brand-600 hover:bg-brand-700' },
+  { role: 'Nursing Supervisor', email: 'demo.supervisor@elderloop.xyz',   color: 'bg-purple-600 hover:bg-purple-700' },
+  { role: 'Nursing Employee',   email: 'demo.nursing@elderloop.xyz',      color: 'bg-rose-600 hover:bg-rose-700' },
+  { role: 'Maintenance Employee', email: 'demo.maintenance@elderloop.xyz', color: 'bg-amber-600 hover:bg-amber-700' },
+  { role: 'Dietary Employee',   email: 'demo.dietary@elderloop.xyz',      color: 'bg-green-700 hover:bg-green-600' },
+  { role: 'Housekeeping Employee', email: 'demo.housekeeping@elderloop.xyz', color: 'bg-teal-600 hover:bg-teal-700' },
+  { role: 'IT Supervisor +5',   email: 'demo.staff@elderloop.xyz',        color: 'bg-slate-700 hover:bg-slate-600' },
+  { role: 'Family',             email: 'demo.family@elderloop.xyz',       color: 'bg-sky-600 hover:bg-sky-700' },
+  { role: 'Resident',           email: 'demo.resident@elderloop.xyz',     color: 'bg-indigo-600 hover:bg-indigo-700' },
 ]
 
 // Audit helpers — non-blocking, never throw
