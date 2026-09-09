@@ -435,7 +435,12 @@ function InspectionDetailModal({ inspection, checklistItems, onClose }) {
 
 // ── Main Housekeeping Page ─────────────────────────────────────
 export default function Housekeeping() {
-  const { profile, organization } = useAuth()
+  const { profile, organization, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
+  // Housekeeping Supervisor+ (or an org-wide Manager) manages inspection areas
+  // and sees the full inspection log; a plain housekeeper still logs inspections
+  // but only sees the ones they personally completed. IL cleaning requests stay
+  // open to any Housekeeping staff regardless of level.
+  const isHousekeepingManager = hasDepartmentAccess('housekeeping', 'supervisor') || hasAnyDepartmentLevel('manager')
   const [tab, setTab]             = useState('ltc')
   const [areas, setAreas]         = useState([])
   const [checklistItems, setChecklistItems] = useState([])
@@ -506,8 +511,15 @@ export default function Housekeeping() {
     unbilled:  ilRequests.filter(r => r.status === 'completed' && !r.billed).length,
   }
 
-  // Last inspection per area
+  // Last inspection per area (org-wide, so every area's status is visible to
+  // all housekeeping staff — only the Inspection Log list below is scoped)
   const lastInspection = (areaId) => inspections.find(i => i.area_id === areaId)
+
+  // A plain housekeeper only sees inspections they personally completed in
+  // the log below; Supervisor+/Manager see everyone's.
+  const visibleInspections = isHousekeepingManager
+    ? inspections
+    : inspections.filter(i => i.inspected_by === profile?.id)
 
   const stateRef = HOUSEKEEPING_STATE_REFS[organization?.compliance_state] || HOUSEKEEPING_STATE_REFS.OTHER
 
@@ -562,13 +574,15 @@ export default function Housekeeping() {
           />
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
             <p className="text-sm text-slate-500">{areas.length} areas · {inspections.length} inspections logged</p>
-            <button onClick={() => setShowAddArea(s => !s)}
-              className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
-              <Plus size={15} /> Add Area
-            </button>
+            {isHousekeepingManager && (
+              <button onClick={() => setShowAddArea(s => !s)}
+                className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
+                <Plus size={15} /> Add Area
+              </button>
+            )}
           </div>
 
-          {showAddArea && (
+          {showAddArea && isHousekeepingManager && (
             <div className="mb-4 p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl flex items-center gap-3">
               <input value={newAreaName} onChange={e => setNewAreaName(e.target.value)}
                 className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
@@ -605,7 +619,9 @@ export default function Housekeeping() {
                           {area.area_type === 'room' ? <Home size={16} className="text-slate-400" /> : <Building2 size={16} className="text-slate-400" />}
                           <span className="font-medium text-slate-800 dark:text-slate-100 text-sm">{area.name}</span>
                         </div>
-                        <button onClick={() => handleDeleteArea(area.id)} className="text-slate-300 hover:text-red-400 transition-colors"><Trash2 size={13} /></button>
+                        {isHousekeepingManager && (
+                          <button onClick={() => handleDeleteArea(area.id)} className="text-slate-300 hover:text-red-400 transition-colors"><Trash2 size={13} /></button>
+                        )}
                       </div>
                       {last ? (
                         <div className="mb-3">
@@ -632,7 +648,9 @@ export default function Housekeeping() {
 
               {/* Inspection log */}
               <div>
-                <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 mb-3">Inspection Log</h2>
+                <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 mb-3">
+                  Inspection Log{!isHousekeepingManager && <span className="text-slate-400 font-normal text-sm"> — your inspections</span>}
+                </h2>
                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-x-auto">
                   <table className="w-full min-w-[600px]">
                     <thead>
@@ -645,7 +663,7 @@ export default function Housekeeping() {
                       </tr>
                     </thead>
                     <tbody>
-                      {inspections.slice(0, 30).map(ins => (
+                      {visibleInspections.slice(0, 30).map(ins => (
                         <tr key={ins.id} onClick={() => setViewInspection(ins)}
                           className="border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
                           <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300 font-medium">{ins.inspection_areas?.name}</td>
@@ -663,7 +681,7 @@ export default function Housekeeping() {
                           <td className="px-4 py-3 text-xs text-slate-500 max-w-xs truncate">{ins.notes || '—'}</td>
                         </tr>
                       ))}
-                      {inspections.length === 0 && (
+                      {visibleInspections.length === 0 && (
                         <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-400 text-sm">No inspections logged yet</td></tr>
                       )}
                     </tbody>
