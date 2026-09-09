@@ -1,29 +1,13 @@
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '../../lib/supabase'
 import { BarChart3, Clock, Users, PieChart, Download, Printer, AlertTriangle } from 'lucide-react'
+import { fetchWOCategories, categoryLabel } from '../../lib/workOrderCategories'
 
 const PRIORITIES = [
   { key: 'urgent', label: 'Urgent', color: '#dc2626' },
   { key: 'high',   label: 'High',   color: '#ea580c' },
   { key: 'normal', label: 'Normal', color: '#2563eb' },
   { key: 'low',    label: 'Low',    color: '#64748b' },
-]
-
-// Must match the wo_category Postgres enum exactly (see work_orders.category)
-const CATEGORIES = [
-  { key: 'plumbing',      label: 'Plumbing' },
-  { key: 'electrical',    label: 'Electrical' },
-  { key: 'hvac',          label: 'HVAC' },
-  { key: 'appliance',     label: 'Appliance' },
-  { key: 'carpentry',     label: 'Carpentry' },
-  { key: 'painting',      label: 'Painting' },
-  { key: 'cleaning',      label: 'Cleaning' },
-  { key: 'grounds',       label: 'Grounds' },
-  { key: 'safety',        label: 'Safety' },
-  { key: 'inspection',    label: 'Inspection' },
-  { key: 'filter_change', label: 'Filter Change' },
-  { key: 'pest_control',  label: 'Pest Control' },
-  { key: 'other',         label: 'Other' },
 ]
 
 const DATE_PRESETS = [
@@ -66,6 +50,9 @@ export default function Reports({ orgId, profile }) {
   const [tab, setTab]               = useState('response')
   const [rows, setRows]             = useState([])
   const [loading, setLoading]       = useState(true)
+  const [categories, setCategories] = useState([])
+
+  useEffect(() => { if (orgId) fetchWOCategories(orgId, { activeOnly: false }).then(setCategories) }, [orgId])
 
   const { dateFrom, dateTo } = useMemo(() => {
     if (preset === 'custom') return { dateFrom: customFrom, dateTo: customTo }
@@ -137,10 +124,10 @@ export default function Reports({ orgId, profile }) {
   const categoryBreakdown = useMemo(() => {
     const map = {}
     rows.forEach(w => { map[w.category] = (map[w.category] || 0) + 1 })
-    return CATEGORIES.map(c => ({ ...c, count: map[c.key] || 0 }))
-      .filter(c => c.count > 0)
+    return Object.entries(map)
+      .map(([key, count]) => ({ key, label: categoryLabel(categories, key), count }))
       .sort((a, b) => b.count - a.count)
-  }, [rows])
+  }, [rows, categories])
 
   const sourceBreakdown = useMemo(() => {
     const map = { staff: 0, resident: 0, family: 0 }

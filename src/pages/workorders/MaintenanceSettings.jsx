@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
-import { Save, Check, AlertTriangle, Users, Clock, MapPin } from 'lucide-react'
+import { Save, Check, AlertTriangle, Users, Clock, MapPin, Tag } from 'lucide-react'
 import LocationManager from '../../components/ui/LocationManager'
+import CategoryManager from '../../components/ui/CategoryManager'
+import { fetchWOCategories, topLevelCategories } from '../../lib/workOrderCategories'
 
 const PRIORITIES = [
   { key: 'urgent', label: 'Urgent', color: 'text-red-600', desc: 'Safety hazard, resident at risk' },
@@ -10,27 +12,11 @@ const PRIORITIES = [
   { key: 'low',    label: 'Low',    color: 'text-slate-500',  desc: 'Routine, can wait' },
 ]
 
-// Must match the wo_category Postgres enum exactly (see work_orders.category)
-const WO_CATEGORIES = [
-  { key: 'plumbing',      label: 'Plumbing' },
-  { key: 'electrical',    label: 'Electrical' },
-  { key: 'hvac',          label: 'HVAC' },
-  { key: 'appliance',     label: 'Appliance' },
-  { key: 'carpentry',     label: 'Carpentry' },
-  { key: 'painting',      label: 'Painting' },
-  { key: 'cleaning',      label: 'Cleaning' },
-  { key: 'grounds',       label: 'Grounds' },
-  { key: 'safety',        label: 'Safety' },
-  { key: 'inspection',    label: 'Inspection' },
-  { key: 'filter_change', label: 'Filter Change' },
-  { key: 'pest_control',  label: 'Pest Control' },
-  { key: 'other',         label: 'Other' },
-]
-
 export default function MaintenanceSettings({ orgId, profile }) {
   const [slaRules, setSlaRules]       = useState({})
   const [autoAssign, setAutoAssign]   = useState({})
   const [staff, setStaff]             = useState([])
+  const [woCategories, setWoCategories] = useState([])
   const [saving, setSaving]           = useState(false)
   const [saved, setSaved]             = useState(false)
   const [loading, setLoading]         = useState(true)
@@ -39,12 +25,14 @@ export default function MaintenanceSettings({ orgId, profile }) {
   useEffect(() => { if (orgId) fetchAll() }, [orgId])
 
   async function fetchAll() {
-    const [slaRes, aaRes, staffRes] = await Promise.all([
+    const [slaRes, aaRes, staffRes, cats] = await Promise.all([
       supabase.from('wo_sla_rules').select('*').eq('organization_id', orgId),
       supabase.from('wo_auto_assign_rules').select('*').eq('organization_id', orgId).eq('is_active', true),
       supabase.from('profiles').select('id,first_name,last_name,department')
         .eq('organization_id', orgId).not('role','in','(resident,family)').order('last_name'),
+      fetchWOCategories(orgId),
     ])
+    setWoCategories(topLevelCategories(cats))
     // Build SLA map
     const sla = {}
     slaRes.data?.forEach(r => { sla[r.priority] = { response_hours: r.response_hours, completion_hours: r.completion_hours, id: r.id } })
@@ -86,7 +74,7 @@ export default function MaintenanceSettings({ orgId, profile }) {
       }
     }
     // Upsert auto-assign rules
-    for (const cat of WO_CATEGORIES) {
+    for (const cat of woCategories) {
       const rule = autoAssign[cat.key]
       const staffId = rule?.assign_to || null
       if (rule?.id) {
@@ -109,9 +97,10 @@ export default function MaintenanceSettings({ orgId, profile }) {
       {/* Settings sub-tabs */}
       <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl mb-6 w-fit">
         {[
-          { key: 'sla',       label: 'SLA Rules',        icon: Clock },
-          { key: 'assign',    label: 'Auto-Assignment',   icon: Users },
-          { key: 'locations', label: 'Locations',         icon: MapPin },
+          { key: 'sla',        label: 'SLA Rules',        icon: Clock },
+          { key: 'assign',     label: 'Auto-Assignment',  icon: Users },
+          { key: 'categories', label: 'Categories',       icon: Tag },
+          { key: 'locations',  label: 'Locations',        icon: MapPin },
         ].map(t => {
           const Icon = t.icon
           return (
@@ -128,8 +117,13 @@ export default function MaintenanceSettings({ orgId, profile }) {
         <LocationManager orgId={orgId} />
       )}
 
+      {/* Categories tab */}
+      {settingsTab === 'categories' && (
+        <CategoryManager orgId={orgId} />
+      )}
+
       {/* SLA + Auto-assign tabs */}
-      {settingsTab !== 'locations' && (
+      {settingsTab !== 'locations' && settingsTab !== 'categories' && (
       <div className="space-y-8">
 
       {/* SLA Rules */}
@@ -192,7 +186,7 @@ export default function MaintenanceSettings({ orgId, profile }) {
           <div className="grid grid-cols-2 gap-4 px-5 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
             <span>Category</span><span>Auto-Assign To</span>
           </div>
-          {WO_CATEGORIES.map(cat => {
+          {woCategories.map(cat => {
             const rule = autoAssign[cat.key] || {}
             return (
               <div key={cat.key} className="grid grid-cols-2 gap-4 items-center px-5 py-3 border-b border-slate-50 dark:border-slate-800 last:border-0">

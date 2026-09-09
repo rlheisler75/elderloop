@@ -5,6 +5,7 @@ import {
   Plus, X, Edit2, Trash2, Calendar, Clock, Check,
   RefreshCw, AlertTriangle, Play, ChevronRight
 } from 'lucide-react'
+import { fetchWOCategories, topLevelCategories } from '../../lib/workOrderCategories'
 
 const toDateStr = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
 const todayDateStr = () => toDateStr(new Date())
@@ -17,16 +18,9 @@ const FREQ_OPTIONS = [
   { key: 'custom',    label: 'Custom',    days: null},
 ]
 
-// Must match the wo_category Postgres enum exactly (see work_orders.category) —
-// this schedule's category gets copied verbatim into a work order on generate.
-const WO_CATEGORIES = [
-  'plumbing','electrical','hvac','appliance','carpentry','painting','cleaning',
-  'grounds','safety','inspection','filter_change','pest_control','other'
-]
-
 const fmt = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) : '—'
 
-function PMModal({ schedule, assets, staff, orgId, profile, onClose, onSaved }) {
+function PMModal({ schedule, assets, staff, categories, orgId, profile, onClose, onSaved }) {
   const isNew = !schedule
   const [form, setForm] = useState({
     title:          schedule?.title          || '',
@@ -93,8 +87,8 @@ function PMModal({ schedule, assets, staff, orgId, profile, onClose, onSaved }) 
             <div>
               <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Category</label>
               <select value={form.category} onChange={e => set('category', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 capitalize">
-                {WO_CATEGORIES.map(c => <option key={c} value={c} className="capitalize">{c.replace('_',' ')}</option>)}
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                {topLevelCategories(categories).map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
               </select>
             </div>
             <div>
@@ -179,6 +173,7 @@ export default function PMSchedules({ orgId: orgIdProp, profile: profileProp }) 
   const [schedules, setSchedules] = useState([])
   const [assets, setAssets]       = useState([])
   const [staff, setStaff]         = useState([])
+  const [categories, setCategories] = useState([])
   const [loading, setLoading]     = useState(true)
   const [editSchedule, setEditSchedule] = useState(null)
   const [showModal, setShowModal] = useState(false)
@@ -189,16 +184,18 @@ export default function PMSchedules({ orgId: orgIdProp, profile: profileProp }) 
 
   async function fetchAll() {
     setLoading(true)
-    const [schRes, assetRes, staffRes] = await Promise.all([
+    const [schRes, assetRes, staffRes, cats] = await Promise.all([
       supabase.from('pm_schedules').select('*, maintenance_assets(name,asset_number), profiles!assign_to(first_name,last_name)')
         .eq('organization_id', orgId).eq('is_active', true).order('next_due'),
       supabase.from('maintenance_assets').select('id,name,asset_number').eq('organization_id', orgId).eq('is_active', true),
       supabase.from('profiles').select('id,first_name,last_name').eq('organization_id', orgId)
         .not('role','in','(resident,family)').order('last_name'),
+      fetchWOCategories(orgId),
     ])
     setSchedules(schRes.data || [])
     setAssets(assetRes.data || [])
     setStaff(staffRes.data || [])
+    setCategories(cats)
     setLoading(false)
   }
 
@@ -338,7 +335,7 @@ export default function PMSchedules({ orgId: orgIdProp, profile: profileProp }) 
       )}
 
       {showModal && (
-        <PMModal schedule={editSchedule} assets={assets} staff={staff} orgId={orgId} profile={profile}
+        <PMModal schedule={editSchedule} assets={assets} staff={staff} categories={categories} orgId={orgId} profile={profile}
           onClose={() => { setShowModal(false); setEditSchedule(null) }}
           onSaved={() => { setShowModal(false); setEditSchedule(null); fetchAll() }} />
       )}

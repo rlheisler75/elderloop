@@ -38,6 +38,7 @@ import Reports from './Reports'
 import MaintenanceSettings from './MaintenanceSettings'
 import LocationPicker from '../../components/ui/LocationPicker'
 import BroadcastPanel from '../communication/BroadcastPanel'
+import { fetchWOCategories, topLevelCategories, subcategoriesOf } from '../../lib/workOrderCategories'
 
 const STATUSES = [
   { key: 'open',             label: 'Open',             color: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-900',     dot: 'bg-blue-500' },
@@ -57,27 +58,11 @@ const PRIORITIES = [
   { key: 'urgent', label: 'Urgent', color: 'text-red-600' },
 ]
 
-const CATEGORIES = [
-  { key: 'plumbing',     label: 'Plumbing' },
-  { key: 'electrical',   label: 'Electrical' },
-  { key: 'hvac',         label: 'HVAC' },
-  { key: 'appliance',    label: 'Appliance' },
-  { key: 'carpentry',    label: 'Carpentry' },
-  { key: 'painting',     label: 'Painting' },
-  { key: 'cleaning',     label: 'Cleaning' },
-  { key: 'grounds',      label: 'Grounds' },
-  { key: 'safety',       label: 'Safety' },
-  { key: 'inspection',   label: 'Inspection' },
-  { key: 'filter_change',label: 'Filter Change' },
-  { key: 'pest_control', label: 'Pest Control' },
-  { key: 'other',        label: 'Other' },
-]
-
 const getStatus   = (key) => STATUSES.find(s => s.key === key)   || STATUSES[0]
 const getPriority = (key) => PRIORITIES.find(p => p.key === key) || PRIORITIES[1]
 
 const EMPTY_FORM = {
-  title: '', description: '', category: 'other', priority: 'normal',
+  title: '', description: '', category: 'other', subcategory: '', priority: 'normal',
   unit: '', building: '', location_detail: '',
   location_id: null, location_path: '',
   resident_id: '',
@@ -99,9 +84,9 @@ function StatusBadge({ status }) {
 }
 
 // ── Work Order Row ────────────────────────────────────────────
-function WORow({ wo, onClick }) {
+function WORow({ wo, categories, onClick }) {
   const pri = getPriority(wo.priority)
-  const cat = CATEGORIES.find(c => c.key === wo.category)
+  const cat = categories.find(c => c.key === wo.category)
   const isOverdue = wo.due_date && new Date(wo.due_date) < new Date() && wo.status !== 'closed' && wo.status !== 'cancelled'
 
   return (
@@ -202,12 +187,12 @@ function LocationPickerButton({ value, onChange }) {
 }
 
 // ── Work Order Detail Modal ───────────────────────────────────
-function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClose, canAssign }) {
+function WOModal({ wo, onClose, onSave, staffList, residentList, categories, canEdit, canClose, canAssign }) {
   const { profile } = useAuth()
   const fileRef = useRef()
   const [editing, setEditing]   = useState(!wo)
   const [form, setForm]         = useState(wo ? {
-    title: wo.title, description: wo.description || '', category: wo.category,
+    title: wo.title, description: wo.description || '', category: wo.category, subcategory: wo.subcategory || '',
     priority: wo.priority, status: wo.status,
     unit: wo.unit || '', building: wo.building || '',
     location_detail: wo.location_detail || '',
@@ -337,7 +322,7 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
     const payload = {
       organization_id: profile.organization_id,
       title: form.title.trim(), description: form.description || null,
-      category: form.category, priority: form.priority,
+      category: form.category, subcategory: form.subcategory || null, priority: form.priority,
       unit: form.unit || null, building: form.building || null,
       location_detail: form.location_detail || null,
       location_id: form.location_id || null,
@@ -472,6 +457,7 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
                             ...f,
                             title:       t.label,
                             category:    t.category,
+                            subcategory: '',
                             priority:    t.priority,
                             description: t.description,
                           }))
@@ -481,7 +467,7 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
                         <div>
                           <div className="text-sm font-medium text-slate-800 dark:text-slate-100">{t.label}</div>
                           <div className="text-xs text-slate-400 capitalize">
-                            {CATEGORIES.find(c => c.key === t.category)?.label} · {t.priority}
+                            {categories.find(c => c.key === t.category)?.label} · {t.priority}
                           </div>
                         </div>
                         <ChevronRight size={14} className="text-slate-300 flex-shrink-0" />
@@ -536,11 +522,11 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Category</label>
                 {editing
-                  ? <select value={form.category} onChange={e => set('category', e.target.value)}
+                  ? <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value, subcategory: '' }))}
                       className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-                      {CATEGORIES.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
+                      {topLevelCategories(categories).map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
                     </select>
-                  : <p className="text-sm text-slate-700 dark:text-slate-300">{CATEGORIES.find(c => c.key === wo.category)?.label}</p>}
+                  : <p className="text-sm text-slate-700 dark:text-slate-300">{categories.find(c => c.key === wo.category)?.label ?? wo.category}</p>}
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Priority</label>
@@ -563,6 +549,25 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, canEdit, canClo
                 </div>
               )}
             </div>
+
+            {/* Subcategory — only shown when the selected category has any */}
+            {(() => {
+              const catId = categories.find(c => c.key === form.category)?.id
+              const subs  = catId ? subcategoriesOf(categories, catId) : []
+              if (!subs.length && !wo?.subcategory) return null
+              return (
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Subcategory</label>
+                  {editing
+                    ? <select value={form.subcategory} onChange={e => set('subcategory', e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="">— None —</option>
+                        {subs.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
+                      </select>
+                    : <p className="text-sm text-slate-700 dark:text-slate-300">{categories.find(c => c.key === wo.subcategory)?.label ?? wo.subcategory ?? '—'}</p>}
+                </div>
+              )
+            })()}
 
             {/* Location */}
             <div>
@@ -930,6 +935,7 @@ export default function WorkOrders() {
   const [workOrders, setWorkOrders]   = useState([])
   const [staffList, setStaffList]     = useState([])
   const [residentList, setResidentList] = useState([])
+  const [categories, setCategories]   = useState([])
   const [loading, setLoading]         = useState(true)
   const [search, setSearch]           = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
@@ -961,17 +967,19 @@ export default function WorkOrders() {
     // Non-privileged staff only see WOs they submitted
     if (!isPrivileged) woQuery = woQuery.eq('submitted_by', profile.id)
 
-    const [woRes, staffRes, resRes] = await Promise.all([
+    const [woRes, staffRes, resRes, cats] = await Promise.all([
       woQuery,
       supabase.from('profiles').select('id,first_name,last_name,role')
         .eq('organization_id', organization.id)
         .in('role', ['maintenance','supervisor','manager','org_admin','super_admin']),
       supabase.from('residents').select('id,first_name,last_name,unit,building')
-        .eq('organization_id', organization.id).eq('is_active', true)
+        .eq('organization_id', organization.id).eq('is_active', true),
+      fetchWOCategories(organization.id),
     ])
     setWorkOrders(woRes.data || [])
     setStaffList(staffRes.data || [])
     setResidentList(resRes.data || [])
+    setCategories(cats)
     setLoading(false)
   }
 
@@ -1109,7 +1117,7 @@ export default function WorkOrders() {
         <select value={filterCat} onChange={e => setFilterCat(e.target.value)}
           className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100">
           <option value="all">All Categories</option>
-          {CATEGORIES.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
+          {topLevelCategories(categories).map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
         </select>
         <select value={filterPriority} onChange={e => setFilterPriority(e.target.value)}
           className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100">
@@ -1143,7 +1151,7 @@ export default function WorkOrders() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map(wo => <WORow key={wo.id} wo={wo} onClick={() => handleOpen(wo)} />)}
+                {filtered.map(wo => <WORow key={wo.id} wo={wo} categories={categories} onClick={() => handleOpen(wo)} />)}
               </tbody>
             </table>
           </div>
@@ -1159,6 +1167,7 @@ export default function WorkOrders() {
           onSave={handleSave}
           staffList={staffList}
           residentList={residentList}
+          categories={categories}
           canEdit={canEdit}
           canClose={canClose}
           canAssign={canAssign}

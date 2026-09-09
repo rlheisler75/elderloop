@@ -614,11 +614,13 @@ export default function CompliancePanel({ orgId, profile }) {
             className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl text-xs font-medium transition-colors">
             <Printer size={13} /> Print for Surveyor
           </button>
-          <button
-            onClick={() => setShowAddCat(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 border border-brand-300 dark:border-brand-800 text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-950/50 rounded-xl text-xs font-medium transition-colors">
-            <Plus size={13} /> Add Custom Inspection
-          </button>
+          {canEditOrgSettings && (
+            <button
+              onClick={() => setShowAddCat(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 border border-brand-300 dark:border-brand-800 text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-950/50 rounded-xl text-xs font-medium transition-colors">
+              <Plus size={13} /> Add Custom Inspection
+            </button>
+          )}
         </div>
       </div>
 
@@ -679,7 +681,7 @@ export default function CompliancePanel({ orgId, profile }) {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    {cat.is_custom && (
+                    {cat.is_custom && canEditOrgSettings && (
                       <button onClick={() => handleDeleteCustom(cat)}
                         className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg transition-colors" title="Remove">
                         <Trash2 size={14} />
