@@ -66,8 +66,12 @@ const shiftsOverlap = (s1, s2) => {
 
 // ── Shift Template Manager ─────────────────────────────────────
 function TemplateManager({ orgId, templates, onRefresh, onClose }) {
-  const { organization } = useAuth()
+  const { organization, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
   const DEPTS = organization?.departments?.length ? organization.departments : DEPARTMENTS_DEFAULT
+  const isOrgWideManager = hasAnyDepartmentLevel('manager')
+  const assignableDepts = isOrgWideManager ? DEPTS : DEPTS.filter(d => hasDepartmentAccess(d.key, 'supervisor'))
+  const canManageTemplateDept = (dept) => !dept ? isOrgWideManager : hasDepartmentAccess(dept, 'supervisor') || isOrgWideManager
+  const visibleTemplates = templates.filter(t => canManageTemplateDept(t.department))
   const [adding, setAdding] = useState(false)
   const [form, setForm]     = useState({ name:'', department:'', start_time:'', end_time:'', color:'#0c90e1' })
   const [saving, setSaving] = useState(false)
@@ -90,7 +94,7 @@ function TemplateManager({ orgId, templates, onRefresh, onClose }) {
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><X size={20} /></button>
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
-          {templates.map(t => (
+          {visibleTemplates.map(t => (
             <div key={t.id} className="flex items-center gap-3 p-3 rounded-xl border border-slate-100">
               <div className="w-3 h-8 rounded-full flex-shrink-0" style={{ background: t.color }} />
               <div className="flex-1">
@@ -110,8 +114,8 @@ function TemplateManager({ orgId, templates, onRefresh, onClose }) {
                   placeholder="Shift name *" />
                 <select value={form.department} onChange={e => set('department', e.target.value)}
                   className="px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-                  <option value="">All departments</option>
-                  {DEPTS.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
+                  {isOrgWideManager && <option value="">All departments</option>}
+                  {assignableDepts.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
                 </select>
                 <input type="color" value={form.color} onChange={e => set('color', e.target.value)}
                   className="h-10 w-full rounded-lg border border-slate-200 cursor-pointer p-0.5" />
@@ -154,8 +158,12 @@ function TemplateManager({ orgId, templates, onRefresh, onClose }) {
 
 // ── Schedule Shift Modal ───────────────────────────────────────
 function ShiftModal({ shift, date, orgId, staff, templates, existingShifts, onClose, onSave }) {
-  const { profile, organization } = useAuth()
+  const { profile, organization, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
   const DEPTS = organization?.departments?.length ? organization.departments : DEPARTMENTS_DEFAULT
+  const isOrgWideManager = hasAnyDepartmentLevel('manager')
+  // A department Supervisor can only schedule shifts for department(s) they supervise;
+  // an org-wide Manager (or org_admin/ceo) can schedule for any department, or leave it unset ("All").
+  const assignableDepts = isOrgWideManager ? DEPTS : DEPTS.filter(d => hasDepartmentAccess(d.key, 'supervisor'))
   const isNew = !shift
   const [form, setForm] = useState({
     staff_id:      shift?.staff_id    || '',
@@ -285,11 +293,11 @@ function ShiftModal({ shift, date, orgId, staff, templates, existingShifts, onCl
           )}
 
           {/* Template picker */}
-          {templates.length > 0 && (
+          {templates.filter(t => !t.department || isOrgWideManager || assignableDepts.some(d => d.key === t.department)).length > 0 && (
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Quick Fill from Template</label>
               <div className="flex flex-wrap gap-2">
-                {templates.map(t => (
+                {templates.filter(t => !t.department || isOrgWideManager || assignableDepts.some(d => d.key === t.department)).map(t => (
                   <button key={t.id} onClick={() => applyTemplate(t.id)}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-200 hover:border-slate-300 transition-colors">
                     <div className="w-2 h-2 rounded-full" style={{ background: t.color }} />
@@ -315,8 +323,8 @@ function ShiftModal({ shift, date, orgId, staff, templates, existingShifts, onCl
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Department</label>
               <select value={form.department} onChange={e => set('department', e.target.value)}
                 className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-                <option value="">All</option>
-                {DEPTS.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
+                {isOrgWideManager && <option value="">All</option>}
+                {assignableDepts.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
               </select>
             </div>
             <div>
@@ -385,7 +393,7 @@ function ShiftModal({ shift, date, orgId, staff, templates, existingShifts, onCl
 }
 
 // ── Day Drill-Down Modal ───────────────────────────────────────
-function DayDetail({ date, shifts, staff, orgId, isMgr, onClose, onRefresh }) {
+function DayDetail({ date, shifts, staff, orgId, canManageDept, onClose, onRefresh }) {
   const { profile, organization } = useAuth()
   const DEPTS = organization?.departments?.length ? organization.departments : DEPARTMENTS_DEFAULT
   const [showCallOff, setShowCallOff] = useState(null)
@@ -466,8 +474,8 @@ function DayDetail({ date, shifts, staff, orgId, isMgr, onClose, onRefresh }) {
                               <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
                               {status.label}
                             </span>
-                            {/* Manager actions */}
-                            {isMgr && s.status === 'scheduled' && (
+                            {/* Manager actions — scoped to this shift's own department */}
+                            {canManageDept(s.department) && s.status === 'scheduled' && (
                               <select onChange={e => handleStatusChange(s.id, e.target.value)} defaultValue=""
                                 className="text-xs border border-slate-200 rounded-lg px-2 py-1 focus:outline-none text-slate-500">
                                 <option value="" disabled>Update</option>
@@ -477,7 +485,7 @@ function DayDetail({ date, shifts, staff, orgId, isMgr, onClose, onRefresh }) {
                               </select>
                             )}
                             {/* Staff self-calloff */}
-                            {isOwn && s.status === 'scheduled' && !isMgr && (
+                            {isOwn && s.status === 'scheduled' && !canManageDept(s.department) && (
                               <button onClick={() => setShowCallOff(s.id)}
                                 className="text-xs px-2 py-1 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors">
                                 Call Off
@@ -520,7 +528,7 @@ function DayDetail({ date, shifts, staff, orgId, isMgr, onClose, onRefresh }) {
 }
 
 // ── Swap Requests Panel ────────────────────────────────────────
-function SwapPanel({ orgId, profile, staff, shifts, isMgr, onRefresh }) {
+function SwapPanel({ orgId, profile, staff, shifts, canManageDept, onRefresh }) {
   const [swaps, setSwaps]   = useState([])
   const [loading, setLoading] = useState(true)
   const [showRequest, setShowRequest] = useState(false)
@@ -539,6 +547,10 @@ function SwapPanel({ orgId, profile, staff, shifts, isMgr, onRefresh }) {
 
   const staffMap = Object.fromEntries(staff.map(s => [s.id, s]))
   const shiftMap = Object.fromEntries(shifts.map(s => [s.id, s]))
+
+  // A manager over either shift's department can approve the swap
+  const canManageSwap = (swap) =>
+    canManageDept(shiftMap[swap.requester_shift_id]?.department) || canManageDept(shiftMap[swap.target_shift_id]?.department)
 
   const myShifts = shifts.filter(s =>
     s.staff_id === profile.id && s.status === 'scheduled' &&
@@ -598,7 +610,7 @@ function SwapPanel({ orgId, profile, staff, shifts, isMgr, onRefresh }) {
 
   const pendingCount = swaps.filter(s =>
     (s.target_id === profile.id && s.target_accepted === null) ||
-    (isMgr && s.status === 'accepted')
+    (s.status === 'accepted' && canManageSwap(s))
   ).length
 
   return (
@@ -627,7 +639,7 @@ function SwapPanel({ orgId, profile, staff, shifts, isMgr, onRefresh }) {
             const reqShift    = shiftMap[swap.requester_shift_id]
             const tgtShift    = shiftMap[swap.target_shift_id]
             const isTarget    = swap.target_id === profile.id && swap.target_accepted === null
-            const isMgrPending = isMgr && swap.status === 'accepted'
+            const isMgrPending = swap.status === 'accepted' && canManageSwap(swap)
             const statusColor = {
               pending:  'bg-blue-50 border-blue-200',
               accepted: 'bg-amber-50 border-amber-200',
@@ -775,7 +787,7 @@ function SwapPanel({ orgId, profile, staff, shifts, isMgr, onRefresh }) {
 
 // ── Main Scheduling Page ───────────────────────────────────────
 export default function Scheduling() {
-  const { profile, organization, hasAnyDepartmentLevel } = useAuth()
+  const { profile, organization, hasAnyDepartmentLevel, hasDepartmentAccess } = useAuth()
   const DEPTS = organization?.departments?.length ? organization.departments : DEPARTMENTS_DEFAULT
   const [shifts, setShifts]       = useState([])
   const [staff, setStaff]         = useState([])
@@ -791,7 +803,10 @@ export default function Scheduling() {
   const [dayDetail, setDayDetail]   = useState(null)
   const [showTemplates, setShowTemplates] = useState(false)
 
-  const isMgr = hasAnyDepartmentLevel('supervisor')
+  // Org-wide manager (any dept Manager, or org_admin/ceo/super_admin) manages every
+  // department's schedule; a department Supervisor only manages that department's own shifts.
+  const isMgr = hasAnyDepartmentLevel('supervisor') // can manage SOMETHING — governs whether the header buttons show at all
+  const canManageDept = (dept) => hasDepartmentAccess(dept, 'supervisor') || hasAnyDepartmentLevel('manager')
 
   useEffect(() => { if (organization) fetchAll() }, [organization])
 
@@ -992,7 +1007,7 @@ export default function Scheduling() {
           profile={profile}
           staff={staff}
           shifts={shifts}
-          isMgr={isMgr}
+          canManageDept={canManageDept}
           onRefresh={fetchAll} />
       )}
 
@@ -1014,7 +1029,7 @@ export default function Scheduling() {
           shifts={shifts}
           staff={staff}
           orgId={organization.id}
-          isMgr={isMgr}
+          canManageDept={canManageDept}
           onClose={() => setDayDetail(null)}
           onRefresh={fetchAll} />
       )}
