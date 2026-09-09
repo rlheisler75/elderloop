@@ -144,7 +144,7 @@ function LocationRow({ node, depth, onEdit, onAddChild, onDelete }) {
   return (
     <>
       <div
-        className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 group transition-colors"
+        className="flex flex-wrap items-center gap-y-1 gap-x-2 py-2 px-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 group transition-colors"
         style={{ paddingLeft: `${12 + depth * 24}px` }}>
 
         {hasChildren ? (
@@ -156,16 +156,17 @@ function LocationRow({ node, depth, onEdit, onAddChild, onDelete }) {
           <span className="w-4 flex-shrink-0" />
         )}
 
-        <Icon size={14} className={`flex-shrink-0 ${iconColor}`} />
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <Icon size={14} className={`flex-shrink-0 ${iconColor}`} />
+          <span className="text-sm text-slate-700 dark:text-slate-300 truncate">{node.name}</span>
+        </div>
 
-        <span className="flex-1 text-sm text-slate-700 dark:text-slate-300">{node.name}</span>
-
-        <span className="text-xs text-slate-400 capitalize hidden group-hover:inline">
+        <span className="text-xs text-slate-400 capitalize flex-shrink-0">
           {LOCATION_TYPES.find(t => t.key === node.location_type)?.label}
         </span>
 
         {/* Actions */}
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center flex-wrap gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
           <button onClick={() => onAddChild(node)}
             className="p-1 text-slate-400 dark:text-slate-500 hover:text-brand-600 rounded transition-colors" title="Add child location">
             <Plus size={13} />
@@ -225,7 +226,7 @@ export default function LocationManager({ orgId }) {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <div>
           <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2">
             <MapPin size={16} className="text-brand-600" /> Location Manager
@@ -236,7 +237,7 @@ export default function LocationManager({ orgId }) {
         </div>
         <button
           onClick={() => setModal({ loc: null, parentId: null, parentName: null })}
-          className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
+          className="flex items-center justify-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors flex-shrink-0 sm:self-start">
           <Plus size={14} /> Add Top-Level Location
         </button>
       </div>
@@ -267,7 +268,7 @@ export default function LocationManager({ orgId }) {
       </div>
 
       <p className="text-xs text-slate-400 mt-3">
-        {locations.length} location{locations.length !== 1 ? 's' : ''} configured · Hover a row to edit or add children
+        {locations.length} location{locations.length !== 1 ? 's' : ''} configured
       </p>
 
       {modal !== null && (
