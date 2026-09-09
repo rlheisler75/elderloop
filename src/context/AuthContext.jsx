@@ -119,6 +119,16 @@ export function AuthProvider({ children }) {
                  'supervisor', 'manager', 'ceo', 'org_admin', 'super_admin'],
   }
 
+  // Same defaults as ROLE_MODULE_DEFAULTS, but expressed as a minimum
+  // department+level rank instead of a literal legacy role string — so
+  // someone reassigned off the flat role (role='staff' + a department/level
+  // row) doesn't silently lose a module's sidebar visibility. Purely additive
+  // alongside ROLE_MODULE_DEFAULTS; org-wide (any department) by design,
+  // matching the "any department's supervisor+" access this module already grants.
+  const LEVEL_MODULE_DEFAULTS = {
+    surveys: 'supervisor',
+  }
+
   // Is this module enabled for the org AND does the user have access?
   const hasModule = (key) => {
     if (!orgModules.includes(key)) return false
@@ -126,6 +136,8 @@ export function AuthProvider({ children }) {
     if (['org_admin','ceo','super_admin'].includes(profile?.role) || superAdmin) return true
     // Role-based defaults: some modules auto-grant to specific roles
     if (ROLE_MODULE_DEFAULTS[key]?.includes(profile?.role)) return true
+    // Department+level equivalent of the above, for reassigned accounts
+    if (LEVEL_MODULE_DEFAULTS[key] && hasAnyDepartmentLevel(LEVEL_MODULE_DEFAULTS[key])) return true
     // Org-configurable role defaults (Admin Panel → Role Templates) — a sensible
     // starting baseline per role, editable per org. Explicit grants below still win.
     if (roleVisibility.includes(key)) return true
