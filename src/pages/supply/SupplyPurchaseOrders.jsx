@@ -601,8 +601,8 @@ function PODetail({ po, orgId, profileId, canEdit, onBack, onRefresh, onEdit }) 
 
 // ── Main Purchase Orders page ──────────────────────────────────
 export default function SupplyPurchaseOrders() {
-  const { organization, profile, canEdit } = useAuth()
-  const canEditSupply = canEdit('central_supply', ['supervisor','manager'])
+  const { organization, profile, canEdit, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
+  const canEditSupply = canEdit('central_supply', ['supervisor','manager']) || hasDepartmentAccess('central_supply','employee') || hasAnyDepartmentLevel('supervisor')
   const [pos,      setPos]      = useState([])
   const [vendors,  setVendors]  = useState([])
   const [items,    setItems]    = useState([])

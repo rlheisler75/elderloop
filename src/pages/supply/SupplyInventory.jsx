@@ -469,10 +469,10 @@ function ItemRow({ item, onEdit, canEdit }) {
 
 // ── Main Inventory Page ────────────────────────────────────────
 export default function SupplyInventory() {
-  const { organization, profile, canEdit } = useAuth()
+  const { organization, profile, canEdit, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
   // Supply staff/supervisors/managers get edit by default for central_supply;
   // org admins can grant/restrict per-user via Admin Panel > Module Access
-  const canEditSupply = canEdit('central_supply', ['supervisor','manager'])
+  const canEditSupply = canEdit('central_supply', ['supervisor','manager']) || hasDepartmentAccess('central_supply','employee') || hasAnyDepartmentLevel('supervisor')
   const [items,    setItems]    = useState([])
   const [vendors,  setVendors]  = useState([])
   const [loading,  setLoading]  = useState(true)

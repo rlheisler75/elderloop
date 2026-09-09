@@ -23,7 +23,7 @@ const ALL_TABS = [
 ]
 
 export default function CentralSupply() {
-  const { hasModule, canEdit } = useAuth()
+  const { hasModule, canEdit, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
   const [tab, setTab] = useState('inventory')
 
   // Supply staff/supervisors/managers get edit by default for central_supply;
@@ -31,7 +31,7 @@ export default function CentralSupply() {
   // View-only users see Inventory, Purchase Orders, Vendors, and Reports in read-only
   // mode; Receive/Issue/Cash Sales are pure write-workflows and are hidden entirely
   // for view-only users.
-  const canEditSupply = canEdit('central_supply', ['supervisor','manager'])
+  const canEditSupply = canEdit('central_supply', ['supervisor','manager']) || hasDepartmentAccess('central_supply','employee') || hasAnyDepartmentLevel('supervisor')
 
   if (!hasModule('central_supply')) {
     return (
