@@ -308,7 +308,7 @@ function StaffCard({ member, canSeeAll, isSelf, canEdit, departments, onEdit, on
 
 // ── Main Staff Directory ───────────────────────────────────────
 export default function StaffDirectory() {
-  const { profile, organization, hasAnyDepartmentLevel } = useAuth()
+  const { profile, organization, hasAnyDepartmentLevel, hasDepartmentAccess } = useAuth()
   const departments = getOrgDepartments(organization)
   const getDept = (key) => departments.find(d => d.key === key)?.label || key || '—'
   const navigate = useNavigate()
@@ -318,8 +318,11 @@ export default function StaffDirectory() {
   const [filterDept, setFilterDept] = useState('all')
   const [editMember, setEditMember] = useState(null)
 
-  const canSeeAll    = hasAnyDepartmentLevel('supervisor')
-  const canEditOthers = hasAnyDepartmentLevel('supervisor')
+  // Seeing everyone's private contact info stays org-wide for any supervisor — a directory
+  // is meant to be company-wide. Editing someone ELSE's entry is scoped to their department;
+  // manager-level in any department (or org_admin/ceo) can still edit anyone.
+  const canSeeAll = hasAnyDepartmentLevel('supervisor')
+  const canManageDept = (dept) => hasDepartmentAccess(dept, 'supervisor') || hasAnyDepartmentLevel('manager')
 
   useEffect(() => { if (organization) fetchStaff() }, [organization])
 
@@ -339,8 +342,8 @@ export default function StaffDirectory() {
   const handleEdit = (member) => setEditMember(member)
 
   const canEditMember = (member) =>
-    member.id === profile.id   // own profile
-    || canEditOthers            // supervisor+
+    member.id === profile.id           // own profile
+    || canManageDept(member.department) // supervises this person's department
 
   // Filter
   const filtered = staff.filter(s => {
@@ -465,7 +468,7 @@ export default function StaffDirectory() {
         <EditProfileModal
           staffMember={editMember}
           isSelf={editMember.id === profile.id}
-          canEditAll={canEditOthers}
+          canEditAll={canEditMember(editMember)}
           departments={departments}
           onClose={() => setEditMember(null)}
           onSaved={() => { setEditMember(null); fetchStaff() }}
