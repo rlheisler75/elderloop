@@ -954,14 +954,10 @@ export default function WorkOrders() {
   const canClose       = hasDepartmentAccess('maintenance', 'employee')
   // Privileged roles see all WOs; others only see their own submissions
   const isPrivileged   = hasDepartmentAccess('maintenance', 'employee')
-  // Assets/PM/Life Safety/Reports/Communication/Settings are a stricter tier than the
-  // shared Work Orders queue above — any Maintenance Employee+ works the queue, but only
-  // a Maintenance Supervisor+ (or org_admin/ceo/super_admin) manages the other tabs.
-  const canManageMaintenance = hasDepartmentAccess('maintenance', 'supervisor')
 
   useEffect(() => {
-    if (!canManageMaintenance && mainView !== 'work_orders') setMainView('work_orders')
-  }, [canManageMaintenance, mainView])
+    if (!isPrivileged && mainView !== 'work_orders') setMainView('work_orders')
+  }, [isPrivileged, mainView])
 
   useEffect(() => { if (organization) { fetchAll() } }, [organization])
 
@@ -1030,13 +1026,14 @@ export default function WorkOrders() {
         )}
       </div>
 
-      {/* Main view tabs — Assets/PM/Life Safety/Reports/Communication/Settings need a
-          Maintenance Supervisor+ (or org_admin/ceo/super_admin); every Employee level,
-          Maintenance included, only gets the shared Work Orders queue tab. */}
+      {/* Main view tabs — Assets/PM/Life Safety/Reports/Communication/Settings need
+          Maintenance department access (any level, or org_admin/ceo/super_admin);
+          non-Maintenance staff (e.g. a Housekeeper submitting their own work order)
+          only get the shared Work Orders tab, scoped to their own submissions. */}
       <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl mb-6 w-fit flex-wrap">
         {[
           { key: 'work_orders', label: 'Work Orders', icon: Wrench },
-          ...(canManageMaintenance ? [
+          ...(isPrivileged ? [
             { key: 'assets',      label: 'Assets',      icon: Package },
             { key: 'pm',          label: 'Preventive Maintenance', icon: RefreshCw },
             { key: 'compliance',  label: 'Life Safety',  icon: ShieldCheck },
@@ -1055,11 +1052,11 @@ export default function WorkOrders() {
         })}
       </div>
 
-      {mainView === 'assets'     && canManageMaintenance && <WorkOrderAssets   orgId={organization?.id} profile={profile} />}
-      {mainView === 'pm'         && canManageMaintenance && <PMSchedules        orgId={organization?.id} profile={profile} />}
-      {mainView === 'compliance' && canManageMaintenance && <CompliancePanel    orgId={organization?.id} profile={profile} />}
-      {mainView === 'reports'    && canManageMaintenance && <Reports            orgId={organization?.id} profile={profile} />}
-      {mainView === 'communication' && canManageMaintenance && (
+      {mainView === 'assets'     && isPrivileged && <WorkOrderAssets   orgId={organization?.id} profile={profile} />}
+      {mainView === 'pm'         && isPrivileged && <PMSchedules        orgId={organization?.id} profile={profile} />}
+      {mainView === 'compliance' && isPrivileged && <CompliancePanel    orgId={organization?.id} profile={profile} />}
+      {mainView === 'reports'    && isPrivileged && <Reports            orgId={organization?.id} profile={profile} />}
+      {mainView === 'communication' && isPrivileged && (
         <BroadcastPanel
           isStarter={organization?.plan === 'starter'}
           restrictToDepartment="maintenance"
@@ -1067,7 +1064,7 @@ export default function WorkOrders() {
           subtitle="Internal messages to the maintenance department — not visible to other departments"
         />
       )}
-      {mainView === 'settings'   && canManageMaintenance && <MaintenanceSettings orgId={organization?.id} profile={profile} />}
+      {mainView === 'settings'   && isPrivileged && <MaintenanceSettings orgId={organization?.id} profile={profile} />}
 
       {/* Work Orders view */}
       {mainView === 'work_orders' && (<>
