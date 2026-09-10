@@ -955,6 +955,10 @@ export default function WorkOrders() {
   // Privileged roles see all WOs; others only see their own submissions
   const isPrivileged   = hasDepartmentAccess('maintenance', 'employee')
 
+  useEffect(() => {
+    if (!isPrivileged && mainView !== 'work_orders') setMainView('work_orders')
+  }, [isPrivileged, mainView])
+
   useEffect(() => { if (organization) { fetchAll() } }, [organization])
 
   async function fetchAll() {
@@ -1022,16 +1026,21 @@ export default function WorkOrders() {
         )}
       </div>
 
-      {/* Main view tabs */}
+      {/* Main view tabs — only actual Maintenance department staff (or org_admin/ceo/
+          super_admin, via hasDepartmentAccess) get Assets/PM/Life Safety/Reports/
+          Communication/Settings; anyone else (e.g. a Housekeeping employee submitting
+          their own work order) only sees Work Orders. */}
       <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl mb-6 w-fit flex-wrap">
         {[
           { key: 'work_orders', label: 'Work Orders', icon: Wrench },
-          { key: 'assets',      label: 'Assets',      icon: Package },
-          { key: 'pm',          label: 'Preventive Maintenance', icon: RefreshCw },
-          { key: 'compliance',  label: 'Life Safety',  icon: ShieldCheck },
-          { key: 'reports',     label: 'Reports',      icon: BarChart3 },
-          { key: 'communication', label: 'Communication', icon: MessageSquare },
-          { key: 'settings',    label: 'Settings',     icon: Settings },
+          ...(isPrivileged ? [
+            { key: 'assets',      label: 'Assets',      icon: Package },
+            { key: 'pm',          label: 'Preventive Maintenance', icon: RefreshCw },
+            { key: 'compliance',  label: 'Life Safety',  icon: ShieldCheck },
+            { key: 'reports',     label: 'Reports',      icon: BarChart3 },
+            { key: 'communication', label: 'Communication', icon: MessageSquare },
+            { key: 'settings',    label: 'Settings',     icon: Settings },
+          ] : []),
         ].map(v => {
           const Icon = v.icon
           return (
@@ -1043,11 +1052,11 @@ export default function WorkOrders() {
         })}
       </div>
 
-      {mainView === 'assets'     && <WorkOrderAssets   orgId={organization?.id} profile={profile} />}
-      {mainView === 'pm'         && <PMSchedules        orgId={organization?.id} profile={profile} />}
-      {mainView === 'compliance' && <CompliancePanel    orgId={organization?.id} profile={profile} />}
-      {mainView === 'reports'    && <Reports            orgId={organization?.id} profile={profile} />}
-      {mainView === 'communication' && (
+      {mainView === 'assets'     && isPrivileged && <WorkOrderAssets   orgId={organization?.id} profile={profile} />}
+      {mainView === 'pm'         && isPrivileged && <PMSchedules        orgId={organization?.id} profile={profile} />}
+      {mainView === 'compliance' && isPrivileged && <CompliancePanel    orgId={organization?.id} profile={profile} />}
+      {mainView === 'reports'    && isPrivileged && <Reports            orgId={organization?.id} profile={profile} />}
+      {mainView === 'communication' && isPrivileged && (
         <BroadcastPanel
           isStarter={organization?.plan === 'starter'}
           restrictToDepartment="maintenance"
@@ -1055,7 +1064,7 @@ export default function WorkOrders() {
           subtitle="Internal messages to the maintenance department — not visible to other departments"
         />
       )}
-      {mainView === 'settings'   && <MaintenanceSettings orgId={organization?.id} profile={profile} />}
+      {mainView === 'settings'   && isPrivileged && <MaintenanceSettings orgId={organization?.id} profile={profile} />}
 
       {/* Work Orders view */}
       {mainView === 'work_orders' && (<>
