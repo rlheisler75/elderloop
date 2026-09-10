@@ -5,7 +5,7 @@ import {
   Plus, X, Edit2, Trash2, Search, Check, X as XIcon,
   ClipboardCheck, Calendar, Printer, ChevronDown,
   Building2, Home, AlertTriangle, Clock, DollarSign,
-  Phone, User, CheckCircle2, Circle
+  Phone, User, CheckCircle2, Circle, Inbox, MapPin
 } from 'lucide-react'
 import { HOUSEKEEPING_STATE_REFS } from '../../lib/housekeepingStateRefs'
 import RegRefBanner from '../../components/ui/RegRefBanner'
@@ -27,6 +27,120 @@ function StatusBadge({ status }) {
       <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
       {s.label}
     </span>
+  )
+}
+
+// ── Housekeeping Requests (resident/family-submitted work_orders) ──────
+// Only a subset of the full wo_status enum makes sense for a housekeeping
+// request — no vendor/approval concepts here, unlike Maintenance.
+const HK_STATUSES = [
+  { key: 'open',        label: 'Open',        color: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-900',     dot: 'bg-blue-500' },
+  { key: 'in_progress', label: 'In Progress', color: 'bg-brand-50 text-brand-700 border-brand-200',    dot: 'bg-brand-500' },
+  { key: 'on_hold',     label: 'On Hold',     color: 'bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700', dot: 'bg-slate-400' },
+  { key: 'closed',      label: 'Completed',   color: 'bg-green-50 text-green-700 border-green-200 dark:bg-green-950/50 dark:text-green-400 dark:border-green-900',  dot: 'bg-green-500' },
+  { key: 'cancelled',   label: 'Cancelled',   color: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/50 dark:text-red-400 dark:border-red-900',        dot: 'bg-red-400' },
+]
+const getHKStatus = (key) => HK_STATUSES.find(s => s.key === key) || HK_STATUSES[0]
+
+const HK_PRIORITIES = {
+  urgent: { label: 'Urgent', color: 'text-red-600' },
+  high:   { label: 'High',   color: 'text-orange-500' },
+  normal: { label: 'Normal', color: 'text-blue-500' },
+  low:    { label: 'Low',    color: 'text-slate-500' },
+}
+
+const SOURCE_BADGE = {
+  family:   { label: '👨‍👩‍👧 Family',   color: 'bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-400' },
+  resident: { label: '🏠 Resident', color: 'bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-400' },
+}
+
+function HKRequestModal({ request, onClose, onSave }) {
+  const [status, setStatus] = useState(request.status)
+  const [notes, setNotes]   = useState(request.notes || '')
+  const [saving, setSaving] = useState(false)
+
+  const handleSave = async () => {
+    setSaving(true)
+    const payload = {
+      status, notes: notes || null,
+      updated_at: new Date().toISOString(),
+      completed_at: status === 'closed' && !request.completed_at ? new Date().toISOString() : request.completed_at,
+    }
+    await supabase.from('work_orders').update(payload).eq('id', request.id)
+    setSaving(false)
+    onSave()
+  }
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">{request.title}</h2>
+          <button onClick={onClose} className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"><X size={20} /></button>
+        </div>
+
+        <div className="px-6 py-5 space-y-4 overflow-y-auto">
+          <div className="flex items-center gap-2 flex-wrap">
+            {request.source !== 'staff' && SOURCE_BADGE[request.source] && (
+              <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${SOURCE_BADGE[request.source].color}`}>
+                {SOURCE_BADGE[request.source].label}
+              </span>
+            )}
+            <span className={`text-sm font-medium ${HK_PRIORITIES[request.priority]?.color || 'text-slate-500'}`}>
+              {HK_PRIORITIES[request.priority]?.label || request.priority} priority
+            </span>
+          </div>
+
+          {request.residents && (
+            <div className="text-sm text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+              <User size={14} className="text-slate-400" />
+              {request.residents.first_name} {request.residents.last_name}
+              {request.residents.unit && ` · Unit ${request.residents.unit}`}
+            </div>
+          )}
+          {request.location_detail && (
+            <div className="text-sm text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+              <MapPin size={14} className="text-slate-400" /> {request.location_detail}
+            </div>
+          )}
+
+          {request.description && (
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Description</label>
+              <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{request.description}</p>
+            </div>
+          )}
+
+          <div className="text-xs text-slate-400">
+            Submitted {new Date(request.created_at).toLocaleString()}
+            {request.submitted_by_name && ` by ${request.submitted_by_name}`}
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Status</label>
+            <select value={status} onChange={e => setStatus(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+              {HK_STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Internal Notes</label>
+            <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3}
+              placeholder="Notes for the housekeeping team (not visible to residents/family)..."
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          </div>
+        </div>
+
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
+          <button onClick={handleSave} disabled={saving}
+            className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
+            {saving ? 'Saving...' : 'Save Changes'}
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -446,9 +560,11 @@ export default function Housekeeping() {
   const [checklistItems, setChecklistItems] = useState([])
   const [inspections, setInspections]       = useState([])
   const [ilRequests, setILRequests]         = useState([])
+  const [hkRequests, setHKRequests]         = useState([])
   const [loading, setLoading]               = useState(true)
   const [search, setSearch]                 = useState('')
   const [filterStatus, setFilterStatus]     = useState('all')
+  const [filterHKStatus, setFilterHKStatus] = useState('all')
 
   // Modals
   const [inspectArea, setInspectArea]       = useState(null)
@@ -459,12 +575,13 @@ export default function Housekeeping() {
   const [showAddArea, setShowAddArea]       = useState(false)
   const [newAreaName, setNewAreaName]       = useState('')
   const [newAreaType, setNewAreaType]       = useState('room')
+  const [viewHKRequest, setViewHKRequest]   = useState(null)
 
   useEffect(() => { if (organization) fetchAll() }, [organization])
 
   async function fetchAll() {
     setLoading(true)
-    const [areasRes, checklistRes, inspRes, ilRes] = await Promise.all([
+    const [areasRes, checklistRes, inspRes, ilRes, hkRes] = await Promise.all([
       supabase.from('inspection_areas').select('*').eq('organization_id', organization.id).eq('is_active', true).order('sort_order'),
       supabase.from('inspection_checklist_items').select('*').eq('organization_id', organization.id).eq('is_active', true).order('sort_order'),
       supabase.from('ltc_inspections')
@@ -474,11 +591,17 @@ export default function Housekeeping() {
       supabase.from('il_cleaning_requests')
         .select('*').eq('organization_id', organization.id)
         .order('created_at', { ascending: false }),
+      supabase.from('work_orders')
+        .select('*, residents(first_name,last_name,unit)')
+        .eq('organization_id', organization.id)
+        .eq('category', 'housekeeping')
+        .order('created_at', { ascending: false }),
     ])
     setAreas(areasRes.data || [])
     setChecklistItems(checklistRes.data || [])
     setInspections(inspRes.data || [])
     setILRequests(ilRes.data || [])
+    setHKRequests(hkRes.data || [])
     setLoading(false)
   }
 
@@ -511,6 +634,14 @@ export default function Housekeeping() {
     unbilled:  ilRequests.filter(r => r.status === 'completed' && !r.billed).length,
   }
 
+  // Housekeeping Requests filtered + stats
+  const filteredHK = hkRequests.filter(r => filterHKStatus === 'all' || r.status === filterHKStatus)
+  const hkStats = {
+    open:       hkRequests.filter(r => ['open', 'in_progress'].includes(r.status)).length,
+    onHold:     hkRequests.filter(r => r.status === 'on_hold').length,
+    completed:  hkRequests.filter(r => r.status === 'closed').length,
+  }
+
   // Last inspection per area (org-wide, so every area's status is visible to
   // all housekeeping staff — only the Inspection Log list below is scoped)
   const lastInspection = (areaId) => inspections.find(i => i.area_id === areaId)
@@ -535,8 +666,9 @@ export default function Housekeeping() {
       {/* Tabs */}
       <div className="flex gap-1 mb-6 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit">
         {[
-          { key: 'ltc', label: 'LTC Inspections',   icon: ClipboardCheck },
-          { key: 'il',  label: 'Independent Living', icon: Calendar },
+          { key: 'ltc',      label: 'LTC Inspections',   icon: ClipboardCheck },
+          { key: 'il',       label: 'Independent Living', icon: Calendar },
+          { key: 'requests', label: 'Requests',           icon: Inbox },
         ].map(t => {
           const Icon = t.icon
           return (
@@ -790,6 +922,87 @@ export default function Housekeeping() {
         </div>
       )}
 
+      {tab === 'requests' && (
+        <div>
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-3 mb-6">
+            {[
+              { label: 'Open / In Progress', value: hkStats.open,      color: 'text-blue-600',  bg: 'bg-blue-50' },
+              { label: 'On Hold',            value: hkStats.onHold,    color: 'text-slate-600', bg: 'bg-slate-100' },
+              { label: 'Completed',          value: hkStats.completed, color: 'text-green-600', bg: 'bg-green-50' },
+            ].map(s => (
+              <div key={s.label} className={`${s.bg} rounded-2xl p-4`}>
+                <div className={`text-3xl font-display font-bold ${s.color}`}>{s.value}</div>
+                <div className="text-slate-500 text-xs mt-1">{s.label}</div>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-slate-400 text-xs mb-4">
+            Housekeeping requests submitted by residents and family through their portals.
+          </p>
+
+          {/* Controls */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            <select value={filterHKStatus} onChange={e => setFilterHKStatus(e.target.value)}
+              className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100">
+              <option value="all">All Statuses</option>
+              {HK_STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
+            </select>
+          </div>
+
+          {/* Requests list */}
+          {loading ? (
+            <div className="text-center py-16 text-slate-400">Loading...</div>
+          ) : filteredHK.length === 0 ? (
+            <div className="text-center py-16 text-slate-400">
+              <Inbox size={40} className="mx-auto mb-3 opacity-30" />
+              <p className="font-display text-lg">No housekeeping requests</p>
+              <p className="text-sm mt-1">Requests submitted by residents or family will show up here.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredHK.map(req => {
+                const s = getHKStatus(req.status)
+                return (
+                  <div key={req.id} onClick={() => setViewHKRequest(req)}
+                    className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5 hover:shadow-md transition-all cursor-pointer">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-display font-semibold text-slate-800 dark:text-slate-100 truncate">{req.title}</h3>
+                          {req.source !== 'staff' && SOURCE_BADGE[req.source] && (
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-semibold flex-shrink-0 ${SOURCE_BADGE[req.source].color}`}>
+                              {SOURCE_BADGE[req.source].label}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-slate-500">
+                          {req.residents && (
+                            <span className="flex items-center gap-1">
+                              <User size={11} />{req.residents.first_name} {req.residents.last_name}
+                              {req.residents.unit && ` · Unit ${req.residents.unit}`}
+                            </span>
+                          )}
+                          <span className={`font-medium ${HK_PRIORITIES[req.priority]?.color || 'text-slate-500'}`}>
+                            {HK_PRIORITIES[req.priority]?.label || req.priority}
+                          </span>
+                          <span>{new Date(req.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                        </div>
+                      </div>
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border flex-shrink-0 ${s.color}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
+                        {s.label}
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Modals */}
       {inspectArea && (
         <InspectionModal area={inspectArea} checklistItems={checklistItems}
@@ -807,6 +1020,11 @@ export default function Housekeeping() {
       {printRequest && (
         <PrintReceipt request={printRequest} orgName={organization?.name}
           onClose={() => setPrintRequest(null)} />
+      )}
+      {viewHKRequest && (
+        <HKRequestModal request={viewHKRequest}
+          onClose={() => setViewHKRequest(null)}
+          onSave={() => { setViewHKRequest(null); fetchAll() }} />
       )}
     </div>
   )
