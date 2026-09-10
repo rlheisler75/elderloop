@@ -58,6 +58,14 @@ const WO_STATUS_CONFIG = {
   in_progress: { label: 'In Progress', color: 'text-blue-600',   bg: 'bg-blue-50 dark:bg-blue-950/50',   icon: Activity },
   on_hold:     { label: 'On Hold',     color: 'text-slate-500',  bg: 'bg-slate-50 dark:bg-slate-800',  icon: AlertCircle },
   closed:      { label: 'Completed',   color: 'text-green-600',  bg: 'bg-green-50 dark:bg-green-950/50',  icon: CheckCircle2 },
+  cancelled:   { label: 'Cancelled',   color: 'text-slate-400',  bg: 'bg-slate-50 dark:bg-slate-800',  icon: AlertCircle },
+}
+
+// il_cleaning_requests uses its own status vocabulary — map it onto the same
+// badges used for work_orders so the merged "Your Requests" list is consistent.
+const IL_STATUS_TO_WO = {
+  pending: 'open', booked: 'in_progress', in_progress: 'in_progress',
+  completed: 'closed', cancelled: 'cancelled',
 }
 
 const WO_CATEGORIES = [
@@ -108,21 +116,35 @@ function MaintenanceModal({ resident, orgId, profile, onClose, onSubmitted }) {
   const handleSubmit = async () => {
     if (!form.title.trim()) { setError('Please describe the issue'); return }
     setSaving(true)
-    const { error: err } = await supabase.from('work_orders').insert({
-      organization_id: orgId,
-      title:           form.title.trim(),
-      description:     form.description.trim() || null,
-      category:        form.category,
-      priority:        form.priority,
-      status:          'open',
-      resident_id:     resident.id,
-      unit:            form.unit || null,
-      building:        form.building || null,
-      location_detail: `Resident room: ${resident.room || resident.unit || 'See resident record'}`,
-      submitted_by:    profile.id,
-      submitted_by_name: `${profile.first_name} ${profile.last_name} (Family)`,
-      source:          'family',
-    })
+    // Housekeeping requests go into the same il_cleaning_requests bucket the
+    // Housekeeping team already manages, rather than the general Work Orders queue.
+    const { error: err } = form.category === 'housekeeping'
+      ? await supabase.from('il_cleaning_requests').insert({
+          organization_id: orgId,
+          resident_id:     resident.id,
+          resident_name:   `${resident.first_name} ${resident.last_name}`,
+          unit:            form.unit || resident.unit || null,
+          request_notes:   form.description.trim() ? `${form.title.trim()} — ${form.description.trim()}` : form.title.trim(),
+          status:          'pending',
+          source:          'family',
+          requested_by:    profile.id,
+          requested_by_name: `${profile.first_name} ${profile.last_name} (Family)`,
+        })
+      : await supabase.from('work_orders').insert({
+          organization_id: orgId,
+          title:           form.title.trim(),
+          description:     form.description.trim() || null,
+          category:        form.category,
+          priority:        form.priority,
+          status:          'open',
+          resident_id:     resident.id,
+          unit:            form.unit || null,
+          building:        form.building || null,
+          location_detail: `Resident room: ${resident.room || resident.unit || 'See resident record'}`,
+          submitted_by:    profile.id,
+          submitted_by_name: `${profile.first_name} ${profile.last_name} (Family)`,
+          source:          'family',
+        })
     if (err) { setError(err.message); setSaving(false); return }
     onSubmitted()
   }
@@ -799,7 +821,7 @@ export default function FamilyPortal() {
     const _next = new Date(Date.now() + 7*24*60*60*1000)
     const nextWeek = `${_next.getFullYear()}-${String(_next.getMonth()+1).padStart(2,'0')}-${String(_next.getDate()).padStart(2,'0')}`
 
-    const [updatesRes, msgsRes, annRes, actRes, ecRes, mcRes, woRes, chapRes, dietRes, mealRes, rsvpRes] = await Promise.all([
+    const [updatesRes, msgsRes, annRes, actRes, ecRes, mcRes, woRes, ilRes, chapRes, dietRes, mealRes, rsvpRes] = await Promise.all([
       supabase.from('resident_updates')
         .select('*, profiles(first_name,last_name,role)')
         .eq('resident_id', selectedResident.id)
@@ -830,6 +852,12 @@ export default function FamilyPortal() {
         .eq('resident_id', selectedResident.id)
         .eq('source', 'family')
         .order('created_at', { ascending: false }),
+      supabase.from('il_cleaning_requests')
+        .select('id,request_notes,status,created_at')
+        .eq('requested_by', profile.id)
+        .eq('resident_id', selectedResident.id)
+        .eq('source', 'family')
+        .order('created_at', { ascending: false }),
       supabase.from('chapel_services').select('*')
         .eq('organization_id', orgId).eq('is_active', true)
         .order('service_date', { ascending: false }).limit(20),
@@ -849,7 +877,16 @@ export default function FamilyPortal() {
     setEmergencyContacts(ecRes.data || [])
     setMedicalContacts(mcRes.data || [])
 
-    const wos = woRes.data || []
+    const ilAsWO = (ilRes.data || []).map(r => ({
+      id: r.id,
+      title: r.request_notes || 'Housekeeping Request',
+      description: null,
+      category: 'housekeeping',
+      status: IL_STATUS_TO_WO[r.status] || 'open',
+      wo_number: null,
+      created_at: r.created_at,
+    }))
+    const wos = [...(woRes.data || []), ...ilAsWO].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
     setMyWorkOrders(wos)
     setOpenWOCount(wos.filter(w => w.status !== 'closed').length)
 
