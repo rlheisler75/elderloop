@@ -97,6 +97,8 @@ export default function BillingTab() {
   const [loading, setLoading]   = useState(true)
   const [actionLoading, setActionLoading] = useState(null)
   const [message, setMessage]   = useState(null)
+  // organization reflects super admin impersonation; profile.organization_id is null for them
+  const orgId = organization?.id || profile?.organization_id
 
   useEffect(() => {
     fetchOrg()
@@ -116,7 +118,7 @@ export default function BillingTab() {
     const { data } = await supabase
       .from('organizations')
       .select('*, subscription_status, stripe_customer_id, stripe_subscription_id, current_period_end, trial_end, cancel_at_period_end, plan, plan_price, rep_id')
-      .eq('id', profile.organization_id)
+      .eq('id', orgId)
       .single()
     setOrg(data)
 
@@ -174,10 +176,14 @@ export default function BillingTab() {
   const handlePortal = async () => {
     setActionLoading('portal')
     try {
+      const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch('/api/create-portal', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ organizationId: profile.organization_id }),
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ organizationId: orgId }),
       })
       const data = await res.json()
       if (data.url) window.location.href = data.url
@@ -408,7 +414,7 @@ export default function BillingTab() {
       )}
 
       {/* Invoice history */}
-      <InvoiceHistory organizationId={profile?.organization_id} customerId={org?.stripe_customer_id} />
+      <InvoiceHistory organizationId={orgId} customerId={org?.stripe_customer_id} />
 
     </div>
   )
@@ -425,7 +431,10 @@ function InvoiceHistory({ organizationId, customerId }) {
     if (!customerId) return
     setLoading(true)
     try {
-      const res = await fetch(`/api/invoices?customerId=${customerId}`)
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch(`/api/invoices?organizationId=${encodeURIComponent(organizationId)}`, {
+        headers: { 'Authorization': `Bearer ${session.access_token}` },
+      })
       const data = await res.json()
       setInvoices(data.invoices || [])
     } catch (e) {

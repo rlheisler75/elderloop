@@ -109,9 +109,6 @@ import Privacy          from './pages/landing/Privacy'
 import CampaignLandingPage from './pages/landing/CampaignLandingPage'
 import EmailOptOut         from './pages/landing/EmailOptOut'
 
-// Upgrade wall
-import UpgradeWall from './components/ui/UpgradeWall'
-
 // ── Helpers ───────────────────────────────────────────────────
 
 function PageLoader() {
@@ -129,7 +126,7 @@ function Lazy({ children }) {
 // ── Route Guards ──────────────────────────────────────────────
 
 function ProtectedRoute({ children, requireModule }) {
-  const { user, loading, hasModule, planAllowsModule } = useAuth()
+  const { user, loading, hasModule } = useAuth()
 
   if (loading) return (
     <div className="flex h-screen items-center justify-center bg-slate-50">
@@ -138,10 +135,6 @@ function ProtectedRoute({ children, requireModule }) {
   )
 
   if (!user) return <Navigate to="/login" replace />
-
-  if (requireModule && planAllowsModule && !planAllowsModule(requireModule)) {
-    return <UpgradeWall moduleKey={requireModule} />
-  }
 
   if (requireModule && !hasModule(requireModule)) {
     return <Navigate to="/app/dashboard" replace />
@@ -201,7 +194,7 @@ function SuspendedWall() {
 // ── App ───────────────────────────────────────────────────────
 
 export default function App() {
-  const { user, loading, profile, isSuperAdmin, impersonating } = useAuth()
+  const { user, loading, profile, isSuperAdmin, impersonating, suspended } = useAuth()
 
   // A super admin with no org actively impersonated has nothing to see in the
   // staff dashboard shell — send them to the platform Super Admin Dashboard instead.
@@ -212,6 +205,9 @@ export default function App() {
       <div className="text-white font-display text-3xl tracking-wide">ElderLoop</div>
     </div>
   )
+
+  // Deactivated org — AuthContext never sets this for super admins
+  if (user && suspended) return <SuspendedWall />
 
   // ── Role-based portal intercepts (bypass staff Layout entirely) ──
   if (user && profile?.role === 'family') {

@@ -60,9 +60,8 @@ export default async function handler(req, res) {
           stripe_price_id:        priceId,
           subscription_status:    subscription.status,
           billing_status:         subscription.status === 'trialing' ? 'trialing' : 'active',
-          current_period_start:   new Date(subscription.current_period_start * 1000).toISOString(),
-          current_period_end:     new Date(subscription.current_period_end   * 1000).toISOString(),
-          trial_end:              subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
+          ...periodFields(subscription),
+          trial_end:              toIso(subscription.trial_end),
           plan,
           plan_price:             (subscription.items.data[0]?.price?.unit_amount / 100) || null,
           ...PLAN_LIMITS[plan],
@@ -82,9 +81,8 @@ export default async function handler(req, res) {
           stripe_price_id:      priceId,
           subscription_status:  sub.status,
           billing_status:       mapSubStatusToBilling(sub.status),
-          current_period_start: new Date(sub.current_period_start * 1000).toISOString(),
-          current_period_end:   new Date(sub.current_period_end   * 1000).toISOString(),
-          trial_end:            sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
+          ...periodFields(sub),
+          trial_end:            toIso(sub.trial_end),
           cancel_at_period_end: sub.cancel_at_period_end,
           plan,
           plan_price:           (sub.items.data[0]?.price?.unit_amount / 100) || null,
@@ -138,6 +136,24 @@ export default async function handler(req, res) {
 }
 
 // ── Helpers ────────────────────────────────────────────────────
+
+// Unix seconds → ISO string, or null when absent
+function toIso(unixSeconds) {
+  return unixSeconds ? new Date(unixSeconds * 1000).toISOString() : null
+}
+
+// Since Stripe API 2025-03-31.basil, current_period_start/end live on each
+// subscription item, not on the subscription. The SDK (v22) pins a newer API
+// version, so reading them off the subscription gives undefined and
+// new Date(NaN).toISOString() throws. Read the item first, then fall back to
+// the top-level fields for events delivered on an older webhook API version.
+function periodFields(sub) {
+  const item = sub.items?.data?.[0]
+  return {
+    current_period_start: toIso(item?.current_period_start ?? sub.current_period_start),
+    current_period_end:   toIso(item?.current_period_end   ?? sub.current_period_end),
+  }
+}
 
 async function enableModulesForPlan(orgId, plan) {
   try {

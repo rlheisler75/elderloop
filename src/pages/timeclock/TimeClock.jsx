@@ -82,10 +82,12 @@ function GPSStatus({ gps, geofence }) {
   )
 }
 
+// Local YYYY-MM-DD (toISOString() shifts to UTC, which can land on the wrong day)
+const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
 // ── Payroll Export ─────────────────────────────────────────────
 function PayrollExport({ orgId }) {
   const now     = new Date()
-  const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
+  const firstOfMonth = ymd(new Date(now.getFullYear(), now.getMonth(), 1))
   const today   = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`
 
   const [dateFrom, setDateFrom]   = useState(firstOfMonth)
@@ -95,8 +97,8 @@ function PayrollExport({ orgId }) {
 
   // Quick range presets
   const setRange = (from, to) => { setDateFrom(from); setDateTo(to); setReport(null) }
-  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0]
-  const lastMonthEnd   = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0]
+  const lastMonthStart = ymd(new Date(now.getFullYear(), now.getMonth() - 1, 1))
+  const lastMonthEnd   = ymd(new Date(now.getFullYear(), now.getMonth(), 0))
   const weekStartDate  = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay())
   const weekStart      = `${weekStartDate.getFullYear()}-${String(weekStartDate.getMonth()+1).padStart(2,'0')}-${String(weekStartDate.getDate()).padStart(2,'0')}`
 
