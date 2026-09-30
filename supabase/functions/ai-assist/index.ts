@@ -11,6 +11,11 @@
 //   wo_triage — suggest category / subcategory / priority and a cleaned-up
 //               description for a new work order from its title + description.
 //               No resident health data involved.
+//   ss_case_note — turn a social worker's rough notes into a structured DAP
+//               case note + follow-up suggestion. CLINICAL: resident health
+//               information, so it also requires the org's `ai_assist_clinical`
+//               module, which stays off for real customers until a HIPAA BAA
+//               with Anthropic is signed. The resident's name is never sent.
 //
 // Deploy: supabase functions deploy ai-assist
 // Secrets: ANTHROPIC_API_KEY (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY are built in)
@@ -24,6 +29,8 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 const MODEL = 'claude-haiku-4-5-20251001'
 const IS_HAIKU = MODEL.startsWith('claude-haiku')
 const DAILY_LIMIT = 200 // Claude calls per org per rolling 24h
+// Tasks that handle resident health information (see header)
+const CLINICAL_TASKS = ['ss_case_note']
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -75,10 +82,19 @@ Deno.serve(async (req) => {
     .eq('organization_id', orgId).gte('created_at', since)
   if ((count ?? 0) >= DAILY_LIMIT) return json({ error: 'Daily AI limit reached for this organization. Please try again tomorrow.' }, 429)
 
+  // ── Clinical tasks need the separate clinical switch ──────────
+  if (CLINICAL_TASKS.includes(body.task as string)) {
+    const { data: clin } = await admin
+      .from('organization_modules').select('is_enabled')
+      .eq('organization_id', orgId).eq('module_key', 'ai_assist_clinical').maybeSingle()
+    if (!clin || clin.is_enabled === false) return json({ error: 'Clinical AI is not enabled for this organization' }, 403)
+  }
+
   try {
     switch (body.task) {
-      case 'wo_triage': return json(await woTriage(orgId, user.id, body))
-      default:          return json({ error: 'Unknown task' }, 400)
+      case 'wo_triage':    return json(await woTriage(orgId, user.id, body))
+      case 'ss_case_note': return json(await ssCaseNote(orgId, user.id, body))
+      default:             return json({ error: 'Unknown task' }, 400)
     }
   } catch (err) {
     console.error('ai-assist error:', err)
@@ -183,4 +199,45 @@ ${catalog}`
   const parent = top.find(c => c.key === result.category)
   const validSub = subs.some(s => s.key === result.subcategory && s.parent_id === parent?.id)
   return { suggestion: { ...result, subcategory: validSub ? result.subcategory : '' } }
+}
+
+// ── ss_case_note (CLINICAL) ───────────────────────────────────────
+const CONTACT_LABELS: Record<string, string> = {
+  in_person: 'In person', phone_call: 'Phone call', family_meeting: 'Family meeting', email: 'Email', other: 'Other',
+}
+
+async function ssCaseNote(orgId: string, userId: string, body: Record<string, unknown>) {
+  const notes = String(body.notes || '').slice(0, 6000)
+  if (!notes.trim()) throw new Error('Nothing to polish')
+  const contact = CONTACT_LABELS[String(body.contact_type)] || 'Other'
+
+  const schema = {
+    type: 'object',
+    properties: {
+      note:             { type: 'string' },
+      follow_up_needed: { type: 'boolean' },
+      follow_up_reason: { type: 'string' },
+    },
+    required: ['note', 'follow_up_needed', 'follow_up_reason'],
+    additionalProperties: false,
+  }
+
+  const system = `You help social workers in a senior living community write case notes.
+Rewrite the social worker's rough notes as a professional case note in DAP format, using exactly these three labeled sections:
+Data: what was observed, reported, or discussed — the facts, including direct quotes when the notes contain them.
+Assessment: the social worker's professional impression as stated or clearly implied in the notes (mood, coping, needs, risks).
+Plan: next steps, referrals, and follow-up as given in the notes.
+
+Rules:
+- Use ONLY information in the notes. Never add diagnoses, causes, events, names, or plans that aren't there. If a section has nothing to go on, write "None noted."
+- Refer to the person as "the resident" (no names). Keep other people's roles as written (e.g. "the resident's daughter").
+- Objective, respectful, person-centered language; no slang or judgmental wording. Plain sentences, concise.
+- Keep any safety concern (falls, self-harm statements, abuse/neglect, wandering) clearly visible in Data and Plan.
+
+"follow_up_needed" is true if the notes describe anything that needs a later action or check-in.
+"follow_up_reason" is one short sentence saying why (or "" when false).`
+
+  const result = await askClaude(orgId, userId, 'ss_case_note', system,
+    `Contact type: ${contact}\nRough notes:\n${notes}`, schema)
+  return { suggestion: result }
 }

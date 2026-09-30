@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { Plus, X, ClipboardList, Search, Loader2, AlertCircle, Check,
-         Phone, Users, Mail, MessageSquare, ChevronDown, ShieldCheck } from 'lucide-react'
+         Phone, Users, Mail, MessageSquare, ChevronDown, ShieldCheck, Sparkles } from 'lucide-react'
 
 const CONTACT_TYPES = [
   { key: 'in_person',     label: 'In Person',     icon: Users },
@@ -17,7 +17,9 @@ const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(
 const inputCls = 'w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100'
 
 function CaseNoteModal({ note, residents, orgId, canWrite, onClose, onSaved }) {
-  const { profile } = useAuth()
+  const { profile, orgModules } = useAuth()
+  // Clinical AI needs both switches; ai_assist_clinical stays off for real customers until a HIPAA BAA is signed
+  const aiEnabled = orgModules.includes('ai_assist') && orgModules.includes('ai_assist_clinical')
   const isNew = !note
   const [form, setForm] = useState({
     resident_id:       note?.resident_id       || '',
@@ -31,8 +33,26 @@ function CaseNoteModal({ note, residents, orgId, canWrite, onClose, onSaved }) {
   })
   const [saving, setSaving] = useState(false)
   const [error,  setError]  = useState('')
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiResult, setAiResult]   = useState(null) // { note, follow_up_needed, follow_up_reason } or { error }
+  const [summaryBeforeAI, setSummaryBeforeAI] = useState(null) // { summary, follow_up_needed } before "Use this note", for Undo
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const readOnly = !canWrite
+
+  // AI Assist (clinical): rough notes → structured DAP note. Only the note text and
+  // contact type are sent — never the resident's name. Nothing changes until "Use this note".
+  async function polishWithAI() {
+    setAiLoading(true)
+    setAiResult(null)
+    setSummaryBeforeAI(null)
+    const { data, error: fnErr } = await supabase.functions.invoke('ai-assist', {
+      body: { task: 'ss_case_note', notes: form.summary, contact_type: form.contact_type, organization_id: orgId },
+    })
+    setAiResult(fnErr || !data?.suggestion
+      ? { error: 'Couldn’t polish the note right now — your text is unchanged.' }
+      : data.suggestion)
+    setAiLoading(false)
+  }
 
   const handleSave = async () => {
     if (!form.resident_id) { setError('Resident is required.'); return }
@@ -111,6 +131,41 @@ function CaseNoteModal({ note, residents, orgId, canWrite, onClose, onSaved }) {
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Summary *</label>
             <textarea value={form.summary} onChange={e => set('summary', e.target.value)} readOnly={readOnly} rows={5}
               placeholder="What was discussed / observed / done..." className={inputCls + ' resize-none'} />
+
+            {aiEnabled && !readOnly && (
+              <div className="mt-2">
+                <button type="button" onClick={polishWithAI} disabled={aiLoading || !form.summary.trim()}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-brand-700 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/50 border border-brand-200 dark:border-brand-900 rounded-lg hover:bg-brand-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                  <Sparkles size={13} className={aiLoading ? 'animate-pulse' : ''} />
+                  {aiLoading ? 'Polishing...' : 'Polish note (DAP format)'}
+                </button>
+                {aiResult?.error && <p className="mt-2 text-xs text-red-600">{aiResult.error}</p>}
+                {aiResult?.note && summaryBeforeAI === null && aiResult.note !== form.summary && (
+                  <div className="mt-2 p-3 bg-brand-50/60 dark:bg-brand-950/30 border border-brand-100 dark:border-brand-900 rounded-xl">
+                    <div className="text-xs font-semibold text-brand-700 dark:text-brand-400 mb-1">Suggested note — review before saving</div>
+                    <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{aiResult.note}</p>
+                    {aiResult.follow_up_needed && (
+                      <p className="mt-2 text-xs text-amber-700 dark:text-amber-400">Follow-up suggested: {aiResult.follow_up_reason}</p>
+                    )}
+                    <button type="button"
+                      onClick={() => {
+                        setSummaryBeforeAI({ summary: form.summary, follow_up_needed: form.follow_up_needed })
+                        setForm(f => ({ ...f, summary: aiResult.note, follow_up_needed: f.follow_up_needed || aiResult.follow_up_needed }))
+                      }}
+                      className="mt-2 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-brand-600 hover:bg-brand-700 rounded-lg transition-colors">
+                      <Check size={13} /> Use this note{aiResult.follow_up_needed && !form.follow_up_needed ? ' + turn on follow-up' : ''}
+                    </button>
+                  </div>
+                )}
+                {summaryBeforeAI !== null && (
+                  <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                    Summary replaced with the AI note.{' '}
+                    <button type="button" onClick={() => { setForm(f => ({ ...f, ...summaryBeforeAI })); setSummaryBeforeAI(null) }}
+                      className="font-semibold text-brand-600 hover:underline">Undo</button>
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
