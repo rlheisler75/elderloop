@@ -7,7 +7,7 @@ import {
   Truck, PauseCircle, XCircle, RefreshCw, Calendar,
   ChevronRight, MessageSquare, ArrowUpDown, ShieldCheck,
   Upload, Image, Package, Settings, BarChart3,
-  Camera, FileText, ChevronUp, Play, Pause, Ban, Check
+  Camera, FileText, ChevronUp, Play, Pause, Ban, Check, Sparkles
 } from 'lucide-react'
 
 // ── Work Order Templates ──────────────────────────────────────
@@ -188,7 +188,8 @@ function LocationPickerButton({ value, onChange }) {
 
 // ── Work Order Detail Modal ───────────────────────────────────
 function WOModal({ wo, onClose, onSave, staffList, residentList, categories, canEdit, canClose, canAssign }) {
-  const { profile } = useAuth()
+  const { profile, organization, orgModules } = useAuth()
+  const aiEnabled = orgModules.includes('ai_assist')
   const fileRef = useRef()
   const [editing, setEditing]   = useState(!wo)
   const [form, setForm]         = useState(wo ? {
@@ -220,8 +221,28 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
   const [uploading, setUploading]   = useState(false)
   const [error, setError]           = useState('')
   const [showTemplates, setShowTemplates] = useState(false)
+  const [aiLoading, setAiLoading]   = useState(false)
+  const [aiResult, setAiResult]     = useState(null) // { reason } after a suggestion is applied, or { error }
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+  // AI Assist: suggest category / subcategory / priority from title + description.
+  // Fills the form; the person still reviews and can change anything before saving.
+  async function suggestWithAI() {
+    setAiLoading(true)
+    setAiResult(null)
+    const { data, error: fnErr } = await supabase.functions.invoke('ai-assist', {
+      body: { task: 'wo_triage', title: form.title, description: form.description, organization_id: organization?.id },
+    })
+    const s = data?.suggestion
+    if (fnErr || !s) {
+      setAiResult({ error: 'Couldn’t get a suggestion right now — please pick the fields manually.' })
+    } else {
+      setForm(f => ({ ...f, category: s.category, subcategory: s.subcategory || '', priority: s.priority }))
+      setAiResult({ reason: s.reason })
+    }
+    setAiLoading(false)
+  }
 
   useEffect(() => {
     if (wo?.id) { fetchActivity(); fetchPhotos() }
@@ -658,6 +679,24 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
                     className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
                     placeholder="Details about the issue..." />
                 : <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{wo.description || '—'}</p>}
+
+              {/* AI Assist — new tickets only, when the org has it enabled */}
+              {isNew && aiEnabled && (
+                <div className="mt-2">
+                  <button type="button" onClick={suggestWithAI}
+                    disabled={aiLoading || (!form.title.trim() && !form.description.trim())}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-brand-700 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/50 border border-brand-200 dark:border-brand-900 rounded-lg hover:bg-brand-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    <Sparkles size={13} className={aiLoading ? 'animate-pulse' : ''} />
+                    {aiLoading ? 'Thinking...' : 'Suggest category & priority'}
+                  </button>
+                  {aiResult?.reason && (
+                    <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                      <span className="font-semibold text-brand-600">AI suggested</span> — {categories.find(c => c.key === form.category)?.label ?? form.category}, {getPriority(form.priority).label} priority. {aiResult.reason} Review the fields above before saving.
+                    </p>
+                  )}
+                  {aiResult?.error && <p className="mt-2 text-xs text-red-600">{aiResult.error}</p>}
+                </div>
+              )}
             </div>
 
             {/* Vendor Info — show when status is awaiting_vendor or editing */}
