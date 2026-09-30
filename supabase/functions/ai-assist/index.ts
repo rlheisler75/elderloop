@@ -151,6 +151,7 @@ async function woTriage(orgId: string, userId: string, body: Record<string, unkn
 
   const system = `You triage maintenance work orders for a senior living community.
 Pick the single best category (and a subcategory only if one clearly fits and belongs to that category; otherwise "").
+If a "safety" category is listed, use it when the main issue is a hazard to residents (loose handrail, broken glass, trip hazard) rather than routine repair — that's how this app's own templates file them.
 Priority guide — residents are older adults, so weigh fall, fire, water, and temperature risks heavily:
 - urgent: immediate danger or major damage — fall/trip hazard, gas smell, sparking/burning, flooding, no heat in cold weather or no cooling in heat, broken exterior door/lock, fire/life-safety equipment
 - high: important function lost or getting worse — outlet dead, toilet unusable, appliance a resident depends on, pests
