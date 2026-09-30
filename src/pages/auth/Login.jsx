@@ -5,11 +5,12 @@ import { supabase } from '../../lib/supabase'
 const DEMO_PASSWORD = 'Demo2024!'
 
 // Labels are a snapshot of each demo account's real staff_department_roles as of
-// 2026-09-09 — not computed live (the login page is unauthenticated). If a demo
+// 2026-09-30 — not computed live (the login page is unauthenticated). If a demo
 // account's department/level assignment changes, update the label here to match.
 const DEMO_ROLES = [
-  { role: 'Administrator',      email: 'demo.ceo@elderloop.xyz',          color: 'bg-brand-700 hover:bg-brand-600' },
+  { role: 'Administrator (NHA)', email: 'demo.ceo@elderloop.xyz',         color: 'bg-brand-700 hover:bg-brand-600' },
   { role: 'Org Admin',          email: 'demo.admin@elderloop.xyz',        color: 'bg-brand-600 hover:bg-brand-700' },
+  { role: 'Maintenance Manager', email: 'demo.manager@elderloop.xyz',     color: 'bg-orange-700 hover:bg-orange-600' },
   { role: 'Nursing Supervisor', email: 'demo.supervisor@elderloop.xyz',   color: 'bg-purple-600 hover:bg-purple-700' },
   { role: 'Nursing Employee',   email: 'demo.nursing@elderloop.xyz',      color: 'bg-rose-600 hover:bg-rose-700' },
   { role: 'Maintenance Employee', email: 'demo.maintenance@elderloop.xyz', color: 'bg-amber-600 hover:bg-amber-700' },

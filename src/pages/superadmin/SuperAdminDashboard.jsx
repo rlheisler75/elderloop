@@ -657,7 +657,7 @@ export default function SuperAdminDashboard() {
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-slate-800">
-                        {['Organization','Location','Plan','Billing','Users','Modules','Contact','Actions'].map(h => (
+                        {['Organization','Location','Plan','Billing','Access','Users','Rep','Modules','Contact','Actions'].map(h => (
                           <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
                         ))}
                       </tr>
@@ -714,6 +714,25 @@ export default function SuperAdminDashboard() {
                                 className="hover:opacity-70 transition-opacity">
                                 <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${billing?.color || 'text-slate-500 bg-slate-800 border-slate-700'}`}>
                                   {billing?.label || org.billing_status || 'pilot'}
+                                </span>
+                              </button>
+                            </td>
+
+                            {/* Access model — rollout switch for the 5-tier access rules (src/lib/accessTiers.js) */}
+                            <td className="px-5 py-4">
+                              <button
+                                onClick={async () => {
+                                  const next = (org.access_model || 'legacy') === 'legacy' ? 'tiered' : 'legacy'
+                                  const { error } = await supabase.from('organizations').update({ access_model: next }).eq('id', org.id)
+                                  if (error) alert(error.message)
+                                  fetchAll()
+                                }}
+                                title="Click to switch between legacy and tiered access"
+                                className="hover:opacity-70 transition-opacity">
+                                <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${org.access_model === 'tiered'
+                                  ? 'text-sage-300 bg-sage-900/40 border-sage-700'
+                                  : 'text-slate-400 bg-slate-800 border-slate-700'}`}>
+                                  {org.access_model === 'tiered' ? 'Tiered' : 'Legacy'}
                                 </span>
                               </button>
                             </td>

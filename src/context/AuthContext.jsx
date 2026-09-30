@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useSessionTimeout } from '../hooks/useSessionTimeout'
 import SessionTimeoutModal from '../components/SessionTimeoutModal'
+import { tierFor as tierForProfile } from '../lib/accessTiers'
 
 const AuthContext = createContext({})
 
@@ -188,6 +189,14 @@ export function AuthProvider({ children }) {
   const isSuperAdmin = superAdmin
   const isCEO        = profile?.role === 'ceo'
 
+  // Access tiers (see src/lib/accessTiers.js). Informational until a community is
+  // switched to 'tiered' — nothing gates on these yet.
+  const accessModel     = organization?.access_model || 'legacy'
+  const isPlatformAdmin = ['org_admin', 'super_admin'].includes(profile?.role) || superAdmin
+    || (profile?.role === 'ceo' && !!profile?.is_platform_admin)
+  const tierFor = (moduleKey) =>
+    tierForProfile({ role: profile?.role, isSuperAdmin: superAdmin, departmentRoles }, moduleKey)
+
   const signOut = async () => {
     try {
       await supabase.rpc('log_audit_event', {
@@ -262,6 +271,7 @@ export function AuthProvider({ children }) {
       isOrgAdmin, isSuperAdmin, isCEO, signOut, refreshModules, refreshProfile, refreshOrganization,
       impersonating, impersonateOrg, exitImpersonation,
       departmentRoles, hasDepartmentAccess, hasAnyDepartmentLevel, refreshDepartmentRoles,
+      accessModel, isPlatformAdmin, tierFor,
     }}>
       {children}
 

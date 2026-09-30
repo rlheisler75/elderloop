@@ -12,6 +12,10 @@ export const FALLBACK_DEPARTMENTS = [
   { key: 'it',             label: 'IT' },
   { key: 'hr',             label: 'HR' },
   { key: 'payroll',        label: 'Payroll' },
+  { key: 'social_services', label: 'Social Services' },
+  { key: 'central_supply', label: 'Central Supply' },
+  { key: 'marketing',      label: 'Marketing' },
+  { key: 'property',       label: 'Property' },
   { key: 'other',          label: 'Other' },
 ]
 

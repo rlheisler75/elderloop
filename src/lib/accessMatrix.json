@@ -1,0 +1,951 @@
+{
+  "version": "2026-09-30-approved",
+  "design": "https://claude.ai/artifact/L8E4t6v4EB6BksyrEfkjD2",
+  "scopes": [
+    "none",
+    "own",
+    "assigned",
+    "shift",
+    "dept",
+    "facility",
+    "enterprise"
+  ],
+  "deleteMeans": "archive / deactivate; clinical, incident, and financial records are never hard-deleted",
+  "tiers": [
+    {
+      "key": "employee",
+      "name": "Employee",
+      "readOnly": false
+    },
+    {
+      "key": "supervisor",
+      "name": "Supervisor",
+      "readOnly": false
+    },
+    {
+      "key": "manager",
+      "name": "Manager / Director",
+      "readOnly": false
+    },
+    {
+      "key": "administrator",
+      "name": "Administrator (NHA)",
+      "readOnly": false
+    },
+    {
+      "key": "corporate",
+      "name": "Corporate Executive",
+      "readOnly": true
+    }
+  ],
+  "modules": {
+    "work_orders": {
+      "name": "Maintenance",
+      "tables": [
+        "work_orders",
+        "wo_activity",
+        "pm_schedules",
+        "maintenance_assets",
+        "wo_sla_rules",
+        "wo_auto_assign_rules",
+        "compliance_inspections"
+      ],
+      "permissions": {
+        "employee": {
+          "read": "assigned",
+          "write": "assigned",
+          "delete": "none",
+          "approves": null
+        },
+        "supervisor": {
+          "read": "shift",
+          "write": "dept",
+          "delete": "none",
+          "approves": "Job completion; reassignments"
+        },
+        "manager": {
+          "read": "dept",
+          "write": "dept",
+          "delete": "dept",
+          "approves": "Vendor quotes up to threshold"
+        },
+        "administrator": {
+          "read": "facility",
+          "write": "none",
+          "delete": "none",
+          "approves": "Work over the cost threshold; compliance inspection sign-off"
+        },
+        "corporate": {
+          "read": "enterprise",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        }
+      }
+    },
+    "dietary": {
+      "name": "Dietary",
+      "tables": [
+        "cycle_menus",
+        "menu_items",
+        "recipe_ingredients",
+        "resident_dietary_profiles",
+        "physician_diet_orders",
+        "meal_delivery_orders",
+        "food_waste_logs",
+        "dining_seat_assignments"
+      ],
+      "permissions": {
+        "employee": {
+          "read": "assigned",
+          "write": "assigned",
+          "delete": "none",
+          "approves": null
+        },
+        "supervisor": {
+          "read": "shift",
+          "write": "shift",
+          "delete": "none",
+          "approves": "Daily meal-service logs; substitution overrides (reason logged)"
+        },
+        "manager": {
+          "read": "dept",
+          "write": "dept",
+          "delete": "dept",
+          "approves": null
+        },
+        "administrator": {
+          "read": "facility",
+          "write": "none",
+          "delete": "none",
+          "approves": "Menu-cycle changes; dietary survey readiness"
+        },
+        "corporate": {
+          "read": "enterprise",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        }
+      }
+    },
+    "housekeeping": {
+      "name": "Housekeeping",
+      "tables": [
+        "inspection_areas",
+        "inspection_checklist_items",
+        "ltc_inspections",
+        "ltc_inspection_results",
+        "il_cleaning_requests"
+      ],
+      "permissions": {
+        "employee": {
+          "read": "assigned",
+          "write": "assigned",
+          "delete": "none",
+          "approves": null
+        },
+        "supervisor": {
+          "read": "shift",
+          "write": "shift",
+          "delete": "none",
+          "approves": "Inspections pass / redo"
+        },
+        "manager": {
+          "read": "dept",
+          "write": "dept",
+          "delete": "dept",
+          "approves": null
+        },
+        "administrator": {
+          "read": "facility",
+          "write": "none",
+          "delete": "none",
+          "approves": "State-inspection readiness sign-off"
+        },
+        "corporate": {
+          "read": "enterprise",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        }
+      }
+    },
+    "central_supply": {
+      "name": "Central Supply",
+      "tables": [
+        "supply_items",
+        "supply_transactions",
+        "supply_purchase_orders",
+        "supply_po_line_items",
+        "supply_vendors",
+        "resident_supply_profiles"
+      ],
+      "permissions": {
+        "employee": {
+          "read": "dept",
+          "write": "own",
+          "delete": "none",
+          "approves": null
+        },
+        "supervisor": {
+          "read": "dept",
+          "write": "dept",
+          "delete": "none",
+          "approves": "Daily usage logs; count adjustments (reason required)"
+        },
+        "manager": {
+          "read": "dept",
+          "write": "dept",
+          "delete": "dept",
+          "approves": "Purchase orders up to threshold"
+        },
+        "administrator": {
+          "read": "facility",
+          "write": "none",
+          "delete": "none",
+          "approves": "Purchase orders over threshold"
+        },
+        "corporate": {
+          "read": "enterprise",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        }
+      }
+    },
+    "social_services": {
+      "name": "Social Services",
+      "tables": [
+        "ss_case_notes",
+        "ss_care_conferences",
+        "ss_goals",
+        "ss_mood_logs",
+        "ss_grievances",
+        "ss_referrals",
+        "ss_discharge_plans",
+        "ss_social_profiles"
+      ],
+      "permissions": {
+        "employee": {
+          "read": "assigned",
+          "write": "assigned",
+          "delete": "none",
+          "approves": null
+        },
+        "supervisor": {
+          "read": "dept",
+          "write": "dept",
+          "delete": "none",
+          "approves": "Co-sign notes; caseload reassignment"
+        },
+        "manager": {
+          "read": "dept",
+          "write": "dept",
+          "delete": "none",
+          "approves": "Grievance resolutions (first level)"
+        },
+        "administrator": {
+          "read": "facility",
+          "write": "none",
+          "delete": "none",
+          "approves": "Grievance close-out as Grievance Official; care conference review"
+        },
+        "corporate": {
+          "read": "enterprise",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        }
+      }
+    },
+    "nursing": {
+      "name": "Nursing",
+      "tables": [
+        "care_notes",
+        "resident_vitals",
+        "resident_medications"
+      ],
+      "permissions": {
+        "employee": {
+          "read": "assigned",
+          "write": "own",
+          "delete": "none",
+          "approves": null
+        },
+        "supervisor": {
+          "read": "shift",
+          "write": "shift",
+          "delete": "none",
+          "approves": "Shift documentation co-sign; vital-sign alert acknowledgement"
+        },
+        "manager": {
+          "read": "dept",
+          "write": "dept",
+          "delete": "none",
+          "approves": null
+        },
+        "administrator": {
+          "read": "facility",
+          "write": "none",
+          "delete": "none",
+          "approves": "Documentation audits"
+        },
+        "corporate": {
+          "read": "enterprise",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        }
+      }
+    },
+    "incidents": {
+      "name": "Incident Reports",
+      "tables": [
+        "incident_reports"
+      ],
+      "permissions": {
+        "employee": {
+          "read": "own",
+          "write": "own",
+          "delete": "none",
+          "approves": null
+        },
+        "supervisor": {
+          "read": "dept",
+          "write": "dept",
+          "delete": "none",
+          "approves": null
+        },
+        "manager": {
+          "read": "dept",
+          "write": "dept",
+          "delete": "none",
+          "approves": null
+        },
+        "administrator": {
+          "read": "facility",
+          "write": "facility",
+          "delete": "none",
+          "approves": "Final review and close; state-reportable determination and submission"
+        },
+        "corporate": {
+          "read": "enterprise",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        }
+      }
+    },
+    "activities": {
+      "name": "Activities",
+      "tables": [
+        "activities",
+        "activity_attendance",
+        "activity_rsvps"
+      ],
+      "permissions": {
+        "employee": {
+          "read": "facility",
+          "write": "assigned",
+          "delete": "none",
+          "approves": null
+        },
+        "supervisor": {
+          "read": "facility",
+          "write": "dept",
+          "delete": "none",
+          "approves": "Attendance logs"
+        },
+        "manager": {
+          "read": "facility",
+          "write": "dept",
+          "delete": "dept",
+          "approves": null
+        },
+        "administrator": {
+          "read": "facility",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        },
+        "corporate": {
+          "read": "enterprise",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        }
+      }
+    },
+    "chapel": {
+      "name": "Chapel",
+      "tables": [
+        "chapel_services"
+      ],
+      "permissions": {
+        "employee": {
+          "read": "facility",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        },
+        "supervisor": {
+          "read": "facility",
+          "write": "dept",
+          "delete": "none",
+          "approves": null
+        },
+        "manager": {
+          "read": "facility",
+          "write": "dept",
+          "delete": "dept",
+          "approves": null
+        },
+        "administrator": {
+          "read": "facility",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        },
+        "corporate": {
+          "read": "enterprise",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        }
+      }
+    },
+    "transportation": {
+      "name": "Transportation",
+      "tables": [
+        "trips",
+        "vehicles"
+      ],
+      "permissions": {
+        "employee": {
+          "read": "assigned",
+          "write": "assigned",
+          "delete": "none",
+          "approves": null
+        },
+        "supervisor": {
+          "read": "dept",
+          "write": "dept",
+          "delete": "none",
+          "approves": null
+        },
+        "manager": {
+          "read": "dept",
+          "write": "dept",
+          "delete": "dept",
+          "approves": null
+        },
+        "administrator": {
+          "read": "facility",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        },
+        "corporate": {
+          "read": "enterprise",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        }
+      }
+    },
+    "family": {
+      "name": "Family Portal",
+      "tables": [
+        "messages",
+        "resident_updates",
+        "family_resident_links"
+      ],
+      "permissions": {
+        "employee": {
+          "read": "assigned",
+          "write": "assigned",
+          "delete": "none",
+          "approves": null
+        },
+        "supervisor": {
+          "read": "dept",
+          "write": "dept",
+          "delete": "none",
+          "approves": null
+        },
+        "manager": {
+          "read": "dept",
+          "write": "dept",
+          "delete": "own",
+          "approves": null
+        },
+        "administrator": {
+          "read": "facility",
+          "write": "facility",
+          "delete": "none",
+          "approves": "Family portal access grants"
+        },
+        "corporate": {
+          "read": "none",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        }
+      }
+    },
+    "directory": {
+      "name": "Resident Directory",
+      "tables": [
+        "residents",
+        "resident_emergency_contacts",
+        "resident_medical_contacts"
+      ],
+      "permissions": {
+        "employee": {
+          "read": "facility",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        },
+        "supervisor": {
+          "read": "facility",
+          "write": "dept",
+          "delete": "none",
+          "approves": null
+        },
+        "manager": {
+          "read": "facility",
+          "write": "dept",
+          "delete": "none",
+          "approves": null
+        },
+        "administrator": {
+          "read": "facility",
+          "write": "none",
+          "delete": "none",
+          "approves": "Admissions, transfers, and discharges (including discharge notices)"
+        },
+        "corporate": {
+          "read": "enterprise",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        }
+      }
+    },
+    "surveys": {
+      "name": "Surveys",
+      "tables": [
+        "surveys",
+        "survey_questions",
+        "survey_responses",
+        "survey_answers"
+      ],
+      "permissions": {
+        "employee": {
+          "read": "own",
+          "write": "own",
+          "delete": "none",
+          "approves": null
+        },
+        "supervisor": {
+          "read": "dept",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        },
+        "manager": {
+          "read": "dept",
+          "write": "dept",
+          "delete": "dept",
+          "approves": null
+        },
+        "administrator": {
+          "read": "facility",
+          "write": "facility",
+          "delete": "none",
+          "approves": null
+        },
+        "corporate": {
+          "read": "enterprise",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        }
+      }
+    },
+    "security": {
+      "name": "Security",
+      "tables": [
+        "security_rounds",
+        "security_checkins",
+        "security_checkpoints",
+        "security_schedules",
+        "security_reports"
+      ],
+      "permissions": {
+        "employee": {
+          "read": "assigned",
+          "write": "assigned",
+          "delete": "none",
+          "approves": null
+        },
+        "supervisor": {
+          "read": "shift",
+          "write": "shift",
+          "delete": "none",
+          "approves": "Missed-checkpoint alerts"
+        },
+        "manager": {
+          "read": "dept",
+          "write": "dept",
+          "delete": "dept",
+          "approves": null
+        },
+        "administrator": {
+          "read": "facility",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        },
+        "corporate": {
+          "read": "enterprise",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        }
+      }
+    },
+    "it": {
+      "name": "IT",
+      "tables": [
+        "it_tickets",
+        "it_assets",
+        "it_licenses"
+      ],
+      "permissions": {
+        "employee": {
+          "read": "own",
+          "write": "own",
+          "delete": "none",
+          "approves": null
+        },
+        "supervisor": {
+          "read": "dept",
+          "write": "dept",
+          "delete": "none",
+          "approves": null
+        },
+        "manager": {
+          "read": "dept",
+          "write": "dept",
+          "delete": "dept",
+          "approves": null
+        },
+        "administrator": {
+          "read": "facility",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        },
+        "corporate": {
+          "read": "enterprise",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        }
+      }
+    },
+    "meters": {
+      "name": "Meter Readings",
+      "tables": [
+        "meters",
+        "meter_readings",
+        "utility_types"
+      ],
+      "permissions": {
+        "employee": {
+          "read": "assigned",
+          "write": "assigned",
+          "delete": "none",
+          "approves": null
+        },
+        "supervisor": {
+          "read": "dept",
+          "write": "dept",
+          "delete": "none",
+          "approves": "Readings"
+        },
+        "manager": {
+          "read": "dept",
+          "write": "dept",
+          "delete": "dept",
+          "approves": null
+        },
+        "administrator": {
+          "read": "facility",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        },
+        "corporate": {
+          "read": "enterprise",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        }
+      }
+    },
+    "property_management": {
+      "name": "Property Management",
+      "tables": [
+        "il_units",
+        "il_leases",
+        "il_tenants",
+        "il_rent_ledger",
+        "il_deposits",
+        "il_keys",
+        "il_walkthroughs",
+        "il_notices"
+      ],
+      "permissions": {
+        "employee": {
+          "read": "assigned",
+          "write": "assigned",
+          "delete": "none",
+          "approves": null
+        },
+        "supervisor": {
+          "read": "dept",
+          "write": "dept",
+          "delete": "none",
+          "approves": "Walkthrough results"
+        },
+        "manager": {
+          "read": "dept",
+          "write": "dept",
+          "delete": "dept",
+          "approves": null
+        },
+        "administrator": {
+          "read": "facility",
+          "write": "none",
+          "delete": "none",
+          "approves": "Lease exceptions; deposit refunds"
+        },
+        "corporate": {
+          "read": "enterprise",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        }
+      }
+    },
+    "timeclock": {
+      "name": "Time Clock & Scheduling",
+      "tables": [
+        "time_punches",
+        "scheduled_shifts",
+        "shift_swaps",
+        "shift_templates"
+      ],
+      "permissions": {
+        "employee": {
+          "read": "own",
+          "write": "own",
+          "delete": "none",
+          "approves": null
+        },
+        "supervisor": {
+          "read": "shift",
+          "write": "shift",
+          "delete": "none",
+          "approves": "Shift swaps; timesheets; missed-punch fixes (audited)"
+        },
+        "manager": {
+          "read": "dept",
+          "write": "dept",
+          "delete": "dept",
+          "approves": null
+        },
+        "administrator": {
+          "read": "facility",
+          "write": "none",
+          "delete": "none",
+          "approves": "Overtime over threshold"
+        },
+        "corporate": {
+          "read": "enterprise",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        }
+      }
+    },
+    "staff": {
+      "name": "Staff Management",
+      "tables": [
+        "profiles",
+        "staff_certifications",
+        "staff_department_roles"
+      ],
+      "permissions": {
+        "employee": {
+          "read": "own",
+          "write": "own",
+          "delete": "none",
+          "approves": null
+        },
+        "supervisor": {
+          "read": "dept",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        },
+        "manager": {
+          "read": "dept",
+          "write": "dept",
+          "delete": "none",
+          "approves": null
+        },
+        "administrator": {
+          "read": "facility",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        },
+        "corporate": {
+          "read": "enterprise",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        }
+      }
+    },
+    "communication": {
+      "name": "Communication",
+      "tables": [
+        "announcements",
+        "broadcast_messages",
+        "messages"
+      ],
+      "permissions": {
+        "employee": {
+          "read": "own",
+          "write": "own",
+          "delete": "own",
+          "approves": null
+        },
+        "supervisor": {
+          "read": "dept",
+          "write": "dept",
+          "delete": "own",
+          "approves": null
+        },
+        "manager": {
+          "read": "dept",
+          "write": "dept",
+          "delete": "dept",
+          "approves": null
+        },
+        "administrator": {
+          "read": "facility",
+          "write": "facility",
+          "delete": "facility",
+          "approves": null
+        },
+        "corporate": {
+          "read": "enterprise",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        }
+      }
+    },
+    "marketing": {
+      "name": "Marketing",
+      "tables": [
+        "leads",
+        "lead_activities",
+        "marketing_campaigns",
+        "email_templates",
+        "nurture_sequences",
+        "referral_sources"
+      ],
+      "permissions": {
+        "employee": {
+          "read": "assigned",
+          "write": "assigned",
+          "delete": "none",
+          "approves": null
+        },
+        "supervisor": {
+          "read": "dept",
+          "write": "dept",
+          "delete": "none",
+          "approves": null
+        },
+        "manager": {
+          "read": "dept",
+          "write": "dept",
+          "delete": "dept",
+          "approves": null
+        },
+        "administrator": {
+          "read": "facility",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        },
+        "corporate": {
+          "read": "enterprise",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        }
+      }
+    },
+    "platform": {
+      "name": "Settings, Billing & AI",
+      "tables": [
+        "organizations",
+        "organization_modules",
+        "role_module_visibility",
+        "ai_settings",
+        "ai_usage"
+      ],
+      "permissions": {
+        "employee": {
+          "read": "none",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        },
+        "supervisor": {
+          "read": "none",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        },
+        "manager": {
+          "read": "none",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        },
+        "administrator": {
+          "read": "facility",
+          "write": "none",
+          "delete": "none",
+          "approves": "Plan upgrades and the AI Add-on"
+        },
+        "corporate": {
+          "read": "enterprise",
+          "write": "none",
+          "delete": "none",
+          "approves": null
+        }
+      }
+    }
+  }
+}
