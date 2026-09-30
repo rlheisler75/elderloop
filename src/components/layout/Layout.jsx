@@ -11,6 +11,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Bell } from 'lucide-react'
 import { ShoppingBag } from 'lucide-react'
 import { getOrgDepartments, STAFF_LEVELS, LEVEL_RANK } from '../../lib/departments'
+import EmergencyEditBar from './EmergencyEditBar'
 
 // Grouped + ordered sidebar nav. A group with no visible items (module access,
 // see visibleGroups below) is skipped entirely — no empty headers.
@@ -326,6 +327,7 @@ export default function Layout() {
             </button>
           </div>
         )}
+        <EmergencyEditBar />
         <main className="flex-1 overflow-y-auto p-6"><Outlet /></main>
       </div>
     </div>

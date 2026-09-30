@@ -609,15 +609,74 @@ function NewOrgModal({ allModules, onClose, onSave }) {
   )
 }
 
+// ── Approval thresholds (organizations.approval_*) ─────────────
+// Above these, purchase orders / vendor jobs and weekly overtime route to the
+// Administrator (NHA) for approval. Stored now; the approval workflows that read
+// them arrive module by module.
+function ApprovalThresholds({ org, onSaved }) {
+  const [po, setPo] = useState(String(org.approval_po_threshold ?? 1000))
+  const [ot, setOt] = useState(String(org.approval_overtime_hours ?? 8))
+  const [saving, setSaving] = useState(false)
+  const [msg, setMsg] = useState(null)
+  useEffect(() => {
+    setPo(String(org.approval_po_threshold ?? 1000))
+    setOt(String(org.approval_overtime_hours ?? 8))
+  }, [org.id, org.approval_po_threshold, org.approval_overtime_hours])
+
+  const dirty = Number(po) !== Number(org.approval_po_threshold ?? 1000) || Number(ot) !== Number(org.approval_overtime_hours ?? 8)
+  const save = async () => {
+    const p = Number(po), o = Number(ot)
+    if (!Number.isFinite(p) || p < 0 || !Number.isFinite(o) || o < 0) {
+      setMsg({ type: 'error', text: 'Enter amounts of 0 or more.' }); return
+    }
+    setSaving(true); setMsg(null)
+    const { error } = await supabase.from('organizations')
+      .update({ approval_po_threshold: p, approval_overtime_hours: o }).eq('id', org.id)
+    setSaving(false)
+    if (error) { setMsg({ type: 'error', text: error.message }); return }
+    setMsg({ type: 'success', text: 'Saved' }); onSaved?.()
+  }
+
+  const inputCls = 'w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500'
+  return (
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6">
+      <h3 className="font-display font-semibold text-slate-800 dark:text-slate-100">Approval Thresholds</h3>
+      <p className="text-sm text-slate-500 mt-1 mb-4">Above these amounts, the Administrator approves before it goes ahead.</p>
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="appr-po" className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Purchase order or vendor job over ($)</label>
+          <input id="appr-po" type="number" min="0" step="50" value={po} onChange={e => setPo(e.target.value)} className={inputCls} />
+        </div>
+        <div>
+          <label htmlFor="appr-ot" className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Overtime per employee per week over (hours)</label>
+          <input id="appr-ot" type="number" min="0" step="0.5" value={ot} onChange={e => setOt(e.target.value)} className={inputCls} />
+        </div>
+      </div>
+      <div className="flex items-center gap-3 mt-4">
+        <button onClick={save} disabled={saving || !dirty}
+          className="px-4 py-2 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
+          {saving ? 'Saving...' : 'Save Thresholds'}
+        </button>
+        {msg && <span className={`text-sm ${msg.type === 'error' ? 'text-red-600' : 'text-green-600'}`}>{msg.text}</span>}
+      </div>
+    </div>
+  )
+}
+
 // ── Main Admin Panel ───────────────────────────────────────────
 export default function AdminPanel() {
-  const { profile, organization, isSuperAdmin, refreshModules } = useAuth()
+  const { profile, organization, isSuperAdmin, refreshModules, canManagePlatform } = useAuth()
   const [searchParams] = useSearchParams()
   const orgParam = searchParams.get('org')
   // ?tab= deep links (limit-hit prompts, onboarding, Stripe return URLs)
   const tabParam = searchParams.get('tab')
-  const [tab, setTab]             = useState(tabParam || 'users')
-  useEffect(() => { if (tabParam) setTab(tabParam) }, [tabParam])
+  // An Administrator (NHA) in a tiered community without the Platform Admin switch
+  // only handles billing here (plan upgrades, AI Add-on); configuration is the Org Admin's.
+  const [tab, setTab]             = useState(canManagePlatform ? (tabParam || 'users') : 'billing')
+  useEffect(() => {
+    if (!canManagePlatform) setTab('billing')
+    else if (tabParam) setTab(tabParam)
+  }, [tabParam, canManagePlatform])
   const [orgs, setOrgs]           = useState([])
   const [users, setUsers]         = useState([])
   const [orgModules, setOrgModules] = useState([])
@@ -693,7 +752,7 @@ export default function AdminPanel() {
     { key: 'pcc',          label: 'PointClickCare',     icon: Plug },
     { key: 'billing',      label: 'Billing',            icon: CreditCard },
     { key: 'ai',           label: 'AI Add-on',          icon: Sparkles },
-  ]
+  ].filter(t => canManagePlatform || t.key === 'billing')
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -858,6 +917,8 @@ export default function AdminPanel() {
               </div>
             )}
           </div>
+
+          <ApprovalThresholds org={selectedOrg} onSaved={fetchAll} />
 
           {/* Modules */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6">

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useSessionTimeout } from '../hooks/useSessionTimeout'
 import SessionTimeoutModal from '../components/SessionTimeoutModal'
-import { tierFor as tierForProfile } from '../lib/accessTiers'
+import { tierFor as tierForProfile, NHA_WRITABLE_MODULES } from '../lib/accessTiers'
 
 const AuthContext = createContext({})
 
@@ -19,7 +19,24 @@ export function AuthProvider({ children }) {
    const [loading, setLoading]         = useState(true)
   const [suspended, setSuspended]     = useState(false)
   const [impersonating, setImpersonating] = useState(false)
+  const [emergencyUntil, setEmergencyUntil] = useState(null) // NHA Emergency Edit expiry (ISO)
   const navigate                      = useNavigate()
+
+  // Load an Administrator's active Emergency Edit, and clear it the moment it expires
+  useEffect(() => {
+    if (profile?.role !== 'ceo') { setEmergencyUntil(null); return }
+    supabase.from('access_overrides').select('expires_at')
+      .eq('profile_id', profile.id).is('ended_at', null).gt('expires_at', new Date().toISOString())
+      .order('expires_at', { ascending: false }).limit(1)
+      .then(({ data }) => setEmergencyUntil(data?.[0]?.expires_at ?? null))
+  }, [profile?.id, profile?.role])
+  useEffect(() => {
+    if (!emergencyUntil) return
+    const ms = new Date(emergencyUntil) - Date.now()
+    if (ms <= 0) { setEmergencyUntil(null); return }
+    const t = setTimeout(() => setEmergencyUntil(null), Math.min(ms, 2 ** 31 - 1))
+    return () => clearTimeout(t)
+  }, [emergencyUntil])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -130,6 +147,17 @@ export function AuthProvider({ children }) {
     surveys: 'supervisor',
   }
 
+  // ── Access tiers (see src/lib/accessTiers.js) ─────────────────────────────
+  // In a 'tiered' community the Administrator (NHA, role ceo) is view + approve
+  // outside their own modules, unless Emergency Edit (24h, reason required) is on.
+  const accessModel       = organization?.access_model || 'legacy'
+  const emergencyEditOn   = !!emergencyUntil && new Date(emergencyUntil) > new Date()
+  const nhaViewOnly       = accessModel === 'tiered' && profile?.role === 'ceo' && !emergencyEditOn
+  // Settings / users / modules: Org Admin always; in tiered communities an NHA
+  // only with the Platform Admin switch; in legacy ones the NHA as before.
+  const canManagePlatform = ['org_admin', 'super_admin'].includes(profile?.role) || superAdmin
+    || (profile?.role === 'ceo' && (accessModel === 'legacy' || !!profile?.is_platform_admin))
+
   // Is this module enabled for the org AND does the user have access?
   const hasModule = (key) => {
     if (!orgModules.includes(key)) return false
@@ -153,6 +181,10 @@ export function AuthProvider({ children }) {
   // but an admin can still override (grant edit to other roles, or downgrade
   // nursing staff to view-only) via the Admin Panel.
   const canEdit = (key, defaultRoles = []) => {
+    // Tiered communities: the Administrator (NHA) edits only the modules they own
+    // per the access matrix — elsewhere it's view + approve unless Emergency Edit
+    // is on. The database (nha_write_guard) enforces the same rule.
+    if (nhaViewOnly && !NHA_WRITABLE_MODULES.includes(key)) return false
     if (['org_admin','ceo','super_admin'].includes(profile?.role) || superAdmin) return true
     const perm = userPerms.find(p => p.module_key === key)
     if (perm) return perm.access_level === 'edit'
@@ -189,13 +221,22 @@ export function AuthProvider({ children }) {
   const isSuperAdmin = superAdmin
   const isCEO        = profile?.role === 'ceo'
 
-  // Access tiers (see src/lib/accessTiers.js). Informational until a community is
-  // switched to 'tiered' — nothing gates on these yet.
-  const accessModel     = organization?.access_model || 'legacy'
   const isPlatformAdmin = ['org_admin', 'super_admin'].includes(profile?.role) || superAdmin
     || (profile?.role === 'ceo' && !!profile?.is_platform_admin)
   const tierFor = (moduleKey) =>
     tierForProfile({ role: profile?.role, isSuperAdmin: superAdmin, departmentRoles }, moduleKey)
+
+  // Emergency Edit — start_emergency_edit() logs it and alerts the Org Admins
+  const startEmergencyEdit = async (reason) => {
+    const { data, error } = await supabase.rpc('start_emergency_edit', { p_reason: reason })
+    if (error) throw error
+    setEmergencyUntil(data)
+    return data
+  }
+  const endEmergencyEdit = async () => {
+    await supabase.rpc('end_emergency_edit')
+    setEmergencyUntil(null)
+  }
 
   const signOut = async () => {
     try {
@@ -272,6 +313,7 @@ export function AuthProvider({ children }) {
       impersonating, impersonateOrg, exitImpersonation,
       departmentRoles, hasDepartmentAccess, hasAnyDepartmentLevel, refreshDepartmentRoles,
       accessModel, isPlatformAdmin, tierFor,
+      nhaViewOnly, canManagePlatform, emergencyEditOn, emergencyUntil, startEmergencyEdit, endEmergencyEdit,
     }}>
       {children}
 

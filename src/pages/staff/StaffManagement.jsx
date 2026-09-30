@@ -260,14 +260,16 @@ export function DepartmentLevelEditor({ assignments, onChange, departments, read
 
 // ── Staff Detail Modal ─────────────────────────────────────────
 function StaffDetail({ staff, certTypes, onClose, onSave }) {
-  const { profile, organization, isOrgAdmin, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
+  const { profile, organization, canManagePlatform, departmentRoles, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
   const departments = getOrgDepartments(organization)
   const isNew = !staff
   // Base info (job title/status/notes/certs) is editable by a supervisor+ of this staff
   // member's own department; Role and Departments & Access Levels — the privilege-
   // escalation surface — additionally requires org admin or an HR/Payroll manager.
   const canEditBasic = isNew || staff?.id === profile?.id || hasDepartmentAccess(staff?.department, 'supervisor') || hasAnyDepartmentLevel('manager')
-  const canEditAccess = isOrgAdmin || hasDepartmentAccess('hr', 'manager') || hasDepartmentAccess('payroll', 'manager')
+  // Real HR/Payroll Manager assignments only — hasDepartmentAccess() auto-passes for the
+  // Administrator, who manages staff access only as a Platform Admin (canManagePlatform)
+  const canEditAccess = canManagePlatform || departmentRoles.some(d => ['hr', 'payroll'].includes(d.department) && d.level === 'manager')
   const [tab, setTab]     = useState('info')
   const [form, setForm]   = useState({
     first_name:               staff?.first_name               || '',
@@ -703,9 +705,9 @@ function CreateStaffModal({ orgId, departments, onClose, onSave, onLimitHit }) {
 
 // ── Main Staff Management Page ─────────────────────────────────
 export default function StaffManagement() {
-  const { profile, organization, isOrgAdmin, hasDepartmentAccess } = useAuth()
+  const { profile, organization, canManagePlatform, departmentRoles } = useAuth()
   // Creating a new staff account is Org Admin/CEO, or an HR/Payroll Manager
-  const canCreateStaff = isOrgAdmin || hasDepartmentAccess('hr', 'manager') || hasDepartmentAccess('payroll', 'manager')
+  const canCreateStaff = canManagePlatform || departmentRoles.some(d => ['hr', 'payroll'].includes(d.department) && d.level === 'manager')
   const departments = getOrgDepartments(organization)
   const getDept = (key) => departments.find(d => d.key === key) || { label: key || 'Unknown' }
   const [searchParams, setSearchParams] = useSearchParams()
