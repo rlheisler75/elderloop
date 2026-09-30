@@ -12,6 +12,7 @@ const NAV = [
   { id: 'discharge', num: '07', label: 'Discharge Planning' },
   { id: 'resources', num: '08', label: 'Resources' },
   { id: 'dashboard', num: '09', label: 'Director Dashboard' },
+  { id: 'ai', num: '10', label: 'AI Assist' },
 ]
 
 export default function SocialServicesGuide() {
@@ -22,7 +23,7 @@ export default function SocialServicesGuide() {
         eyebrow="ElderLoop Staff Training"
         title="Social Services"
         dek="A working guide to every tab in the Social Services module — what each screen is for, how to use it day-to-day, and where the data ends up."
-        chips={['For: Social Services staff, Supervisors, Managers', 'Where: Sidebar → Social Services', '9 tabs']}
+        chips={['For: Social Services staff, Supervisors, Managers', 'Where: Sidebar → Social Services', '9 tabs', 'AI Assist available']}
       />
 
       <div className="max-w-5xl mx-auto px-6 grid md:grid-cols-[200px_minmax(0,1fr)] gap-10 py-4">
@@ -148,7 +149,35 @@ export default function SocialServicesGuide() {
             ]} />
           </SectionBlock>
 
+          <SectionBlock id="ai" num="10" title="AI Assist" roleNote="AI Add-on · Clinical"
+            dek="Three time-savers for documentation: turn rough notes into a structured case note, sort care conference notes into the right boxes, and get care-plan goal ideas drawn from a resident's records. Nothing is saved until you choose to use it.">
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Polish a case note</h3>
+            <Steps items={[
+              { k: 1, text: <>In <b className="text-slate-900">New Case Note</b>, type your notes into <b className="text-slate-900">Summary</b> however they come — shorthand and all.</> },
+              { k: 2, text: <>Click <b className="text-slate-900">Polish note (DAP format)</b>. The AI rewrites them as <b className="text-slate-900">Data / Assessment / Plan</b>, keeps the resident's own words in quotes, and suggests whether a follow-up is needed and why.</> },
+              { k: 3, text: <>Click <b className="text-slate-900">Use this note</b> to replace the Summary (and turn on Follow-up if it was suggested). <b className="text-slate-900">Undo</b> restores your original text.</> },
+            ]} />
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Organize care conference notes</h3>
+            <Steps items={[
+              { k: 1, text: <>During or after the meeting, type or paste your raw notes into <b className="text-slate-900">Meeting Summary</b>.</> },
+              { k: 2, text: <>Click <b className="text-slate-900">Organize into sections</b>. The AI sorts everything into Meeting Summary, Goals Reviewed (with met / not met status), New Goals Set, and Follow-up Action Items — with who's responsible and the target date when your notes say so.</> },
+              { k: 3, text: <>Review the preview and click <b className="text-slate-900">Use these</b> to fill all four boxes. Anything you'd already typed in the goal or follow-up boxes is kept and merged in. <b className="text-slate-900">Undo</b> puts everything back.</> },
+            ]} />
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Suggest care-plan goals</h3>
+            <Steps items={[
+              { k: 1, text: <>In <b className="text-slate-900">New Goal</b>, pick the resident. Optionally type a focus in the Goal box first — e.g. "loneliness since roommate moved out".</> },
+              { k: 2, text: <>Click <b className="text-slate-900">Suggest goals from this resident's records</b>. The AI reviews their social profile, recent case notes, mood logs, latest care conference, and existing goals, and suggests three measurable goals — each with a plan, a 30/60/90-day review period, and <b className="text-slate-900">what in the record it's based on</b>.</> },
+              { k: 3, text: <>Click <b className="text-slate-900">Use this goal</b> to fill in the category, goal, plan, and target date. Use <b className="text-slate-900">Show other suggestions</b> to pick a different one, or <b className="text-slate-900">Undo</b>.</> },
+            ]} />
+            <Tip>The AI only uses what's in your notes and records — it's told never to add diagnoses, events, or plans that aren't there, and to leave a section as "None noted" rather than guess. Resident names are never sent to the AI. Still, you're the professional of record: read every suggestion before using it.</Tip>
+            <div className="mt-4" />
+            <Tip warn>Because these features handle resident health information, they're only available once ElderLoop has enabled Clinical AI for your community. If Admin Panel → AI Add-on shows Social Services as "Requires HIPAA approval," the buttons won't appear yet.</Tip>
+          </SectionBlock>
+
           <QuickRefTable rows={[
+            ['Turn rough notes into a DAP case note', 'New Case Note → Polish note (DAP format)'],
+            ['Sort meeting notes into conference sections', 'Care Conference → Organize into sections'],
+            ['Get goal ideas from a resident’s records', 'New Goal → Suggest goals from this resident’s records'],
             ['Log today’s mood or a behavioral concern', 'Mood & Behavior → Quick Log Mood'],
             ['Record a phone call or family meeting', 'Case Notes → New Case Note'],
             ['Set or update a resident’s goal', 'Goals → New Goal'],

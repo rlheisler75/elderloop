@@ -12,6 +12,7 @@ const NAV = [
   { id: 'templates',  num: '07', label: 'Templates' },
   { id: 'landing',    num: '08', label: 'Landing Pages' },
   { id: 'sources',    num: '09', label: 'Referral Sources' },
+  { id: 'ai',         num: '10', label: 'AI Email Writer' },
 ]
 
 export default function MarketingGuide() {
@@ -22,7 +23,7 @@ export default function MarketingGuide() {
         eyebrow="ElderLoop Staff Training"
         title="Marketing"
         dek="A working guide to the lead pipeline, automated follow-up, campaign tracking, and referral sources behind move-in growth."
-        chips={['For: Marketing, Admissions, Executive Directors', 'Where: Sidebar → Marketing', '9 sections']}
+        chips={['For: Marketing, Admissions, Executive Directors', 'Where: Sidebar → Marketing', '10 sections', 'AI Assist available']}
       />
 
       <div className="max-w-5xl mx-auto px-6 grid md:grid-cols-[200px_minmax(0,1fr)] gap-10 py-4">
@@ -140,7 +141,23 @@ export default function MarketingGuide() {
             ]} />
           </SectionBlock>
 
+          <SectionBlock id="ai" num="10" title="AI Email Writer" roleNote="AI Add-on"
+            dek="Describe the email in a sentence and let AI write the subject and body — using your merge tags, your community's name, and only the facts you gave it. Works in both campaign emails and templates.">
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
+            <Steps items={[
+              { k: 1, text: <>Open a campaign's <b className="text-slate-900">Send Email</b> window (or <b className="text-slate-900">New Template</b>) and click <b className="text-slate-900">Write with AI</b> above the Subject.</> },
+              { k: 2, text: <>Type a short brief — e.g. "spring open house Sat May 3, 1–4pm, tours of assisted living, lunch provided" — and pick a tone: <b className="text-slate-900">Warm</b>, <b className="text-slate-900">Professional</b>, or <b className="text-slate-900">Short &amp; direct</b>. In the campaign window, the status and care-level filters you picked help tailor the message.</> },
+              { k: 3, text: <>Click <b className="text-slate-900">Write draft</b>. Already have something typed? Click <b className="text-slate-900">Improve my current draft</b> instead to clean it up without starting over.</> },
+              { k: 4, text: <>Review the draft and click <b className="text-slate-900">Use this draft</b> to fill in Subject and Body. <b className="text-slate-900">Undo</b> brings back what you had.</> },
+            ]} />
+            <Tip>Anything the AI needs but you didn't give it — a phone number, a date, your name — shows up as a <b className="text-slate-900">[BRACKETED]</b> placeholder, and the panel reminds you to fill those in before sending. Emails open with <code>{'{{first_name}}'}</code> (the person who inquired) and use <code>{'{{prospect_first_name}}'}</code> for the prospective resident, so every recipient's copy is personalized automatically. The unsubscribe link is added for you — no need to write one.</Tip>
+            <div className="mt-4" />
+            <Tip warn>The AI writes respectful, no-pressure copy and avoids anything that could raise fair-housing concerns — but you're still the sender. Read every draft before it goes out. Only your brief and filters are sent to the AI, never lead names or contact details.</Tip>
+          </SectionBlock>
+
           <QuickRefTable rows={[
+            ['Have AI write or polish a campaign email', 'Send Email → Write with AI'],
+            ['Have AI write a reusable template', 'New Template → Write with AI'],
             ['Add a new inquiry', 'Add Lead'],
             ['Log a call, tour, or note for a lead', 'Lead row → clock icon'],
             ['Schedule a future follow-up', 'Lead row → clock icon → Schedule Follow-Up'],

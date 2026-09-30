@@ -9,6 +9,7 @@ const NAV = [
   { id: 'lifesafety', num: '04', label: 'Life Safety' },
   { id: 'reports',    num: '05', label: 'Reports' },
   { id: 'settings',   num: '06', label: 'Settings' },
+  { id: 'ai',         num: '07', label: 'AI Assist' },
 ]
 
 export default function MaintenanceGuide() {
@@ -19,7 +20,7 @@ export default function MaintenanceGuide() {
         eyebrow="ElderLoop Staff Training"
         title="Maintenance"
         dek="A working guide to work orders, the asset registry, preventive maintenance, and Life Safety compliance — from a resident-reported leak to a surveyor-ready inspection report."
-        chips={['For: Maintenance staff, Supervisors, Managers', 'Where: Sidebar → Maintenance', '7 tabs']}
+        chips={['For: Maintenance staff, Supervisors, Managers', 'Where: Sidebar → Maintenance', '7 tabs', 'AI Assist available']}
       />
 
       <div className="max-w-5xl mx-auto px-6 grid md:grid-cols-[200px_minmax(0,1fr)] gap-10 py-4">
@@ -114,8 +115,23 @@ export default function MaintenanceGuide() {
             ]} />
           </SectionBlock>
 
+          <SectionBlock id="ai" num="07" title="AI Assist" roleNote="AI Add-on"
+            dek="Type what's wrong in your own words and let AI suggest the category, priority, and a clear description for the technician — you review everything before the ticket is saved.">
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
+            <Steps items={[
+              { k: 1, text: <>Click <b className="text-slate-900">New Work Order</b> and type a <b className="text-slate-900">Title</b> and <b className="text-slate-900">Description</b> the way you'd say it out loud — "handrail loose east hall by 112" is fine.</> },
+              { k: 2, text: <>Click <b className="text-slate-900">Suggest category, priority &amp; description</b> under the Description box. In a few seconds the Category and Priority fields fill in, with a one-line reason for the priority.</> },
+              { k: 3, text: <>A <b className="text-slate-900">Suggested description</b> appears below — a clear write-up for the technician, including a keep-residents-safe line for urgent hazards. Click <b className="text-slate-900">Use this description</b> to replace yours, or ignore it. <b className="text-slate-900">Undo</b> puts your original text back.</> },
+              { k: 4, text: 'Check the fields, change anything you disagree with, and save the ticket as usual.' },
+            ]} />
+            <Tip>The AI weighs risks to older adults heavily — fall hazards, gas smells, flooding, and no heat or cooling come back <b className="text-slate-900">Urgent</b>, while paint scuffs and bulbs come back Low. It only uses what you typed and never invents room numbers or causes; a vague ticket gets a short description, not a guess. You always have the final say.</Tip>
+            <div className="mt-4" />
+            <Tip warn>The button only appears when your community has the AI Add-on and Maintenance AI is turned on (Admin Panel → AI Add-on). If you don't see it, ask your administrator.</Tip>
+          </SectionBlock>
+
           <QuickRefTable rows={[
             ['File a maintenance issue', 'Work Orders → New Work Order'],
+            ['Let AI fill in category, priority & description', 'New Work Order → Suggest category, priority & description'],
             ['Update a ticket’s status', 'Open the ticket → Quick Actions'],
             ['Check equipment service history', 'Assets → click a card'],
             ['Run a recurring task (filter change, generator test)', 'Preventive Maintenance → Generate WO'],

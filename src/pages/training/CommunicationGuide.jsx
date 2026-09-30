@@ -7,6 +7,7 @@ const NAV = [
   { id: 'posting',   num: '02', label: 'Posting an Announcement' },
   { id: 'broadcast', num: '03', label: 'Broadcast Messaging' },
   { id: 'compose',   num: '04', label: 'Composing a Broadcast' },
+  { id: 'ai',        num: '05', label: 'Write with AI' },
 ]
 
 export default function CommunicationGuide() {
@@ -17,7 +18,7 @@ export default function CommunicationGuide() {
         eyebrow="ElderLoop Staff Training"
         title="Communication"
         dek="A working guide to the announcements board and broadcast messaging — how community updates get posted, and how staff reach residents, family, and each other directly."
-        chips={['For: All staff, Admins, Supervisors', 'Where: Sidebar → Communication', '4 sections']}
+        chips={['For: All staff, Admins, Supervisors', 'Where: Sidebar → Communication', '5 sections', 'AI Assist available']}
       />
 
       <div className="max-w-5xl mx-auto px-6 grid md:grid-cols-[200px_minmax(0,1fr)] gap-10 py-4">
@@ -72,7 +73,22 @@ export default function CommunicationGuide() {
             ]} />
           </SectionBlock>
 
+          <SectionBlock id="ai" num="05" title="Write with AI" roleNote="AI Add-on"
+            dek="Write, polish, or translate any announcement or broadcast from a one-line brief — written for whoever you're sending to, and short enough for text messages when SMS is on.">
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
+            <Steps items={[
+              { k: 1, text: <>In <b className="text-slate-900">New Message</b> or <b className="text-slate-900">New Announcement</b>, pick your channels and audience first (for broadcasts), then open <b className="text-slate-900">Write with AI</b>.</> },
+              { k: 2, text: <>Type what it should say — e.g. "water off in Building B tomorrow 9–noon for pipe repair; bottled water at front desk" — and click <b className="text-slate-900">Write it</b>. You get a subject or headline, the message, and a suggested category (Urgent, Reminder, Activity, Meal, Health, or General).</> },
+              { k: 3, text: <>Already wrote something? Click <b className="text-slate-900">Improve my draft</b> to make it clearer, or choose a language and click <b className="text-slate-900">Translate to</b> — Spanish, Chinese, Vietnamese, Tagalog, Korean, or Russian.</> },
+              { k: 4, text: <>Click <b className="text-slate-900">Use this</b> to fill in the fields and category. <b className="text-slate-900">Undo</b> puts your version back.</> },
+            ]} />
+            <Tip>The AI writes for the audience you picked — plain and warm for residents, reassuring for families, direct for staff — and keeps urgent messages calm and action-first. With <b className="text-slate-900">SMS</b> selected it keeps the message under 160 characters and shows the count. Missing details (a time, a room, a phone number) come back as <b className="text-slate-900">[BRACKETED]</b> placeholders — fill them in before sending. Translations keep the placeholders in English so you can still spot them.</Tip>
+            <div className="mt-4" />
+            <Tip warn>Only your brief, your draft, the audience type, and channels are sent to the AI — never the names of the people you're messaging. Always read the message before you send or post it.</Tip>
+          </SectionBlock>
+
           <QuickRefTable rows={[
+            ['Have AI write, improve, or translate a message', 'New Message / New Announcement → Write with AI'],
             ['Post a community update', 'New Announcement'],
             ['Pin something important to the top', 'New Announcement → Pin to top of board'],
             ['Schedule a post for later', 'New Announcement → Post Date'],

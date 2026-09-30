@@ -34,6 +34,8 @@ export default function DirectoryGuide() {
               { k: 3, text: <>Click any card to open the resident's full profile, or <b className="text-slate-900">Add Resident</b> to create a new one.</> },
             ]} />
             <Tip>A green <b>Public</b> badge means the resident opted into being visible in the in-portal directory other residents can browse — it never exposes phone, medical, or emergency-contact info there.</Tip>
+            <div className="mt-4" />
+            <Tip warn>The <b className="text-slate-900">Starter</b> plan includes up to 50 active residents. At the limit, <b className="text-slate-900">Add Resident</b> shows an upgrade prompt, and imports (CSV or PointClickCare) stop adding residents once the limit is reached. Deactivating a resident who has moved out frees a spot; Essential and Professional plans have no resident limit.</Tip>
           </SectionBlock>
 
           <SectionBlock id="contacts" num="02" title="Emergency & Medical Contacts"

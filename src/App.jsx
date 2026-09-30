@@ -68,6 +68,7 @@ const SchedulingGuide = lazy(() => import('./pages/training/SchedulingGuide'))
 const StaffGuide = lazy(() => import('./pages/training/StaffGuide'))
 const TimeClockGuide = lazy(() => import('./pages/training/TimeClockGuide'))
 const SurveysGuide = lazy(() => import('./pages/training/SurveysGuide'))
+const AiGuide = lazy(() => import('./pages/training/AiGuide'))
 
 // Training routes — shared between the public route tree and the sales-rep
 // route branch (below) so reps can reach the Training Library from /rep.
@@ -95,6 +96,7 @@ const trainingRoutes = [
   <Route key="training-staff"         path="/training/staff"               element={<Lazy><StaffGuide /></Lazy>} />,
   <Route key="training-timeclock"     path="/training/timeclock"           element={<Lazy><TimeClockGuide /></Lazy>} />,
   <Route key="training-surveys"       path="/training/surveys"             element={<Lazy><SurveysGuide /></Lazy>} />,
+  <Route key="training-ai"            path="/training/ai"                  element={<Lazy><AiGuide /></Lazy>} />,
 ]
 
 // Public TV & role-specific portals (outside the staff Layout)

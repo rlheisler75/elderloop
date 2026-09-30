@@ -1,3 +1,5 @@
+import { useEffect } from 'react'
+
 export function Frame({ src, alt, caption }) {
   return (
     <div className="border border-slate-200 rounded-2xl overflow-hidden shadow-sm bg-white mb-6">
@@ -87,6 +89,17 @@ export function GuideMasthead({ eyebrow, title, dek, chips }) {
 }
 
 export function GuideTOC({ nav }) {
+  // Guides are lazy-loaded, so the browser's own #hash scroll fires before the
+  // section exists — jump to it once the page has rendered (e.g. /training/maintenance#ai)
+  // Screenshots above the target load afterward and push it down, so re-scroll briefly.
+  useEffect(() => {
+    const id = window.location.hash.slice(1)
+    if (!id) return
+    const jump = () => document.getElementById(id)?.scrollIntoView()
+    const timers = [0, 400, 1200].map(ms => setTimeout(jump, ms))
+    return () => timers.forEach(clearTimeout)
+  }, [])
+
   return (
     <nav className="hidden md:flex flex-col gap-0.5 sticky top-6 self-start">
       <div className="text-xs font-bold uppercase tracking-wide text-slate-400 px-3 pb-2">On this page</div>

@@ -1,13 +1,20 @@
 import { Link } from 'react-router-dom'
-import { HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays, Church, Megaphone, MessageSquare, Car, Building2, Package, ShieldCheck, Gauge, Laptop, Contact, Heart, AlertTriangle, CalendarClock, Users, Clock, ClipboardList } from 'lucide-react'
+import { Sparkles, HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays, Church, Megaphone, MessageSquare, Car, Building2, Package, ShieldCheck, Gauge, Laptop, Contact, Heart, AlertTriangle, CalendarClock, Users, Clock, ClipboardList } from 'lucide-react'
 
 const GUIDES = [
+  {
+    to: '/training/ai',
+    icon: Sparkles,
+    title: 'AI Assist',
+    desc: 'The AI Add-on: what each AI button does, how to review and undo a suggestion, admin settings for sections and models, and what is (and isn’t) sent to the AI.',
+    tag: '4 sections',
+  },
   {
     to: '/training/social-services',
     icon: HeartHandshake,
     title: 'Social Services',
-    desc: 'Social profiles, mood & behavior tracking, case notes, grievances, care conferences, discharge planning, and the community resource directory.',
-    tag: '8 sections',
+    desc: 'Social profiles, mood & behavior tracking, case notes, goals, grievances, care conferences, discharge planning, the resource directory, and AI Assist.',
+    tag: '10 sections',
   },
   {
     to: '/training/dietary',
@@ -27,8 +34,8 @@ const GUIDES = [
     to: '/training/maintenance',
     icon: Wrench,
     title: 'Maintenance',
-    desc: 'Work orders with SLA tracking, the asset registry, preventive maintenance schedules, and Life Safety compliance with a one-click surveyor report.',
-    tag: '5 sections',
+    desc: 'Work orders with SLA tracking and AI triage, the asset registry, preventive maintenance, Life Safety compliance with a one-click surveyor report, reports, and settings.',
+    tag: '7 sections',
   },
   {
     to: '/training/housekeeping',
@@ -55,15 +62,15 @@ const GUIDES = [
     to: '/training/marketing',
     icon: Megaphone,
     title: 'Marketing',
-    desc: 'The lead pipeline, follow-up reminders, automated nurture sequences, the funnel dashboard, campaigns, templates, landing pages, and referral sources.',
-    tag: '9 sections',
+    desc: 'The lead pipeline, follow-up reminders, automated nurture sequences, the funnel dashboard, campaigns, templates, landing pages, referral sources, and the AI email writer.',
+    tag: '10 sections',
   },
   {
     to: '/training/communication',
     icon: MessageSquare,
     title: 'Communication',
-    desc: 'The announcements board and Digital Signage, plus broadcast messaging over push, email, and SMS to residents, family, and staff.',
-    tag: '4 sections',
+    desc: 'The announcements board and Digital Signage, broadcast messaging over push, email, and SMS, and writing or translating messages with AI.',
+    tag: '5 sections',
   },
   {
     to: '/training/transportation',

@@ -46,7 +46,7 @@ export default function StaffGuide() {
               { k: 2, text: <>Pick a <b className="text-slate-900">Role</b> (Staff, Nursing, Supervisor, Manager, Admin, etc.) — separate from Job Title and Department, which are just descriptive labels for the directory. Role can be changed later from Admin Panel → Users → the pencil icon on their row.</> },
               { k: 3, text: <>Saving sends them a branded email with a link to set their own password — there's no temporary password for you to invent, remember, or hand off. The link expires in 1 hour; if they miss it, they can use Forgot Password on the login screen to get a new one.</> },
             ]} />
-            <Tip warn>If your plan has a staff seat limit and you're at capacity, you'll be prompted to upgrade in Admin Panel → Billing instead of being able to add someone.</Tip>
+            <Tip warn>The <b className="text-slate-900">Starter</b> plan includes up to 10 active staff accounts (resident and family portal logins don't count). At the limit, <b className="text-slate-900">Add Staff Member</b> shows an upgrade prompt instead — and reactivating a former staff member or changing a family login into a staff account counts as adding a seat, too. To make room, deactivate someone who's left, or upgrade in Admin Panel → Billing. Essential and Professional plans have no staff limit.</Tip>
           </SectionBlock>
 
           <SectionBlock id="access" num="03" title="Module Access"
