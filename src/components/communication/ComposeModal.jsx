@@ -5,6 +5,7 @@ import { X, Mail, MessageSquare, Bell, ChevronDown, ChevronUp, Send, Loader2,
          SprayCan, AlertTriangle, Calendar, Megaphone, Activity, Clock, Search } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import AiMessageWriter from './AiMessageWriter'
 
 const CATEGORIES = [
   { key: 'general',   label: 'General',   icon: Megaphone,       color: 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700' },
@@ -463,6 +464,10 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
               </div>
             )}
           </div>
+
+          <AiMessageWriter kind="broadcast" audience={form.audience_type} channels={form.channels}
+            title={form.subject} body={form.body} category={form.category}
+            onApply={({ title, body, category }) => setForm(f => ({ ...f, subject: title, body, category: category || f.category }))} />
 
           {/* Subject */}
           <div>

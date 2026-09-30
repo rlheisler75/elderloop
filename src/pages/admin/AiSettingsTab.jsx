@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
-import { Sparkles, Wrench, HeartHandshake, Megaphone, Lock, Loader2, ShieldCheck, Check } from 'lucide-react'
+import { Sparkles, Wrench, HeartHandshake, Megaphone, MessageSquare, Lock, Loader2, ShieldCheck, Check } from 'lucide-react'
 
 // Must match ALLOWED_MODELS in supabase/functions/ai-assist and the ai_settings.model check constraint.
 // Prices are Anthropic list prices per million tokens (input / output), used only for estimates.
@@ -23,6 +23,9 @@ const SECTIONS = [
   { key: 'marketing',       label: 'Marketing',       icon: Megaphone,
     desc: 'Writes and polishes campaign emails and templates from a short brief.',
     tasks: ['mk_email_draft'] },
+  { key: 'communication',   label: 'Communication',   icon: MessageSquare,
+    desc: 'Writes, improves, and translates broadcast messages and announcements.',
+    tasks: ['comm_draft'] },
 ]
 
 const costOf = (row) => {

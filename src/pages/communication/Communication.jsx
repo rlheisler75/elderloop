@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import BroadcastPanel from './BroadcastPanel'
+import AiMessageWriter from '../../components/communication/AiMessageWriter'
 import {
   Plus, Pin, Cake, Star, Calendar, CloudSun,
   Church, UtensilsCrossed, Bell, Megaphone,
@@ -183,6 +184,10 @@ function AnnouncementModal({ item, onClose, onSave }) {
 
         <div className="px-6 py-5 space-y-5">
           {error && <div className="px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
+
+          <AiMessageWriter kind="announcement" audience="board"
+            title={form.title} body={form.body} category={form.category}
+            onApply={({ title, body, category }) => setForm(f => ({ ...f, title, body, category: category || f.category }))} />
 
           {/* Title */}
           <div>

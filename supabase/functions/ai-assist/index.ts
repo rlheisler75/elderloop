@@ -25,6 +25,9 @@
 //   mk_email_draft — write or improve a marketing email (subject + plain-text body
 //               with merge tags) from a staff brief + audience filters. No lead
 //               data is sent — only the brief, filters, and community name/city.
+//   comm_draft — write, improve, or translate a broadcast message or announcement
+//               (title/subject, body, suggested category), adapted to the audience
+//               type and SMS length. No recipient names are sent.
 //
 // Deploy: supabase functions deploy ai-assist
 // Secrets: ANTHROPIC_API_KEY (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY are built in)
@@ -42,6 +45,7 @@ const TASK_SECTIONS: Record<string, string> = {
   wo_triage: 'maintenance',
   ss_case_note: 'social_services', ss_care_conference: 'social_services', ss_goal_suggest: 'social_services',
   mk_email_draft: 'marketing',
+  comm_draft: 'communication',
 }
 const DAILY_LIMIT = 200 // Claude calls per org per rolling 24h
 // Tasks that handle resident health information (see header)
@@ -121,6 +125,7 @@ Deno.serve(async (req) => {
       case 'ss_care_conference': return json(await ssCareConference(orgId, user.id, model, body))
       case 'ss_goal_suggest':    return json(await ssGoalSuggest(orgId, user.id, model, body))
       case 'mk_email_draft':     return json(await mkEmailDraft(orgId, user.id, model, body))
+      case 'comm_draft':         return json(await commDraft(orgId, user.id, model, body))
       default:             return json({ error: 'Unknown task' }, 400)
     }
   } catch (err) {
@@ -450,5 +455,75 @@ Body rules:
   if (improve) parts.push(`Improve this existing draft — keep its facts and intent, fix clarity, tone, and structure, and apply the rules above:\nSubject: ${curSubject}\nBody:\n${curBody}`)
 
   const result = await askClaude(orgId, userId, model, 'mk_email_draft', system, parts.join('\n\n'), schema)
+  return { suggestion: result }
+}
+
+// ── comm_draft ────────────────────────────────────────────────────
+// Keys must match CATEGORIES in Communication.jsx / ComposeModal.jsx
+const COMM_CATEGORIES = ['general', 'urgent', 'reminder', 'activity', 'meal', 'health']
+const COMM_AUDIENCES: Record<string, string> = {
+  all:           'everyone in the community — residents, families, and staff',
+  all_staff:     'staff members',
+  all_residents: 'residents (older adults; some have vision, hearing, or memory challenges)',
+  all_family:    'family members of residents',
+  department:    'staff in one department',
+  individual:    'a few selected people',
+  board:         'residents, families, and staff reading the community announcement board / signage',
+}
+const LANGUAGES = ['Spanish', 'Chinese (Simplified)', 'Vietnamese', 'Tagalog', 'Korean', 'Russian']
+
+async function commDraft(orgId: string, userId: string, model: string, body: Record<string, unknown>) {
+  const mode = ['write', 'improve', 'translate'].includes(String(body.mode)) ? String(body.mode) : 'write'
+  const brief = String(body.brief || '').slice(0, 2000).trim()
+  const curTitle = String(body.title || '').slice(0, 300).trim()
+  const curBody = String(body.body || '').slice(0, 4000).trim()
+  if (mode === 'write' && !brief) throw new Error('Nothing to write from')
+  if (mode !== 'write' && !curTitle && !curBody) throw new Error('Nothing to improve or translate')
+  const language = LANGUAGES.includes(String(body.language)) ? String(body.language) : 'Spanish'
+
+  const kind = body.kind === 'announcement' ? 'announcement' : 'broadcast'
+  const audience = COMM_AUDIENCES[String(body.audience)] || COMM_AUDIENCES.all
+  const sms = Array.isArray(body.channels) && body.channels.includes('sms')
+  const { data: org } = await admin.from('organizations').select('name').eq('id', orgId).single()
+
+  const schema = {
+    type: 'object',
+    properties: {
+      title:    { type: 'string' },
+      body:     { type: 'string' },
+      category: { type: 'string', enum: COMM_CATEGORIES },
+    },
+    required: ['title', 'body', 'category'],
+    additionalProperties: false,
+  }
+
+  const system = `You write internal communications for ${org?.name ?? 'a senior living community'}.
+This is ${kind === 'announcement' ? 'an announcement for the community board and digital signage' : 'a broadcast message sent by in-app notification, email, and/or text'}.
+Audience: ${audience}.
+
+Output:
+- "title": ${kind === 'announcement' ? 'a short headline, under 60 characters' : 'a short subject line, under 60 characters'}. No emoji.
+- "body": the message in plain text (no markdown or HTML).${sms ? ' SMS is one of the channels, so the body MUST be 150 characters or fewer (count carefully).' : ` Keep it brief — ${kind === 'announcement' ? '1 to 3 short sentences' : '2 to 5 short sentences'}.`}
+- "category": the best fit — urgent (safety, emergencies, service outages), reminder, activity, meal, health, or general.
+
+Rules:
+- Use ONLY facts given. For missing specifics write a bracketed placeholder like [TIME], [LOCATION], [CONTACT] — never invent dates, times, places, names, or phone numbers.
+- Write for the audience: for residents use plain, warm, large-idea sentences and avoid jargon and abbreviations; for families be reassuring and clear; for staff be direct and actionable.
+- Urgent messages: calm, lead with what to do, no alarmist language.
+- No resident health details or names beyond what the brief states; never guess anyone's condition.`
+
+  const parts: string[] = []
+  if (mode === 'write') parts.push(`Write a new message from this brief:\n${brief}`)
+  if (mode === 'improve') parts.push(`Improve this draft — keep its facts and intent, make it clearer and better suited to the audience, and apply the rules:\nTitle: ${curTitle}\nBody:\n${curBody}${brief ? `\n\nExtra guidance from staff: ${brief}` : ''}`)
+  if (mode === 'translate') parts.push(`Translate this message into ${language}. Keep the meaning, tone, and any [PLACEHOLDERS] exactly as they are (placeholders stay in English). Keep the same category. Return the translated title and body:\nTitle: ${curTitle}\nBody:\n${curBody}`)
+
+  let result = await askClaude(orgId, userId, model, 'comm_draft', system, parts.join('\n\n'), schema)
+
+  // Models can't count characters reliably — one retry if an SMS body runs over 160
+  if (sms && result?.body && result.body.length > 160) {
+    const shorter = await askClaude(orgId, userId, model, 'comm_draft', system,
+      `This message is ${result.body.length} characters; it must be 150 or fewer for SMS. Shorten the body, keeping every essential fact and any [PLACEHOLDERS]${mode === 'translate' ? ` and keeping it in ${language}` : ''}:\nTitle: ${result.title}\nBody:\n${result.body}`, schema)
+    if (shorter?.body && shorter.body.length < result.body.length) result = shorter
+  }
   return { suggestion: result }
 }
