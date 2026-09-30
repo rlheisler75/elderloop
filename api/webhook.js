@@ -52,7 +52,8 @@ export default async function handler(req, res) {
         const orgId = session.metadata?.organization_id
         if (!orgId) break
         const subscription = await stripe.subscriptions.retrieve(session.subscription)
-        const priceId = subscription.items.data[0]?.price?.id
+        const planItem = getPlanItem(subscription)
+        const priceId = planItem?.price?.id
         const plan = getPlanFromPriceId(priceId)
         await supabase.from('organizations').update({
           stripe_customer_id:     session.customer,
@@ -63,10 +64,11 @@ export default async function handler(req, res) {
           ...periodFields(subscription),
           trial_end:              toIso(subscription.trial_end),
           plan,
-          plan_price:             (subscription.items.data[0]?.price?.unit_amount / 100) || null,
+          plan_price:             (planItem?.price?.unit_amount / 100) || null,
           ...PLAN_LIMITS[plan],
         }).eq('id', orgId)
         await enableModulesForPlan(orgId, plan)
+        await syncAiAddon(orgId, subscription)
         await redeemPromoCodeIfUsed(session.id, orgId)
         break
       }
@@ -75,7 +77,8 @@ export default async function handler(req, res) {
         const sub = event.data.object
         const orgId = sub.metadata?.organization_id || await getOrgIdFromCustomer(sub.customer)
         if (!orgId) break
-        const priceId = sub.items.data[0]?.price?.id
+        const planItem = getPlanItem(sub)
+        const priceId = planItem?.price?.id
         const plan = getPlanFromPriceId(priceId)
         await supabase.from('organizations').update({
           stripe_price_id:      priceId,
@@ -85,10 +88,11 @@ export default async function handler(req, res) {
           trial_end:            toIso(sub.trial_end),
           cancel_at_period_end: sub.cancel_at_period_end,
           plan,
-          plan_price:           (sub.items.data[0]?.price?.unit_amount / 100) || null,
+          plan_price:           (planItem?.price?.unit_amount / 100) || null,
           ...PLAN_LIMITS[plan],
         }).eq('id', orgId)
         await enableModulesForPlan(orgId, plan)
+        await syncAiAddon(orgId, sub)
         break
       }
 
@@ -105,6 +109,7 @@ export default async function handler(req, res) {
           ...PLAN_LIMITS['starter'],
         }).eq('id', orgId)
         await enableModulesForPlan(orgId, 'starter')
+        await syncAiAddon(orgId, null)
         break
       }
 
@@ -136,6 +141,29 @@ export default async function handler(req, res) {
 }
 
 // ── Helpers ────────────────────────────────────────────────────
+
+// The AI Add-on is a second line item on the plan subscription
+// (STRIPE_PRICE_AI_ADDON). The plan is whichever item isn't the add-on.
+const AI_ADDON_PRICE = process.env.STRIPE_PRICE_AI_ADDON
+
+function getPlanItem(sub) {
+  const items = sub.items?.data || []
+  return items.find(i => i.price?.id !== AI_ADDON_PRICE) || items[0]
+}
+
+// Turn the ai_assist module on/off to match whether the subscription carries the
+// add-on. Only touches ai_assist — ai_assist_clinical stays a manual super-admin
+// switch (it requires a signed HIPAA BAA). Skipped entirely if the price isn't
+// configured, so a missing env var can never switch AI off for everyone.
+async function syncAiAddon(orgId, sub) {
+  if (!AI_ADDON_PRICE) return
+  const hasAddon = !!sub && ['active', 'trialing', 'past_due'].includes(sub.status) &&
+    (sub.items?.data || []).some(i => i.price?.id === AI_ADDON_PRICE)
+  const { error } = await supabase.from('organization_modules').upsert(
+    { organization_id: orgId, module_key: 'ai_assist', is_enabled: hasAddon },
+    { onConflict: 'organization_id,module_key' })
+  if (error) console.error('syncAiAddon error:', error.message)
+}
 
 // Unix seconds → ISO string, or null when absent
 function toIso(unixSeconds) {
@@ -182,9 +210,11 @@ async function enableModulesForPlan(orgId, plan) {
         .select('module_key')
         .eq('organization_id', orgId)
 
+      // AI modules aren't plan-based: ai_assist follows the add-on (syncAiAddon),
+      // ai_assist_clinical is a manual super-admin switch
       const toDisable = (allOrgModules || [])
         .map(m => m.module_key)
-        .filter(key => !moduleKeys.includes(key))
+        .filter(key => !moduleKeys.includes(key) && !key.startsWith('ai_assist'))
 
       if (toDisable.length) {
         await supabase.from('organization_modules')

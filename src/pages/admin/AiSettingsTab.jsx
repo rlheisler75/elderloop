@@ -136,7 +136,10 @@ export default function AiSettingsTab({ orgId }) {
         <div className="p-6 border border-slate-200 dark:border-slate-700 rounded-2xl text-center">
           <Lock size={22} className="mx-auto text-slate-400 mb-2" />
           <div className="font-medium text-slate-700 dark:text-slate-200">The AI Add-on isn't active for your community</div>
-          <p className="text-sm text-slate-500 mt-1">Contact ElderLoop support to add it to your plan.</p>
+          <p className="text-sm text-slate-500 mt-1">
+            Available on the Essential and Professional plans for $99/mo —{' '}
+            <a href="/app/admin?tab=billing" className="font-semibold text-brand-600 hover:underline">add it under Billing</a>.
+          </p>
         </div>
       ) : (
         <>
