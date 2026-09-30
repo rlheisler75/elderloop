@@ -222,7 +222,8 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
   const [error, setError]           = useState('')
   const [showTemplates, setShowTemplates] = useState(false)
   const [aiLoading, setAiLoading]   = useState(false)
-  const [aiResult, setAiResult]     = useState(null) // { reason } after a suggestion is applied, or { error }
+  const [aiResult, setAiResult]     = useState(null) // { reason, description } after a suggestion is applied, or { error }
+  const [descBeforeAI, setDescBeforeAI] = useState(null) // original text, kept so "Use this description" can be undone
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
@@ -231,6 +232,7 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
   async function suggestWithAI() {
     setAiLoading(true)
     setAiResult(null)
+    setDescBeforeAI(null)
     const { data, error: fnErr } = await supabase.functions.invoke('ai-assist', {
       body: { task: 'wo_triage', title: form.title, description: form.description, organization_id: organization?.id },
     })
@@ -239,7 +241,7 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
       setAiResult({ error: 'Couldn’t get a suggestion right now — please pick the fields manually.' })
     } else {
       setForm(f => ({ ...f, category: s.category, subcategory: s.subcategory || '', priority: s.priority }))
-      setAiResult({ reason: s.reason })
+      setAiResult({ reason: s.reason, description: s.description })
     }
     setAiLoading(false)
   }
@@ -687,11 +689,29 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
                     disabled={aiLoading || (!form.title.trim() && !form.description.trim())}
                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-brand-700 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/50 border border-brand-200 dark:border-brand-900 rounded-lg hover:bg-brand-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                     <Sparkles size={13} className={aiLoading ? 'animate-pulse' : ''} />
-                    {aiLoading ? 'Thinking...' : 'Suggest category & priority'}
+                    {aiLoading ? 'Thinking...' : 'Suggest category, priority & description'}
                   </button>
                   {aiResult?.reason && (
                     <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
                       <span className="font-semibold text-brand-600">AI suggested</span> — {categories.find(c => c.key === form.category)?.label ?? form.category}, {getPriority(form.priority).label} priority. {aiResult.reason} Review the fields above before saving.
+                    </p>
+                  )}
+                  {aiResult?.description && aiResult.description !== form.description && descBeforeAI === null && (
+                    <div className="mt-2 p-3 bg-brand-50/60 dark:bg-brand-950/30 border border-brand-100 dark:border-brand-900 rounded-lg">
+                      <div className="text-xs font-semibold text-brand-700 dark:text-brand-400 mb-1">Suggested description</div>
+                      <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{aiResult.description}</p>
+                      <button type="button"
+                        onClick={() => { setDescBeforeAI(form.description); set('description', aiResult.description) }}
+                        className="mt-2 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-brand-600 hover:bg-brand-700 rounded-lg transition-colors">
+                        <Check size={13} /> Use this description
+                      </button>
+                    </div>
+                  )}
+                  {descBeforeAI !== null && (
+                    <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                      Description replaced with the AI suggestion.{' '}
+                      <button type="button" onClick={() => { set('description', descBeforeAI); setDescBeforeAI(null) }}
+                        className="font-semibold text-brand-600 hover:underline">Undo</button>
                     </p>
                   )}
                   {aiResult?.error && <p className="mt-2 text-xs text-red-600">{aiResult.error}</p>}

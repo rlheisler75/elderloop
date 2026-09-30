@@ -8,8 +8,9 @@
 //      the UI always lets a person review before anything is saved.
 //
 // Tasks:
-//   wo_triage — suggest category / subcategory / priority for a new work order
-//               from its title + description. No resident health data involved.
+//   wo_triage — suggest category / subcategory / priority and a cleaned-up
+//               description for a new work order from its title + description.
+//               No resident health data involved.
 //
 // Deploy: supabase functions deploy ai-assist
 // Secrets: ANTHROPIC_API_KEY (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY are built in)
@@ -17,7 +18,11 @@
 import Anthropic from 'npm:@anthropic-ai/sdk'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
-const MODEL = 'claude-opus-5'
+// To switch models, change this one line. Haiku is ~5x cheaper than Opus 5;
+// the options below adapt automatically (Haiku 4.5 rejects `effort` and has no
+// server-side refusal fallback).
+const MODEL = 'claude-haiku-4-5-20251001'
+const IS_HAIKU = MODEL.startsWith('claude-haiku')
 const DAILY_LIMIT = 200 // Claude calls per org per rolling 24h
 
 const corsHeaders = {
@@ -87,13 +92,16 @@ async function askClaude(orgId: string, userId: string, task: string, system: st
   const response = await anthropic.beta.messages.create({
     model: MODEL,
     max_tokens: 2000,
-    // Server-side fallback: if a safety classifier declines, Anthropic re-runs
-    // the request on its recommended fallback model instead of failing.
-    betas: ['server-side-fallback-2026-07-01'],
-    // deno-lint-ignore no-explicit-any
-    fallbacks: 'default' as any,
-    // Routine classification — low effort keeps it fast and cheap
-    output_config: { effort: 'low', format: { type: 'json_schema', schema } },
+    ...(IS_HAIKU
+      ? { output_config: { format: { type: 'json_schema', schema } } }
+      : {
+          // Server-side fallback: if a safety classifier declines, Anthropic re-runs
+          // the request on its recommended fallback model instead of failing.
+          betas: ['server-side-fallback-2026-07-01'],
+          fallbacks: 'default',
+          // Routine classification — low effort keeps it fast and cheap
+          output_config: { effort: 'low', format: { type: 'json_schema', schema } },
+        }),
     system,
     messages: [{ role: 'user', content: prompt }],
   // deno-lint-ignore no-explicit-any
@@ -144,8 +152,9 @@ async function woTriage(orgId: string, userId: string, body: Record<string, unkn
       subcategory: { type: 'string', enum: ['', ...subKeys] },
       priority:    { type: 'string', enum: ['low', 'normal', 'high', 'urgent'] },
       reason:      { type: 'string' },
+      description: { type: 'string' },
     },
-    required: ['category', 'subcategory', 'priority', 'reason'],
+    required: ['category', 'subcategory', 'priority', 'reason', 'description'],
     additionalProperties: false,
   }
 
@@ -158,6 +167,10 @@ Priority guide — residents are older adults, so weigh fall, fire, water, and t
 - normal: needs fixing but no risk — drips, sticking doors, minor damage
 - low: cosmetic or routine — paint, bulbs, filter changes, cleanup
 "reason" is one short sentence staff will see explaining the priority.
+"description" is a clear work order description for the technician, 2-4 short sentences in plain language:
+what the problem is, where it is, and what was observed. For urgent hazards, add one line on keeping residents
+safe until it's fixed (e.g. block off the area). Use ONLY facts from the title and description — never invent
+room numbers, causes, or details. If the input is vague, keep the description short rather than guessing.
 
 Categories:
 ${catalog}`
