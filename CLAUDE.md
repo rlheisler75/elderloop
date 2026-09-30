@@ -46,6 +46,8 @@ This is the single source of truth for identity, org, and permissions — read i
 ### Multi-tenancy / billing model
 Each org has a `plan` (`starter`/`essential`/`professional`) and `billing_status` (`trialing`/`active`/`past_due`/`canceled`/`pilot`). Feature access is gated per-org via rows in `organization_modules` (keyed by `module_key`), not by plan directly. The Stripe webhook (`api/webhook.js`) is the single source of truth mapping a subscription's price ID to enabled modules: `PLAN_MODULE_KEYS` / `PLAN_LIMITS` maps + `enableModulesForPlan()`, triggered on `checkout.session.completed`, `customer.subscription.updated/deleted`, `invoice.payment_failed/succeeded`.
 
+**Plan enforcement is in the database, not just the UI:** restrictive RLS on `organization_modules` (`plan_modules_insert`/`plan_modules_update`) lets non-super-admins turn a module ON only if `plan_allows_module(org, module)` is true (starter / essential lists; professional, pilot, and anything else = all). That module list lives in four places that must stay in sync: `plan_allows_module()` (SQL), `src/lib/planModules.js` (Org Settings lock icons), `PLAN_MODULE_KEYS` in `api/webhook.js`, and the `create-org` Edge Function. The `trg_protect_org_billing_fields` trigger rejects changes to plan / billing / subscription / Stripe / limit / rep fields on `organizations` unless the caller is a super admin or server-side (service role). Resident/staff limits are still only checked client-side.
+
 **Adding a new gated module requires touching three places together:**
 1. `src/App.jsx` — new route + `<ProtectedRoute requireModule="...">`
 2. `src/components/layout/Layout.jsx` — new entry in `ALL_NAV` with the matching `module` key

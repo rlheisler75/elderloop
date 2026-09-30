@@ -15,7 +15,8 @@ import SupplyVendors from '../supply/SupplyVendors'
 import BillingTab from './BillingTab'
 import AiSettingsTab from './AiSettingsTab'
 import PccAuthorizationLetter from './PccAuthorizationLetter'
-import { CreditCard, Sparkles } from 'lucide-react'
+import { CreditCard, Sparkles, Lock } from 'lucide-react'
+import { planAllowsModule } from '../../lib/planModules'
 import { ALL_STATES } from '../../lib/complianceStates'
 import { DepartmentLevelEditor, getOrgDepartments } from '../staff/StaffManagement'
 
@@ -333,7 +334,9 @@ function EditUserModal({ user, orgId, departments, onClose, onSave }) {
 // ── Org Settings Modal ─────────────────────────────────────────
 function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
   const fileRef = useRef()
-  const { refreshModules, refreshOrganization } = useAuth()
+  const { refreshModules, refreshOrganization, isSuperAdmin } = useAuth()
+  // Org admins can turn any module off, but only on if their plan includes it (DB-enforced too)
+  const canEnable = (key) => isSuperAdmin || planAllowsModule(org.plan, key)
   const [form, setForm] = useState({
     name:    org.name    || '',
     address: org.address || '',
@@ -368,7 +371,7 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
   }
 
   const toggleModule = (key) => setEnabledModules(m =>
-    m.includes(key) ? m.filter(k => k !== key) : [...m, key])
+    m.includes(key) ? m.filter(k => k !== key) : canEnable(key) ? [...m, key] : m)
 
   const handleSave = async () => {
     setSaving(true); setError('')
@@ -381,15 +384,19 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
     }).eq('id', org.id)
     if (err) { setError(err.message); setSaving(false); return }
 
-    // Sync modules — update existing, insert new
+    // Sync modules — only write what changed (rewriting an unchanged, plan-locked
+    // module would be rejected by the plan_modules_* RLS policies)
     for (const mod of allModules) {
       const enabled = enabledModules.includes(mod.key)
       const exists  = modules.find(m => m.module_key === mod.key)
       if (exists) {
-        await supabase.from('organization_modules').update({ is_enabled: enabled })
+        if ((exists.is_enabled !== false) === enabled) continue
+        const { error: modErr } = await supabase.from('organization_modules').update({ is_enabled: enabled })
           .eq('organization_id', org.id).eq('module_key', mod.key)
+        if (modErr) { setError(`Couldn't update ${mod.label}: ${modErr.message}`); setSaving(false); return }
       } else if (enabled) {
-        await supabase.from('organization_modules').insert({ organization_id: org.id, module_key: mod.key, is_enabled: true })
+        const { error: modErr } = await supabase.from('organization_modules').insert({ organization_id: org.id, module_key: mod.key, is_enabled: true })
+        if (modErr) { setError(`Couldn't enable ${mod.label}: ${modErr.message}`); setSaving(false); return }
       }
     }
     setSaving(false)
@@ -478,13 +485,19 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Enabled Modules</label>
             <p className="text-xs text-slate-400 mb-3">Toggle which modules are visible in the sidebar for this community.</p>
             <div className="grid grid-cols-2 gap-2">
-              {allModules.map(m => (
-                <button key={m.key} onClick={() => toggleModule(m.key)}
-                  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition-all ${enabledModules.includes(m.key) ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-brand-300'}`}>
-                  {enabledModules.includes(m.key) ? <Check size={14} /> : <div className="w-3.5 h-3.5 rounded-sm border border-slate-300" />}
-                  {m.label}
-                </button>
-              ))}
+              {allModules.map(m => {
+                const on = enabledModules.includes(m.key)
+                const locked = !on && !canEnable(m.key)
+                return (
+                  <button key={m.key} onClick={() => toggleModule(m.key)} disabled={locked}
+                    title={locked ? 'Not included in your plan — upgrade under Billing' : ''}
+                    className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition-all ${on ? 'bg-brand-600 text-white border-brand-600' : locked ? 'border-slate-100 dark:border-slate-800 text-slate-300 dark:text-slate-600 cursor-not-allowed' : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-brand-300'}`}>
+                    {on ? <Check size={14} /> : locked ? <Lock size={13} /> : <div className="w-3.5 h-3.5 rounded-sm border border-slate-300" />}
+                    <span className="flex-1 text-left">{m.label}</span>
+                    {locked && <span className="text-[10px] font-semibold uppercase tracking-wide">Upgrade</span>}
+                  </button>
+                )
+              })}
             </div>
           </div>
 
