@@ -75,6 +75,7 @@ export default function CommunicationGuide() {
 
           <SectionBlock id="ai" num="05" title="Write with AI" roleNote="AI Add-on"
             dek="Write, polish, or translate any announcement or broadcast from a one-line brief — written for whoever you're sending to, and short enough for text messages when SMS is on.">
+            <Frame narrow src={SHOT('ai-message-writer.png')} alt="AI-written SMS to all residents" caption="Written for residents, categorized as a Reminder, and kept to 150 of 160 SMS characters" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
             <Steps items={[
               { k: 1, text: <>In <b className="text-slate-900">New Message</b> or <b className="text-slate-900">New Announcement</b>, pick your channels and audience first (for broadcasts), then open <b className="text-slate-900">Write with AI</b>.</> },

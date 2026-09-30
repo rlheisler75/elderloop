@@ -1,4 +1,4 @@
-import { Steps, Tip, SectionBlock, GuideHeader, GuideMasthead, GuideTOC, QuickRefTable, GuideFooter } from './TrainingComponents'
+import { Frame, Steps, Tip, SectionBlock, GuideHeader, GuideMasthead, GuideTOC, QuickRefTable, GuideFooter } from './TrainingComponents'
 
 const NAV = [
   { id: 'overview', num: '01', label: 'What AI Assist Does' },
@@ -76,6 +76,7 @@ export default function AiGuide() {
 
           <SectionBlock id="settings" num="03" title="Admin Settings" roleNote="Org Admins & CEOs"
             dek="Control AI per section of the app — turn it on or off and choose the model — and see this month's usage and estimated cost.">
+            <Frame src="/training/ai/ai-settings.png" alt="Admin Panel AI Add-on settings" caption="One card per section — on/off switch, model choice, and this month's suggestions and estimated cost" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
             <Steps items={[
               { k: 1, text: <>Go to <b className="text-slate-900">Admin Panel → AI Add-on</b>. Each section — Maintenance, Social Services, Marketing, Communication — has its own card.</> },

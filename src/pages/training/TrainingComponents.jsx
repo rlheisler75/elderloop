@@ -1,8 +1,9 @@
 import { useEffect } from 'react'
 
-export function Frame({ src, alt, caption }) {
+// narrow: for portrait captures of a single form/modal, so they don't stretch full width
+export function Frame({ src, alt, caption, narrow }) {
   return (
-    <div className="border border-slate-200 rounded-2xl overflow-hidden shadow-sm bg-white mb-6">
+    <div className={`border border-slate-200 rounded-2xl overflow-hidden shadow-sm bg-white mb-6 ${narrow ? 'max-w-md mx-auto' : ''}`}>
       <img src={src} alt={alt} className="w-full h-auto block" />
       <figcaption className="text-xs text-slate-400 px-4 py-2.5 border-t border-slate-100 bg-slate-50">{caption}</figcaption>
     </div>

@@ -143,6 +143,7 @@ export default function MarketingGuide() {
 
           <SectionBlock id="ai" num="10" title="AI Email Writer" roleNote="AI Add-on"
             dek="Describe the email in a sentence and let AI write the subject and body — using your merge tags, your community's name, and only the facts you gave it. Works in both campaign emails and templates.">
+            <Frame narrow src={SHOT('ai-email-writer.png')} alt="AI-written open house email" caption="A one-line brief becomes a full email — merge tags filled in, [PHONE] and [STAFF NAME] left for you to complete" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
             <Steps items={[
               { k: 1, text: <>Open a campaign's <b className="text-slate-900">Send Email</b> window (or <b className="text-slate-900">New Template</b>) and click <b className="text-slate-900">Write with AI</b> above the Subject.</> },

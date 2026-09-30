@@ -117,6 +117,7 @@ export default function MaintenanceGuide() {
 
           <SectionBlock id="ai" num="07" title="AI Assist" roleNote="AI Add-on"
             dek="Type what's wrong in your own words and let AI suggest the category, priority, and a clear description for the technician — you review everything before the ticket is saved.">
+            <Frame narrow src={SHOT('ai-suggest.png')} alt="AI suggestion on a new work order" caption="A loose handrail comes back Safety / Urgent, with a suggested description and a keep-residents-safe line" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
             <Steps items={[
               { k: 1, text: <>Click <b className="text-slate-900">New Work Order</b> and type a <b className="text-slate-900">Title</b> and <b className="text-slate-900">Description</b> the way you'd say it out loud — "handrail loose east hall by 112" is fine.</> },

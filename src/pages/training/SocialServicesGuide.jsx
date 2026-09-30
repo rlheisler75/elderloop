@@ -152,18 +152,21 @@ export default function SocialServicesGuide() {
           <SectionBlock id="ai" num="10" title="AI Assist" roleNote="AI Add-on · Clinical"
             dek="Three time-savers for documentation: turn rough notes into a structured case note, sort care conference notes into the right boxes, and get care-plan goal ideas drawn from a resident's records. Nothing is saved until you choose to use it.">
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Polish a case note</h3>
+            <Frame narrow src={SHOT('ai-case-note.png')} alt="Polished DAP case note suggestion" caption="Rough notes in, a Data / Assessment / Plan note out — with the resident's own words kept and a follow-up suggested" />
             <Steps items={[
               { k: 1, text: <>In <b className="text-slate-900">New Case Note</b>, type your notes into <b className="text-slate-900">Summary</b> however they come — shorthand and all.</> },
               { k: 2, text: <>Click <b className="text-slate-900">Polish note (DAP format)</b>. The AI rewrites them as <b className="text-slate-900">Data / Assessment / Plan</b>, keeps the resident's own words in quotes, and suggests whether a follow-up is needed and why.</> },
               { k: 3, text: <>Click <b className="text-slate-900">Use this note</b> to replace the Summary (and turn on Follow-up if it was suggested). <b className="text-slate-900">Undo</b> restores your original text.</> },
             ]} />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Organize care conference notes</h3>
+            <Frame narrow src={SHOT('ai-care-conference.png')} alt="Care conference notes organized into sections" caption="Goals reviewed with status, the new goal, and follow-ups with who's responsible — ready to drop into the form" />
             <Steps items={[
               { k: 1, text: <>During or after the meeting, type or paste your raw notes into <b className="text-slate-900">Meeting Summary</b>.</> },
               { k: 2, text: <>Click <b className="text-slate-900">Organize into sections</b>. The AI sorts everything into Meeting Summary, Goals Reviewed (with met / not met status), New Goals Set, and Follow-up Action Items — with who's responsible and the target date when your notes say so.</> },
               { k: 3, text: <>Review the preview and click <b className="text-slate-900">Use these</b> to fill all four boxes. Anything you'd already typed in the goal or follow-up boxes is kept and merged in. <b className="text-slate-900">Undo</b> puts everything back.</> },
             ]} />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Suggest care-plan goals</h3>
+            <Frame narrow src={SHOT('ai-goals.png')} alt="Suggested care-plan goals" caption="Each suggestion shows its category, review period, plan, and what in the record it's based on" />
             <Steps items={[
               { k: 1, text: <>In <b className="text-slate-900">New Goal</b>, pick the resident. Optionally type a focus in the Goal box first — e.g. "loneliness since roommate moved out".</> },
               { k: 2, text: <>Click <b className="text-slate-900">Suggest goals from this resident's records</b>. The AI reviews their social profile, recent case notes, mood logs, latest care conference, and existing goals, and suggests three measurable goals — each with a plan, a 30/60/90-day review period, and <b className="text-slate-900">what in the record it's based on</b>.</> },
