@@ -188,11 +188,14 @@ function LocationPickerButton({ value, onChange }) {
 }
 
 // ── Work Order Detail Modal ───────────────────────────────────
-function WOModal({ wo, onClose, onSave, staffList, residentList, categories, canEdit, canClose, canAssign }) {
+function WOModal({ wo, onClose, onSave, staffList, residentList, categories, canEdit, canClose, canAssign, canTriage = true }) {
   const { profile, organization } = useAuth()
   const aiEnabled = useAiSection('maintenance')
   const fileRef = useRef()
   const [editing, setEditing]   = useState(!wo)
+  // Tiered communities: a Maintenance employee works the job but can't re-triage it
+  // (wo_employee_field_guard enforces the same in the database)
+  const triageEditable = editing && (!wo || canTriage)
   const [form, setForm]         = useState(wo ? {
     title: wo.title, description: wo.description || '', category: wo.category, subcategory: wo.subcategory || '',
     priority: wo.priority, status: wo.status,
@@ -444,6 +447,18 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
             {!isNew && <StatusBadge status={form.status} />}
           </div>
           <div className="flex items-center gap-2">
+            {/* Tiered Maintenance employees take jobs from the open queue themselves */}
+            {!isNew && !canTriage && !wo.assigned_to && !editing && (
+              <button onClick={async () => {
+                  setError('')
+                  const { error: err } = await supabase.from('work_orders')
+                    .update({ assigned_to: profile.id, updated_at: new Date().toISOString() }).eq('id', wo.id)
+                  if (err) setError(err.message); else onSave()
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 rounded-lg transition-colors">
+                <Check size={14} /> Claim this job
+              </button>
+            )}
             {!isNew && canEdit && !editing && (
               <button onClick={() => setEditing(true)}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 dark:text-slate-300 hover:text-brand-600 border border-slate-200 dark:border-slate-700 hover:border-brand-300 rounded-lg transition-colors">
@@ -545,7 +560,7 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Category</label>
-                {editing
+                {triageEditable
                   ? <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value, subcategory: '' }))}
                       className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                       {topLevelCategories(categories).map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
@@ -554,7 +569,7 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Priority</label>
-                {editing
+                {triageEditable
                   ? <select value={form.priority} onChange={e => set('priority', e.target.value)}
                       className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                       {PRIORITIES.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
@@ -582,7 +597,7 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
               return (
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Subcategory</label>
-                  {editing
+                  {triageEditable
                     ? <select value={form.subcategory} onChange={e => set('subcategory', e.target.value)}
                         className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                         <option value="">— None —</option>
@@ -667,7 +682,7 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Due Date</label>
-                {editing
+                {triageEditable
                   ? <input type="date" value={form.due_date} onChange={e => set('due_date', e.target.value)}
                       className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
                   : <p className="text-sm text-slate-700 dark:text-slate-300">{wo.due_date ? new Date(wo.due_date).toLocaleDateString() : '—'}</p>}
@@ -726,7 +741,7 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
                 <label className="block text-xs font-semibold text-orange-700 dark:text-orange-400 uppercase tracking-wide mb-2 flex items-center gap-1.5">
                   <Truck size={13} /> Vendor Information
                 </label>
-                {editing ? (
+                {triageEditable ? (
                   <div className="grid grid-cols-2 gap-2">
                     <input value={form.vendor_name} onChange={e => set('vendor_name', e.target.value)}
                       className="px-3 py-2 border border-orange-200 dark:border-orange-900 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white dark:bg-slate-800 dark:text-slate-100"
@@ -991,7 +1006,12 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
 
 // ── Main Page ─────────────────────────────────────────────────
 export default function WorkOrders() {
-  const { profile, organization, hasDepartmentAccess } = useAuth()
+  const { profile, organization, hasDepartmentAccess, accessModel, tierFor } = useAuth()
+  // Tiered communities (src/lib/accessTiers.js): a Maintenance employee sees their
+  // own jobs plus the unassigned queue, and can't change priority/category/due/vendor.
+  const tieredEmployee = accessModel === 'tiered' && tierFor('work_orders') === 'employee'
+    && hasDepartmentAccess('maintenance', 'employee')
+  const [jobView, setJobView]         = useState('mine') // tiered employees: 'mine' | 'queue'
   const [workOrders, setWorkOrders]   = useState([])
   const [staffList, setStaffList]     = useState([])
   const [residentList, setResidentList] = useState([])
@@ -1059,7 +1079,9 @@ export default function WorkOrders() {
     const matchStatus   = filterStatus === 'all' || wo.status === filterStatus
     const matchCat      = filterCat === 'all' || wo.category === filterCat
     const matchPriority = filterPriority === 'all' || wo.priority === filterPriority
-    return matchSearch && matchStatus && matchCat && matchPriority
+    const matchJobView  = !tieredEmployee
+      || (jobView === 'mine' ? (wo.assigned_to === profile.id || wo.submitted_by === profile.id) : !wo.assigned_to)
+    return matchSearch && matchStatus && matchCat && matchPriority && matchJobView
   })
 
   // Stats
@@ -1170,6 +1192,23 @@ export default function WorkOrders() {
         ))}
       </div>
 
+      {/* Tiered Maintenance employees: my jobs vs. the unassigned queue they can claim */}
+      {tieredEmployee && mainView === 'work_orders' && (
+        <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl mb-4 w-fit" role="group" aria-label="Which jobs">
+          {[
+            { key: 'mine',  label: 'My jobs',    count: workOrders.filter(w => (w.assigned_to === profile.id || w.submitted_by === profile.id) && !['closed','cancelled'].includes(w.status)).length },
+            { key: 'queue', label: 'Open queue', count: workOrders.filter(w => !w.assigned_to).length },
+          ].map(v => (
+            <button key={v.key} onClick={() => setJobView(v.key)} aria-pressed={jobView === v.key}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${jobView === v.key
+                ? 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 shadow-sm'
+                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
+              {v.label} <span className="ml-1 text-xs text-slate-400">{v.count}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Search + Filters */}
       <div className="flex flex-wrap gap-2 mb-4">
         <div className="relative flex-1 min-w-64">
@@ -1240,6 +1279,7 @@ export default function WorkOrders() {
           canEdit={canEdit}
           canClose={canClose}
           canAssign={canAssign}
+          canTriage={!tieredEmployee}
         />
       )}
       </>)}
