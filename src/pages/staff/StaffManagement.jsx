@@ -568,7 +568,7 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
 }
 
 // ── Create Staff Modal ─────────────────────────────────────────
-function CreateStaffModal({ orgId, departments, onClose, onSave }) {
+function CreateStaffModal({ orgId, departments, onClose, onSave, onLimitHit }) {
   const [form, setForm] = useState({
     first_name: '', last_name: '', email: '',
     job_title: '', department: '', phone: '', role: 'staff',
@@ -595,6 +595,7 @@ function CreateStaffModal({ orgId, departments, onClose, onSave }) {
       },
     })
 
+    if (data?.limit_reached && onLimitHit) { setSaving(false); onLimitHit(); return }
     if (fnErr || !data?.success) {
       setError(data?.error || fnErr?.message || 'Failed to create staff member')
       setSaving(false); return
@@ -788,7 +789,14 @@ export default function StaffManagement() {
           <p className="text-slate-500 text-sm mt-0.5">Staff profiles, certifications, and compliance tracking</p>
         </div>
         {canCreateStaff && (
-          <button onClick={() => setShowAddStaff(true)}
+          <button onClick={() => {
+              // Starter-only staff limit (trg_enforce_staff_limit / create-user enforce it server-side);
+              // counts active non-resident/family profiles, same as the database
+              const limit = organization?.plan === 'starter' ? organization?.staff_limit : null
+              const activeStaff = staff.filter(s => s.is_active !== false).length
+              if (limit != null && activeStaff >= limit) { setLimitHit(true); return }
+              setShowAddStaff(true)
+            }}
             className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
             <Plus size={15} /> Add Staff Member
           </button>
@@ -954,6 +962,7 @@ export default function StaffManagement() {
           orgId={organization.id}
           departments={departments}
           onClose={() => setShowAddStaff(false)}
+          onLimitHit={() => { setShowAddStaff(false); setLimitHit(true) }}
           onSave={() => { setShowAddStaff(false); fetchAll() }} />
       )}
     </div>

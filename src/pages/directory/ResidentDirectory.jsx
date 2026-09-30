@@ -847,7 +847,9 @@ export default function ResidentDirectory() {
 
   const handleOpen   = (r) => { setSelected(r); setShowDetail(true) }
   const handleNew    = () => {
-    const limit = organization?.resident_limit
+    // Only Starter has limits (pilot orgs may carry column defaults); the
+    // trg_enforce_resident_limit trigger enforces the same rule server-side
+    const limit = organization?.plan === 'starter' ? organization?.resident_limit : null
     if (limit !== null && limit !== undefined && residents.length >= limit) {
       setLimitHit(true); return
     }
