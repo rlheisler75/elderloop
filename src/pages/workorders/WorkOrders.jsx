@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import { useAiSection } from '../../hooks/useAiSection'
 import {
   Plus, Search, Filter, Wrench, X, Edit2, ChevronDown,
   Clock, AlertTriangle, CheckCircle2, User, MapPin,
@@ -188,8 +189,8 @@ function LocationPickerButton({ value, onChange }) {
 
 // ── Work Order Detail Modal ───────────────────────────────────
 function WOModal({ wo, onClose, onSave, staffList, residentList, categories, canEdit, canClose, canAssign }) {
-  const { profile, organization, orgModules } = useAuth()
-  const aiEnabled = orgModules.includes('ai_assist')
+  const { profile, organization } = useAuth()
+  const aiEnabled = useAiSection('maintenance')
   const fileRef = useRef()
   const [editing, setEditing]   = useState(!wo)
   const [form, setForm]         = useState(wo ? {

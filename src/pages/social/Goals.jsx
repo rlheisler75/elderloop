@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import { useAiSection } from '../../hooks/useAiSection'
 import { Plus, X, Target, Search, Loader2, AlertCircle, Check,
          Heart, Users, Home, Brain, Sparkles, MoreHorizontal, ChevronDown, CalendarClock } from 'lucide-react'
 
@@ -27,9 +28,8 @@ const inputCls = 'w-full px-3 py-2.5 border border-slate-200 dark:border-slate-7
 const formatDate = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''
 
 function GoalModal({ goal, residents, orgId, canWrite, onClose, onSaved }) {
-  const { profile, orgModules } = useAuth()
-  // Clinical AI needs both switches; ai_assist_clinical stays off for real customers until a HIPAA BAA is signed
-  const aiEnabled = orgModules.includes('ai_assist') && orgModules.includes('ai_assist_clinical')
+  const { profile } = useAuth()
+  const aiEnabled = useAiSection('social_services')
   const isNew = !goal
   const [form, setForm] = useState({
     resident_id:   goal?.resident_id   || '',

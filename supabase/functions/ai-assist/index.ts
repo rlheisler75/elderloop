@@ -3,8 +3,9 @@
 // The Anthropic key lives only in this function's secrets (ANTHROPIC_API_KEY);
 // the browser never calls Claude directly. Each request is:
 //   1. authenticated (Supabase JWT from the caller),
-//   2. gated on the org having the `ai_assist` module enabled,
-//   3. dispatched by `task` to a handler that returns a *suggestion* only —
+//   2. gated on the org having the `ai_assist` module (the paid AI Add-on),
+//   3. checked against the org's per-section settings (ai_settings: on/off + model),
+//   4. dispatched by `task` to a handler that returns a *suggestion* only —
 //      the UI always lets a person review before anything is saved.
 //
 // Tasks:
@@ -28,11 +29,16 @@
 import Anthropic from 'npm:@anthropic-ai/sdk'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
-// To switch models, change this one line. Haiku is ~5x cheaper than Opus 5;
-// the options below adapt automatically (Haiku 4.5 rejects `effort` and has no
-// server-side refusal fallback).
-const MODEL = 'claude-haiku-4-5-20251001'
-const IS_HAIKU = MODEL.startsWith('claude-haiku')
+// Each org picks a model per section in Admin Panel → AI Add-on (ai_settings table).
+// Only these are accepted — must match the ai_settings.model check constraint and
+// AI_MODELS in src/pages/admin/AiSettingsTab.jsx.
+const ALLOWED_MODELS = ['claude-haiku-4-5-20251001', 'claude-sonnet-5', 'claude-opus-5']
+const DEFAULT_MODEL = 'claude-haiku-4-5-20251001'
+// Which Admin Panel section each task belongs to (ai_settings.section)
+const TASK_SECTIONS: Record<string, string> = {
+  wo_triage: 'maintenance',
+  ss_case_note: 'social_services', ss_care_conference: 'social_services', ss_goal_suggest: 'social_services',
+}
 const DAILY_LIMIT = 200 // Claude calls per org per rolling 24h
 // Tasks that handle resident health information (see header)
 const CLINICAL_TASKS = ['ss_case_note', 'ss_care_conference', 'ss_goal_suggest']
@@ -95,12 +101,21 @@ Deno.serve(async (req) => {
     if (!clin || clin.is_enabled === false) return json({ error: 'Clinical AI is not enabled for this organization' }, 403)
   }
 
+  // ── Per-section settings (no row = on, default model) ─────────
+  const section = TASK_SECTIONS[body.task as string]
+  if (!section) return json({ error: 'Unknown task' }, 400)
+  const { data: setting } = await admin
+    .from('ai_settings').select('enabled, model')
+    .eq('organization_id', orgId).eq('section', section).maybeSingle()
+  if (setting?.enabled === false) return json({ error: 'AI is turned off for this section' }, 403)
+  const model = ALLOWED_MODELS.includes(setting?.model) ? setting!.model : DEFAULT_MODEL
+
   try {
     switch (body.task) {
-      case 'wo_triage':    return json(await woTriage(orgId, user.id, body))
-      case 'ss_case_note': return json(await ssCaseNote(orgId, user.id, body))
-      case 'ss_care_conference': return json(await ssCareConference(orgId, user.id, body))
-      case 'ss_goal_suggest':    return json(await ssGoalSuggest(orgId, user.id, body))
+      case 'wo_triage':    return json(await woTriage(orgId, user.id, model, body))
+      case 'ss_case_note': return json(await ssCaseNote(orgId, user.id, model, body))
+      case 'ss_care_conference': return json(await ssCareConference(orgId, user.id, model, body))
+      case 'ss_goal_suggest':    return json(await ssGoalSuggest(orgId, user.id, model, body))
       default:             return json({ error: 'Unknown task' }, 400)
     }
   } catch (err) {
@@ -111,20 +126,20 @@ Deno.serve(async (req) => {
 
 // ── Shared Claude call ────────────────────────────────────────────
 // Returns parsed JSON matching `schema`, or null if the model declined.
-async function askClaude(orgId: string, userId: string, task: string, system: string, prompt: string, schema: object) {
+async function askClaude(orgId: string, userId: string, model: string, task: string, system: string, prompt: string, schema: object) {
   const response = await anthropic.beta.messages.create({
-    model: MODEL,
+    model,
     max_tokens: 2000,
-    ...(IS_HAIKU
-      ? { output_config: { format: { type: 'json_schema', schema } } }
-      : {
-          // Server-side fallback: if a safety classifier declines, Anthropic re-runs
-          // the request on its recommended fallback model instead of failing.
-          betas: ['server-side-fallback-2026-07-01'],
-          fallbacks: 'default',
-          // Routine classification — low effort keeps it fast and cheap
-          output_config: { effort: 'low', format: { type: 'json_schema', schema } },
-        }),
+    // Haiku 4.5 rejects `effort`; Sonnet 5 / Opus 5 take it (low keeps these
+    // routine drafting tasks fast and cheap)
+    output_config: model.startsWith('claude-haiku')
+      ? { format: { type: 'json_schema', schema } }
+      : { effort: 'low', format: { type: 'json_schema', schema } },
+    // Opus: if a safety classifier declines, Anthropic re-runs the request on
+    // its recommended fallback model instead of failing
+    ...(model.startsWith('claude-opus')
+      ? { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' }
+      : {}),
     system,
     messages: [{ role: 'user', content: prompt }],
   // deno-lint-ignore no-explicit-any
@@ -147,7 +162,7 @@ async function askClaude(orgId: string, userId: string, task: string, system: st
 }
 
 // ── wo_triage ─────────────────────────────────────────────────────
-async function woTriage(orgId: string, userId: string, body: Record<string, unknown>) {
+async function woTriage(orgId: string, userId: string, model: string, body: Record<string, unknown>) {
   const title = String(body.title || '').slice(0, 300)
   const description = String(body.description || '').slice(0, 4000)
   if (!title.trim() && !description.trim()) throw new Error('Nothing to triage')
@@ -198,7 +213,7 @@ room numbers, causes, or details. If the input is vague, keep the description sh
 Categories:
 ${catalog}`
 
-  const result = await askClaude(orgId, userId, 'wo_triage', system,
+  const result = await askClaude(orgId, userId, model, 'wo_triage', system,
     `Title: ${title}\nDescription: ${description || '(none)'}`, schema)
   if (!result) return { suggestion: null }
 
@@ -213,7 +228,7 @@ const CONTACT_LABELS: Record<string, string> = {
   in_person: 'In person', phone_call: 'Phone call', family_meeting: 'Family meeting', email: 'Email', other: 'Other',
 }
 
-async function ssCaseNote(orgId: string, userId: string, body: Record<string, unknown>) {
+async function ssCaseNote(orgId: string, userId: string, model: string, body: Record<string, unknown>) {
   const notes = String(body.notes || '').slice(0, 6000)
   if (!notes.trim()) throw new Error('Nothing to polish')
   const contact = CONTACT_LABELS[String(body.contact_type)] || 'Other'
@@ -244,13 +259,13 @@ Rules:
 "follow_up_needed" is true if the notes describe anything that needs a later action or check-in.
 "follow_up_reason" is one short sentence saying why (or "" when false).`
 
-  const result = await askClaude(orgId, userId, 'ss_case_note', system,
+  const result = await askClaude(orgId, userId, model, 'ss_case_note', system,
     `Contact type: ${contact}\nRough notes:\n${notes}`, schema)
   return { suggestion: result }
 }
 
 // ── ss_care_conference (CLINICAL) ─────────────────────────────────
-async function ssCareConference(orgId: string, userId: string, body: Record<string, unknown>) {
+async function ssCareConference(orgId: string, userId: string, model: string, body: Record<string, unknown>) {
   const field = (k: string) => String(body[k] || '').slice(0, 6000).trim()
   const sections = [
     ['Meeting notes', field('summary')],
@@ -285,7 +300,7 @@ Rules:
 - Refer to the person as "the resident" (no names). Refer to other people by role (e.g. "the resident's son", "DON"), not by name.
 - Objective, respectful, person-centered language. Keep safety concerns clearly visible.`
 
-  const result = await askClaude(orgId, userId, 'ss_care_conference', system,
+  const result = await askClaude(orgId, userId, model, 'ss_care_conference', system,
     sections.map(([label, v]) => `${label}:\n${v}`).join('\n\n'), schema)
   return { suggestion: result }
 }
@@ -294,7 +309,7 @@ Rules:
 // Keys must match GOAL_CATEGORIES in src/pages/social/Goals.jsx
 const GOAL_CATEGORY_KEYS = ['social_engagement', 'emotional_wellbeing', 'family_relationships', 'independence_adl', 'cognitive_behavioral', 'other']
 
-async function ssGoalSuggest(orgId: string, userId: string, body: Record<string, unknown>) {
+async function ssGoalSuggest(orgId: string, userId: string, model: string, body: Record<string, unknown>) {
   const residentId = String(body.resident_id || '')
   if (!/^[0-9a-f-]{36}$/i.test(residentId)) throw new Error('Bad resident id')
 
@@ -377,6 +392,6 @@ Rules:
 - Refer to the person as "Resident" (no names); refer to others by role. Respectful, person-centered language.
 - Goals are suggestions for the care team's review, not clinical orders.`
 
-  const result = await askClaude(orgId, userId, 'ss_goal_suggest', system, parts.join('\n\n'), schema)
+  const result = await askClaude(orgId, userId, model, 'ss_goal_suggest', system, parts.join('\n\n'), schema)
   return { suggestion: result }
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import { useAiSection } from '../../hooks/useAiSection'
 import { Plus, X, Users, Loader2, AlertCircle, Check, ChevronDown, Calendar, Sparkles } from 'lucide-react'
 
 // Sections the AI organizer fills, in display order
@@ -25,9 +26,8 @@ function today() {
 }
 
 function ConferenceModal({ residents, staff, orgId, conference, canWrite, onClose, onSaved }) {
-  const { profile, orgModules } = useAuth()
-  // Clinical AI needs both switches; ai_assist_clinical stays off for real customers until a HIPAA BAA is signed
-  const aiEnabled = orgModules.includes('ai_assist') && orgModules.includes('ai_assist_clinical')
+  const { profile } = useAuth()
+  const aiEnabled = useAiSection('social_services')
   const isNew = !conference
   const [form, setForm] = useState({
     resident_id:         conference?.resident_id || '',

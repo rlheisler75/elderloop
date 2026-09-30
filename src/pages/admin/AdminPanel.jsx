@@ -13,8 +13,9 @@ import UserPermissions from './UserPermissions'
 import RoleTemplates from './RoleTemplates'
 import SupplyVendors from '../supply/SupplyVendors'
 import BillingTab from './BillingTab'
+import AiSettingsTab from './AiSettingsTab'
 import PccAuthorizationLetter from './PccAuthorizationLetter'
-import { CreditCard } from 'lucide-react'
+import { CreditCard, Sparkles } from 'lucide-react'
 import { ALL_STATES } from '../../lib/complianceStates'
 import { DepartmentLevelEditor, getOrgDepartments } from '../staff/StaffManagement'
 
@@ -658,6 +659,7 @@ export default function AdminPanel() {
     { key: 'lists',        label: 'Lists & Pick Lists', icon: List },
     { key: 'pcc',          label: 'PointClickCare',     icon: Plug },
     { key: 'billing',      label: 'Billing',            icon: CreditCard },
+    { key: 'ai',           label: 'AI Add-on',          icon: Sparkles },
   ]
 
   return (
@@ -876,6 +878,8 @@ export default function AdminPanel() {
       {tab === 'vendors' && <SupplyVendors />}
       {/* ── BILLING TAB ── */}
       {tab === 'billing' && <BillingTab />}
+
+      {tab === 'ai' && <AiSettingsTab orgId={currentOrgId} />}
 
       {/* ── LISTS TAB ── */}
       {tab === 'lists' && (

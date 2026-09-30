@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import { useAiSection } from '../../hooks/useAiSection'
 import { Plus, X, ClipboardList, Search, Loader2, AlertCircle, Check,
          Phone, Users, Mail, MessageSquare, ChevronDown, ShieldCheck, Sparkles } from 'lucide-react'
 
@@ -17,9 +18,8 @@ const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(
 const inputCls = 'w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100'
 
 function CaseNoteModal({ note, residents, orgId, canWrite, onClose, onSaved }) {
-  const { profile, orgModules } = useAuth()
-  // Clinical AI needs both switches; ai_assist_clinical stays off for real customers until a HIPAA BAA is signed
-  const aiEnabled = orgModules.includes('ai_assist') && orgModules.includes('ai_assist_clinical')
+  const { profile } = useAuth()
+  const aiEnabled = useAiSection('social_services')
   const isNew = !note
   const [form, setForm] = useState({
     resident_id:       note?.resident_id       || '',
