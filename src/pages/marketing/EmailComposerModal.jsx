@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { Modal, Field, inputCls, selectCls } from './ui'
 import { LEAD_STATUSES, CARE_LEVELS, fmt } from './constants'
+import AiEmailWriter from './AiEmailWriter'
 
 export default function EmailComposerModal({ campaign, leads, onClose }) {
   const [subject, setSubject] = useState('')
@@ -112,6 +113,9 @@ export default function EmailComposerModal({ campaign, leads, onClose }) {
                 </select>
               </Field>
             )}
+            <AiEmailWriter orgId={campaign.organization_id} subject={subject} body={body}
+              statuses={statusFilter} careLevels={careLevelFilter}
+              onApply={(s, b) => { setSubject(s); setBody(b) }} />
             <Field label="Subject" required>
               <input className={inputCls} value={subject} onChange={e=>setSubject(e.target.value)} placeholder="Come tour our community this spring" />
             </Field>

@@ -3,6 +3,7 @@ import { supabase } from '../../../lib/supabase'
 import { useAuth } from '../../../context/AuthContext'
 import { Plus, Edit2, Trash2, FileText } from 'lucide-react'
 import { Modal, Field, inputCls } from '../ui'
+import AiEmailWriter from '../AiEmailWriter'
 
 function TemplateForm({ template, onSave, onClose }) {
   const { profile } = useAuth()
@@ -32,6 +33,8 @@ function TemplateForm({ template, onSave, onClose }) {
         <Field label="Template Name" required>
           <input className={inputCls} value={name} onChange={e => setName(e.target.value)} placeholder="Spring Open House Invite" />
         </Field>
+        <AiEmailWriter orgId={profile?.organization_id} subject={subject} body={body}
+          onApply={(s, b) => { setSubject(s); setBody(b) }} />
         <Field label="Subject" required>
           <input className={inputCls} value={subject} onChange={e => setSubject(e.target.value)} placeholder="Come tour our community this spring" />
         </Field>

@@ -22,6 +22,9 @@
 //   ss_goal_suggest — suggest 3 care-plan goals for a resident from their Social
 //               Services records (read server-side, org-checked, name never sent).
 //               CLINICAL (same gate).
+//   mk_email_draft — write or improve a marketing email (subject + plain-text body
+//               with merge tags) from a staff brief + audience filters. No lead
+//               data is sent — only the brief, filters, and community name/city.
 //
 // Deploy: supabase functions deploy ai-assist
 // Secrets: ANTHROPIC_API_KEY (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY are built in)
@@ -38,6 +41,7 @@ const DEFAULT_MODEL = 'claude-haiku-4-5-20251001'
 const TASK_SECTIONS: Record<string, string> = {
   wo_triage: 'maintenance',
   ss_case_note: 'social_services', ss_care_conference: 'social_services', ss_goal_suggest: 'social_services',
+  mk_email_draft: 'marketing',
 }
 const DAILY_LIMIT = 200 // Claude calls per org per rolling 24h
 // Tasks that handle resident health information (see header)
@@ -116,6 +120,7 @@ Deno.serve(async (req) => {
       case 'ss_case_note': return json(await ssCaseNote(orgId, user.id, model, body))
       case 'ss_care_conference': return json(await ssCareConference(orgId, user.id, model, body))
       case 'ss_goal_suggest':    return json(await ssGoalSuggest(orgId, user.id, model, body))
+      case 'mk_email_draft':     return json(await mkEmailDraft(orgId, user.id, model, body))
       default:             return json({ error: 'Unknown task' }, 400)
     }
   } catch (err) {
@@ -393,5 +398,57 @@ Rules:
 - Goals are suggestions for the care team's review, not clinical orders.`
 
   const result = await askClaude(orgId, userId, model, 'ss_goal_suggest', system, parts.join('\n\n'), schema)
+  return { suggestion: result }
+}
+
+// ── mk_email_draft ────────────────────────────────────────────────
+const TONES: Record<string, string> = {
+  warm:         'Warm and personal, like a caring staff member writing to a family.',
+  professional: 'Polished and professional, still friendly.',
+  short:        'Short and direct — 3 to 5 sentences, one clear ask.',
+}
+const LABEL = (s: string) => s.replace(/_/g, ' ')
+
+async function mkEmailDraft(orgId: string, userId: string, model: string, body: Record<string, unknown>) {
+  const brief = String(body.brief || '').slice(0, 2000).trim()
+  const curSubject = String(body.subject || '').slice(0, 300).trim()
+  const curBody = String(body.body || '').slice(0, 6000).trim()
+  const improve = body.mode === 'improve' && (curSubject || curBody)
+  if (!brief && !improve) throw new Error('Nothing to write from')
+
+  // Community name/city only — no lead data
+  const { data: org } = await admin.from('organizations').select('name, city, state').eq('id', orgId).single()
+  const list = (v: unknown) => Array.isArray(v) ? v.slice(0, 20).map(x => LABEL(String(x))).join(', ') : ''
+  const statuses = list(body.statuses)
+  const careLevels = list(body.care_levels)
+
+  const schema = {
+    type: 'object',
+    properties: { subject: { type: 'string' }, body: { type: 'string' } },
+    required: ['subject', 'body'],
+    additionalProperties: false,
+  }
+
+  const system = `You write marketing emails for a senior living community, sent to people who inquired about it (usually adult children or spouses of a prospective resident, sometimes the prospective resident).
+Community: ${org?.name ?? 'the community'}${org?.city ? `, ${org.city}${org.state ? `, ${org.state}` : ''}` : ''}.
+
+Output a "subject" (under 70 characters, no emoji, not clickbait) and a plain-text "body".
+Body rules:
+- Plain text only: no HTML, no markdown, no bullet symbols other than "- ". Short paragraphs separated by blank lines.
+- Open with "Hi {{first_name}}," — {{first_name}} is the person who inquired. Use {{prospect_first_name}} only when referring to the prospective resident (e.g. "we'd love for {{prospect_first_name}} to join us"). Use no other merge tags and never invent names.
+- Use ONLY facts from the brief (dates, times, prices, amenities, offers). If a needed detail is missing, write a clear placeholder in square brackets like [DATE], [TIME], [PHONE], [STAFF NAME] for staff to fill in. Never invent specifics.
+- One clear call to action (schedule a tour, RSVP, call us).
+- Sign off with "Warm regards," then "[STAFF NAME]" and "${org?.name ?? '[COMMUNITY NAME]'}".
+- Do NOT add an unsubscribe line or footer — the system adds it.
+- Respectful, never pushy: no false urgency, no guilt about family decisions, no promises about health outcomes or care results.
+- Fair-housing safe: never express preference for or against anyone based on race, color, religion, sex, disability, familial status, national origin, or age beyond the community's stated senior living focus.`
+
+  const parts: string[] = []
+  if (brief) parts.push(`Brief from staff:\n${brief}`)
+  if (statuses || careLevels) parts.push(`Audience: leads${statuses ? ` in stage(s): ${statuses}` : ''}${careLevels ? `${statuses ? ';' : ''} interested in: ${careLevels}` : ''}. Tailor the message to where they are.`)
+  parts.push(`Tone: ${TONES[String(body.tone)] || TONES.warm}`)
+  if (improve) parts.push(`Improve this existing draft — keep its facts and intent, fix clarity, tone, and structure, and apply the rules above:\nSubject: ${curSubject}\nBody:\n${curBody}`)
+
+  const result = await askClaude(orgId, userId, model, 'mk_email_draft', system, parts.join('\n\n'), schema)
   return { suggestion: result }
 }
