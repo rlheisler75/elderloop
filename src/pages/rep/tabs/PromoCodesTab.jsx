@@ -67,6 +67,7 @@ function MyLinkCard() {
 const PLAN_OPTIONS = [
   { value: '', label: 'Any' },
   { value: 'essential', label: 'Essential' },
+  { value: 'plus', label: 'Plus' },
   { value: 'professional', label: 'Professional' },
 ]
 

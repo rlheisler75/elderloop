@@ -35,7 +35,7 @@ export default function DirectoryGuide() {
             ]} />
             <Tip>A green <b>Public</b> badge means the resident opted into being visible in the in-portal directory other residents can browse — it never exposes phone, medical, or emergency-contact info there.</Tip>
             <div className="mt-4" />
-            <Tip warn>The <b className="text-slate-900">Starter</b> plan includes up to 50 active residents and <b className="text-slate-900">Essential</b> up to 100. At the limit, <b className="text-slate-900">Add Resident</b> shows an upgrade prompt, and imports (CSV or PointClickCare) stop adding residents once the limit is reached. Deactivating a resident who has moved out frees a spot; The Professional plan has no resident limit.</Tip>
+            <Tip warn>The <b className="text-slate-900">Starter</b> plan includes up to 50 active residents, <b className="text-slate-900">Essential</b> up to 100, and <b className="text-slate-900">Plus</b> up to 200. At the limit, <b className="text-slate-900">Add Resident</b> shows an upgrade prompt, and imports (CSV or PointClickCare) stop adding residents once the limit is reached. Deactivating a resident who has moved out frees a spot. The Professional plan has no resident limit.</Tip>
           </SectionBlock>
 
           <SectionBlock id="contacts" num="02" title="Emergency & Medical Contacts"

@@ -8,6 +8,7 @@ import RepAccountsTab from './RepAccountsTab'
 import RepCommissionsTab from './RepCommissionsTab'
 import PlatformActivityTab from './PlatformActivityTab'
 import { useAuth } from '../../context/AuthContext'
+import { PLAN_LIMITS } from '../../lib/planModules'
 import {
   Building2, Users, Shield, Plus, Settings, CheckCircle2,
   Activity, Globe, BarChart3, Eye, LogOut, Zap, X,
@@ -27,6 +28,7 @@ const BILLING_LABELS = {
 const PLAN_LABELS = {
   starter:      'Starter — Free',
   essential:    'Essential — $299',
+  plus:         'Plus — $599',
   professional: 'Professional — $999',
   // Legacy
   community:    'Professional — $999',
@@ -51,6 +53,7 @@ function AddOrgModal({ onClose, onSave }) {
       contact_name: form.contact_name || null,
       contact_email: form.contact_email || null,
       plan: form.plan,
+      ...(PLAN_LIMITS[form.plan] || {}),
       billing_status: form.billing_status,
       billing_note: form.billing_note || null,
       rep_code: form.rep_code?.trim().toUpperCase() || null,
@@ -114,6 +117,7 @@ function AddOrgModal({ onClose, onSave }) {
                 className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                 <option value="starter">Starter — Free</option>
                 <option value="essential">Essential — $299/mo</option>
+                <option value="plus">Plus — $599/mo</option>
                 <option value="professional">Professional — $999/mo</option>
                 <option value="pilot">Pilot (manual)</option>
               </select>
@@ -487,7 +491,7 @@ export default function SuperAdminDashboard() {
       pilot_orgs:   orgData.filter(o => o.billing_status === 'pilot').length,
       total_users:  profileData?.length || 0,
       mrr:          orgData.filter(o => o.billing_status === 'active').reduce((a, o) => {
-        const prices = { essential: 299, professional: 999, community: 999 }
+        const prices = { essential: 299, plus: 599, professional: 999, community: 999 }
         return a + (prices[o.plan] || 0)
       }, 0),
     })
@@ -684,9 +688,10 @@ export default function SuperAdminDashboard() {
                             <td className="px-5 py-4">
                               <button
                                 onClick={async () => {
-                                  const plans = ['starter','community','enterprise','pilot']
+                                  const plans = ['starter','essential','plus','professional','pilot']
                                   const next  = plans[(plans.indexOf(org.plan || 'pilot') + 1) % plans.length]
-                                  await supabase.from('organizations').update({ plan: next }).eq('id', org.id)
+                                  // Caps follow the plan (pilot keeps whatever it had — it's never capped)
+                                  await supabase.from('organizations').update({ plan: next, ...(PLAN_LIMITS[next] || {}) }).eq('id', org.id)
                                   fetchAll()
                                 }}
                                 title="Click to change plan"

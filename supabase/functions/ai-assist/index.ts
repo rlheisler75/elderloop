@@ -3,7 +3,9 @@
 // The Anthropic key lives only in this function's secrets (ANTHROPIC_API_KEY);
 // the browser never calls Claude directly. Each request is:
 //   1. authenticated (Supabase JWT from the caller),
-//   2. gated on the org having the `ai_assist` module (the paid AI Add-on),
+//   2. gated on the org having the `ai_assist` module (the paid AI Add-on, or
+//      included with Professional) and within its daily call cap and monthly
+//      cost allowance (organizations.ai_monthly_budget),
 //   3. checked against the org's per-section settings (ai_settings: on/off + model),
 //   4. dispatched by `task` to a handler that returns a *suggestion* only —
 //      the UI always lets a person review before anything is saved.
@@ -100,6 +102,18 @@ Deno.serve(async (req) => {
     .from('ai_usage').select('id', { count: 'exact', head: true })
     .eq('organization_id', orgId).gte('created_at', since)
   if ((count ?? 0) >= DAILY_LIMIT) return json({ error: 'Daily AI limit reached for this organization. Please try again tomorrow.' }, 429)
+
+  // ── Monthly cost allowance ────────────────────────────────────
+  // organizations.ai_monthly_budget (USD, super-admin editable) vs. this month's
+  // estimated Anthropic cost — ai_month_cost() prices tokens per model. Stops a
+  // community on a pricier model from costing more than its AI revenue.
+  const [{ data: org }, { data: monthCost }] = await Promise.all([
+    admin.from('organizations').select('ai_monthly_budget').eq('id', orgId).single(),
+    admin.rpc('ai_month_cost', { p_org: orgId }),
+  ])
+  if (org && Number(monthCost ?? 0) >= Number(org.ai_monthly_budget)) {
+    return json({ error: "Your community's AI allowance for this month is used up. It resets on the 1st — choosing Haiku 4.5 in Admin Panel → AI Add-on makes it go further." }, 429)
+  }
 
   // ── Clinical tasks need the separate clinical switch ──────────
   if (CLINICAL_TASKS.includes(body.task as string)) {

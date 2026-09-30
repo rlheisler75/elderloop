@@ -13,7 +13,7 @@ const respond = (data: object, status = 200) =>
   })
 
 // Keep in sync with plan_allows_module() (SQL), src/lib/planModules.js, and
-// PLAN_MODULE_KEYS in api/webhook.js. Essential and Professional both get every
+// PLAN_MODULE_KEYS in api/webhook.js. Essential, Plus, and Professional all get every
 // module; they differ only in resident/staff caps (PLAN_LIMITS below).
 const ALL_MODULES = [
   'activities','central_supply','chapel','communication','dietary','directory',
@@ -24,12 +24,14 @@ const ALL_MODULES = [
 const PLAN_MODULE_KEYS: Record<string, string[]> = {
   starter:      ['directory', 'staff', 'communication', 'family'],
   essential:    ALL_MODULES,
+  plus:         ALL_MODULES,
   professional: ALL_MODULES,
 }
 
 const PLAN_LIMITS: Record<string, { residents: number | null; staff: number | null }> = {
   starter:      { residents: 50,   staff: 10   },
-  essential:    { residents: 100,  staff: 20   },
+  essential:    { residents: 100,  staff: 40   },
+  plus:         { residents: 200,  staff: 75   },
   professional: { residents: null, staff: null },
 }
 
@@ -74,7 +76,7 @@ Deno.serve(async (req: Request) => {
     if (password.length < 8)
       return respond({ success: false, error: 'Password must be at least 8 characters.' })
 
-    const validPlan = ['starter', 'essential', 'professional'].includes(plan) ? plan : 'starter'
+    const validPlan = ['starter', 'essential', 'plus', 'professional'].includes(plan) ? plan : 'starter'
     const limits = PLAN_LIMITS[validPlan]
     const moduleKeys = PLAN_MODULE_KEYS[validPlan] || PLAN_MODULE_KEYS['starter']
 

@@ -55,7 +55,7 @@ const PLANS = [
     desc: 'The full platform — every module — for communities up to 100 residents.',
     badge: null,
     features: [
-      'Up to 100 residents & 20 staff',
+      'Up to 100 residents & 40 staff',
       'Every module, including SMS messaging',
       'Nursing, Incidents & Social Services',
       'Activities, Chapel & Dietary',
@@ -71,14 +71,32 @@ const PLANS = [
     highlight: false,
   },
   {
+    name: 'Plus',
+    price: '$599',
+    period: '/mo',
+    desc: 'The full platform for growing communities up to 200 residents.',
+    badge: null,
+    features: [
+      'Everything in Essential',
+      'Up to 200 residents & 75 staff',
+      'AI Add-on available',
+      'Priority email support',
+    ],
+    note: null,
+    cta: 'Get Started',
+    ctaLink: '/signup?plan=plus',
+    highlight: false,
+  },
+  {
     name: 'Professional',
     price: '$999',
     period: '/mo',
-    desc: 'The full platform with no resident or staff limits.',
+    desc: 'The full platform with no limits — AI included.',
     badge: 'Most Popular',
     features: [
-      'Everything in Essential',
+      'Everything in Plus',
       'Unlimited residents & staff',
+      'AI Add-on included',
       'Every new module we build — included',
       'Dedicated onboarding & phone support',
     ],
@@ -90,7 +108,7 @@ const PLANS = [
 ]
 
 const DEMO_ACCOUNTS = [
-  { role: 'CEO',          email: 'demo.ceo@elderloop.xyz',          desc: 'Executive view — KPI dashboard, all modules, high-level reporting' },
+  { role: 'CEO',          email: 'demo.ceo@elderloop.xyz',          desc: 'Administrator Dashboard — KPIs, all modules, high-level reporting' },
   { role: 'Org Admin',    email: 'demo.admin@elderloop.xyz',        desc: 'Full platform admin — users, modules, settings, all data' },
   { role: 'Supervisor',   email: 'demo.supervisor@elderloop.xyz',   desc: 'Shift supervisor — staff management, approvals, operational view' },
   { role: 'Nursing',      email: 'demo.nursing@elderloop.xyz',      desc: 'LPN view — care notes, vitals, medications, nursing documentation' },
@@ -383,7 +401,7 @@ export default function LandingPage() {
             </h2>
             <p className="text-slate-500 text-lg">No setup fees. No contracts. Start free and grow when you're ready.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-center">
             {PLANS.map(plan => (
               <div key={plan.name}
                 className={`rounded-3xl p-8 flex flex-col ${plan.highlight
@@ -429,7 +447,7 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
-          <p className="text-center text-slate-400 text-sm mt-8">Starter is free forever — no credit card required. Essential and Professional plans billed monthly, cancel any time.</p>
+          <p className="text-center text-slate-400 text-sm mt-8">Starter is free forever — no credit card required. Essential, Plus, and Professional plans billed monthly, cancel any time.</p>
         </div>
       </section>
 

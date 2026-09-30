@@ -198,7 +198,7 @@ export default function Layout() {
             <NavLink to="/app/ceo"
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${isActive ? 'bg-purple-700 text-white' : 'text-purple-400 hover:bg-purple-900/50 hover:text-white'}`}>
-              <TrendingUp size={18} /><span>Executive Dashboard</span>
+              <TrendingUp size={18} /><span>Administrator Dashboard</span>
             </NavLink>
           )}
 

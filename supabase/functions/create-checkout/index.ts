@@ -15,9 +15,11 @@ const respond = (data: object, status = 200) =>
 
 const PRICE_IDS: Record<string, string> = {
   essential:    Deno.env.get('STRIPE_PRICE_ESSENTIAL')    ?? '',
+  plus:         Deno.env.get('STRIPE_PRICE_PLUS')         ?? '',
   professional: Deno.env.get('STRIPE_PRICE_PROFESSIONAL') ?? '',
 }
-// AI Add-on — a second line item on an Essential/Professional subscription.
+// AI Add-on — a second line item on an Essential/Plus subscription (Professional
+// includes AI, so the add-on line is dropped when upgrading to it).
 // Same price id must be set as STRIPE_PRICE_AI_ADDON in Vercel (api/webhook.js).
 const AI_ADDON_PRICE = Deno.env.get('STRIPE_PRICE_AI_ADDON') ?? ''
 
@@ -57,8 +59,10 @@ Deno.serve(async (req: Request) => {
     // ── AI ADD-ON: add or remove the add-on line item ─────────
     if (body.addon === 'ai') {
       if (!AI_ADDON_PRICE) return respond({ success: false, error: 'The AI Add-on isn’t available yet. Please contact support.' })
-      if (!['essential', 'professional'].includes(org.plan) || !org.stripe_subscription_id)
-        return respond({ success: false, error: 'The AI Add-on requires an Essential or Professional plan. Upgrade your plan first.' })
+      if (org.plan === 'professional')
+        return respond({ success: false, error: 'AI is already included with your Professional plan.' })
+      if (!['essential', 'plus'].includes(org.plan) || !org.stripe_subscription_id)
+        return respond({ success: false, error: 'The AI Add-on requires an Essential or Plus plan. Upgrade your plan first.' })
 
       const subscription = await stripe.subscriptions.retrieve(org.stripe_subscription_id)
       if (!['active', 'trialing', 'past_due'].includes(subscription.status))
@@ -118,12 +122,19 @@ Deno.serve(async (req: Request) => {
     // ── UPGRADE PATH: already has a subscription ──────────────
     if (org.stripe_subscription_id) {
       const subscription = await stripe.subscriptions.retrieve(org.stripe_subscription_id)
-      // The plan item — not the AI Add-on line, which is kept as-is
+      // The plan item — not the AI Add-on line
       const planItem = subscription.items.data.find(i => i.price.id !== AI_ADDON_PRICE) ?? subscription.items.data[0]
+      // Professional includes AI: drop the add-on line so they aren't billed twice
+      // (the webhook's syncAiAddon keeps ai_assist on for Professional)
+      const addonItem = AI_ADDON_PRICE ? subscription.items.data.find(i => i.price.id === AI_ADDON_PRICE) : undefined
+      const dropAddon = plan === 'professional' && addonItem
 
       // Update subscription with proration (Stripe handles the math)
       await stripe.subscriptions.update(org.stripe_subscription_id, {
-        items: [{ id: planItem.id, price: priceId }],
+        items: [
+          { id: planItem.id, price: priceId },
+          ...(dropAddon ? [{ id: addonItem.id, deleted: true }] : []),
+        ],
         proration_behavior: 'always_invoice', // charge prorated amount immediately
         metadata: { organization_id: org.id },
       })

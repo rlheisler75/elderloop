@@ -37,7 +37,7 @@ const PLANS = [
     color:   'border-slate-200 dark:border-slate-700',
     badge:   null,
     features: [
-      'Up to 100 residents & 20 staff',
+      'Up to 100 residents & 40 staff',
       'Every module, including SMS messaging',
       'Nursing, Incidents, Social Services',
       'Activities, Chapel & Dietary',
@@ -45,7 +45,23 @@ const PLANS = [
       'Security, Transportation & Central Supply',
       'Marketing, Surveys & Property Management',
       'Time Clock, IT, Meters & Resident Portal',
-      'AI Add-on available',
+      'AI Add-on available ($99/mo)',
+      'Priority email support',
+    ],
+  },
+  {
+    key:     'plus',
+    name:    'Plus',
+    price:   599,
+    period:  '/mo',
+    desc:    'The full platform for growing communities up to 200 residents.',
+    priceId: import.meta.env.VITE_STRIPE_PRICE_PLUS,
+    color:   'border-slate-200 dark:border-slate-700',
+    badge:   null,
+    features: [
+      'Everything in Essential',
+      'Up to 200 residents & 75 staff',
+      'AI Add-on available ($99/mo)',
       'Priority email support',
     ],
   },
@@ -54,15 +70,15 @@ const PLANS = [
     name:    'Professional',
     price:   999,
     period:  '/mo',
-    desc:    'The full platform with no resident or staff limits.',
+    desc:    'The full platform with no limits — AI included.',
     priceId: import.meta.env.VITE_STRIPE_PRICE_PROFESSIONAL,
     color:   'border-brand-500',
     badge:   'Most Popular',
     features: [
-      'Everything in Essential',
+      'Everything in Plus',
       'Unlimited residents & staff',
+      'AI Add-on included',
       'Every new module — included automatically',
-      'AI Add-on available',
       'Dedicated onboarding & phone support',
     ],
   },
@@ -241,8 +257,12 @@ export default function BillingTab() {
   const StatusIcon = statusConf.icon
   const hasActiveSub = ['active', 'trialing'].includes(status)
   const currentPlan = PLANS.find(p => p.key === org?.plan)
-  // Add-on rides on a paid plan's subscription (see create-checkout)
-  const aiEligible = hasActiveSub && ['essential', 'professional'].includes(org?.plan) && !!org?.stripe_subscription_id
+  // Add-on rides on a paid plan's subscription (see create-checkout); Professional includes AI
+  const aiIncludedInPlan = org?.plan === 'professional'
+  const aiEligible = hasActiveSub && ['essential', 'plus'].includes(org?.plan) && !!org?.stripe_subscription_id
+  // Moving up a paid tier is a prorated in-place upgrade; anything else goes through the portal
+  const PLAN_RANK = { essential: 1, plus: 2, professional: 3 }
+  const isUpgradeTo = (key) => !!PLAN_RANK[org?.plan] && PLAN_RANK[key] > PLAN_RANK[org?.plan]
 
   return (
     <div className="max-w-4xl">
@@ -338,10 +358,10 @@ export default function BillingTab() {
             <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100" style={{ fontFamily: '"Playfair Display", serif' }}>
               Choose a Plan
             </h2>
-            <p className="text-sm text-slate-500 mt-1">Starter is free forever. Essential and Professional billed monthly — cancel any time.</p>
+            <p className="text-sm text-slate-500 mt-1">Starter is free forever. Essential, Plus, and Professional billed monthly — cancel any time.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             {PLANS.map(plan => (
               <div key={plan.key}
                 className={`relative bg-white dark:bg-slate-900 rounded-2xl border-2 p-6 flex flex-col ${plan.color} ${plan.badge ? 'shadow-md' : ''}`}>
@@ -401,7 +421,7 @@ export default function BillingTab() {
       {hasActiveSub && (
         <div className="mb-8">
           <h2 className="text-base font-semibold text-slate-700 dark:text-slate-300 mb-4">Change Plan</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {PLANS.filter(p => p.key !== 'starter' || org?.plan !== 'starter').map(plan => {
               const isCurrent = plan.key === org?.plan
               return (
@@ -418,9 +438,7 @@ export default function BillingTab() {
                   {!isCurrent && (
                     <button
                       onClick={() => {
-                        const isProfessional = org?.plan === 'professional'
-                        const isUpgrade = plan.key === 'professional' && org?.plan === 'essential'
-                        if (isUpgrade) {
+                        if (isUpgradeTo(plan.key)) {
                           handleCheckout(plan) // prorated via edge function
                         } else {
                           handlePortal() // downgrade/cancel via Stripe portal
@@ -430,7 +448,7 @@ export default function BillingTab() {
                       className="mt-3 w-full py-1.5 text-xs font-medium bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 disabled:opacity-50 rounded-lg transition-colors">
                       {actionLoading === `checkout-${plan.key}`
                         ? 'Processing...'
-                        : plan.key === 'professional' && org?.plan === 'essential'
+                        : isUpgradeTo(plan.key)
                           ? 'Upgrade — Prorated'
                           : 'Manage via Portal'}
                     </button>
@@ -440,7 +458,7 @@ export default function BillingTab() {
             })}
           </div>
           <p className="text-xs text-slate-400 mt-3">
-            Upgrading from Essential to Professional is prorated — you only pay for the remaining days in your billing cycle. Cancellations and downgrades are managed through the Stripe billing portal.
+            Upgrading to a higher plan is prorated — you only pay for the remaining days in your billing cycle. Professional includes AI, so an AI Add-on is removed (and credited) when you upgrade to it. Cancellations and downgrades are managed through the Stripe billing portal.
           </p>
         </div>
       )}
@@ -460,16 +478,18 @@ export default function BillingTab() {
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5 max-w-xl">
                 AI suggestions across Maintenance, Marketing, and Communication — plus Social Services once clinical AI is approved for your community. Staff always review before anything is saved.
               </p>
-              <p className="text-lg font-bold text-slate-700 dark:text-slate-300 mt-2">${AI_ADDON_PRICE}<span className="text-xs font-normal text-slate-400">/mo</span></p>
+              {!aiIncludedInPlan && <p className="text-lg font-bold text-slate-700 dark:text-slate-300 mt-2">${AI_ADDON_PRICE}<span className="text-xs font-normal text-slate-400">/mo</span></p>}
             </div>
           </div>
 
           <div className="flex flex-col items-end gap-2">
-            {!aiEligible && aiAddonOn ? (
+            {aiIncludedInPlan ? (
+              <p className="text-xs text-slate-500 max-w-[220px] text-right">Included with your Professional plan.</p>
+            ) : !aiEligible && aiAddonOn ? (
               // Enabled by ElderLoop (pilot / comped) rather than purchased
               <p className="text-xs text-slate-500 max-w-[220px] text-right">Included for your community by ElderLoop.</p>
             ) : !aiEligible ? (
-              <p className="text-xs text-slate-500 max-w-[220px] text-right">Available on the Essential and Professional plans — upgrade above to add it.</p>
+              <p className="text-xs text-slate-500 max-w-[220px] text-right">Available on the Essential and Plus plans, and included with Professional — upgrade above to add it.</p>
             ) : aiConfirm ? (
               <>
                 <p className="text-xs text-slate-600 dark:text-slate-300 max-w-[260px] text-right">

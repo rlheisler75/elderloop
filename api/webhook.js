@@ -11,13 +11,17 @@ export const config = { api: { bodyParser: false } }
 
 const PLAN_MODULE_KEYS = {
   starter:      ['directory', 'staff', 'communication', 'family'],
-  essential:    null, // null = all modules (Essential = full platform, capped at 100 residents / 20 staff)
-  professional: null, // null = all modules — social_services included
+  // null = all modules. Essential, Plus, and Professional are all the full platform
+  // and differ only in resident/staff caps (PLAN_LIMITS).
+  essential:    null,
+  plus:         null,
+  professional: null,
 }
 
 const PLAN_LIMITS = {
   starter:      { resident_limit: 50,   staff_limit: 10   },
-  essential:    { resident_limit: 100,  staff_limit: 20   },
+  essential:    { resident_limit: 100,  staff_limit: 40   },
+  plus:         { resident_limit: 200,  staff_limit: 75   },
   professional: { resident_limit: null, staff_limit: null },
 }
 
@@ -152,13 +156,17 @@ function getPlanItem(sub) {
 }
 
 // Turn the ai_assist module on/off to match whether the subscription carries the
-// add-on. Only touches ai_assist — ai_assist_clinical stays a manual super-admin
-// switch (it requires a signed HIPAA BAA). Skipped entirely if the price isn't
-// configured, so a missing env var can never switch AI off for everyone.
+// add-on — or is on Professional, which includes AI. Only touches ai_assist —
+// ai_assist_clinical stays a manual super-admin switch (it requires a signed HIPAA
+// BAA). Skipped entirely if the price isn't configured, so a missing env var can
+// never switch AI off for everyone.
 async function syncAiAddon(orgId, sub) {
   if (!AI_ADDON_PRICE) return
-  const hasAddon = !!sub && ['active', 'trialing', 'past_due'].includes(sub.status) &&
-    (sub.items?.data || []).some(i => i.price?.id === AI_ADDON_PRICE)
+  const live = !!sub && ['active', 'trialing', 'past_due'].includes(sub.status)
+  const hasAddon = live && (
+    (sub.items?.data || []).some(i => i.price?.id === AI_ADDON_PRICE) ||
+    getPlanFromPriceId(getPlanItem(sub)?.price?.id) === 'professional'
+  )
   const { error } = await supabase.from('organization_modules').upsert(
     { organization_id: orgId, module_key: 'ai_assist', is_enabled: hasAddon },
     { onConflict: 'organization_id,module_key' })
@@ -280,11 +288,14 @@ function mapSubStatusToBilling(status) {
 }
 
 function getPlanFromPriceId(priceId) {
-  const map = {
-    [process.env.STRIPE_PRICE_ESSENTIAL]:    'essential',
-    [process.env.STRIPE_PRICE_PROFESSIONAL]: 'professional',
-    [process.env.STRIPE_PRICE_STARTER]:      'starter',
-    [process.env.STRIPE_PRICE_COMMUNITY]:    'professional',
-  }
-  return map[priceId] || 'essential'
+  const pairs = [
+    [process.env.STRIPE_PRICE_ESSENTIAL,    'essential'],
+    [process.env.STRIPE_PRICE_PLUS,         'plus'],
+    [process.env.STRIPE_PRICE_PROFESSIONAL, 'professional'],
+    [process.env.STRIPE_PRICE_STARTER,      'starter'],
+    [process.env.STRIPE_PRICE_COMMUNITY,    'professional'],
+  ]
+  // Skip unset env vars so an undefined price can't match an undefined priceId
+  const hit = priceId && pairs.find(([id]) => id && id === priceId)
+  return hit ? hit[1] : 'essential'
 }

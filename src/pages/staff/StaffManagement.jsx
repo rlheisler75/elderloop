@@ -945,8 +945,10 @@ export default function StaffManagement() {
             </p>
             <p className="text-slate-500 text-sm mb-6">
               {organization?.plan === 'starter'
-                ? 'Upgrade to Essential (up to 20) or Professional (unlimited) for more staff accounts.'
-                : 'Upgrade to Professional for unlimited staff accounts.'}
+                ? 'Upgrade to Essential (up to 40), Plus (up to 75), or Professional (unlimited) for more staff accounts.'
+                : organization?.plan === 'essential'
+                  ? 'Upgrade to Plus (up to 75) or Professional (unlimited) for more staff accounts.'
+                  : 'Upgrade to Professional for unlimited staff accounts.'}
             </p>
             <div className="flex flex-col gap-2">
               <button onClick={() => { setLimitHit(false); window.location.href = '/app/admin?tab=billing' }}

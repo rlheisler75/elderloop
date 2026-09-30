@@ -5,6 +5,7 @@ import { Building2, Copy, Check, Loader2, Calendar, TrendingUp, AlertTriangle, C
 const PLAN_LABELS = {
   starter:      'Starter',
   essential:    'Essential',
+  plus:         'Plus',
   professional: 'Professional',
   pilot:        'Pilot',
 }

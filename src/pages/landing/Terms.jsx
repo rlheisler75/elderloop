@@ -77,8 +77,10 @@ export default function Terms() {
           <Sub title="Subscription Plans">
             <Bullets items={[
               `Starter Plan — Free of charge, limited to 50 residents and 10 staff, with access to core modules only.`,
-              `Essential Plan — $299 per month, including all available modules, limited to 100 residents and 20 staff.`,
-              `Professional Plan — $999 per month, including all available modules with no limits and priority support.`,
+              `Essential Plan — $299 per month, including all available modules, limited to 100 residents and 40 staff.`,
+              `Plus Plan — $599 per month, including all available modules, limited to 200 residents and 75 staff.`,
+              `Professional Plan — $999 per month, including all available modules and the AI Add-on, with no resident or staff limits and priority support.`,
+              `AI Add-on — $99 per month on the Essential and Plus plans; included with the Professional plan. AI features are subject to daily and monthly usage limits.`,
             ]} />
           </Sub>
           <p>We reserve the right to modify, suspend, or discontinue any module or feature of the Service at any time with reasonable notice, and we will not be liable to you or any third party for any such modification.</p>

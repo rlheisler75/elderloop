@@ -6,10 +6,11 @@ import {
   Loader2, Edit2, Save, X
 } from 'lucide-react'
 
-const PLAN_MRR = { starter: 0, essential: 299, professional: 999, pilot: 0 }
+const PLAN_MRR = { starter: 0, essential: 299, plus: 599, professional: 999, pilot: 0 }
 const PLAN_COLORS = {
   starter:      'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
   essential:    'bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-400',
+  plus:         'bg-teal-100 text-teal-700 dark:bg-teal-950/50 dark:text-teal-400',
   professional: 'bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-400',
   pilot:        'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400',
 }
@@ -69,7 +70,7 @@ function RepRow({ repCode, orgs, onOrgRepChange, repMeta = {} }) {
         <td className="px-5 py-3 text-xs text-slate-400">{fmtDate(latest?.created_at)}</td>
         <td className="px-5 py-3">
           <div className="flex gap-1 flex-wrap">
-            {['starter','essential','professional','pilot']
+            {['starter','essential','plus','professional','pilot']
               .filter(p => orgs.some(o => o.plan === p))
               .map(p => (
                 <span key={p} className={`text-xs px-1.5 py-0.5 rounded-full font-medium capitalize ${PLAN_COLORS[p]}`}>

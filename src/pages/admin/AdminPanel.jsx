@@ -23,7 +23,7 @@ import { DepartmentLevelEditor, getOrgDepartments } from '../staff/StaffManageme
 // Department + level (Housekeeping Supervisor, etc.) is assigned separately below —
 // see DepartmentLevelEditor. Account Type here is just the special tier.
 const ALL_ROLES = [
-  { key: 'ceo',         label: 'CEO',         desc: 'Executive dashboard + full access' },
+  { key: 'ceo',         label: 'CEO',         desc: 'Administrator Dashboard + full access' },
   { key: 'org_admin',   label: 'Org Admin',   desc: 'Full access to organization' },
   { key: 'staff',       label: 'Staff',       desc: 'General staff — department/level and module access assigned separately' },
   { key: 'resident',    label: 'Resident',    desc: 'Resident portal access' },

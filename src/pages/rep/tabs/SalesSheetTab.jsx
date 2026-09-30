@@ -119,7 +119,7 @@ export default function SalesSheetTab() {
                   <span style={{ fontWeight: 700, fontSize: 13, color: '#0c2340' }}>Essential</span>
                   <span style={{ fontFamily: 'Georgia, "Playfair Display", serif', fontWeight: 700, fontSize: 16, color: '#076bb0' }}>$299 <span style={{ fontSize: 10, fontWeight: 400, color: '#55636f' }}>/mo</span></span>
                 </div>
-                <p style={{ fontSize: 10.5, color: '#55636f', margin: '2px 0 5px' }}>Every module — the full platform — for up to 100 residents & 20 staff.</p>
+                <p style={{ fontSize: 10.5, color: '#55636f', margin: '2px 0 5px' }}>Every module — the full platform — for up to 100 residents & 40 staff.</p>
                 <ul className="grid grid-cols-2" style={{ fontSize: 10.3, color: '#16202b', margin: 0, padding: 0, listStyle: 'none', gap: '0 8px' }}>
                   {['Nursing & Incidents', 'Dietary & Maintenance', 'Activities & Chapel', 'SMS messaging'].map(f => (
                     <li key={f} className="relative" style={{ paddingLeft: 11, marginBottom: 1 }}>
@@ -128,15 +128,22 @@ export default function SalesSheetTab() {
                   ))}
                 </ul>
               </div>
+              <div style={{ border: '1px solid #e1e6e9', borderRadius: 10, padding: '10px 13px' }}>
+                <div className="flex items-baseline justify-between">
+                  <span style={{ fontWeight: 700, fontSize: 13, color: '#0c2340' }}>Plus</span>
+                  <span style={{ fontFamily: 'Georgia, "Playfair Display", serif', fontWeight: 700, fontSize: 16, color: '#076bb0' }}>$599 <span style={{ fontSize: 10, fontWeight: 400, color: '#55636f' }}>/mo</span></span>
+                </div>
+                <p style={{ fontSize: 10.5, color: '#55636f', margin: '2px 0 0' }}>Everything in Essential, for up to 200 residents & 75 staff.</p>
+              </div>
               <div className="relative" style={{ border: '1.5px solid #0c90e1', borderRadius: 10, padding: '10px 13px', background: '#eaf5fd' }}>
                 <span className="absolute text-white font-bold" style={{ top: -8, right: 12, background: '#0c90e1', fontSize: 9, padding: '2px 8px', borderRadius: 999, letterSpacing: '0.03em' }}>Most Popular</span>
                 <div className="flex items-baseline justify-between">
                   <span style={{ fontWeight: 700, fontSize: 13, color: '#0c2340' }}>Professional</span>
                   <span style={{ fontFamily: 'Georgia, "Playfair Display", serif', fontWeight: 700, fontSize: 16, color: '#076bb0' }}>$999 <span style={{ fontSize: 10, fontWeight: 400, color: '#55636f' }}>/mo</span></span>
                 </div>
-                <p style={{ fontSize: 10.5, color: '#55636f', margin: '2px 0 5px' }}>The full platform with no resident or staff limits.</p>
+                <p style={{ fontSize: 10.5, color: '#55636f', margin: '2px 0 5px' }}>The full platform with no limits — AI included.</p>
                 <ul className="grid grid-cols-2" style={{ fontSize: 10.3, color: '#16202b', margin: 0, padding: 0, listStyle: 'none', gap: '0 8px' }}>
-                  {['Everything in Essential', 'Unlimited residents & staff', 'Every new module included', 'Dedicated onboarding'].map(f => (
+                  {['Unlimited residents & staff', 'AI Add-on included', 'Every new module included', 'Dedicated onboarding'].map(f => (
                     <li key={f} className="relative" style={{ paddingLeft: 11, marginBottom: 1 }}>
                       <span className="absolute" style={{ left: 0, color: '#3a653f', fontWeight: 700, fontSize: 10 }}>✓</span>{f}
                     </li>

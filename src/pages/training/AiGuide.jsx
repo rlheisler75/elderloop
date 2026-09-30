@@ -86,7 +86,7 @@ export default function AiGuide() {
             ]} />
             <Tip>Haiku handles most day-to-day tasks well — sorting work orders, drafting announcements. Consider Sonnet or Opus for sections where writing quality matters most, like clinical documentation or marketing emails, and compare the cost on this page after a few weeks.</Tip>
             <div className="mt-4" />
-            <Tip warn>If the page says the AI Add-on isn't active for your community, an Org Admin or CEO can add it in <b className="text-slate-900">Admin Panel → Billing → AI Add-on</b> ($99/month, available on the Essential and Professional plans; the first partial month is prorated). Removing it there turns AI off right away and credits unused time on your next invoice. Each community is limited to 200 AI suggestions per 24 hours as a spending safeguard.</Tip>
+            <Tip warn>If the page says the AI Add-on isn't active for your community, an Org Admin or CEO can add it in <b className="text-slate-900">Admin Panel → Billing → AI Add-on</b> ($99/month on the Essential and Plus plans, included with Professional; the first partial month is prorated). Removing it there turns AI off right away and credits unused time on your next invoice. Each community is limited to 200 AI suggestions per 24 hours plus a monthly AI allowance — the meter at the top of Admin Panel → AI Add-on shows how much is used, and it resets on the 1st. Haiku 4.5 uses the least allowance per suggestion.</Tip>
           </SectionBlock>
 
           <SectionBlock id="privacy" num="04" title="Privacy & HIPAA"

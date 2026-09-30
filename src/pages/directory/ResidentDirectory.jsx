@@ -1023,8 +1023,10 @@ export default function ResidentDirectory() {
             </p>
             <p className="text-slate-500 text-sm mb-6">
               {organization?.plan === 'starter'
-                ? 'Upgrade to Essential (up to 100) or Professional (unlimited) to add more residents.'
-                : 'Upgrade to Professional for unlimited residents.'}
+                ? 'Upgrade to Essential (up to 100), Plus (up to 200), or Professional (unlimited) to add more residents.'
+                : organization?.plan === 'essential'
+                  ? 'Upgrade to Plus (up to 200) or Professional (unlimited) to add more residents.'
+                  : 'Upgrade to Professional for unlimited residents.'}
             </p>
             <div className="flex flex-col gap-2">
               <button onClick={() => { setLimitHit(false); window.location.href = '/app/admin?tab=billing' }}

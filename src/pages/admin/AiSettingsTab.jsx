@@ -40,6 +40,8 @@ export default function AiSettingsTab({ orgId }) {
   const [modules, setModules]   = useState({ ai_assist: false, ai_assist_clinical: false })
   const [settings, setSettings] = useState({}) // section -> { enabled, model }
   const [usage, setUsage]       = useState([])
+  const [budget, setBudget]     = useState(30) // organizations.ai_monthly_budget (USD, super admin only)
+  const [budgetDraft, setBudgetDraft] = useState('')
   const [saving, setSaving]     = useState(null) // section or module key being saved
   const [savedFlash, setSavedFlash] = useState(null)
   const [error, setError]       = useState('')
@@ -50,13 +52,16 @@ export default function AiSettingsTab({ orgId }) {
     setLoading(true)
     const d = new Date()
     const monthStart = new Date(d.getFullYear(), d.getMonth(), 1).toISOString()
-    const [{ data: mods }, { data: rows }, { data: use }] = await Promise.all([
+    const [{ data: mods }, { data: rows }, { data: use }, { data: org }] = await Promise.all([
       supabase.from('organization_modules').select('module_key, is_enabled')
         .eq('organization_id', orgId).in('module_key', ['ai_assist', 'ai_assist_clinical']),
       supabase.from('ai_settings').select('section, enabled, model').eq('organization_id', orgId),
       supabase.from('ai_usage').select('task, model, input_tokens, output_tokens')
         .eq('organization_id', orgId).gte('created_at', monthStart),
+      supabase.from('organizations').select('ai_monthly_budget').eq('id', orgId).single(),
     ])
+    const b = Number(org?.ai_monthly_budget ?? 30)
+    setBudget(b); setBudgetDraft(String(b))
     const on = (k) => !!mods?.find(m => m.module_key === k && m.is_enabled !== false)
     setModules({ ai_assist: on('ai_assist'), ai_assist_clinical: on('ai_assist_clinical') })
     setSettings(Object.fromEntries((rows || []).map(r => [r.section, r])))
@@ -90,11 +95,28 @@ export default function AiSettingsTab({ orgId }) {
     refreshModules?.()
   }
 
+  // Super admin only: monthly AI allowance (protect_org_billing_fields blocks everyone else)
+  async function saveBudget() {
+    const n = Number(budgetDraft)
+    if (!Number.isFinite(n) || n < 0) { setError('Enter a dollar amount of 0 or more.'); return }
+    setSaving('budget'); setError('')
+    const { error: err } = await supabase.from('organizations').update({ ai_monthly_budget: n }).eq('id', orgId)
+    setSaving(null)
+    if (err) { setError(err.message); return }
+    setBudget(n)
+    setSavedFlash('budget'); setTimeout(() => setSavedFlash(null), 1500)
+  }
+
   if (loading) return (
     <div className="flex items-center justify-center py-24"><Loader2 size={24} className="animate-spin text-brand-500" /></div>
   )
 
   const monthTotal = usage.reduce((sum, u) => sum + costOf(u), 0)
+  // Same math as ai_month_cost() in the database, which is what the Edge Function enforces
+  const usedPct = budget > 0 ? Math.min(100, Math.round((monthTotal / budget) * 100)) : 100
+  const now = new Date()
+  const resetDate = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+    .toLocaleDateString(undefined, { month: 'long', day: 'numeric' })
 
   return (
     <div className="max-w-4xl space-y-6">
@@ -129,6 +151,43 @@ export default function AiSettingsTab({ orgId }) {
               <Toggle on={modules[m.key]} busy={saving === m.key} onClick={() => toggleModule(m.key)} />
             </div>
           ))}
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <div className="text-sm font-medium text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                Monthly AI allowance
+                {savedFlash === 'budget' && <span className="text-xs font-medium text-green-600 flex items-center gap-1"><Check size={12} /> Saved</span>}
+              </div>
+              <div className="text-xs text-slate-500">
+                Your estimated Anthropic cost cap. This month: {fmtCost(monthTotal)} of ${budget.toFixed(2)} ({usedPct}%).
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-slate-500">$</span>
+              <input type="number" min="0" step="5" value={budgetDraft} onChange={e => setBudgetDraft(e.target.value)}
+                className="w-20 px-2 py-1.5 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900" />
+              <button type="button" onClick={saveBudget} disabled={saving === 'budget' || Number(budgetDraft) === budget}
+                className="px-3 py-1.5 text-sm font-medium rounded-lg bg-purple-600 text-white disabled:opacity-50">Save</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {modules.ai_assist && (
+        <div className="p-4 border border-slate-200 dark:border-slate-700 rounded-2xl bg-white dark:bg-slate-900">
+          <div className="flex items-center justify-between text-sm mb-2">
+            <span className="font-medium text-slate-700 dark:text-slate-200">AI allowance used this month</span>
+            <span className={`font-semibold ${usedPct >= 100 ? 'text-red-600' : usedPct >= 80 ? 'text-amber-600' : 'text-slate-700 dark:text-slate-200'}`}>{usedPct}%</span>
+          </div>
+          <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+            <div className={`h-full rounded-full ${usedPct >= 100 ? 'bg-red-500' : usedPct >= 80 ? 'bg-amber-500' : 'bg-brand-500'}`} style={{ width: `${usedPct}%` }} />
+          </div>
+          <p className="text-xs text-slate-500 mt-2">
+            {usedPct >= 100
+              ? `AI suggestions are paused until ${resetDate}.`
+              : usedPct >= 80
+                ? `Running low — resets ${resetDate}. Haiku 4.5 uses the least allowance per suggestion.`
+                : `Resets ${resetDate}. Haiku 4.5 uses the least allowance per suggestion; Opus 5 uses about 5× more.`}
+          </p>
         </div>
       )}
 
@@ -137,7 +196,7 @@ export default function AiSettingsTab({ orgId }) {
           <Lock size={22} className="mx-auto text-slate-400 mb-2" />
           <div className="font-medium text-slate-700 dark:text-slate-200">The AI Add-on isn't active for your community</div>
           <p className="text-sm text-slate-500 mt-1">
-            Available on the Essential and Professional plans for $99/mo —{' '}
+            Included with Professional, or $99/mo on the Essential and Plus plans —{' '}
             <a href="/app/admin?tab=billing" className="font-semibold text-brand-600 hover:underline">add it under Billing</a>.
           </p>
         </div>
@@ -188,7 +247,7 @@ export default function AiSettingsTab({ orgId }) {
                   {!locked && (
                     <div className="mt-4 pl-7 text-xs text-slate-500">
                       This month: <strong className="text-slate-700 dark:text-slate-300">{secUsage.length}</strong> suggestion{secUsage.length === 1 ? '' : 's'}
-                      {' · '}est. <strong className="text-slate-700 dark:text-slate-300">{fmtCost(secUsage.reduce((sum, u) => sum + costOf(u), 0))}</strong>
+                      {isSuperAdmin && <>{' · '}est. <strong className="text-slate-700 dark:text-slate-300">{fmtCost(secUsage.reduce((sum, u) => sum + costOf(u), 0))}</strong></>}
                     </div>
                   )}
                 </div>
@@ -197,8 +256,8 @@ export default function AiSettingsTab({ orgId }) {
           </div>
 
           <p className="text-xs text-slate-400">
-            Month to date across all sections: {usage.length} suggestions, est. {fmtCost(monthTotal)} in AI usage.
-            Estimates use Anthropic list prices. Each community is limited to 200 suggestions per 24 hours.
+            Month to date across all sections: {usage.length} suggestions. Each community is limited to 200 suggestions per 24 hours
+            and a monthly AI allowance.
           </p>
         </>
       )}

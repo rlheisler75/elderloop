@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { X, Loader2, Building2, Calendar, Users, Layers, Eye } from 'lucide-react'
 
-const PLAN_LABELS = { starter: 'Starter', essential: 'Essential', professional: 'Professional', pilot: 'Pilot' }
+const PLAN_LABELS = { starter: 'Starter', essential: 'Essential', plus: 'Plus', professional: 'Professional', pilot: 'Pilot' }
 
 const STATUS_STYLES = {
   active:    'bg-green-100 text-green-700',
