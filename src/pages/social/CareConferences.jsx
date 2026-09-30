@@ -1,7 +1,15 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
-import { Plus, X, Users, Loader2, AlertCircle, Check, ChevronDown, Calendar } from 'lucide-react'
+import { Plus, X, Users, Loader2, AlertCircle, Check, ChevronDown, Calendar, Sparkles } from 'lucide-react'
+
+// Sections the AI organizer fills, in display order
+const AI_SECTIONS = [
+  { key: 'summary',         label: 'Meeting Summary' },
+  { key: 'goals_reviewed',  label: 'Goals Reviewed' },
+  { key: 'new_goals',       label: 'New Goals Set' },
+  { key: 'follow_up_items', label: 'Follow-up Action Items' },
+]
 
 const STATUSES = [
   { key: 'scheduled',  label: 'Scheduled',  color: 'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400'    },
@@ -17,7 +25,9 @@ function today() {
 }
 
 function ConferenceModal({ residents, staff, orgId, conference, canWrite, onClose, onSaved }) {
-  const { profile } = useAuth()
+  const { profile, orgModules } = useAuth()
+  // Clinical AI needs both switches; ai_assist_clinical stays off for real customers until a HIPAA BAA is signed
+  const aiEnabled = orgModules.includes('ai_assist') && orgModules.includes('ai_assist_clinical')
   const isNew = !conference
   const [form, setForm] = useState({
     resident_id:         conference?.resident_id || '',
@@ -34,8 +44,29 @@ function ConferenceModal({ residents, staff, orgId, conference, canWrite, onClos
   })
   const [saving, setSaving] = useState(false)
   const [error,  setError]  = useState('')
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiResult, setAiResult]   = useState(null) // { summary, goals_reviewed, new_goals, follow_up_items } or { error }
+  const [beforeAI, setBeforeAI]   = useState(null) // the four sections before "Use these", for Undo
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const readOnly = !canWrite
+
+  // AI Assist (clinical): sort raw meeting notes into the four sections. Only the
+  // section text is sent — never the resident's name or the attendee list.
+  async function organizeWithAI() {
+    setAiLoading(true)
+    setAiResult(null)
+    setBeforeAI(null)
+    const { data, error: fnErr } = await supabase.functions.invoke('ai-assist', {
+      body: {
+        task: 'ss_care_conference', organization_id: orgId,
+        ...Object.fromEntries(AI_SECTIONS.map(s => [s.key, form[s.key]])),
+      },
+    })
+    setAiResult(fnErr || !data?.suggestion
+      ? { error: 'Couldn’t organize the notes right now — your text is unchanged.' }
+      : data.suggestion)
+    setAiLoading(false)
+  }
 
   const handleSave = async () => {
     if (!form.resident_id || !form.scheduled_date) { setError('Resident and scheduled date are required.'); return }
@@ -131,8 +162,48 @@ function ConferenceModal({ residents, staff, orgId, conference, canWrite, onClos
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Meeting Summary</label>
             <textarea value={form.summary} onChange={e => set('summary', e.target.value)} readOnly={readOnly} rows={4}
-              placeholder="Summary of discussion, resident and family concerns, care updates..."
+              placeholder={aiEnabled && !readOnly
+                ? 'Summary of discussion... or type rough meeting notes here and click "Organize into sections"'
+                : 'Summary of discussion, resident and family concerns, care updates...'}
               className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none disabled:bg-slate-50 dark:bg-slate-800 dark:text-slate-100 dark:disabled:bg-slate-800" />
+
+            {aiEnabled && !readOnly && (
+              <div className="mt-2">
+                <button type="button" onClick={organizeWithAI}
+                  disabled={aiLoading || !AI_SECTIONS.some(s => form[s.key]?.trim())}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-brand-700 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/50 border border-brand-200 dark:border-brand-900 rounded-lg hover:bg-brand-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                  <Sparkles size={13} className={aiLoading ? 'animate-pulse' : ''} />
+                  {aiLoading ? 'Organizing...' : 'Organize into sections'}
+                </button>
+                {aiResult?.error && <p className="mt-2 text-xs text-red-600">{aiResult.error}</p>}
+                {aiResult && !aiResult.error && beforeAI === null && (
+                  <div className="mt-2 p-3 bg-brand-50/60 dark:bg-brand-950/30 border border-brand-100 dark:border-brand-900 rounded-xl space-y-2.5">
+                    <div className="text-xs font-semibold text-brand-700 dark:text-brand-400">Suggested sections — review before saving</div>
+                    {AI_SECTIONS.map(s => (
+                      <div key={s.key}>
+                        <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">{s.label}</div>
+                        <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{aiResult[s.key] || '—'}</p>
+                      </div>
+                    ))}
+                    <button type="button"
+                      onClick={() => {
+                        setBeforeAI(Object.fromEntries(AI_SECTIONS.map(s => [s.key, form[s.key]])))
+                        setForm(f => ({ ...f, ...Object.fromEntries(AI_SECTIONS.map(s => [s.key, aiResult[s.key] || ''])) }))
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-brand-600 hover:bg-brand-700 rounded-lg transition-colors">
+                      <Check size={13} /> Use these
+                    </button>
+                  </div>
+                )}
+                {beforeAI !== null && (
+                  <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                    Sections filled from the AI suggestion.{' '}
+                    <button type="button" onClick={() => { setForm(f => ({ ...f, ...beforeAI })); setBeforeAI(null) }}
+                      className="font-semibold text-brand-600 hover:underline">Undo</button>
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Goals */}

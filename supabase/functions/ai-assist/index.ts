@@ -16,6 +16,8 @@
 //               information, so it also requires the org's `ai_assist_clinical`
 //               module, which stays off for real customers until a HIPAA BAA
 //               with Anthropic is signed. The resident's name is never sent.
+//   ss_care_conference — organize raw care conference notes into summary,
+//               goals reviewed, new goals, and follow-up items. CLINICAL (same gate).
 //
 // Deploy: supabase functions deploy ai-assist
 // Secrets: ANTHROPIC_API_KEY (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY are built in)
@@ -30,7 +32,7 @@ const MODEL = 'claude-haiku-4-5-20251001'
 const IS_HAIKU = MODEL.startsWith('claude-haiku')
 const DAILY_LIMIT = 200 // Claude calls per org per rolling 24h
 // Tasks that handle resident health information (see header)
-const CLINICAL_TASKS = ['ss_case_note']
+const CLINICAL_TASKS = ['ss_case_note', 'ss_care_conference']
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -94,6 +96,7 @@ Deno.serve(async (req) => {
     switch (body.task) {
       case 'wo_triage':    return json(await woTriage(orgId, user.id, body))
       case 'ss_case_note': return json(await ssCaseNote(orgId, user.id, body))
+      case 'ss_care_conference': return json(await ssCareConference(orgId, user.id, body))
       default:             return json({ error: 'Unknown task' }, 400)
     }
   } catch (err) {
@@ -239,5 +242,46 @@ Rules:
 
   const result = await askClaude(orgId, userId, 'ss_case_note', system,
     `Contact type: ${contact}\nRough notes:\n${notes}`, schema)
+  return { suggestion: result }
+}
+
+// ── ss_care_conference (CLINICAL) ─────────────────────────────────
+async function ssCareConference(orgId: string, userId: string, body: Record<string, unknown>) {
+  const field = (k: string) => String(body[k] || '').slice(0, 6000).trim()
+  const sections = [
+    ['Meeting notes', field('summary')],
+    ['Goals reviewed (already entered)', field('goals_reviewed')],
+    ['New goals (already entered)', field('new_goals')],
+    ['Follow-up items (already entered)', field('follow_up_items')],
+  ].filter(([, v]) => v)
+  if (!sections.length) throw new Error('Nothing to organize')
+
+  const schema = {
+    type: 'object',
+    properties: {
+      summary:         { type: 'string' },
+      goals_reviewed:  { type: 'string' },
+      new_goals:       { type: 'string' },
+      follow_up_items: { type: 'string' },
+    },
+    required: ['summary', 'goals_reviewed', 'new_goals', 'follow_up_items'],
+    additionalProperties: false,
+  }
+
+  const system = `You help social workers in a senior living community document interdisciplinary care conferences.
+Organize the notes into four sections for the care conference record:
+- "summary": a concise narrative of the discussion — resident and family concerns, updates from each discipline, decisions made. Short paragraphs.
+- "goals_reviewed": previous goals discussed and their status (met / progressing / not met / discontinued), one per line starting with "- ".
+- "new_goals": new or revised goals, one per line starting with "- ", worded as measurable resident-centered goals when the notes support it.
+- "follow_up_items": action items, one per line starting with "- ", with the responsible role and target date in parentheses when given, e.g. "- Schedule hearing evaluation (Social Services, by 10/15)".
+
+Rules:
+- Use ONLY information in the notes. Never add goals, diagnoses, decisions, owners, or dates that aren't there. If a section has nothing, return "".
+- Keep content already entered in a section; merge in anything new from the notes without duplicating.
+- Refer to the person as "the resident" (no names). Refer to other people by role (e.g. "the resident's son", "DON"), not by name.
+- Objective, respectful, person-centered language. Keep safety concerns clearly visible.`
+
+  const result = await askClaude(orgId, userId, 'ss_care_conference', system,
+    sections.map(([label, v]) => `${label}:\n${v}`).join('\n\n'), schema)
   return { suggestion: result }
 }
