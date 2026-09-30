@@ -8,7 +8,7 @@ const DEMO_PASSWORD = 'Demo2024!'
 // 2026-09-09 — not computed live (the login page is unauthenticated). If a demo
 // account's department/level assignment changes, update the label here to match.
 const DEMO_ROLES = [
-  { role: 'CEO',                email: 'demo.ceo@elderloop.xyz',          color: 'bg-brand-700 hover:bg-brand-600' },
+  { role: 'Administrator',      email: 'demo.ceo@elderloop.xyz',          color: 'bg-brand-700 hover:bg-brand-600' },
   { role: 'Org Admin',          email: 'demo.admin@elderloop.xyz',        color: 'bg-brand-600 hover:bg-brand-700' },
   { role: 'Nursing Supervisor', email: 'demo.supervisor@elderloop.xyz',   color: 'bg-purple-600 hover:bg-purple-700' },
   { role: 'Nursing Employee',   email: 'demo.nursing@elderloop.xyz',      color: 'bg-rose-600 hover:bg-rose-700' },

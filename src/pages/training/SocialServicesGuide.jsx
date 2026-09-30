@@ -42,7 +42,7 @@ export default function SocialServicesGuide() {
               { k: 3, text: <>In <b className="text-slate-900">Case Management &amp; Review</b>, set the <b className="text-slate-900">Assigned Social Worker</b> and click <b className="text-slate-900">Mark Reviewed Today</b> once you've completed an annual review — this logs today's date and automatically sets the next review due date one year out.</> },
               { k: 4, text: <>A resident with no profile yet shows an amber <b className="text-slate-900">No profile yet</b> badge; residents nearing or past their review date show a due-soon or overdue badge next to their name.</> },
             ]} />
-            <Tip>Only staff with the Social Services, Supervisor, Manager, Org Admin, or CEO role appear in the Assigned Social Worker dropdown. That's intentional: it's the same set of roles the Director Dashboard's caseload table counts, so every assignment you make here shows up there.</Tip>
+            <Tip>Only staff with the Social Services, Supervisor, Manager, Org Admin, or Administrator role appear in the Assigned Social Worker dropdown. That's intentional: it's the same set of roles the Director Dashboard's caseload table counts, so every assignment you make here shows up there.</Tip>
           </SectionBlock>
 
           <SectionBlock id="mood" num="02" title="Mood & Behavior"
@@ -145,7 +145,7 @@ export default function SocialServicesGuide() {
               { k: '•', text: 'Compliance alerts: residents missing an initial assessment, past their review due date, missing an advance directive on file, or with a grievance open more than 30 days.' },
               { k: '•', text: 'Open Referrals and Upcoming Discharges: live counts pulled from the Resources and Discharge Planning tabs.' },
               { k: '•', text: 'Trend charts: mood distribution, grievances by month, behavioral concern trend, and common trigger keywords.' },
-              { k: '•', text: 'Caseload Summary: every Social Services / Supervisor / Manager / Org Admin / CEO, with their assigned residents, open grievances, scheduled conferences, and a workload indicator.' },
+              { k: '•', text: 'Caseload Summary: every Social Services / Supervisor / Manager / Org Admin / Administrator, with their assigned residents, open grievances, scheduled conferences, and a workload indicator.' },
             ]} />
           </SectionBlock>
 

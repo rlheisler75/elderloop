@@ -32,7 +32,7 @@ const getOrgDepartments = (organization) =>
 const ROLE_LABELS = {
   super_admin:  { label: 'Super Admin',  color: 'bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-400' },
   org_admin:    { label: 'Org Admin',    color: 'bg-brand-100 text-brand-700' },
-  ceo:          { label: 'CEO',          color: 'bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-400' },
+  ceo:          { label: 'Administrator', color: 'bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-400' },
   supervisor:   { label: 'Supervisor',   color: 'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400' },
   manager:      { label: 'Manager',      color: 'bg-indigo-100 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-400' },
   maintenance:  { label: 'Maintenance',  color: 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400' },

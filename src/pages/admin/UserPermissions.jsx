@@ -25,7 +25,7 @@ const ROLE_LABELS = {
   supervisor:  { label: 'Supervisor',  color: 'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400' },
   manager:     { label: 'Manager',     color: 'bg-indigo-100 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-400' },
   org_admin:   { label: 'Org Admin',   color: 'bg-brand-100 text-brand-700' },
-  ceo:         { label: 'CEO',         color: 'bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-400' },
+  ceo:         { label: 'Administrator', color: 'bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-400' },
   maintenance: { label: 'Maintenance', color: 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400' },
   dietary:     { label: 'Dietary',     color: 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400' },
   housekeeping:{ label: 'Housekeeping',color: 'bg-teal-100 dark:bg-teal-950/50 text-teal-700 dark:text-teal-400' },
@@ -121,7 +121,7 @@ function UserPermRow({ user, orgModules, permissions, onPermChange }) {
           {isAdmin ? (
             <div className="flex items-center gap-2 text-xs text-brand-600 bg-brand-50 border border-brand-100 rounded-lg px-3 py-2">
               <Shield size={13} />
-              {user.role === 'ceo' ? 'CEO' : 'Org Admin'} — automatically has full access to all modules
+              {user.role === 'ceo' ? 'Administrator' : 'Org Admin'} — automatically has full access to all modules
             </div>
           ) : (
             <>
@@ -223,7 +223,7 @@ export default function UserPermissions({ orgId, orgModules }) {
         <h3 className="font-display font-semibold text-slate-800 dark:text-slate-100">Module Access by User</h3>
         <p className="text-slate-400 text-xs mt-0.5">
           Control which modules each staff member can access. Click any user to expand and adjust their permissions.
-          Org Admins and CEOs always have full access.
+          Org Admins and Administrators always have full access.
         </p>
       </div>
 

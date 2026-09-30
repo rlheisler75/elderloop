@@ -155,7 +155,7 @@ export default function RoleTemplates({ orgId, orgModules }) {
 
       <div className="flex items-start gap-2 mb-4 p-3 bg-brand-50 dark:bg-brand-950/30 border border-brand-100 dark:border-brand-900 rounded-xl text-xs text-brand-700 dark:text-brand-400">
         <Info size={13} className="flex-shrink-0 mt-0.5" />
-        Org Admins, CEOs, and Super Admins always have full access and aren't shown here.
+        Org Admins, Administrators, and Super Admins always have full access and aren't shown here.
         Family and Resident logins use a separate fixed portal, not this module list.
       </div>
 

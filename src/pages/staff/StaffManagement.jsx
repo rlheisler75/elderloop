@@ -409,7 +409,7 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
                     className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60 disabled:cursor-not-allowed">
                     <option value="staff">Staff</option>
                     <option value="org_admin">Org Admin</option>
-                    <option value="ceo">CEO</option>
+                    <option value="ceo">Administrator</option>
                   </select>
                   <p className="text-xs text-slate-400 mt-1">
                     {canEditAccess ? 'Department + level (Housekeeping Supervisor, etc.) is set below.' : 'Only Org Admin or an HR/Payroll Manager can change Account Type or Departments & Access Levels.'}
@@ -679,7 +679,7 @@ function CreateStaffModal({ orgId, departments, onClose, onSave, onLimitHit }) {
                 className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100">
                 <option value="staff">Staff</option>
                 <option value="org_admin">Org Admin</option>
-                <option value="ceo">CEO</option>
+                <option value="ceo">Administrator</option>
               </select>
             </div>
           </div>

@@ -458,7 +458,7 @@ export default function BillingTab() {
             })}
           </div>
           <p className="text-xs text-slate-400 mt-3">
-            Upgrading to a higher plan is prorated — you only pay for the remaining days in your billing cycle. Professional includes AI, so an AI Add-on is removed (and credited) when you upgrade to it. Cancellations and downgrades are managed through the Stripe billing portal.
+            Upgrading to a higher plan is prorated — you only pay for the remaining days in your billing cycle. Professional includes AI, so an AI Add-on is removed (and credited) when you upgrade to it. Downgrades and cancellations are made in the Stripe billing portal and take effect at the end of your current billing period. If you have more residents or staff than the smaller plan allows, everyone stays active, but you can't add more until you're under the limit.
           </p>
         </div>
       )}

@@ -51,7 +51,7 @@ const SYSTEM_TEMPLATES = [
 ]
 
 const ROLE_LABELS = {
-  org_admin: 'Admin', ceo: 'CEO', manager: 'Manager', supervisor: 'Supervisor',
+  org_admin: 'Admin', ceo: 'Administrator', manager: 'Manager', supervisor: 'Supervisor',
   maintenance: 'Maintenance', dietary: 'Dietary', housekeeping: 'Housekeeping',
   nursing: 'Nursing', staff: 'Staff', family: 'Family',
 }

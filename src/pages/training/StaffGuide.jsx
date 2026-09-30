@@ -57,10 +57,10 @@ export default function StaffGuide() {
             <Steps items={[
               { k: 1, text: <>Go to <b className="text-slate-900">Admin Panel → Module Access</b>, search for the person, and click their row to expand the full module list.</> },
               { k: 2, text: <>Click a module pill to cycle it: <b className="text-slate-900">No Access → Edit → View Only → No Access</b>. Use this for exceptions — e.g. one Dietary staffer who also needs to see Marketing — not for the baseline every Dietary hire should get, which belongs in Role Templates instead.</> },
-              { k: 3, text: <>Org Admins and CEOs always have full access to every enabled module and don't appear here needing configuration — this screen is for everyone else.</> },
+              { k: 3, text: <>Org Admins and Administrators always have full access to every enabled module and don't appear here needing configuration — this screen is for everyone else.</> },
             ]} />
             <Tip>The baseline itself lives in <b className="text-slate-900">Admin Panel → Role Templates</b>: an editable, per-role default (e.g. Dietary role → Dietary, Activities, Communication, Directory, Time Clock) that every new hire with that Role gets automatically, with no manual step required. An explicit grant or revoke here in Module Access for one person always overrides their Role Template default.</Tip>
-            <Tip warn>Org Admins, CEOs, and Super Admins aren't affected by Role Templates — they already have full access unconditionally. Family and Resident logins use a separate fixed portal, not this module list, so Role Templates has no effect on them either.</Tip>
+            <Tip warn>Org Admins, Administrators, and Super Admins aren't affected by Role Templates — they already have full access unconditionally. Family and Resident logins use a separate fixed portal, not this module list, so Role Templates has no effect on them either.</Tip>
           </SectionBlock>
 
           <SectionBlock id="certs" num="04" title="Certifications"

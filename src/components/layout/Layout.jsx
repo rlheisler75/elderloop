@@ -80,7 +80,7 @@ export default function Layout() {
 
   const unread = notifs.filter(n => !n.is_read).length
 
-  const SPECIAL_ROLE_LABELS = { ceo: 'CEO', org_admin: 'Org Admin', super_admin: 'Super Admin' }
+  const SPECIAL_ROLE_LABELS = { ceo: 'Administrator', org_admin: 'Org Admin', super_admin: 'Super Admin' }
   const deptLabel = (key) => getOrgDepartments(organization).find(d => d.key === key)?.label ?? key
   const levelLabel = (key) => STAFF_LEVELS.find(l => l.key === key)?.label ?? key
 
