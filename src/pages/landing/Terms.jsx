@@ -77,7 +77,7 @@ export default function Terms() {
           <Sub title="Subscription Plans">
             <Bullets items={[
               `Starter Plan — Free of charge, limited to 50 residents and 10 staff, with access to core modules only.`,
-              `Essential Plan — $299 per month, including additional clinical and programming modules with no resident or staff limits.`,
+              `Essential Plan — $299 per month, including all available modules, limited to 100 residents and 20 staff.`,
               `Professional Plan — $999 per month, including all available modules with no limits and priority support.`,
             ]} />
           </Sub>

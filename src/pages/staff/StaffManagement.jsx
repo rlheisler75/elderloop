@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import { CAPPED_PLANS } from '../../lib/planModules'
 import {
   Plus, X, Edit2, Trash2, Search, Upload, Download,
   AlertTriangle, CheckCircle2, Clock, User, Shield,
@@ -790,9 +791,9 @@ export default function StaffManagement() {
         </div>
         {canCreateStaff && (
           <button onClick={() => {
-              // Starter-only staff limit (trg_enforce_staff_limit / create-user enforce it server-side);
+              // Starter/Essential staff limit (trg_enforce_staff_limit / create-user enforce it server-side);
               // counts active non-resident/family profiles, same as the database
-              const limit = organization?.plan === 'starter' ? organization?.staff_limit : null
+              const limit = CAPPED_PLANS.includes(organization?.plan) ? organization?.staff_limit : null
               const activeStaff = staff.filter(s => s.is_active !== false).length
               if (limit != null && activeStaff >= limit) { setLimitHit(true); return }
               setShowAddStaff(true)
@@ -940,9 +941,13 @@ export default function StaffManagement() {
             </div>
             <h2 className="font-display font-bold text-slate-800 dark:text-slate-100 text-lg mb-2">Staff Limit Reached</h2>
             <p className="text-slate-500 text-sm mb-1">
-              Your <strong>Starter</strong> plan is limited to <strong>{organization?.staff_limit} staff members</strong>.
+              Your <strong className="capitalize">{organization?.plan}</strong> plan is limited to <strong>{organization?.staff_limit} staff members</strong>.
             </p>
-            <p className="text-slate-500 text-sm mb-6">Upgrade to Essential or Professional for unlimited staff accounts.</p>
+            <p className="text-slate-500 text-sm mb-6">
+              {organization?.plan === 'starter'
+                ? 'Upgrade to Essential (up to 20) or Professional (unlimited) for more staff accounts.'
+                : 'Upgrade to Professional for unlimited staff accounts.'}
+            </p>
             <div className="flex flex-col gap-2">
               <button onClick={() => { setLimitHit(false); window.location.href = '/app/admin?tab=billing' }}
                 className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl transition-colors">

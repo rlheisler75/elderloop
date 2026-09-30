@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import { CAPPED_PLANS } from '../../lib/planModules'
 import {
   Plus, X, Edit2, Trash2, Search, Printer, Phone,
   Mail, MapPin, User, Heart, Stethoscope, Calendar,
@@ -847,9 +848,9 @@ export default function ResidentDirectory() {
 
   const handleOpen   = (r) => { setSelected(r); setShowDetail(true) }
   const handleNew    = () => {
-    // Only Starter has limits (pilot orgs may carry column defaults); the
+    // Only Starter/Essential have limits (pilot orgs may carry column defaults); the
     // trg_enforce_resident_limit trigger enforces the same rule server-side
-    const limit = organization?.plan === 'starter' ? organization?.resident_limit : null
+    const limit = CAPPED_PLANS.includes(organization?.plan) ? organization?.resident_limit : null
     if (limit !== null && limit !== undefined && residents.length >= limit) {
       setLimitHit(true); return
     }
@@ -1018,9 +1019,13 @@ export default function ResidentDirectory() {
             </div>
             <h2 className="font-display font-bold text-slate-800 dark:text-slate-100 text-lg mb-2">Resident Limit Reached</h2>
             <p className="text-slate-500 text-sm mb-1">
-              Your <strong>Starter</strong> plan is limited to <strong>{organization?.resident_limit} residents</strong>.
+              Your <strong className="capitalize">{organization?.plan}</strong> plan is limited to <strong>{organization?.resident_limit} residents</strong>.
             </p>
-            <p className="text-slate-500 text-sm mb-6">Upgrade to Essential or Professional to add unlimited residents.</p>
+            <p className="text-slate-500 text-sm mb-6">
+              {organization?.plan === 'starter'
+                ? 'Upgrade to Essential (up to 100) or Professional (unlimited) to add more residents.'
+                : 'Upgrade to Professional for unlimited residents.'}
+            </p>
             <div className="flex flex-col gap-2">
               <button onClick={() => { setLimitHit(false); window.location.href = '/app/admin?tab=billing' }}
                 className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl transition-colors">

@@ -73,13 +73,13 @@ Deno.serve(async (req: Request) => {
       return respond({ success: false, error: 'Cannot create users for other organizations' })
     }
 
-    // Starter-plan staff limit — checked BEFORE creating the auth user so a rejected
+    // Starter/Essential staff limit — checked BEFORE creating the auth user so a rejected
     // request doesn't leave an orphaned login. The trg_enforce_staff_limit trigger on
     // profiles enforces the same rule in the database.
     const newRole = role || 'staff'
     const { data: org } = await supabaseAdmin
       .from('organizations').select('name, plan, staff_limit').eq('id', organization_id).single()
-    if (org?.plan === 'starter' && org.staff_limit != null && !['resident', 'family'].includes(newRole)) {
+    if (['starter', 'essential'].includes(org?.plan) && org.staff_limit != null && !['resident', 'family'].includes(newRole)) {
       const { count } = await supabaseAdmin
         .from('profiles').select('id', { count: 'exact', head: true })
         .eq('organization_id', organization_id)
@@ -88,7 +88,7 @@ Deno.serve(async (req: Request) => {
       if ((count ?? 0) >= org.staff_limit) {
         return respond({
           success: false, limit_reached: true,
-          error: `Staff limit reached: the Starter plan includes up to ${org.staff_limit} staff accounts. Upgrade under Admin Panel → Billing to add more.`,
+          error: `Staff limit reached: your ${org.plan === 'starter' ? 'Starter' : 'Essential'} plan includes up to ${org.staff_limit} staff accounts. Upgrade under Admin Panel → Billing to add more.`,
         })
       }
     }

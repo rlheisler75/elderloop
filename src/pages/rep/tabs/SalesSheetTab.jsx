@@ -119,9 +119,9 @@ export default function SalesSheetTab() {
                   <span style={{ fontWeight: 700, fontSize: 13, color: '#0c2340' }}>Essential</span>
                   <span style={{ fontFamily: 'Georgia, "Playfair Display", serif', fontWeight: 700, fontSize: 16, color: '#076bb0' }}>$299 <span style={{ fontSize: 10, fontWeight: 400, color: '#55636f' }}>/mo</span></span>
                 </div>
-                <p style={{ fontSize: 10.5, color: '#55636f', margin: '2px 0 5px' }}>Everything in Starter, no limits, plus clinical & programming.</p>
+                <p style={{ fontSize: 10.5, color: '#55636f', margin: '2px 0 5px' }}>Every module — the full platform — for up to 100 residents & 20 staff.</p>
                 <ul className="grid grid-cols-2" style={{ fontSize: 10.3, color: '#16202b', margin: 0, padding: 0, listStyle: 'none', gap: '0 8px' }}>
-                  {['SMS messaging', 'Nursing Notes & Vitals', 'Incident Reports', 'Chapel & Activities'].map(f => (
+                  {['Nursing & Incidents', 'Dietary & Maintenance', 'Activities & Chapel', 'SMS messaging'].map(f => (
                     <li key={f} className="relative" style={{ paddingLeft: 11, marginBottom: 1 }}>
                       <span className="absolute" style={{ left: 0, color: '#3a653f', fontWeight: 700, fontSize: 10 }}>✓</span>{f}
                     </li>
@@ -134,9 +134,9 @@ export default function SalesSheetTab() {
                   <span style={{ fontWeight: 700, fontSize: 13, color: '#0c2340' }}>Professional</span>
                   <span style={{ fontFamily: 'Georgia, "Playfair Display", serif', fontWeight: 700, fontSize: 16, color: '#076bb0' }}>$999 <span style={{ fontSize: 10, fontWeight: 400, color: '#55636f' }}>/mo</span></span>
                 </div>
-                <p style={{ fontSize: 10.5, color: '#55636f', margin: '2px 0 5px' }}>The full platform — every module, every update, included.</p>
+                <p style={{ fontSize: 10.5, color: '#55636f', margin: '2px 0 5px' }}>The full platform with no resident or staff limits.</p>
                 <ul className="grid grid-cols-2" style={{ fontSize: 10.3, color: '#16202b', margin: 0, padding: 0, listStyle: 'none', gap: '0 8px' }}>
-                  {['Dietary & Scheduling', 'Maintenance & Supply', 'Security & Transportation', 'Dedicated onboarding'].map(f => (
+                  {['Everything in Essential', 'Unlimited residents & staff', 'Every new module included', 'Dedicated onboarding'].map(f => (
                     <li key={f} className="relative" style={{ paddingLeft: 11, marginBottom: 1 }}>
                       <span className="absolute" style={{ left: 0, color: '#3a653f', fontWeight: 700, fontSize: 10 }}>✓</span>{f}
                     </li>

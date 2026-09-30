@@ -11,13 +11,13 @@ export const config = { api: { bodyParser: false } }
 
 const PLAN_MODULE_KEYS = {
   starter:      ['directory', 'staff', 'communication', 'family'],
-  essential:    ['directory', 'staff', 'communication', 'family', 'chapel', 'activities', 'incidents', 'nursing'],
+  essential:    null, // null = all modules (Essential = full platform, capped at 100 residents / 20 staff)
   professional: null, // null = all modules — social_services included
 }
 
 const PLAN_LIMITS = {
   starter:      { resident_limit: 50,   staff_limit: 10   },
-  essential:    { resident_limit: null, staff_limit: null },
+  essential:    { resident_limit: 100,  staff_limit: 20   },
   professional: { resident_limit: null, staff_limit: null },
 }
 
@@ -187,7 +187,7 @@ async function enableModulesForPlan(orgId, plan) {
   try {
     let moduleKeys
 
-    if (plan === 'professional' || !PLAN_MODULE_KEYS[plan]) {
+    if (!PLAN_MODULE_KEYS[plan]) {
       // Get all active module keys
       const { data: allModules } = await supabase.from('modules').select('key').eq('is_active', true)
       moduleKeys = (allModules || []).map(m => m.key)
