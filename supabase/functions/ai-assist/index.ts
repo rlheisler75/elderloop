@@ -18,6 +18,9 @@
 //               with Anthropic is signed. The resident's name is never sent.
 //   ss_care_conference — organize raw care conference notes into summary,
 //               goals reviewed, new goals, and follow-up items. CLINICAL (same gate).
+//   ss_goal_suggest — suggest 3 care-plan goals for a resident from their Social
+//               Services records (read server-side, org-checked, name never sent).
+//               CLINICAL (same gate).
 //
 // Deploy: supabase functions deploy ai-assist
 // Secrets: ANTHROPIC_API_KEY (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY are built in)
@@ -32,7 +35,7 @@ const MODEL = 'claude-haiku-4-5-20251001'
 const IS_HAIKU = MODEL.startsWith('claude-haiku')
 const DAILY_LIMIT = 200 // Claude calls per org per rolling 24h
 // Tasks that handle resident health information (see header)
-const CLINICAL_TASKS = ['ss_case_note', 'ss_care_conference']
+const CLINICAL_TASKS = ['ss_case_note', 'ss_care_conference', 'ss_goal_suggest']
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -97,6 +100,7 @@ Deno.serve(async (req) => {
       case 'wo_triage':    return json(await woTriage(orgId, user.id, body))
       case 'ss_case_note': return json(await ssCaseNote(orgId, user.id, body))
       case 'ss_care_conference': return json(await ssCareConference(orgId, user.id, body))
+      case 'ss_goal_suggest':    return json(await ssGoalSuggest(orgId, user.id, body))
       default:             return json({ error: 'Unknown task' }, 400)
     }
   } catch (err) {
@@ -283,5 +287,96 @@ Rules:
 
   const result = await askClaude(orgId, userId, 'ss_care_conference', system,
     sections.map(([label, v]) => `${label}:\n${v}`).join('\n\n'), schema)
+  return { suggestion: result }
+}
+
+// ── ss_goal_suggest (CLINICAL) ────────────────────────────────────
+// Keys must match GOAL_CATEGORIES in src/pages/social/Goals.jsx
+const GOAL_CATEGORY_KEYS = ['social_engagement', 'emotional_wellbeing', 'family_relationships', 'independence_adl', 'cognitive_behavioral', 'other']
+
+async function ssGoalSuggest(orgId: string, userId: string, body: Record<string, unknown>) {
+  const residentId = String(body.resident_id || '')
+  if (!/^[0-9a-f-]{36}$/i.test(residentId)) throw new Error('Bad resident id')
+
+  // The resident must belong to the caller's org (service role bypasses RLS)
+  const { data: resident } = await admin.from('residents').select('id')
+    .eq('id', residentId).eq('organization_id', orgId).maybeSingle()
+  if (!resident) throw new Error('Resident not in organization')
+
+  const daysAgo = (n: number) => new Date(Date.now() - n * 86400000).toISOString()
+  const [{ data: profile }, { data: notes }, { data: moods }, { data: conf }, { data: goals }] = await Promise.all([
+    // Goal-relevant profile fields only — no guardian names/phones
+    admin.from('ss_social_profiles')
+      .select('cognitive_level, cognitive_notes, hobbies_interests, spiritual_religious, personality_notes, support_system, strengths, goals')
+      .eq('resident_id', residentId).eq('organization_id', orgId).maybeSingle(),
+    admin.from('ss_case_notes').select('contact_date, summary')
+      .eq('resident_id', residentId).eq('organization_id', orgId)
+      .gte('contact_date', daysAgo(90).slice(0, 10)).order('contact_date', { ascending: false }).limit(10),
+    admin.from('ss_mood_logs').select('logged_at, mood, mood_score, behavioral_concerns, triggers, interventions, intervention_effective')
+      .eq('resident_id', residentId).eq('organization_id', orgId)
+      .gte('logged_at', daysAgo(30)).order('logged_at', { ascending: false }).limit(20),
+    admin.from('ss_care_conferences').select('completed_date, summary, new_goals, follow_up_items')
+      .eq('resident_id', residentId).eq('organization_id', orgId).eq('status', 'completed')
+      .order('completed_date', { ascending: false }).limit(1).maybeSingle(),
+    admin.from('ss_goals').select('category, title, status')
+      .eq('resident_id', residentId).eq('organization_id', orgId),
+  ])
+
+  const clip = (s: unknown, n = 800) => String(s ?? '').slice(0, n)
+  const parts: string[] = []
+  if (profile) {
+    const p = Object.entries(profile).filter(([, v]) => v).map(([k, v]) => `${k.replace(/_/g, ' ')}: ${clip(v, 500)}`)
+    if (p.length) parts.push(`Social profile:\n${p.join('\n')}`)
+  }
+  if (notes?.length)  parts.push(`Recent case notes (last 90 days):\n${notes.map(n => `- ${n.contact_date}: ${clip(n.summary)}`).join('\n')}`)
+  if (moods?.length)  parts.push(`Mood/behavior logs (last 30 days):\n${moods.map(m =>
+    `- ${String(m.logged_at).slice(0, 10)}: mood ${m.mood ?? '?'}${m.mood_score != null ? ` (${m.mood_score})` : ''}` +
+    `${m.behavioral_concerns ? ', behavioral concerns' : ''}${m.triggers ? `; triggers: ${clip(m.triggers, 200)}` : ''}` +
+    `${m.interventions ? `; interventions: ${clip(m.interventions, 200)}${m.intervention_effective === false ? ' (not effective)' : m.intervention_effective ? ' (effective)' : ''}` : ''}`).join('\n')}`)
+  if (conf) parts.push(`Most recent care conference (${conf.completed_date ?? 'date unknown'}):\n${[conf.summary, conf.new_goals && `New goals: ${conf.new_goals}`, conf.follow_up_items && `Follow-ups: ${conf.follow_up_items}`].filter(Boolean).map(s => clip(s, 1500)).join('\n')}`)
+  if (goals?.length)  parts.push(`Existing goals (do not duplicate):\n${goals.map(g => `- [${g.status}] ${g.title}`).join('\n')}`)
+  const hint = clip(body.hint, 1000).trim()
+  if (hint) parts.push(`Social worker's focus for this goal:\n${hint}`)
+  if (!parts.length) return { suggestion: null, reason: 'no_records' }
+
+  const schema = {
+    type: 'object',
+    properties: {
+      goals: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            category:           { type: 'string', enum: GOAL_CATEGORY_KEYS },
+            title:              { type: 'string' },
+            description:        { type: 'string' },
+            target_days:        { type: 'integer', enum: [30, 60, 90] },
+            based_on:           { type: 'string' },
+          },
+          required: ['category', 'title', 'description', 'target_days', 'based_on'],
+          additionalProperties: false,
+        },
+      },
+    },
+    required: ['goals'],
+    additionalProperties: false,
+  }
+
+  const system = `You help social workers in a senior living community write psychosocial care-plan goals.
+Suggest exactly 3 goals for this resident based on their records. For each:
+- "category": the best-fitting category key.
+- "title": one measurable, resident-centered goal (who does what, how often/how much), e.g. "Resident will attend at least 2 group activities per week." Under 20 words.
+- "description": 1-3 sentences of approaches/interventions staff will use to support the goal.
+- "target_days": 30, 60, or 90 — a realistic review period.
+- "based_on": one short sentence citing what in the records supports this goal.
+
+Rules:
+- Base every goal on something actually in the records; build on stated strengths and interests. Never invent diagnoses, history, or preferences.
+- Don't duplicate an existing goal that is not_started or in_progress; you may suggest a next step after a met goal.
+- If the social worker gave a focus, at least 2 of the 3 goals should address it.
+- Refer to the person as "Resident" (no names); refer to others by role. Respectful, person-centered language.
+- Goals are suggestions for the care team's review, not clinical orders.`
+
+  const result = await askClaude(orgId, userId, 'ss_goal_suggest', system, parts.join('\n\n'), schema)
   return { suggestion: result }
 }

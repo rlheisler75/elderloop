@@ -27,7 +27,9 @@ const inputCls = 'w-full px-3 py-2.5 border border-slate-200 dark:border-slate-7
 const formatDate = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''
 
 function GoalModal({ goal, residents, orgId, canWrite, onClose, onSaved }) {
-  const { profile } = useAuth()
+  const { profile, orgModules } = useAuth()
+  // Clinical AI needs both switches; ai_assist_clinical stays off for real customers until a HIPAA BAA is signed
+  const aiEnabled = orgModules.includes('ai_assist') && orgModules.includes('ai_assist_clinical')
   const isNew = !goal
   const [form, setForm] = useState({
     resident_id:   goal?.resident_id   || '',
@@ -40,8 +42,40 @@ function GoalModal({ goal, residents, orgId, canWrite, onClose, onSaved }) {
   })
   const [saving, setSaving] = useState(false)
   const [error,  setError]  = useState('')
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiResult, setAiResult]   = useState(null) // { goals: [...] } or { error }
+  const [beforeAI, setBeforeAI]   = useState(null) // fields before "Use this goal", for Undo
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const readOnly = !canWrite
+
+  // AI Assist (clinical): the server reads this resident's Social Services records
+  // (org-checked, name never sent) and suggests 3 goals. Anything typed in Goal /
+  // Description is passed as the social worker's focus.
+  async function suggestGoals() {
+    setAiLoading(true)
+    setAiResult(null)
+    setBeforeAI(null)
+    const hint = [form.title, form.description].filter(s => s.trim()).join('\n')
+    const { data, error: fnErr } = await supabase.functions.invoke('ai-assist', {
+      body: { task: 'ss_goal_suggest', resident_id: form.resident_id, hint, organization_id: orgId },
+    })
+    if (data?.reason === 'no_records') {
+      setAiResult({ error: 'No Social Services records for this resident yet — type a focus in the Goal box and try again.' })
+    } else if (fnErr || !data?.suggestion?.goals?.length) {
+      setAiResult({ error: 'Couldn’t suggest goals right now — please write the goal manually.' })
+    } else {
+      setAiResult(data.suggestion)
+    }
+    setAiLoading(false)
+  }
+
+  const applySuggestedGoal = (g) => {
+    const d = new Date()
+    d.setDate(d.getDate() + g.target_days)
+    const target = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+    setBeforeAI({ category: form.category, title: form.title, description: form.description, target_date: form.target_date })
+    setForm(f => ({ ...f, category: g.category, title: g.title, description: g.description, target_date: target }))
+  }
 
   const setStatus = (status) => {
     setForm(f => ({
@@ -94,6 +128,45 @@ function GoalModal({ goal, residents, orgId, canWrite, onClose, onSaved }) {
               <option value="">Select resident...</option>
               {residents.map(r => <option key={r.id} value={r.id}>{r.first_name} {r.last_name} (Rm {r.room})</option>)}
             </select>
+
+            {isNew && aiEnabled && !readOnly && (
+              <div className="mt-2">
+                <button type="button" onClick={suggestGoals} disabled={aiLoading || !form.resident_id}
+                  title={form.resident_id ? '' : 'Select a resident first'}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-brand-700 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/50 border border-brand-200 dark:border-brand-900 rounded-lg hover:bg-brand-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                  <Sparkles size={13} className={aiLoading ? 'animate-pulse' : ''} />
+                  {aiLoading ? 'Reviewing records...' : 'Suggest goals from this resident’s records'}
+                </button>
+                {aiResult?.error && <p className="mt-2 text-xs text-red-600">{aiResult.error}</p>}
+                {aiResult?.goals && beforeAI === null && (
+                  <div className="mt-2 space-y-2">
+                    <div className="text-xs font-semibold text-brand-700 dark:text-brand-400">Suggested goals — pick one to fill the form, then review</div>
+                    {aiResult.goals.map((g, i) => (
+                      <div key={i} className="p-3 bg-brand-50/60 dark:bg-brand-950/30 border border-brand-100 dark:border-brand-900 rounded-xl">
+                        <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">{getCategory(g.category).label} · review in {g.target_days} days</div>
+                        <p className="text-sm font-medium text-slate-800 dark:text-slate-100 mt-0.5">{g.title}</p>
+                        <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">{g.description}</p>
+                        <p className="text-xs text-slate-400 mt-1 italic">Based on: {g.based_on}</p>
+                        <button type="button" onClick={() => applySuggestedGoal(g)}
+                          className="mt-2 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-brand-600 hover:bg-brand-700 rounded-lg transition-colors">
+                          <Check size={13} /> Use this goal
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {beforeAI !== null && (
+                  <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                    Goal filled from the AI suggestion.{' '}
+                    <button type="button" onClick={() => { setForm(f => ({ ...f, ...beforeAI })); setBeforeAI(null) }}
+                      className="font-semibold text-brand-600 hover:underline">Undo</button>
+                    {' '}·{' '}
+                    <button type="button" onClick={() => setBeforeAI(null)}
+                      className="font-semibold text-brand-600 hover:underline">Show other suggestions</button>
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           <div>
