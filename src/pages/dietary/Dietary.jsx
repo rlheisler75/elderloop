@@ -957,7 +957,7 @@ function BulkPrintModal({ residents, menus, onClose }) {
 
 // ── Main Dietary Page ──────────────────────────────────────────
 export default function Dietary() {
-  const { profile, organization, canEdit, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
+  const { profile, organization, canEdit, hasDepartmentAccess, hasAnyDepartmentLevel, accessModel, tierFor } = useAuth()
   // Dietary/kitchen staff, supervisors, and managers get edit by default;
   // org admins can override per-user via Admin Panel > Module Access. The legacy
   // role fallback is kept for not-yet-reassigned staff; the department/level checks
@@ -965,6 +965,23 @@ export default function Dietary() {
   // supervisor+ actually rely on today.
   const canEditDietary = canEdit('dietary', ['dietary','supervisor','manager'])
     || hasDepartmentAccess('dietary', 'employee') || hasAnyDepartmentLevel('supervisor')
+
+  // Tiered communities (src/lib/accessTiers.js) split that one flag by tier, matching
+  // 20260930_access_tiers_dietary.sql: menus/recipes and the food budget belong to the
+  // Dietary Manager; profiles, seating, and physician orders to Supervisor+; any Dietary
+  // employee logs waste and works special requests. The NHA (administrator) views,
+  // approves menu cycles, and sees costs. Legacy communities keep canEditDietary everywhere.
+  const tiered     = accessModel === 'tiered'
+  const dTier      = tierFor('dietary')
+  const dRank      = { employee: 0, supervisor: 1, manager: 2, org_admin: 3, super_admin: 3 }[dTier] ?? -1
+  const inDietary  = dTier !== 'administrator' && hasDepartmentAccess('dietary', 'employee')
+  const canManageMenus  = tiered ? dRank >= 2 : canEditDietary
+  const canEditProfiles = tiered ? dRank >= 1 : canEditDietary
+  const canLogWaste     = tiered ? (dRank >= 1 || inDietary) : canEditDietary
+  const canWorkRequests = tiered ? (dRank >= 1 || inDietary) : canEditDietary
+  const canApplyOrders  = tiered ? dRank >= 1 : canEditDietary
+  const canApproveMenus = tiered ? (dRank >= 2 || dTier === 'administrator') : canEditDietary
+  const canSeeCosts     = !tiered || dRank >= 2 || dTier === 'administrator'
   const [tab, setTab]               = useState('residents')
   const [residents, setResidents]   = useState([])
   const [menus, setMenus]           = useState([])
@@ -1040,7 +1057,7 @@ export default function Dietary() {
     { key: 'ordering',  label: 'Order Guide',       icon: ClipboardList },
     { key: 'seating',   label: 'Seating Charts',    icon: Armchair },
     { key: 'waste',     label: 'Food Waste',        icon: Trash2 },
-    { key: 'cost',      label: 'Cost Report',       icon: DollarSign },
+    ...(canSeeCosts ? [{ key: 'cost', label: 'Cost Report', icon: DollarSign }] : []),
     { key: 'orders',    label: 'Meal Orders',       icon: UtensilsCrossed },
     { key: 'physician', label: 'Physician Orders',  icon: ClipboardCheck },
   ]
@@ -1063,7 +1080,7 @@ export default function Dietary() {
                 <Printer size={16} /> Print All Tickets
               </button>
             )}
-            {canEditDietary && (
+            {canEditProfiles && (
               <button onClick={handleNew}
                 className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs sm:text-sm font-medium transition-colors">
                 <Plus size={16} /> New Resident Profile
@@ -1126,7 +1143,7 @@ export default function Dietary() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filtered.map(r => (
-                <ResidentCard key={r.id} resident={r} onEdit={handleEdit} onPrint={handlePrint} canEdit={canEditDietary}
+                <ResidentCard key={r.id} resident={r} onEdit={handleEdit} onPrint={handlePrint} canEdit={canEditProfiles}
                   weightAlert={r.resident_id ? weightAlerts.get(r.resident_id) : null} />
               ))}
             </div>
@@ -1164,7 +1181,8 @@ export default function Dietary() {
             onRefresh={fetchAll}
             orgId={organization.id}
             userId={profile.id}
-            canEdit={canEditDietary}
+            canEdit={canManageMenus}
+            canApprove={canApproveMenus}
           />
         </>
       )}
@@ -1176,27 +1194,27 @@ export default function Dietary() {
 
       {/* SPECIAL REQUESTS TAB */}
       {tab === 'requests' && (
-        <ServiceRequests orgId={organization.id} canManage={canEditDietary} />
+        <ServiceRequests orgId={organization.id} canManage={canWorkRequests} />
       )}
 
       {/* ORDER GUIDE TAB */}
       {tab === 'ordering' && (
-        <OrderGuide orgId={organization.id} residents={residents} menus={menus} menuItems={menuItems} canManage={canEditDietary} />
+        <OrderGuide orgId={organization.id} residents={residents} menus={menus} menuItems={menuItems} canManage={canManageMenus} />
       )}
 
       {/* SEATING CHARTS TAB */}
       {tab === 'seating' && (
-        <SeatingCharts orgId={organization.id} dietaryProfiles={residents} canManage={canEditDietary} />
+        <SeatingCharts orgId={organization.id} dietaryProfiles={residents} canManage={canEditProfiles} />
       )}
 
       {/* FOOD WASTE TAB */}
       {tab === 'waste' && (
-        <FoodWaste orgId={organization.id} menuItems={menuItems} canManage={canEditDietary} />
+        <FoodWaste orgId={organization.id} menuItems={menuItems} canManage={canLogWaste} />
       )}
 
       {/* COST REPORT TAB */}
-      {tab === 'cost' && (
-        <CostReport orgId={organization.id} canManage={canEditDietary} />
+      {tab === 'cost' && canSeeCosts && (
+        <CostReport orgId={organization.id} canManage={tiered ? dRank >= 2 : canEditDietary} />
       )}
 
       {/* MEAL ORDERS TAB */}
@@ -1206,12 +1224,12 @@ export default function Dietary() {
 
       {/* PHYSICIAN ORDERS TAB */}
       {tab === 'physician' && (
-        <PhysicianOrders orgId={organization.id} canManage={canEditDietary} />
+        <PhysicianOrders orgId={organization.id} canManage={canApplyOrders} />
       )}
 
       {/* Modals */}
       {showProfileModal && (
-        <ResidentProfileModal resident={editResident} menus={menus} canEdit={canEditDietary} onClose={() => setShowProfileModal(false)} onSave={handleSave} />
+        <ResidentProfileModal resident={editResident} menus={menus} canEdit={canEditProfiles} onClose={() => setShowProfileModal(false)} onSave={handleSave} />
       )}
       {printResident && (
         <PrintTicket resident={printResident} menus={menus} onClose={() => setPrintResident(null)} />

@@ -805,7 +805,7 @@ function CooksCount({ weekNum, dayIdx, menu, orgId }) {
 }
 
 // ── Cycle Menu Grid ────────────────────────────────────────────
-function CycleMenuGrid({ menu, items, onBack, canEdit, orgId }) {
+function CycleMenuGrid({ menu, items, onBack, canEdit, canApprove = canEdit, orgId }) {
   const { profile } = useAuth()
   const [week, setWeek]     = useState(1)
   const [gridData, setGridData] = useState({})
@@ -941,7 +941,7 @@ function CycleMenuGrid({ menu, items, onBack, canEdit, orgId }) {
             ? `Approved${approval.approverName ? ` by ${approval.approverName}` : ''} on ${new Date(approval.approved_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
             : 'Not yet approved for nutritional adequacy'}
         </span>
-        {canEdit && !approval.approved_at && (
+        {canApprove && !approval.approved_at && (
           <button onClick={handleApprove}
             className="flex items-center gap-1.5 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition-colors flex-shrink-0">
             <Check size={12} /> Approve Menu
@@ -1156,7 +1156,7 @@ function NewMenuModal({ onClose, onSave, orgId, userId }) {
 }
 
 // ── Main Export ────────────────────────────────────────────────
-export default function CycleMenuBuilder({ menus, items, onRefresh, orgId, userId, canEdit }) {
+export default function CycleMenuBuilder({ menus, items, onRefresh, orgId, userId, canEdit, canApprove = canEdit }) {
   const [view, setView]         = useState('list') // 'list' | 'grid' | 'items'
   const [activeMenu, setActiveMenu] = useState(null)
   const [showNewMenu, setShowNewMenu] = useState(false)
@@ -1217,7 +1217,7 @@ export default function CycleMenuBuilder({ menus, items, onRefresh, orgId, userI
       )}
 
       {view === 'grid' && activeMenu && (
-        <CycleMenuGrid menu={activeMenu} items={items} onBack={handleBack} canEdit={canEdit} orgId={orgId} />
+        <CycleMenuGrid menu={activeMenu} items={items} onBack={handleBack} canEdit={canEdit} canApprove={canApprove} orgId={orgId} />
       )}
 
       {showNewMenu && (
