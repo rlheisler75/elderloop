@@ -108,6 +108,7 @@ const PLANS = [
 ]
 
 const DEMO_ACCOUNTS = [
+  { role: 'Corporate',    email: 'demo.corporate@elderloop.xyz',    desc: 'Multi-community executive — portfolio KPIs across communities (counts only), chain-wide announcements' },
   { role: 'Administrator', email: 'demo.ceo@elderloop.xyz',          desc: 'Nursing Home Administrator — Administrator Dashboard, KPIs, all modules' },
   { role: 'Org Admin',    email: 'demo.admin@elderloop.xyz',        desc: 'Full platform admin — users, modules, settings, all data' },
   { role: 'Manager',      email: 'demo.manager@elderloop.xyz',      desc: 'Maintenance Director — department queue, PM schedules, assets, vendor costs' },

@@ -45,6 +45,7 @@ const CEODashboard   = lazy(() => import('./pages/ceo/CEODashboard'))
 const UserSettings   = lazy(() => import('./pages/settings/UserSettings'))
 const SuperAdmin     = lazy(() => import('./pages/superadmin/SuperAdminDashboard'))
 const RepPortal      = lazy(() => import('./pages/rep/RepPortal'))
+const CorporatePortal = lazy(() => import('./pages/corporate/CorporatePortal'))
 const TrainingHub    = lazy(() => import('./pages/training/TrainingHub'))
 const SocialServicesGuide = lazy(() => import('./pages/training/SocialServicesGuide'))
 const DietaryGuide   = lazy(() => import('./pages/training/DietaryGuide'))
@@ -236,6 +237,19 @@ export default function App() {
         <Route path="/rep" element={<Lazy><RepPortal /></Lazy>} />
         {trainingRoutes}
         <Route path="*" element={<Navigate to="/rep" replace />} />
+      </Routes>
+    )
+  }
+
+  // Corporate Executive: one portal, counts across their communities (no community tables)
+  if (user && profile?.role === 'corporate') {
+    return (
+      <Routes>
+        <Route path="/corporate" element={<Lazy><CorporatePortal /></Lazy>} />
+        <Route path="/forgot-password" element={<Lazy><ForgotPassword /></Lazy>} />
+        <Route path="/reset-password"  element={<Lazy><ResetPassword /></Lazy>} />
+        {trainingRoutes}
+        <Route path="*" element={<Navigate to="/corporate" replace />} />
       </Routes>
     )
   }

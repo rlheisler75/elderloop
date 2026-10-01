@@ -35,12 +35,13 @@ export const MODULE_DEPARTMENTS = {
 }
 
 // Mirrors my_access_tier() in the database. Returns super_admin | org_admin |
-// administrator | manager | supervisor | employee | none.
+// administrator | corporate | manager | supervisor | employee | none.
 export function tierFor({ role, isSuperAdmin, departmentRoles = [] }, moduleKey) {
   if (isSuperAdmin || role === 'super_admin') return 'super_admin'
   if (!role || ['family', 'resident', 'sales_rep'].includes(role)) return 'none'
   if (role === 'org_admin') return 'org_admin'
   if (role === 'ceo') return 'administrator'
+  if (role === 'corporate') return 'corporate'
 
   const dept = MODULE_DEPARTMENTS[moduleKey] ?? null
   const levels = departmentRoles
