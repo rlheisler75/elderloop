@@ -40,6 +40,131 @@ const STATUSES = [
 const getType     = (key) => INCIDENT_TYPES.find(t => t.key === key) || INCIDENT_TYPES[INCIDENT_TYPES.length - 1]
 const getSeverity = (key) => SEVERITIES.find(s => s.key === key) || SEVERITIES[0]
 const getStatus   = (key) => STATUSES.find(s => s.key === key) || STATUSES[0]
+
+// ── State reporting clock (42 CFR 483.12, nursing homes) ──────────
+// Initial report to the state within 2 hours of the allegation when it involves
+// abuse or results in serious bodily injury, otherwise within 24 hours; results of
+// the investigation within 5 working days. The clock starts at allegation_known_at.
+// Working days skip weekends only — holidays aren't counted.
+function addWorkingDays(start, days) {
+  const d = new Date(start)
+  let added = 0
+  while (added < days) {
+    d.setDate(d.getDate() + 1)
+    const wd = d.getDay()
+    if (wd !== 0 && wd !== 6) added++
+  }
+  d.setHours(23, 59, 59, 999)
+  return d
+}
+function reportingDeadlines(r) {
+  if (!r?.is_state_reportable || !r.allegation_known_at) return null
+  const start = new Date(r.allegation_known_at)
+  const hours = r.reportable_level === 'two_hour' ? 2 : 24
+  return {
+    initialDue: new Date(start.getTime() + hours * 3600 * 1000),
+    investigationDue: addWorkingDays(start, 5),
+  }
+}
+function fmtCountdown(due, now = new Date()) {
+  const ms = due - now
+  const abs = Math.abs(ms)
+  const h = Math.floor(abs / 3600000), m = Math.floor((abs % 3600000) / 60000)
+  const span = h >= 48 ? `${Math.floor(h / 24)} days` : h > 0 ? `${h}h ${m}m` : `${m}m`
+  return ms >= 0 ? `due in ${span}` : `overdue by ${span}`
+}
+const fmtWhen = (d) => new Date(d).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+
+// Who decides reportability and closes incidents: the Administrator (NHA) or an
+// Org Admin in tiered communities (incident_close_guard enforces it); anyone who
+// can review in legacy communities.
+function ReportingClock({ incident, canDecide, onChanged }) {
+  const [now, setNow] = useState(new Date())
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState('')
+  useEffect(() => { const t = setInterval(() => setNow(new Date()), 60000); return () => clearInterval(t) }, [])
+  const [r, setR] = useState(incident)
+  useEffect(() => { setR(incident) }, [incident])
+
+  const update = async (patch) => {
+    setBusy(true); setErr('')
+    const { data, error } = await supabase.from('incident_reports').update(patch).eq('id', r.id).select().single()
+    setBusy(false)
+    if (error) { setErr(error.message); return }
+    setR(data); onChanged?.()
+  }
+  const dl = reportingDeadlines(r)
+  const startLocal = r.allegation_known_at ? new Date(new Date(r.allegation_known_at).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ''
+
+  const Row = ({ label, due, doneAt, onDone, doneLabel }) => {
+    const overdue = !doneAt && due < now
+    return (
+      <div className={`flex items-center justify-between gap-3 flex-wrap px-3 py-2.5 rounded-xl border text-sm ${doneAt
+        ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-900'
+        : overdue ? 'bg-red-50 dark:bg-red-950/40 border-red-300 dark:border-red-900' : 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900'}`}>
+        <div>
+          <div className="font-semibold text-slate-800 dark:text-slate-100">{label}</div>
+          <div className={`text-xs ${doneAt ? 'text-green-700 dark:text-green-400' : overdue ? 'text-red-700 dark:text-red-400 font-semibold' : 'text-amber-700 dark:text-amber-400'}`}>
+            {doneAt ? `Done ${fmtWhen(doneAt)}` : `${fmtCountdown(due, now)} · by ${fmtWhen(due)}`}
+          </div>
+        </div>
+        {!doneAt && canDecide && (
+          <button onClick={onDone} disabled={busy}
+            className="px-3 py-1.5 text-xs font-semibold text-white bg-slate-800 dark:bg-slate-200 dark:text-slate-900 rounded-lg disabled:opacity-50">
+            {doneLabel}
+          </button>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="border-t-2 border-dashed border-red-200 dark:border-red-900 pt-4 space-y-3">
+      <div className="flex items-center gap-2">
+        <Shield size={14} className="text-red-600" />
+        <span className="text-xs font-semibold text-red-700 dark:text-red-400 uppercase tracking-wide">State Reporting</span>
+        <span className="text-xs text-slate-400">42 CFR 483.12 · decided by the Administrator</span>
+      </div>
+      {err && <div className="px-3 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-xs">{err}</div>}
+      <div className="grid sm:grid-cols-2 gap-3">
+        <div>
+          <label htmlFor="inc-clock" className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Allegation known at</label>
+          <input id="inc-clock" type="datetime-local" value={startLocal} disabled={!canDecide || busy}
+            onChange={e => e.target.value && update({ allegation_known_at: new Date(e.target.value).toISOString() })}
+            className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm disabled:opacity-70" />
+        </div>
+        <div>
+          <label htmlFor="inc-reportable" className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Reportable to the state?</label>
+          <select id="inc-reportable" disabled={!canDecide || busy}
+            value={r.is_state_reportable == null ? '' : r.is_state_reportable ? r.reportable_level || 'twenty_four_hour' : 'no'}
+            onChange={e => {
+              const v = e.target.value
+              if (v === '') update({ is_state_reportable: null, reportable_level: null })
+              else if (v === 'no') update({ is_state_reportable: false, reportable_level: null })
+              else update({ is_state_reportable: true, reportable_level: v })
+            }}
+            className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm disabled:opacity-70">
+            <option value="">Not yet decided</option>
+            <option value="no">Not reportable</option>
+            <option value="two_hour">Yes, within 2 hours (abuse or serious bodily injury)</option>
+            <option value="twenty_four_hour">Yes, within 24 hours</option>
+          </select>
+        </div>
+      </div>
+      {r.is_state_reportable == null && (
+        <p className="text-xs text-amber-700 dark:text-amber-400">Decide quickly: if this involves alleged abuse or a serious injury, the state must hear within 2 hours of when it became known.</p>
+      )}
+      {dl && (
+        <div className="space-y-2">
+          <Row label="Initial report to the state" due={dl.initialDue} doneAt={r.state_reported_at}
+            doneLabel="Mark reported" onDone={() => update({ state_reported_at: new Date().toISOString() })} />
+          <Row label="Investigation results (5 working days)" due={dl.investigationDue} doneAt={r.investigation_reported_at}
+            doneLabel="Mark results sent" onDone={() => update({ investigation_reported_at: new Date().toISOString() })} />
+        </div>
+      )}
+    </div>
+  )
+}
 const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
 
 const fmt12 = (t) => {
@@ -216,7 +341,7 @@ function ResidentLookup({ residents, value, onChange, disabled, inputCls }) {
 // canEdit:   can save changes to this specific report
 // canReview: can change status and write review notes (manager+)
 // viewOnly:  supervisor viewing someone else's report — read only
-function IncidentModal({ incident, canEdit, canReview, viewOnly, residents, onClose, onSave }) {
+function IncidentModal({ incident, canEdit, canReview, canClose = true, viewOnly, residents, onClose, onSave }) {
   const { profile, organization } = useAuth()
   const isNew = !incident
   const orgId = organization?.id || profile?.organization_id
@@ -263,12 +388,11 @@ function IncidentModal({ incident, canEdit, canReview, viewOnly, residents, onCl
         ? new Date().toISOString() : (incident?.reviewed_at || null),
       updated_at:      new Date().toISOString(),
     }
-    if (isNew) {
-      await supabase.from('incident_reports').insert({ ...payload, is_active: true })
-    } else {
-      await supabase.from('incident_reports').update(payload).eq('id', incident.id)
-    }
+    const { error: err } = isNew
+      ? await supabase.from('incident_reports').insert({ ...payload, is_active: true })
+      : await supabase.from('incident_reports').update(payload).eq('id', incident.id)
     setSaving(false)
+    if (err) { setError(err.message); return }
     onSave()
   }
 
@@ -436,7 +560,7 @@ function IncidentModal({ incident, canEdit, canReview, viewOnly, residents, onCl
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Status</label>
                   <select value={form.status} onChange={e => set('status', e.target.value)} className={inputCls}>
-                    {STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
+                    {STATUSES.map(s => <option key={s.key} value={s.key} disabled={s.key === 'closed' && !canClose && incident?.status !== 'closed'}>{s.label}{s.key === 'closed' && !canClose ? ' (Administrator)' : ''}</option>)}
                   </select>
                 </div>
                 <div>
@@ -447,6 +571,11 @@ function IncidentModal({ incident, canEdit, canReview, viewOnly, residents, onCl
                 </div>
               </div>
             </div>
+          )}
+
+          {/* State reporting clock — visible to reviewers, decided by the Administrator */}
+          {!isNew && (canReview || canClose) && (
+            <ReportingClock incident={incident} canDecide={canClose} onChanged={() => {}} />
           )}
 
           {/* Supervisor sees review notes read-only if they exist */}
@@ -513,7 +642,7 @@ function IncidentModal({ incident, canEdit, canReview, viewOnly, residents, onCl
 
 // ── Main Page ──────────────────────────────────────────────────
 export default function IncidentReports() {
-  const { profile, organization } = useAuth()
+  const { profile, organization, accessModel, tierFor } = useAuth()
   const [reports, setReports]     = useState([])
   const [residents, setResidents] = useState([])
   const [loading, setLoading]     = useState(true)
@@ -526,8 +655,17 @@ export default function IncidentReports() {
 
   // ── Progressive access levels ─────────────────────────────
   const role = profile?.role
-  const canViewAll = ['supervisor','manager','ceo','org_admin','super_admin'].includes(role)
-  const canEditAny = ['manager','ceo','org_admin','super_admin'].includes(role)
+  // Tiered communities: department Supervisor+ sees and investigates every incident;
+  // only the Administrator (NHA) or an Org Admin closes one or decides state reporting.
+  const tiered  = accessModel === 'tiered'
+  const incTier = tierFor('incidents')
+  const canViewAll = tiered
+    ? ['supervisor', 'manager', 'administrator', 'org_admin', 'super_admin'].includes(incTier)
+    : ['supervisor','manager','ceo','org_admin','super_admin'].includes(role)
+  const canEditAny = tiered
+    ? ['supervisor', 'manager', 'administrator', 'org_admin', 'super_admin'].includes(incTier)
+    : ['manager','ceo','org_admin','super_admin'].includes(role)
+  const canClose = !tiered || ['ceo', 'org_admin', 'super_admin'].includes(role)
   const canFile    = !['family','resident'].includes(role)
 
   // Per-report edit logic
@@ -695,6 +833,18 @@ export default function IncidentReports() {
                     <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${severity.color}`}>{severity.label}</span>
                     {isOwn && <span className="text-xs text-brand-600 font-medium">My Report</span>}
                     {viewOnly && <span className="flex items-center gap-1 text-xs text-slate-400"><Lock size={9}/> View Only</span>}
+                    {(() => {
+                      const dl = reportingDeadlines(r)
+                      if (!dl || r.state_reported_at) return null
+                      const overdue = dl.initialDue < new Date()
+                      return (
+                        <span className={`text-xs px-2 py-0.5 rounded-full border font-semibold ${overdue
+                          ? 'bg-red-600 text-white border-red-600'
+                          : 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/50 dark:text-red-400 dark:border-red-900'}`}>
+                          State report {fmtCountdown(dl.initialDue)}
+                        </span>
+                      )
+                    })()}
                   </div>
                   <div className="font-medium text-slate-800 dark:text-slate-100 text-sm truncate">
                     {r.resident_name || 'No resident specified'} · {r.location || 'No location'}
@@ -730,6 +880,7 @@ export default function IncidentReports() {
           incident={selected}
           canEdit={selected ? canEditReport(selected) : canFile}
           canReview={canEditAny}
+          canClose={canClose}
           viewOnly={selected ? getModalViewOnly(selected) : false}
           residents={residents}
           onClose={() => { setShowModal(false); setSelected(null) }}
