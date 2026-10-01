@@ -132,6 +132,18 @@ Deno.serve(async (req) => {
   if (setting?.enabled === false) return json({ error: 'AI is turned off for this section' }, 403)
   const model = ALLOWED_MODELS.includes(setting?.model) ? setting!.model : DEFAULT_MODEL
 
+  // ── Caller must be allowed to read the records we're about to read ──
+  // ss_goal_suggest reads a resident's Social Services records with the service
+  // role, so ask the database — as the caller — whether they may see them
+  // (caseload rules in tiered communities, Social Services writers in legacy ones).
+  if (body.task === 'ss_goal_suggest') {
+    const asCaller = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+    })
+    const { data: allowed } = await asCaller.rpc('ai_can_read_ss_resident', { p_resident: String(body.resident_id || '') })
+    if (allowed !== true) return json({ error: "You don't have access to this resident's Social Services records" }, 403)
+  }
+
   try {
     switch (body.task) {
       case 'wo_triage':    return json(await woTriage(orgId, user.id, model, body))
