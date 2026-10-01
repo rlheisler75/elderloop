@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import { useSocialServicesAccess } from '../../hooks/useSocialServicesAccess'
 import { Search, Plus, ChevronRight, User, Save, X, Check,
          Shield, Heart, Book, Loader2, AlertCircle, UserCheck, CalendarCheck, ClipboardCheck } from 'lucide-react'
 
@@ -45,6 +46,8 @@ function FieldGroup({ title, icon: Icon, children }) {
 
 function ProfileEditor({ resident, orgId, profile: existingProfile, staff, canWrite, onSaved, onCancel }) {
   const { profile: authProfile } = useAuth()
+  // Caseload assignment is a Supervisor+ decision in tiered communities
+  const { isSupervisor } = useSocialServicesAccess()
   const [form, setForm] = useState({
     cognitive_level:             existingProfile?.cognitive_level || '',
     cognitive_notes:             existingProfile?.cognitive_notes || '',
@@ -129,7 +132,7 @@ function ProfileEditor({ resident, orgId, profile: existingProfile, staff, canWr
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
               <UserCheck size={12} /> Assigned Social Worker
             </label>
-            <select value={form.assigned_to} onChange={e => set('assigned_to', e.target.value)} disabled={readOnly}
+            <select value={form.assigned_to} onChange={e => set('assigned_to', e.target.value)} disabled={readOnly || !isSupervisor}
               className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100">
               <option value="">Unassigned</option>
               {(staff || []).map(s => <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>)}

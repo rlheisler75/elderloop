@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import { useSocialServicesAccess } from '../../hooks/useSocialServicesAccess'
 import { useAiSection } from '../../hooks/useAiSection'
 import { Plus, X, ClipboardList, Search, Loader2, AlertCircle, Check,
          Phone, Users, Mail, MessageSquare, ChevronDown, ShieldCheck, Sparkles } from 'lucide-react'
@@ -37,7 +38,24 @@ function CaseNoteModal({ note, residents, orgId, canWrite, onClose, onSaved }) {
   const [aiResult, setAiResult]   = useState(null) // { note, follow_up_needed, follow_up_reason } or { error }
   const [summaryBeforeAI, setSummaryBeforeAI] = useState(null) // { summary, follow_up_needed } before "Use this note", for Undo
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
-  const readOnly = !canWrite
+  // Tiered communities: a note is edited only by its author or a Social Services
+  // Supervisor+ (co-sign); notes are never deleted — mark them entered in error.
+  const { isSupervisor } = useSocialServicesAccess()
+  const canEditNote = isNew || isSupervisor || note?.created_by === profile?.id
+  const readOnly = !canWrite || !canEditNote || !!note?.entered_in_error
+
+  async function markEnteredInError() {
+    const reason = window.prompt('Why is this note being marked as entered in error? (It stays in the record, struck through.)')
+    if (!reason || !reason.trim()) return
+    setSaving(true); setError('')
+    const { error: err } = await supabase.from('ss_case_notes').update({
+      entered_in_error: true, entered_in_error_reason: reason.trim(),
+      entered_in_error_by: profile.id, entered_in_error_at: new Date().toISOString(),
+    }).eq('id', note.id)
+    setSaving(false)
+    if (err) { setError(err.message); return }
+    onSaved()
+  }
 
   // AI Assist (clinical): rough notes → structured DAP note. Only the note text and
   // contact type are sent — never the resident's name. Nothing changes until "Use this note".
@@ -194,6 +212,12 @@ function CaseNoteModal({ note, residents, orgId, canWrite, onClose, onSaved }) {
         </div>
 
         <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
+          {!isNew && canWrite && canEditNote && !note.entered_in_error && (
+            <button onClick={markEnteredInError} disabled={saving}
+              className="mr-auto px-3 py-2 text-sm text-red-600 dark:text-red-400 font-medium hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg">
+              Mark entered in error
+            </button>
+          )}
           <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">{readOnly ? 'Close' : 'Cancel'}</button>
           {!readOnly && (
             <button onClick={handleSave} disabled={saving}
@@ -246,7 +270,7 @@ export default function CaseNotes({ canWrite }) {
 
   const formatDate = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''
   const thisWeek = notes.filter(n => new Date(n.contact_date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length
-  const followUps = notes.filter(n => n.follow_up_needed).length
+  const followUps = notes.filter(n => n.follow_up_needed && !n.entered_in_error).length
 
   return (
     <div className="space-y-4">
@@ -320,11 +344,14 @@ export default function CaseNotes({ canWrite }) {
                       {n.follow_up_needed && (
                         <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 font-medium">Follow-up {formatDate(n.follow_up_date)}</span>
                       )}
+                      {n.entered_in_error && (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-400 font-medium" title={n.entered_in_error_reason || ''}>Entered in error</span>
+                      )}
                       {n.documented_in_emr && (
                         <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1"><ShieldCheck size={10} /> In EMR</span>
                       )}
                     </div>
-                    <p className="text-xs text-slate-500 line-clamp-2">{n.summary}</p>
+                    <p className={`text-xs text-slate-500 line-clamp-2 ${n.entered_in_error ? 'line-through opacity-60' : ''}`}>{n.summary}</p>
                     <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-400">
                       <span>{formatDate(n.contact_date)}</span>
                       {n.duration_minutes && <span>{n.duration_minutes} min</span>}

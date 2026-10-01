@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import { useSocialServicesAccess } from '../../hooks/useSocialServicesAccess'
 import { Plus, X, AlertTriangle, Search, Loader2, AlertCircle,
          ChevronDown, Check, Flag } from 'lucide-react'
 import { SOCIAL_STATE_REFS } from '../../lib/socialStateRefs'
@@ -46,6 +47,9 @@ function getStatus(key)   { return STATUSES.find(s => s.key === key)   || STATUS
 
 function GrievanceModal({ residents, staff, orgId, grievance, canWrite, onClose, onSaved }) {
   const { profile } = useAuth()
+  // Tiered communities: resolving and state reporting belong to the Social Services
+  // Director, the Administrator (grievance official), or an Org Admin.
+  const { canClose } = useSocialServicesAccess()
   const isNew = !grievance
   const [form, setForm] = useState({
     resident_id:               grievance?.resident_id || '',
@@ -220,7 +224,7 @@ function GrievanceModal({ residents, staff, orgId, grievance, canWrite, onClose,
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Status</label>
                   <select value={form.status} onChange={e => set('status', e.target.value)} disabled={readOnly}
                     className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100 disabled:bg-slate-50 dark:disabled:bg-slate-800">
-                    {STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
+                    {STATUSES.map(s => <option key={s.key} value={s.key} disabled={s.key === 'resolved' && !canClose && grievance?.status !== 'resolved'}>{s.label}</option>)}
                   </select>
                 </div>
                 <div>
@@ -267,7 +271,7 @@ function GrievanceModal({ residents, staff, orgId, grievance, canWrite, onClose,
               <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2"><Flag size={14} className="text-red-500" /> Regulatory Report Required</span>
-                  <button onClick={() => !readOnly && set('regulatory_report_required', !form.regulatory_report_required)} disabled={readOnly}
+                  <button onClick={() => !readOnly && canClose && set('regulatory_report_required', !form.regulatory_report_required)} disabled={readOnly || !canClose}
                     className={`w-11 h-6 rounded-full transition-colors relative ${form.regulatory_report_required ? 'bg-red-500' : 'bg-slate-300 dark:bg-slate-700'}`}>
                     <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.regulatory_report_required ? 'translate-x-5' : ''}`} />
                   </button>
@@ -276,12 +280,12 @@ function GrievanceModal({ residents, staff, orgId, grievance, canWrite, onClose,
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs text-slate-500 mb-1">Report Date</label>
-                      <input type="date" value={form.regulatory_report_date} onChange={e => set('regulatory_report_date', e.target.value)} disabled={readOnly}
+                      <input type="date" value={form.regulatory_report_date} onChange={e => set('regulatory_report_date', e.target.value)} disabled={readOnly || !canClose}
                         className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-slate-50 dark:bg-slate-800 dark:text-slate-100 dark:disabled:bg-slate-800" />
                     </div>
                     <div>
                       <label className="block text-xs text-slate-500 mb-1">Agency</label>
-                      <input value={form.regulatory_agency} onChange={e => set('regulatory_agency', e.target.value)} readOnly={readOnly}
+                      <input value={form.regulatory_agency} onChange={e => set('regulatory_agency', e.target.value)} readOnly={readOnly || !canClose}
                         placeholder="e.g. MO DHSS"
                         className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:text-slate-100" />
                     </div>
