@@ -105,7 +105,7 @@ function PrintReceipt({ request, orgName, onClose }) {
 }
 
 // ── IL Request Modal ───────────────────────────────────────────
-function ILRequestModal({ request, onClose, onSave }) {
+function ILRequestModal({ request, onClose, onSave, canBill = true }) {
   const { profile } = useAuth()
   const isNew = !request
   const [form, setForm] = useState({
@@ -281,10 +281,10 @@ function ILRequestModal({ request, onClose, onSave }) {
                   className="w-full px-3 py-2 border border-green-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-400 bg-white resize-none dark:bg-slate-800 dark:border-green-900 dark:text-slate-100"
                   placeholder="Any issues or notes for the office..." />
               </div>
-              <label className="flex items-center gap-2 cursor-pointer">
+              {canBill && <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={form.billed} onChange={e => set('billed', e.target.checked)} className="w-4 h-4 rounded text-green-600" />
                 <span className="text-sm font-medium text-green-800 dark:text-green-400">Marked as billed</span>
-              </label>
+              </label>}
             </div>
           )}
         </div>
@@ -457,12 +457,22 @@ function InspectionDetailModal({ inspection, checklistItems, onClose }) {
 
 // ── Main Housekeeping Page ─────────────────────────────────────
 export default function Housekeeping() {
-  const { profile, organization, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
+  const { profile, organization, hasDepartmentAccess, hasAnyDepartmentLevel, accessModel, tierFor } = useAuth()
   // Housekeeping Supervisor+ (or an org-wide Manager) manages inspection areas
   // and sees the full inspection log; a plain housekeeper still logs inspections
   // but only sees the ones they personally completed. IL cleaning requests stay
   // open to any Housekeeping staff regardless of level.
-  const isHousekeepingManager = hasDepartmentAccess('housekeeping', 'supervisor') || hasAnyDepartmentLevel('manager')
+  // Tiered communities (20260930_access_tiers_housekeeping.sql): only Housekeeping's own
+  // Supervisor+ sees the full log and bills IL visits, and only its Manager sets up areas —
+  // a manager of another department no longer qualifies.
+  const tiered  = accessModel === 'tiered'
+  const hkTier  = tierFor('housekeeping')
+  const hkRank  = { employee: 0, supervisor: 1, manager: 2, org_admin: 3, super_admin: 3 }[hkTier] ?? -1
+  const isHousekeepingManager = tiered
+    ? (hkRank >= 1 || hkTier === 'administrator')
+    : (hasDepartmentAccess('housekeeping', 'supervisor') || hasAnyDepartmentLevel('manager'))
+  const canManageAreas = tiered ? hkRank >= 2 : isHousekeepingManager
+  const canBill        = !tiered || hkRank >= 1
   const [tab, setTab]             = useState('ltc')
   const [areas, setAreas]         = useState([])
   const [checklistItems, setChecklistItems] = useState([])
@@ -596,7 +606,7 @@ export default function Housekeeping() {
           />
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
             <p className="text-sm text-slate-500">{areas.length} areas · {inspections.length} inspections logged</p>
-            {isHousekeepingManager && (
+            {canManageAreas && (
               <button onClick={() => setShowAddArea(s => !s)}
                 className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
                 <Plus size={15} /> Add Area
@@ -604,7 +614,7 @@ export default function Housekeeping() {
             )}
           </div>
 
-          {showAddArea && isHousekeepingManager && (
+          {showAddArea && canManageAreas && (
             <div className="mb-4 p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl flex items-center gap-3">
               <input value={newAreaName} onChange={e => setNewAreaName(e.target.value)}
                 className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
@@ -641,7 +651,7 @@ export default function Housekeeping() {
                           {area.area_type === 'room' ? <Home size={16} className="text-slate-400" /> : <Building2 size={16} className="text-slate-400" />}
                           <span className="font-medium text-slate-800 dark:text-slate-100 text-sm">{area.name}</span>
                         </div>
-                        {isHousekeepingManager && (
+                        {canManageAreas && (
                           <button onClick={() => handleDeleteArea(area.id)} className="text-slate-300 hover:text-red-400 transition-colors"><Trash2 size={13} /></button>
                         )}
                       </div>
@@ -827,7 +837,7 @@ export default function Housekeeping() {
           onClose={() => setViewInspection(null)} />
       )}
       {showILModal && (
-        <ILRequestModal request={editILRequest}
+        <ILRequestModal request={editILRequest} canBill={canBill}
           onClose={() => { setShowILModal(false); setEditILRequest(null) }}
           onSave={() => { setShowILModal(false); setEditILRequest(null); fetchAll() }} />
       )}
