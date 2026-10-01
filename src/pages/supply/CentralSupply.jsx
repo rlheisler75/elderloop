@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import { useSupplyAccess } from '../../hooks/useSupplyAccess'
 import {
   Package, PackagePlus, PackageMinus, DollarSign,
   ClipboardList, Truck, BarChart2
@@ -23,7 +24,7 @@ const ALL_TABS = [
 ]
 
 export default function CentralSupply() {
-  const { hasModule, canEdit, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
+  const { hasModule } = useAuth()
   const [tab, setTab] = useState('inventory')
 
   // Supply staff/supervisors/managers get edit by default for central_supply;
@@ -31,7 +32,7 @@ export default function CentralSupply() {
   // View-only users see Inventory, Purchase Orders, Vendors, and Reports in read-only
   // mode; Receive/Issue/Cash Sales are pure write-workflows and are hidden entirely
   // for view-only users.
-  const canEditSupply = canEdit('central_supply', ['supervisor','manager']) || hasDepartmentAccess('central_supply','employee') || hasAnyDepartmentLevel('supervisor')
+  const { canWork: canEditSupply } = useSupplyAccess()
 
   if (!hasModule('central_supply')) {
     return (

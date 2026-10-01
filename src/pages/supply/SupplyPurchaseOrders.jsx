@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import { useSupplyAccess } from '../../hooks/useSupplyAccess'
 import {
   Plus, X, ChevronRight, ClipboardList, Check, AlertTriangle,
   Package, Truck, Search, CheckCircle2, Clock, XCircle,
@@ -9,6 +10,7 @@ import {
 
 const STATUS_CFG = {
   draft:              { label: 'Draft',             color: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300',  icon: Edit2 },
+  awaiting_approval:  { label: 'Awaiting Approval', color: 'bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-400', icon: Clock },
   submitted:          { label: 'Submitted',         color: 'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400',    icon: Clock },
   partially_received: { label: 'Partial',           color: 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400',  icon: AlertTriangle },
   received:           { label: 'Received',          color: 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400',  icon: CheckCircle2 },
@@ -18,6 +20,20 @@ const STATUS_CFG = {
 const TYPE_CFG = {
   stock:     { label: 'Stock PO',     color: 'bg-brand-100 text-brand-700' },
   non_stock: { label: 'Non-Stock',    color: 'bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-400' },
+}
+
+// Submit a PO. In tiered communities an order over the approval threshold is
+// refused by supply_po_guard (hint po_needs_approval) — it goes to the Administrator
+// as 'awaiting_approval' instead. Legacy communities submit straight through.
+async function submitPO(poId) {
+  const { error } = await supabase.from('supply_purchase_orders').update({ status: 'submitted' }).eq('id', poId)
+  if (!error) return { status: 'submitted' }
+  if (error.hint === 'po_needs_approval') {
+    const { error: e2 } = await supabase.from('supply_purchase_orders').update({ status: 'awaiting_approval' }).eq('id', poId)
+    if (e2) return { error: e2.message }
+    return { status: 'awaiting_approval', message: error.message.replace('Send it to', 'Sent to') }
+  }
+  return { error: error.message }
 }
 
 function poTotal(lines) {
@@ -61,8 +77,10 @@ function CreatePOModal({ orgId, profileId, vendors, items, editPO, editLines, on
     if (lines.every(l => !l.description.trim())) { setError('Add at least one line item'); return }
     setSaving(true); setError('')
 
+    // Saved as a draft first so the lines exist before any submit (the approval
+    // threshold check in tiered communities totals the lines).
     const poPayload = {
-      po_type: poType, status,
+      po_type: poType, status: 'draft',
       vendor_id: vendorId || null,
       vendor_name_free: vendorFree || null,
       ordered_date: orderedDate,
@@ -90,7 +108,7 @@ function CreatePOModal({ orgId, profileId, vendors, items, editPO, editLines, on
     }
 
     const validLines = lines.filter(l => l.description.trim())
-    await supabase.from('supply_po_line_items').insert(
+    const { error: lineErr } = await supabase.from('supply_po_line_items').insert(
       validLines.map((l, idx) => ({
         po_id: poId,
         organization_id: orgId,
@@ -105,6 +123,13 @@ function CreatePOModal({ orgId, profileId, vendors, items, editPO, editLines, on
         sort_order: idx,
       }))
     )
+    if (lineErr) { setError(lineErr.message); setSaving(false); return }
+
+    if (status === 'submitted') {
+      const res = await submitPO(poId)
+      if (res.error) { setError(res.error); setSaving(false); return }
+      if (res.message) alert(res.message)
+    }
     onSaved()
   }
 
@@ -223,7 +248,7 @@ function CreatePOModal({ orgId, profileId, vendors, items, editPO, editLines, on
 }
 
 // ── Inline Receive Input ───────────────────────────────────────
-function ReceiveLineRow({ line, po, orgId, profileId, canEdit, onDone }) {
+function ReceiveLineRow({ line, po, orgId, profileId, canEdit, showCosts = true, onDone }) {
   const received  = Number(line.quantity_received)
   const ordered   = Number(line.quantity_ordered)
   const remaining = ordered - received
@@ -332,10 +357,10 @@ function ReceiveLineRow({ line, po, orgId, profileId, canEdit, onDone }) {
           <div className="text-xs text-slate-400">{remaining} remaining</div>
         )}
       </td>
-      <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">{line.unit_cost ? `$${Number(line.unit_cost).toFixed(2)}` : '—'}</td>
-      <td className="px-4 py-3 text-sm font-medium text-slate-800 dark:text-slate-100">
+      {showCosts && <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">{line.unit_cost ? `$${Number(line.unit_cost).toFixed(2)}` : '—'}</td>}
+      {showCosts && <td className="px-4 py-3 text-sm font-medium text-slate-800 dark:text-slate-100">
         ${(ordered * Number(line.unit_cost || 0)).toFixed(2)}
-      </td>
+      </td>}
       <td className="px-4 py-3">
         {status === 'received' && (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400">
@@ -413,7 +438,12 @@ function ReceiveLineRow({ line, po, orgId, profileId, canEdit, onDone }) {
 }
 
 // ── PO Detail / Receive View ───────────────────────────────────
-function PODetail({ po, orgId, profileId, canEdit, onBack, onRefresh, onEdit }) {
+function PODetail({ po, orgId, profileId, canEdit, canManagePO = canEdit, onBack, onRefresh, onEdit }) {
+  const { profile } = useAuth()
+  const { showCosts } = useSupplyAccess()
+  // The Administrator (NHA) or an Org Admin approves orders over the threshold
+  const isApprover = ['ceo', 'org_admin', 'super_admin'].includes(profile?.role)
+  const [actionError, setActionError] = useState('')
   const [lines,    setLines]    = useState([])
   const [loading,  setLoading]  = useState(true)
   const [receiving,setReceiving]= useState(false)
@@ -520,15 +550,17 @@ function PODetail({ po, orgId, profileId, canEdit, onBack, onRefresh, onEdit }) 
               {po.notes && <div className="mt-2 text-slate-600 dark:text-slate-300 italic">{po.notes}</div>}
             </div>
           </div>
-          <div className="text-right">
-            <div className="text-2xl font-display font-bold text-slate-800 dark:text-slate-100">${total.toFixed(2)}</div>
-            <div className="text-xs text-slate-400">Estimated total</div>
-          </div>
+          {showCosts && (
+            <div className="text-right">
+              <div className="text-2xl font-display font-bold text-slate-800 dark:text-slate-100">${total.toFixed(2)}</div>
+              <div className="text-xs text-slate-400">Estimated total</div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Draft actions */}
-      {po.status === 'draft' && canEdit && (
+      {po.status === 'draft' && canManagePO && (
         <div className="flex items-center gap-2 mb-4">
           <button onClick={onEdit}
             className="flex items-center gap-2 px-4 py-2 border border-brand-200 text-brand-700 hover:bg-brand-50 dark:hover:bg-brand-950/30 text-sm font-medium rounded-xl transition-colors">
@@ -536,7 +568,10 @@ function PODetail({ po, orgId, profileId, canEdit, onBack, onRefresh, onEdit }) 
           </button>
           <button onClick={async () => {
             if (!confirm('Submit this PO to the vendor?')) return
-            await supabase.from('supply_purchase_orders').update({ status: 'submitted' }).eq('id', po.id)
+            setActionError('')
+            const res = await submitPO(po.id)
+            if (res.error) { setActionError(res.error); return }
+            if (res.message) alert(res.message)
             onRefresh()
           }} className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl transition-colors">
             <Check size={14} /> Submit PO
@@ -552,8 +587,42 @@ function PODetail({ po, orgId, profileId, canEdit, onBack, onRefresh, onEdit }) 
         </div>
       )}
 
+      {actionError && <div className="mb-4 px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">{actionError}</div>}
+
+      {/* Over the approval threshold — waiting on the Administrator */}
+      {po.status === 'awaiting_approval' && (
+        <div className="flex items-center gap-3 flex-wrap mb-4 px-4 py-3 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900 rounded-xl">
+          <span className="flex-1 text-sm text-purple-800 dark:text-purple-300">
+            {isApprover
+              ? 'This order is over the community\'s approval limit. Approve it to send it to the vendor, or send it back for changes.'
+              : 'This order is over the community\'s approval limit and is waiting for the Administrator to approve it.'}
+          </span>
+          {isApprover && (
+            <>
+              <button onClick={async () => {
+                setActionError('')
+                const { error } = await supabase.from('supply_purchase_orders')
+                  .update({ approved_by: profile.id, approved_at: new Date().toISOString(), status: 'submitted' }).eq('id', po.id)
+                if (error) { setActionError(error.message); return }
+                onRefresh()
+              }} className="flex items-center gap-1.5 px-4 py-2 bg-purple-700 hover:bg-purple-800 text-white text-sm font-medium rounded-xl">
+                <Check size={14} /> Approve &amp; submit
+              </button>
+              <button onClick={async () => {
+                setActionError('')
+                const { error } = await supabase.from('supply_purchase_orders').update({ status: 'draft' }).eq('id', po.id)
+                if (error) { setActionError(error.message); return }
+                onRefresh()
+              }} className="px-4 py-2 border border-purple-300 dark:border-purple-800 text-purple-800 dark:text-purple-300 text-sm font-medium rounded-xl">
+                Send back
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
       {/* Receive All button */}
-      {anyPending && po.status !== 'cancelled' && po.status !== 'draft' && canEdit && (
+      {anyPending && !['cancelled', 'draft', 'awaiting_approval'].includes(po.status) && canEdit && (
         <div className="flex justify-end mb-4">
           <button onClick={receiveAll} disabled={receiving}
             className="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 disabled:bg-green-300 text-white text-sm font-medium rounded-xl shadow-sm transition-colors">
@@ -568,7 +637,7 @@ function PODetail({ po, orgId, profileId, canEdit, onBack, onRefresh, onEdit }) 
         <table className="w-full min-w-[760px]">
           <thead>
             <tr className="border-b border-slate-100 bg-slate-50">
-              {['Item / Description', 'Qty Ordered', 'Qty Received', 'Unit Cost', 'Line Total', 'Status', 'Receive'].map(h => (
+              {['Item / Description', 'Qty Ordered', 'Qty Received', ...(showCosts ? ['Unit Cost', 'Line Total'] : []), 'Status', 'Receive'].map(h => (
                 <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">{h}</th>
               ))}
             </tr>
@@ -583,7 +652,8 @@ function PODetail({ po, orgId, profileId, canEdit, onBack, onRefresh, onEdit }) 
                 po={po}
                 orgId={orgId}
                 profileId={profileId}
-                canEdit={canEdit}
+                canEdit={canEdit && po.status !== 'awaiting_approval'}
+                showCosts={showCosts}
                 onDone={handleLineDone}
               />
             ))}
@@ -601,8 +671,10 @@ function PODetail({ po, orgId, profileId, canEdit, onBack, onRefresh, onEdit }) 
 
 // ── Main Purchase Orders page ──────────────────────────────────
 export default function SupplyPurchaseOrders() {
-  const { organization, profile, canEdit, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
-  const canEditSupply = canEdit('central_supply', ['supervisor','manager']) || hasDepartmentAccess('central_supply','employee') || hasAnyDepartmentLevel('supervisor')
+  const { organization, profile } = useAuth()
+  // Tiered: Central Supply staff (any level) receive; only its Manager (or the Dietary
+  // Manager, for food) creates and edits orders. The NHA approves but doesn't edit.
+  const { canWork: canEditSupply, canManage: canCreatePO } = useSupplyAccess()
   const [pos,      setPos]      = useState([])
   const [vendors,  setVendors]  = useState([])
   const [items,    setItems]    = useState([])
@@ -638,7 +710,7 @@ export default function SupplyPurchaseOrders() {
   }
 
   if (selectedPO) {
-    return <PODetail po={selectedPO} orgId={organization.id} profileId={profile.id} canEdit={canEditSupply} onBack={() => setSelectedPO(null)} onRefresh={() => { fetchAll(); setSelectedPO(null) }} onEdit={() => handleEditDraft(selectedPO)} />
+    return <PODetail po={selectedPO} orgId={organization.id} profileId={profile.id} canEdit={canEditSupply} canManagePO={canCreatePO} onBack={() => setSelectedPO(null)} onRefresh={() => { fetchAll(); setSelectedPO(null) }} onEdit={() => handleEditDraft(selectedPO)} />
   }
 
   const filtered = pos.filter(p => {
@@ -659,7 +731,7 @@ export default function SupplyPurchaseOrders() {
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search PO number, vendor..." className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white" />
         </div>
-        {canEditSupply && (
+        {canCreatePO && (
           <button onClick={() => setShowCreate(true)} className="flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl shadow-sm transition-colors">
             <Plus size={15} /> New PO
           </button>
@@ -686,7 +758,7 @@ export default function SupplyPurchaseOrders() {
             <ClipboardList size={36} className="mx-auto mb-3 opacity-30" />
             <p className="font-display text-lg text-slate-600">{pos.length === 0 ? 'No purchase orders yet' : 'No POs match'}</p>
             <p className="text-sm mt-1">{pos.length === 0 ? 'Create your first PO to get started.' : 'Try adjusting filters.'}</p>
-            {pos.length === 0 && canEditSupply && <button onClick={() => setShowCreate(true)} className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white text-sm font-medium rounded-xl"><Plus size={15} /> New PO</button>}
+            {pos.length === 0 && canCreatePO && <button onClick={() => setShowCreate(true)} className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white text-sm font-medium rounded-xl"><Plus size={15} /> New PO</button>}
           </div>
         ) : (
           <table className="w-full min-w-[680px]">

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import { useSupplyAccess } from '../../hooks/useSupplyAccess'
 import {
   BarChart2, AlertTriangle, TrendingDown, DollarSign,
   Package, ArrowUpCircle, ArrowDownCircle, RefreshCw,
@@ -27,6 +28,7 @@ function stockStatus(item) {
 
 export default function SupplyReports() {
   const { organization } = useAuth()
+  const { showCosts } = useSupplyAccess()
   const [transactions, setTransactions] = useState([])
   const [items,        setItems]        = useState([])
   const [loading,      setLoading]      = useState(true)
@@ -106,7 +108,7 @@ export default function SupplyReports() {
       {/* Summary cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         {[
-          { label: 'Inventory Value',  value: `$${totalValue.toFixed(2)}`, sub: 'at cost',             color: 'text-slate-800 dark:text-slate-100', icon: Package },
+          ...(showCosts ? [{ label: 'Inventory Value',  value: `$${totalValue.toFixed(2)}`, sub: 'at cost',             color: 'text-slate-800 dark:text-slate-100', icon: Package }] : []),
           { label: 'Items Issued',     value: totalIssued,                 sub: `last ${days} days`,   color: 'text-blue-600',  icon: ArrowDownCircle },
           { label: 'Items Received',   value: totalReceived,               sub: `last ${days} days`,   color: 'text-green-600', icon: ArrowUpCircle },
           { label: 'Cash Sales',       value: `$${cashSalesTotal.toFixed(2)}`, sub: `last ${days} days`,color: 'text-amber-600', icon: DollarSign },

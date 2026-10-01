@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import { useSupplyAccess } from '../../hooks/useSupplyAccess'
 import {
   Plus, Search, X, Edit2, Trash2, Package,
   AlertTriangle, CheckCircle2, XCircle, ChevronDown,
@@ -43,7 +44,7 @@ const STATUS_CONFIG = {
 const fmt$ = (v) => v != null && v !== '' ? `$${Number(v).toFixed(2)}` : '—'
 
 // ── Item Modal ─────────────────────────────────────────────────
-function ItemModal({ item, vendors, orgId, profileId, canEdit, onClose, onSaved }) {
+function ItemModal({ item, vendors, orgId, profileId, canEdit, showCosts = true, onClose, onSaved }) {
   const isNew = !item
   const readOnly = !canEdit
   const [tab, setTab] = useState('details')
@@ -288,12 +289,14 @@ function ItemModal({ item, vendors, orgId, profileId, canEdit, onClose, onSaved 
               <div className="border-t border-slate-100 dark:border-slate-800 pt-4">
                 <p className={labelCls}>Pricing</p>
                 <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs text-slate-500 mb-1.5">Cost Per Unit ($)</label>
-                    <input type="number" min="0" step="0.01"
-                      value={form.cost_per_unit} onChange={e => set('cost_per_unit', e.target.value)}
-                      className={inputCls} placeholder="0.00" />
-                  </div>
+                  {showCosts && (
+                    <div>
+                      <label className="block text-xs text-slate-500 mb-1.5">Cost Per Unit ($)</label>
+                      <input type="number" min="0" step="0.01"
+                        value={form.cost_per_unit} onChange={e => set('cost_per_unit', e.target.value)}
+                        className={inputCls} placeholder="0.00" />
+                    </div>
+                  )}
                   <div>
                     <label className="block text-xs text-slate-500 mb-1.5">Cash Sale Price ($)</label>
                     <input type="number" min="0" step="0.01"
@@ -378,7 +381,7 @@ function ItemModal({ item, vendors, orgId, profileId, canEdit, onClose, onSaved 
 }
 
 // ── Item Row ───────────────────────────────────────────────────
-function ItemRow({ item, onEdit, canEdit }) {
+function ItemRow({ item, onEdit, canEdit, showCosts = true }) {
   const status = stockStatus(item)
   const cfg    = STATUS_CONFIG[status]
   const StatusIcon = cfg.icon
@@ -444,7 +447,7 @@ function ItemRow({ item, onEdit, canEdit }) {
           </div>
         )}
       </td>
-      <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">{fmt$(item.cost_per_unit)}</td>
+      {showCosts && <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">{fmt$(item.cost_per_unit)}</td>}
       <td className="px-4 py-3">
         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${cfg.color}`}>
           <StatusIcon size={10} />
@@ -472,7 +475,8 @@ export default function SupplyInventory() {
   const { organization, profile, canEdit, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
   // Supply staff/supervisors/managers get edit by default for central_supply;
   // org admins can grant/restrict per-user via Admin Panel > Module Access
-  const canEditSupply = canEdit('central_supply', ['supervisor','manager']) || hasDepartmentAccess('central_supply','employee') || hasAnyDepartmentLevel('supervisor')
+  // Items, prices, and par levels are the Manager's in tiered communities
+  const { canManage: canEditSupply, showCosts } = useSupplyAccess()
   const [items,    setItems]    = useState([])
   const [vendors,  setVendors]  = useState([])
   const [loading,  setLoading]  = useState(true)
@@ -558,7 +562,7 @@ export default function SupplyInventory() {
         {[
           { label: 'Total Items',   value: items.filter(i => i.is_active).length, sub: 'active in catalog', color: 'text-slate-800 dark:text-slate-100' },
           { label: 'Needs Attention', value: lowCount, sub: 'low, critical or out', color: lowCount > 0 ? 'text-red-600' : 'text-green-600' },
-          { label: 'Inventory Value', value: `$${totalValue.toFixed(2)}`, sub: 'at cost', color: 'text-slate-800 dark:text-slate-100' },
+          ...(showCosts ? [{ label: 'Inventory Value', value: `$${totalValue.toFixed(2)}`, sub: 'at cost', color: 'text-slate-800 dark:text-slate-100' }] : []),
           { label: 'Vendors', value: vendors.length, sub: 'active vendors', color: 'text-slate-800 dark:text-slate-100' },
         ].map(card => (
           <div key={card.label} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm px-4 py-3">
@@ -681,7 +685,7 @@ export default function SupplyInventory() {
             <table className="w-full min-w-[680px]">
               <thead>
                 <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
-                  {['Item', 'Category', 'Barcode', 'Stock', 'Cost', 'Status', ''].map(h => (
+                  {['Item', 'Category', 'Barcode', 'Stock', ...(showCosts ? ['Cost'] : []), 'Status', ''].map(h => (
                     <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
                       {h}
                     </th>
@@ -690,7 +694,7 @@ export default function SupplyInventory() {
               </thead>
               <tbody>
                 {filtered.map(item => (
-                  <ItemRow key={item.id} item={item} onEdit={handleEdit} canEdit={canEditSupply} />
+                  <ItemRow key={item.id} item={item} onEdit={handleEdit} canEdit={canEditSupply} showCosts={showCosts} />
                 ))}
               </tbody>
             </table>
@@ -710,6 +714,7 @@ export default function SupplyInventory() {
           orgId={organization.id}
           profileId={profile.id}
           canEdit={canEditSupply}
+          showCosts={showCosts}
           onClose={() => { setShowModal(false); setSelected(null) }}
           onSaved={handleSaved}
         />

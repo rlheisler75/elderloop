@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import { useSupplyAccess } from '../../hooks/useSupplyAccess'
 import { PackagePlus, Search, ScanLine, CheckCircle2, X, ClipboardList } from 'lucide-react'
 import BarcodeScanner from './BarcodeScanner'
 
 export default function SupplyReceive() {
   const { organization, profile } = useAuth()
+  const { showCosts } = useSupplyAccess()
   const [mode, setMode]         = useState('manual') // 'manual' | 'po'
   const [items, setItems]       = useState([])
   const [openPOs, setOpenPOs]   = useState([])
@@ -206,8 +208,10 @@ export default function SupplyReceive() {
                   <input type="number" min="0" step="0.01" value={line.receive_qty} onChange={e => setLineVal(idx, 'receive_qty', e.target.value)} className="w-20 px-2 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 text-center" />
                   {mode === 'manual' && (
                     <>
+                      {showCosts && <>
                       <label className="text-xs text-slate-400">Cost $</label>
                       <input type="number" min="0" step="0.01" value={line.unit_cost ?? ''} onChange={e => setLineVal(idx, 'unit_cost', e.target.value)} className="w-24 px-2 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 text-center" />
+                      </>}
                     </>
                   )}
                 </div>
