@@ -54,6 +54,7 @@ const MaintenanceGuide = lazy(() => import('./pages/training/MaintenanceGuide'))
 const HousekeepingGuide = lazy(() => import('./pages/training/HousekeepingGuide'))
 const ActivitiesGuide = lazy(() => import('./pages/training/ActivitiesGuide'))
 const ChapelGuide = lazy(() => import('./pages/training/ChapelGuide'))
+const AccessGuide = lazy(() => import('./pages/training/AccessGuide'))
 const MarketingGuide = lazy(() => import('./pages/training/MarketingGuide'))
 const CommunicationGuide = lazy(() => import('./pages/training/CommunicationGuide'))
 const TransportationGuide = lazy(() => import('./pages/training/TransportationGuide'))
@@ -74,6 +75,7 @@ const AiGuide = lazy(() => import('./pages/training/AiGuide'))
 // Training routes — shared between the public route tree and the sales-rep
 // route branch (below) so reps can reach the Training Library from /rep.
 const trainingRoutes = [
+  <Route key="training-access"        path="/training/access"              element={<Lazy><AccessGuide /></Lazy>} />,
   <Route key="training"               path="/training"                    element={<Lazy><TrainingHub /></Lazy>} />,
   <Route key="training-social"        path="/training/social-services"     element={<Lazy><SocialServicesGuide /></Lazy>} />,
   <Route key="training-dietary"       path="/training/dietary"             element={<Lazy><DietaryGuide /></Lazy>} />,

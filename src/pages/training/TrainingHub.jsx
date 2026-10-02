@@ -3,6 +3,13 @@ import { Sparkles, HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wre
 
 const GUIDES = [
   {
+    to: '/training/access',
+    icon: ShieldCheck,
+    title: 'Roles & Access',
+    desc: 'The five access levels, who can do what in each module, the Administrator’s view-and-approve role and Emergency Edit, approvals, entered-in-error, and the Corporate Portal.',
+    tag: '8 sections',
+  },
+  {
     to: '/training/ai',
     icon: Sparkles,
     title: 'AI Assist',

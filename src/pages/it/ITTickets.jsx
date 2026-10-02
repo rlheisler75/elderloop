@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import { useTierAccess } from '../../hooks/useTierAccess'
 import {
   Plus, X, Search, Check, AlertTriangle, Monitor, Wifi,
   Printer, Phone, Server, Package, HelpCircle, Edit2,
@@ -601,6 +602,12 @@ export default function ITTickets() {
   // everyone else can only submit tickets and see their own (query-scoped below, not just UI-hidden).
   const isITStaff = hasDepartmentAccess('it', 'employee')
   const admin  = isITStaff  // boolean — not a function call
+  // Tiered communities: assets are IT-only and added by the IT Manager; licenses
+  // (with their costs) are the IT Manager's alone
+  const tierAccess = useTierAccess('it')
+  const canAddAsset  = tierAccess.tiered ? tierAccess.atLeast('manager') : admin
+  const showAssets   = !tierAccess.tiered || isITStaff
+  const showLicenses = !tierAccess.tiered || tierAccess.atLeast('manager')
   const orgId  = organization?.id || profile?.organization_id
   const userId = profile?.id
 
@@ -719,9 +726,9 @@ export default function ITTickets() {
       <div className="flex gap-1 mb-6 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit">
         {[
           { key: 'tickets',  label: 'Tickets',  icon: ClipboardList },
-          { key: 'assets',   label: 'Assets',   icon: Monitor },
-          { key: 'licenses', label: 'Licenses', icon: KeyRound },
-        ].map(t => {
+          showAssets   && { key: 'assets',   label: 'Assets',   icon: Monitor },
+          showLicenses && { key: 'licenses', label: 'Licenses', icon: KeyRound },
+        ].filter(Boolean).map(t => {
           const Icon = t.icon
           return (
             <button key={t.key} onClick={() => setTab(t.key)}
@@ -845,10 +852,10 @@ export default function ITTickets() {
                   className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl text-xs font-medium transition-colors">
                   <Printer size={13} /> Print Labels
                 </button>
-                <button onClick={() => setNewAsset(true)}
+                {canAddAsset && <button onClick={() => setNewAsset(true)}
                   className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-sm font-medium transition-colors">
                   <Plus size={15} /> Add Asset
-                </button>
+                </button>}
               </>
             )}
           </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import { useTierAccess } from '../../hooks/useTierAccess'
 import {
   Plus, X, Edit2, Trash2, Search, Zap, Droplets,
   Flame, Thermometer, Gauge, ChevronRight, Settings,
@@ -468,6 +469,10 @@ function MeterHistoryModal({ meter, utilityType, onClose }) {
 // ── Main Meter Readings Page ───────────────────────────────────
 export default function MeterReadings() {
   const { profile, organization } = useAuth()
+  // Tiered communities: Maintenance staff record readings; meters and utility
+  // rates are the Maintenance Manager's
+  const tierAccess = useTierAccess('meters')
+  const canSetUp = tierAccess.atLeast('manager')
   const [utilityTypes, setUtilityTypes] = useState([])
   const [meters, setMeters]             = useState([])
   const [residents, setResidents]       = useState([])
@@ -563,10 +568,12 @@ export default function MeterReadings() {
           <p className="text-slate-500 text-sm mt-0.5">Utility tracking and usage calculation</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <button onClick={() => setShowUtilityManager(true)}
-            className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
-            <Settings size={15} /> Utility Types
-          </button>
+          {canSetUp && (
+            <button onClick={() => setShowUtilityManager(true)}
+              className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
+              <Settings size={15} /> Utility Types
+            </button>
+          )}
           <button onClick={() => setShowBarcodeLabels(true)}
             className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
             <Printer size={15} /> Print Barcodes
@@ -575,10 +582,12 @@ export default function MeterReadings() {
             className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
             <ScanLine size={15} /> Scan Meter
           </button>
-          <button onClick={() => setShowAddMeter(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
-            <Plus size={15} /> Add Meter
-          </button>
+          {canSetUp && (
+            <button onClick={() => setShowAddMeter(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
+              <Plus size={15} /> Add Meter
+            </button>
+          )}
         </div>
       </div>
 
@@ -669,14 +678,18 @@ export default function MeterReadings() {
                               className="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-950/30 transition-colors" title="View history">
                               <TrendingUp size={13} />
                             </button>
-                            <button onClick={() => setEditingMeter(meter)}
-                              className="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-950/30 transition-colors" title="Edit meter">
-                              <Edit2 size={13} />
-                            </button>
-                            <button onClick={() => handleDeleteMeter(meter.id)}
-                              className="p-1.5 text-slate-300 hover:text-red-500 rounded-lg transition-colors">
-                              <Trash2 size={13} />
-                            </button>
+                            {canSetUp && (
+                              <>
+                                <button onClick={() => setEditingMeter(meter)}
+                                  className="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-950/30 transition-colors" title="Edit meter">
+                                  <Edit2 size={13} />
+                                </button>
+                                <button onClick={() => handleDeleteMeter(meter.id)}
+                                  className="p-1.5 text-slate-300 hover:text-red-500 rounded-lg transition-colors">
+                                  <Trash2 size={13} />
+                                </button>
+                              </>
+                            )}
                           </div>
                         </div>
 
@@ -730,10 +743,12 @@ export default function MeterReadings() {
           <Gauge size={48} className="mx-auto mb-4 opacity-30" />
           <p className="font-display text-xl text-slate-600 dark:text-slate-300">No utility types set up yet</p>
           <p className="text-sm mt-1 mb-6">Add the utilities you resell — electric, water, gas, or custom.</p>
-          <button onClick={() => setShowUtilityManager(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl transition-colors">
-            <Settings size={15} /> Set Up Utility Types
-          </button>
+          {canSetUp ? (
+            <button onClick={() => setShowUtilityManager(true)}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl transition-colors">
+              <Settings size={15} /> Set Up Utility Types
+            </button>
+          ) : <p className="text-xs text-slate-400">Ask your Maintenance Manager to set them up.</p>}
         </div>
       )}
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import { useTierAccess } from '../../hooks/useTierAccess'
 import {
   Plus, X, Edit2, Trash2, Search, Home, FileText, Key,
   DollarSign, AlertTriangle, ClipboardCheck, ChevronDown,
@@ -917,6 +918,11 @@ function KeysTab({ orgId, units, leases, tenants, staff }) {
 
 export default function PropertyManagement() {
   const { profile, organization } = useAuth()
+  // Tiered communities: Property staff handle units, keys, and walkthroughs;
+  // tenants, leases, rent, deposits, and notices are the Property Manager's, who
+  // also adds and removes units
+  const tierAccess = useTierAccess('property_management')
+  const isPropertyManager = tierAccess.atLeast('manager')
   const orgId = organization?.id || profile?.organization_id
   const [tab, setTab] = useState('units')
 
@@ -1019,12 +1025,12 @@ export default function PropertyManagement() {
 
   const TABS = [
     { key:'units',       label:'Units',        icon: Home },
-    { key:'tenants',     label:'Tenants',      icon: User },
-    { key:'leases',      label:'Leases',       icon: FileText },
+    { key:'tenants',     label:'Tenants',      icon: User, managerOnly: true },
+    { key:'leases',      label:'Leases',       icon: FileText, managerOnly: true },
     { key:'keys',        label:'Keys',         icon: Key },
     { key:'walkthroughs',label:'Walkthroughs', icon: ClipboardCheck },
-    { key:'notices',     label:'Notices',      icon: Bell },
-  ]
+    { key:'notices',     label:'Notices',      icon: Bell, managerOnly: true },
+  ].filter(t => !t.managerOnly || isPropertyManager)
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -1078,10 +1084,12 @@ export default function PropertyManagement() {
                 <option value="all">All Statuses</option>
                 {UNIT_STATUSES.map(s=><option key={s.key} value={s.key}>{s.label}</option>)}
               </select>
-              <button onClick={()=>{setEditUnit(null);setShowUnitForm(true)}}
-                className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors ml-auto">
-                <Plus size={15} /> Add Unit
-              </button>
+              {isPropertyManager && (
+                <button onClick={()=>{setEditUnit(null);setShowUnitForm(true)}}
+                  className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors ml-auto">
+                  <Plus size={15} /> Add Unit
+                </button>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1106,10 +1114,12 @@ export default function PropertyManagement() {
                           className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-400">
                           <Edit2 size={14} />
                         </button>
-                        <button onClick={()=>deleteUnit(unit.id)}
-                          className="p-1.5 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-500 rounded-lg transition-colors text-slate-400">
-                          <Trash2 size={14} />
-                        </button>
+                        {isPropertyManager && (
+                          <button onClick={()=>deleteUnit(unit.id)}
+                            className="p-1.5 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-500 rounded-lg transition-colors text-slate-400">
+                            <Trash2 size={14} />
+                          </button>
+                        )}
                       </div>
                     </div>
 

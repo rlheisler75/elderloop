@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import { useTierAccess } from '../../hooks/useTierAccess'
 import {
   Calendar, Users, Video, Radio, Plus, X, Edit2,
   Trash2, Play, Clock, ChevronRight, Wifi, WifiOff,
@@ -224,6 +225,10 @@ function ServiceModal({ service, onClose, onSave }) {
 // ── Main Chapel Page (Staff/Chaplain view) ─────────────────────
 export default function Chapel() {
   const { profile, organization } = useAuth()
+  // Tiered communities: Supervisor+ (Activities department) schedules services and
+  // runs the live stream; everyone else sees the schedule read-only
+  const tierAccess = useTierAccess('chapel')
+  const canManage = tierAccess.atLeast('supervisor')
   const [services, setServices]   = useState([])
   const [loading, setLoading]     = useState(true)
   const [showModal, setShowModal] = useState(false)
@@ -283,10 +288,12 @@ export default function Chapel() {
           <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Chapel Management</h1>
           <p className="text-slate-500 text-sm mt-0.5">Chaplain Portal — Manage services and live streams</p>
         </div>
-        <button onClick={() => { setEditService(null); setShowModal(true) }}
-          className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
-          <Plus size={16} /> New Service
-        </button>
+        {canManage && (
+          <button onClick={() => { setEditService(null); setShowModal(true) }}
+            className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
+            <Plus size={16} /> New Service
+          </button>
+        )}
       </div>
 
       {/* Stats */}
@@ -362,7 +369,7 @@ export default function Chapel() {
                   </div>
                 </div>
                 <button onClick={() => toggleLive(s)}
-                  disabled={!s.stream_youtube_id && !s.is_live}
+                  disabled={!canManage || (!s.stream_youtube_id && !s.is_live)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                     s.is_live ? 'bg-red-500 text-white hover:bg-red-600'
                     : s.stream_youtube_id ? 'bg-green-500 text-white hover:bg-green-600'
@@ -403,12 +410,14 @@ export default function Chapel() {
                     {s.officiant && ` · ${s.officiant}`}
                   </div>
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <button onClick={() => { setEditService(s); setShowModal(true) }}
-                    className="p-2 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 transition-colors"><Edit2 size={14} /></button>
-                  <button onClick={() => handleDelete(s.id)}
-                    className="p-2 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors"><Trash2 size={14} /></button>
-                </div>
+                {canManage && (
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <button onClick={() => { setEditService(s); setShowModal(true) }}
+                      className="p-2 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 transition-colors"><Edit2 size={14} /></button>
+                    <button onClick={() => handleDelete(s.id)}
+                      className="p-2 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors"><Trash2 size={14} /></button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -453,10 +462,14 @@ export default function Chapel() {
                         : <span className="text-xs text-slate-300">No recording</span>}
                     </td>
                     <td className="px-4 py-3 flex items-center gap-1 justify-end">
-                      <button onClick={() => { setEditService(s); setShowModal(true) }}
-                        className="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg transition-colors"><Edit2 size={13} /></button>
-                      <button onClick={() => handleDelete(s.id)}
-                        className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg transition-colors"><Trash2 size={13} /></button>
+                      {canManage && (
+                        <>
+                          <button onClick={() => { setEditService(s); setShowModal(true) }}
+                            className="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg transition-colors"><Edit2 size={13} /></button>
+                          <button onClick={() => handleDelete(s.id)}
+                            className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg transition-colors"><Trash2 size={13} /></button>
+                        </>
+                      )}
                     </td>
                   </tr>
                 ))}

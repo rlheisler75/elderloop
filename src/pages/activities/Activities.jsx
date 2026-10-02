@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import AttendanceModal from './AttendanceModal'
+import { useTierAccess } from '../../hooks/useTierAccess'
 import ParticipationReport from './ParticipationReport'
 import {
   Plus, X, Edit2, Trash2, ChevronLeft, ChevronRight,
@@ -87,7 +88,7 @@ function expandActivities(activities, startDate, endDate) {
 }
 
 // ── Activity Form Modal ────────────────────────────────────────
-function ActivityModal({ activity, canEdit, onClose, onSave, onDelete }) {
+function ActivityModal({ activity, canEdit, canDelete = true, onClose, onSave, onDelete }) {
   const { profile } = useAuth()
   const readOnly = !canEdit
   const [form, setForm] = useState({
@@ -275,7 +276,7 @@ function ActivityModal({ activity, canEdit, onClose, onSave, onDelete }) {
         </div>
 
         <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 flex-shrink-0">
-          {!readOnly && activity?.id ? (
+          {!readOnly && canDelete && activity?.id ? (
             <button onClick={() => onDelete(activity.id)}
               className="flex items-center gap-1.5 px-3 py-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-lg text-sm font-medium transition-colors">
               <Trash2 size={14} /> Delete
@@ -644,7 +645,7 @@ function PrintCalendarModal({ activities, month, year, orgName, onClose }) {
 }
 
 // ── Upcoming List (resident-style) ─────────────────────────────
-function UpcomingList({ activities, onEdit, canEdit, attendanceCounts, onTakeAttendance, rsvpCounts }) {
+function UpcomingList({ activities, onEdit, canEdit, canTakeAttendance = canEdit, attendanceCounts, onTakeAttendance, rsvpCounts }) {
   const upcoming = activities
     .filter(a => a._date >= today())
     .slice(0, 30)
@@ -699,7 +700,7 @@ function UpcomingList({ activities, onEdit, canEdit, attendanceCounts, onTakeAtt
                         </div>
                       </div>
                     </div>
-                    {canEdit && (
+                    {canTakeAttendance && (
                       <button onClick={() => onTakeAttendance(a)}
                         className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg font-medium flex-shrink-0 border transition-colors ${count > 0 ? 'bg-brand-50 dark:bg-brand-950/30 border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-400' : 'border-slate-200 dark:border-slate-700 text-slate-500 hover:border-brand-300'}`}>
                         <ClipboardCheck size={12} />{count > 0 ? `${count} attended` : 'Attendance'}
@@ -728,7 +729,13 @@ export default function Activities() {
   const { profile, organization, canEdit, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
   // Supervisors/managers get edit by default for activities; org admins can
   // grant/restrict edit access per-user via Admin Panel > Module Access
-  const canEditActivities = canEdit('activities', ['supervisor','manager']) || hasDepartmentAccess('activities','employee') || hasAnyDepartmentLevel('supervisor')
+  const legacyCanEdit = canEdit('activities', ['supervisor','manager']) || hasDepartmentAccess('activities','employee') || hasAnyDepartmentLevel('supervisor')
+  // Tiered communities: Supervisor+ runs the calendar, Activities staff take
+  // attendance, only the Manager deletes (20260930_access_tiers_remaining_modules.sql)
+  const tierAccess = useTierAccess('activities')
+  const canEditActivities = tierAccess.tiered ? tierAccess.atLeast('supervisor') : legacyCanEdit
+  const canTakeAttendance = tierAccess.tiered ? tierAccess.member : legacyCanEdit
+  const canDeleteActivities = tierAccess.tiered ? tierAccess.atLeast('manager') : legacyCanEdit
   const [activities, setActivities] = useState([])
   const [loading, setLoading]       = useState(true)
   const [view, setView]             = useState('calendar') // 'calendar' | 'list'
@@ -935,7 +942,7 @@ export default function Activities() {
         loading ? (
           <div className="text-center py-16 text-slate-400">Loading...</div>
         ) : (
-          <UpcomingList activities={expandedList} onEdit={handleEdit} canEdit={canEditActivities}
+          <UpcomingList activities={expandedList} onEdit={handleEdit} canEdit={canEditActivities} canTakeAttendance={canTakeAttendance}
             attendanceCounts={attendanceCounts} onTakeAttendance={setAttendanceActivity} rsvpCounts={rsvpCounts} />
         )
       )}
@@ -951,6 +958,7 @@ export default function Activities() {
           key={editActivity?.id || 'new'}
           activity={editActivity ? editActivity : (defaultDate ? { start_date: defaultDate } : null)}
           canEdit={canEditActivities}
+          canDelete={canDeleteActivities}
           onClose={() => { setShowModal(false); setEditActivity(null); setDefaultDate(null) }}
           onSave={() => { setShowModal(false); setEditActivity(null); setDefaultDate(null); fetchActivities() }}
           onDelete={(id) => { handleDelete(id); setShowModal(false); setEditActivity(null); setDefaultDate(null) }} />

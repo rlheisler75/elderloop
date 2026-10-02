@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import { useTierAccess } from '../../hooks/useTierAccess'
 import {
   Plus, X, Edit2, Trash2, ChevronLeft, ChevronRight,
   Clock, User, Users, AlertTriangle, Check, RefreshCw,
@@ -806,6 +807,10 @@ export default function Scheduling() {
   // Org-wide manager (any dept Manager, or org_admin/ceo/super_admin) manages every
   // department's schedule; a department Supervisor only manages that department's own shifts.
   const isMgr = hasAnyDepartmentLevel('supervisor') // can manage SOMETHING — governs whether the header buttons show at all
+  // Tiered communities: shift templates belong to Managers (t_any_manager); a
+  // department Supervisor still builds their department's schedule
+  const tierAccess = useTierAccess('scheduling')
+  const canManageTemplates = isMgr && tierAccess.anyManager
   const canManageDept = (dept) => hasDepartmentAccess(dept, 'supervisor') || hasAnyDepartmentLevel('manager')
 
   useEffect(() => { if (organization) fetchAll() }, [organization])
@@ -870,7 +875,7 @@ export default function Scheduling() {
           <p className="text-slate-500 text-sm mt-0.5">Shift management, scheduling, and swap requests</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          {isMgr && (
+          {canManageTemplates && (
             <button onClick={() => setShowTemplates(true)}
               className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
               <Settings size={15} /> Templates

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import { useTierAccess } from '../../hooks/useTierAccess'
 import {
   Shield, Plus, X, Edit2, Trash2, Search, MapPin,
   Navigation, CheckCircle2, XCircle, Clock, Play,
@@ -516,7 +517,10 @@ const getReportPriority = (key) => REPORT_PRIORITIES.find(p => p.key === key) ||
 function SecurityReportModal({ report, roundId, checkpoints, onClose, onSave }) {
   const { profile, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
   const isNew = !report
-  const isSupervisor = hasDepartmentAccess('security', 'supervisor') || hasAnyDepartmentLevel('manager')
+  const tierAccess = useTierAccess('security')
+  const isSupervisor = tierAccess.tiered
+    ? tierAccess.atLeast('supervisor')
+    : hasDepartmentAccess('security', 'supervisor') || hasAnyDepartmentLevel('manager')
 
   const [form, setForm] = useState({
     report_type:         report?.report_type         || 'general',
@@ -742,8 +746,12 @@ export default function Security() {
   const [showReport, setShowReport]     = useState(false)
   const [editReport, setEditReport]     = useState(null)
 
-  // Scoped to the Security department specifically — any org-wide Manager still covers everything
-  const isSupervisor = hasDepartmentAccess('security', 'supervisor') || hasAnyDepartmentLevel('manager')
+  // Checkpoint setup. Legacy: Security Supervisor+ or any org-wide Manager.
+  // Tiered: the Security Manager only (20260930_access_tiers_remaining_modules.sql)
+  const tierAccess = useTierAccess('security')
+  const isSupervisor = tierAccess.tiered
+    ? tierAccess.atLeast('manager')
+    : hasDepartmentAccess('security', 'supervisor') || hasAnyDepartmentLevel('manager')
 
   useEffect(() => {
     const handler = (e) => {
@@ -957,7 +965,7 @@ export default function Security() {
         <div>
           {!isSupervisor && (
             <div className="mb-4 px-4 py-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded-xl text-sm text-blue-700 dark:text-blue-400">
-              Only supervisors and admins can add or edit checkpoints.
+              {tierAccess.tiered ? 'Only the Security Manager can add or edit checkpoints.' : 'Only supervisors and admins can add or edit checkpoints.'}
             </div>
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

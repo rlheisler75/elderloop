@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import { useTierAccess } from '../../hooks/useTierAccess'
 import { Users, Megaphone, TrendingUp, Calendar, CheckCircle, Tag, UserPlus, FileText, BarChart3, CalendarClock, Zap, Mail } from 'lucide-react'
 import { StatCard, Modal } from './ui'
 import PipelineTab, { LeadForm, ActivityModal } from './tabs/PipelineTab'
@@ -17,6 +18,10 @@ export default function Marketing() {
   const { profile, organization } = useAuth()
   const orgId = organization?.id || profile?.organization_id
   const [tab, setTab] = useState('pipeline')
+  // Tiered communities: Marketing staff work leads; campaigns, templates,
+  // sequences, landing pages, and referral sources are set up by Supervisor+
+  const tierAccess = useTierAccess('marketing')
+  const canConfigure = tierAccess.atLeast('supervisor')
 
   const [leads, setLeads] = useState([])
   const [sources, setSources] = useState([])
@@ -61,13 +66,13 @@ export default function Marketing() {
   const tabs = [
     { key: 'pipeline',      label: 'Lead Pipeline',   icon: Users },
     { key: 'followups',     label: 'Follow-Ups',      icon: CalendarClock },
-    { key: 'sequences',     label: 'Sequences',       icon: Zap },
+    { key: 'sequences',     label: 'Sequences',       icon: Zap, setup: true },
     { key: 'funnel',        label: 'Funnel',          icon: BarChart3 },
-    { key: 'campaigns',     label: 'Campaigns',       icon: Megaphone },
-    { key: 'templates',     label: 'Templates',       icon: Mail },
-    { key: 'landing_pages', label: 'Landing Pages',   icon: FileText },
-    { key: 'sources',       label: 'Referral Sources', icon: Tag },
-  ]
+    { key: 'campaigns',     label: 'Campaigns',       icon: Megaphone, setup: true },
+    { key: 'templates',     label: 'Templates',       icon: Mail, setup: true },
+    { key: 'landing_pages', label: 'Landing Pages',   icon: FileText, setup: true },
+    { key: 'sources',       label: 'Referral Sources', icon: Tag, setup: true },
+  ].filter(t => !t.setup || canConfigure)
 
   return (
     <div className="max-w-7xl mx-auto">

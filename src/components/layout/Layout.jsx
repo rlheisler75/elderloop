@@ -12,6 +12,13 @@ import { Bell } from 'lucide-react'
 import { ShoppingBag } from 'lucide-react'
 import { getOrgDepartments, STAFF_LEVELS, LEVEL_RANK } from '../../lib/departments'
 import EmergencyEditBar from './EmergencyEditBar'
+import { MODULE_DEPARTMENTS } from '../../lib/accessTiers'
+
+// In tiered communities these modules are readable only by their own department
+// (20260930_access_tiers_remaining_modules.sql), so the sidebar hides them from
+// everyone else instead of opening an empty page.
+const DEPARTMENT_ONLY_MODULES = ['security', 'marketing', 'property_management', 'meters']
+const ABOVE_EMPLOYEE = ['supervisor', 'manager', 'administrator', 'org_admin', 'super_admin']
 
 // Grouped + ordered sidebar nav. A group with no visible items (module access,
 // see visibleGroups below) is skipped entirely — no empty headers.
@@ -73,7 +80,7 @@ const NAV_GROUPS = [
 ]
 
 export default function Layout() {
-  const { profile, organization, hasModule, isOrgAdmin, isSuperAdmin, signOut, impersonating, exitImpersonation, departmentRoles } = useAuth()
+  const { profile, organization, hasModule, isOrgAdmin, isSuperAdmin, signOut, impersonating, exitImpersonation, departmentRoles, accessModel, tierFor, hasDepartmentAccess } = useAuth()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [notifs, setNotifs]       = useState([])
   const [showNotifs, setShowNotifs] = useState(false)
@@ -136,8 +143,10 @@ export default function Layout() {
   const navigate = useNavigate()
   const handleSignOut = async () => { await signOut(); navigate('/login') }
 
+  const hiddenByTier = (mod) => accessModel === 'tiered' && DEPARTMENT_ONLY_MODULES.includes(mod)
+    && !ABOVE_EMPLOYEE.includes(tierFor(mod)) && !hasDepartmentAccess(MODULE_DEPARTMENTS[mod], 'employee')
   const visibleGroups = NAV_GROUPS
-    .map(group => ({ ...group, items: group.items.filter(item => !item.module || hasModule(item.module)) }))
+    .map(group => ({ ...group, items: group.items.filter(item => !item.module || (hasModule(item.module) && !hiddenByTier(item.module))) }))
     .filter(group => group.items.length > 0)
 
   return (

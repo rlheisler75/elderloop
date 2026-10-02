@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import { useTierAccess } from '../../hooks/useTierAccess'
 import BroadcastPanel from './BroadcastPanel'
 import AiMessageWriter from '../../components/communication/AiMessageWriter'
 import {
@@ -335,7 +336,12 @@ export default function Communication() {
   // ── Tab state ──────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState('announcements')
 
-  const canPost    = profile && ['super_admin','org_admin','ceo','supervisor','manager','staff','maintenance','dietary','housekeeping'].includes(profile.role)
+  // Tiered communities: only Supervisor+ (any department) and the NHA post or edit
+  // community announcements (20260930_access_tiers_remaining_modules.sql)
+  const tierAccess = useTierAccess('communication')
+  const legacyCanPost = profile && ['super_admin','org_admin','ceo','supervisor','manager','staff','maintenance','dietary','housekeeping'].includes(profile.role)
+  const canPost    = tierAccess.tiered ? tierAccess.anySupervisor : legacyCanPost
+  const canEditOwn = !tierAccess.tiered || tierAccess.anySupervisor
   const canDelete  = hasAnyDepartmentLevel('supervisor')
   const canEditAll = hasAnyDepartmentLevel('supervisor')
 
@@ -478,7 +484,7 @@ export default function Communication() {
               </div>
               {filteredScheduled.map(a => (
                 <AnnouncementCard key={a.id} item={a}
-                  canEdit={canEditAll || a.created_by === profile?.id}
+                  canEdit={canEditAll || (canEditOwn && a.created_by === profile?.id)}
                   canDelete={canDelete} onEdit={handleEdit} onDelete={handleDelete} />
               ))}
             </div>
@@ -503,7 +509,7 @@ export default function Communication() {
                   <div className="space-y-3">
                     {pinnedLive.map(a => (
                       <AnnouncementCard key={a.id} item={a}
-                        canEdit={canEditAll || a.created_by === profile?.id}
+                        canEdit={canEditAll || (canEditOwn && a.created_by === profile?.id)}
                         canDelete={canDelete} onEdit={handleEdit} onDelete={handleDelete} />
                     ))}
                   </div>
@@ -515,7 +521,7 @@ export default function Communication() {
                   <div className="space-y-3">
                     {regularLive.map(a => (
                       <AnnouncementCard key={a.id} item={a}
-                        canEdit={canEditAll || a.created_by === profile?.id}
+                        canEdit={canEditAll || (canEditOwn && a.created_by === profile?.id)}
                         canDelete={canDelete} onEdit={handleEdit} onDelete={handleDelete} />
                     ))}
                   </div>

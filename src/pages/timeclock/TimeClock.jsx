@@ -528,7 +528,7 @@ function GeofenceMap({ lat, lng, radius, mapRef, circleRef, leafletMapRef, onCha
 }
 
 export default function TimeClock() {
-  const { profile, organization, hasDepartmentAccess } = useAuth()
+  const { profile, organization, hasDepartmentAccess, canManagePlatform } = useAuth()
   const [tab, setTab] = useState('clock')
   const [punches, setPunches] = useState([])
   const [allPunches, setAllPunches] = useState([])
@@ -544,6 +544,9 @@ export default function TimeClock() {
   // Team tab, Payroll Export, and Settings are for HR/Payroll supervisors+ (or org admins, always) —
   // everyone else only ever sees their own clock (My Clock / My History).
   const admin = hasDepartmentAccess('hr', 'supervisor') || hasDepartmentAccess('payroll', 'supervisor')
+  // Geofence settings are platform settings: in a tiered community the NHA needs the
+  // Platform Admin switch (nha_write_guard('platform') on geofence_settings)
+  const canEditSettings = admin && (profile?.role !== 'ceo' || canManagePlatform)
   const orgId = organization?.id
   // Map refs for geofence settings
   const mapRef        = useRef(null)
@@ -676,7 +679,7 @@ export default function TimeClock() {
           ...(admin ? [
             { key: 'team',    label: 'Team',           icon: Users },
             { key: 'payroll', label: 'Payroll Export',  icon: Download },
-            { key: 'settings',label: 'Settings',        icon: Settings },
+            ...(canEditSettings ? [{ key: 'settings', label: 'Settings', icon: Settings }] : []),
           ] : []),
         ].map(t => {
           const Icon = t.icon
@@ -887,7 +890,7 @@ export default function TimeClock() {
       )}
 
       {/* ── SETTINGS TAB (admin) ── */}
-      {tab === 'settings' && admin && geofenceForm && (
+      {tab === 'settings' && canEditSettings && geofenceForm && (
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6 max-w-2xl">
           <h3 className="font-semibold text-slate-700 dark:text-slate-300 mb-5 flex items-center gap-2">
             <MapPin size={16} className="text-brand-600" /> Geofence Settings

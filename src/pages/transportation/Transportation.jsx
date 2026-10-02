@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import { useTierAccess } from '../../hooks/useTierAccess'
 import {
   Plus, X, Edit2, Trash2, Search, Printer,
   Car, Calendar, Clock, MapPin, Phone, User,
@@ -326,7 +327,7 @@ function TripMonthCalendar({ trips, year, month, onDayClick, onTripClick }) {
   )
 }
 
-function TripModal({ trip, vehicles, residents, defaultDate, onClose, onSave }) {
+function TripModal({ trip, vehicles, residents, defaultDate, readOnly = false, onClose, onSave }) {
   const { profile } = useAuth()
   const isNew = !trip
   const [form, setForm] = useState({
@@ -537,11 +538,14 @@ function TripModal({ trip, vehicles, residents, defaultDate, onClose, onSave }) 
         </div>
 
         <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
-          <button onClick={handleSave} disabled={saving}
-            className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
-            {saving ? 'Saving...' : isNew ? 'Schedule Trip' : 'Save Changes'}
-          </button>
+          {readOnly && <span className="mr-auto self-center text-xs text-slate-400">Only Transportation staff or the person who scheduled this trip can change it.</span>}
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">{readOnly ? 'Close' : 'Cancel'}</button>
+          {!readOnly && (
+            <button onClick={handleSave} disabled={saving}
+              className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
+              {saving ? 'Saving...' : isNew ? 'Schedule Trip' : 'Save Changes'}
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -551,6 +555,11 @@ function TripModal({ trip, vehicles, residents, defaultDate, onClose, onSave }) 
 // ── Main Transportation Page ───────────────────────────────────
 export default function Transportation() {
   const { profile, organization } = useAuth()
+  // Tiered communities: anyone schedules a trip; Transportation staff (or whoever
+  // scheduled it) change it; only the Transportation Manager deletes
+  const tierAccess = useTierAccess('transportation')
+  const canEditTrip = (t) => !t || tierAccess.member || t.scheduled_by === profile?.id
+  const canDeleteTrips = tierAccess.atLeast('manager')
   const [trips, setTrips]         = useState([])
   const [vehicles, setVehicles]   = useState([])
   const [residents, setResidents] = useState([])
@@ -824,8 +833,10 @@ export default function Transportation() {
                     <div className="flex gap-1 flex-shrink-0">
                       <button onClick={() => handleEdit(t)}
                         className="p-2 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-950/50 transition-colors"><Edit2 size={14} /></button>
-                      <button onClick={() => handleDelete(t.id)}
-                        className="p-2 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors"><Trash2 size={14} /></button>
+                      {canDeleteTrips && (
+                        <button onClick={() => handleDelete(t.id)}
+                          className="p-2 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors"><Trash2 size={14} /></button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -882,8 +893,10 @@ export default function Transportation() {
                     <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400">{t.driver_name || '—'}</td>
                     <td className="px-4 py-3"><StatusBadge status={t.status} /></td>
                     <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
-                      <button onClick={() => handleDelete(t.id)}
-                        className="p-1.5 text-slate-300 hover:text-red-500 rounded-lg transition-colors"><Trash2 size={13} /></button>
+                      {canDeleteTrips && (
+                        <button onClick={() => handleDelete(t.id)}
+                          className="p-1.5 text-slate-300 hover:text-red-500 rounded-lg transition-colors"><Trash2 size={13} /></button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -901,6 +914,7 @@ export default function Transportation() {
       {showModal && (
         <TripModal trip={editTrip} vehicles={vehicles} residents={residents}
           defaultDate={!editTrip ? selectedDate : undefined}
+          readOnly={!canEditTrip(editTrip)}
           onClose={() => setShowModal(false)} onSave={handleSave} />
       )}
       {showPrint && (
