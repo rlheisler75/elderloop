@@ -12,6 +12,8 @@ const DEMO_ROLES = [
   { role: 'Administrator (NHA)', email: 'demo.ceo@elderloop.xyz',         color: 'bg-brand-700 hover:bg-brand-600' },
   { role: 'Org Admin',          email: 'demo.admin@elderloop.xyz',        color: 'bg-brand-600 hover:bg-brand-700' },
   { role: 'Maintenance Manager', email: 'demo.manager@elderloop.xyz',     color: 'bg-orange-700 hover:bg-orange-600' },
+  { role: 'Dietary Manager',    email: 'demo.dietarymanager@elderloop.xyz', color: 'bg-green-800 hover:bg-green-700' },
+  { role: 'Central Supply Manager', email: 'demo.supplymanager@elderloop.xyz', color: 'bg-cyan-700 hover:bg-cyan-600' },
   { role: 'Nursing Supervisor', email: 'demo.supervisor@elderloop.xyz',   color: 'bg-purple-600 hover:bg-purple-700' },
   { role: 'Nursing Employee',   email: 'demo.nursing@elderloop.xyz',      color: 'bg-rose-600 hover:bg-rose-700' },
   { role: 'Social Worker',      email: 'demo.socialworker@elderloop.xyz', color: 'bg-fuchsia-700 hover:bg-fuchsia-600' },

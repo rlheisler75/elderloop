@@ -112,6 +112,8 @@ const DEMO_ACCOUNTS = [
   { role: 'Administrator', email: 'demo.ceo@elderloop.xyz',          desc: 'Nursing Home Administrator — Administrator Dashboard, KPIs, all modules' },
   { role: 'Org Admin',    email: 'demo.admin@elderloop.xyz',        desc: 'Full platform admin — users, modules, settings, all data' },
   { role: 'Manager',      email: 'demo.manager@elderloop.xyz',      desc: 'Maintenance Director — department queue, PM schedules, assets, vendor costs' },
+  { role: 'Dietary Manager', email: 'demo.dietarymanager@elderloop.xyz', desc: 'Dietary Manager — menus, ordering, food cost per resident day, Dietary budget' },
+  { role: 'Supply Manager', email: 'demo.supplymanager@elderloop.xyz', desc: 'Central Supply Manager — inventory, purchase orders, resident charges and billing leakage' },
   { role: 'Supervisor',   email: 'demo.supervisor@elderloop.xyz',   desc: 'Shift supervisor — staff management, approvals, operational view' },
   { role: 'Social Worker', email: 'demo.socialworker@elderloop.xyz', desc: 'Social Services — psychosocial profiles, case notes, care plans, grievances' },
   { role: 'Nursing',      email: 'demo.nursing@elderloop.xyz',      desc: 'LPN view — care notes, vitals, medications, nursing documentation' },
