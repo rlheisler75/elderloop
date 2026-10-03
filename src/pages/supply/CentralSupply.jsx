@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useSupplyAccess } from '../../hooks/useSupplyAccess'
 import {
   Package, PackagePlus, PackageMinus, DollarSign,
-  ClipboardList, Truck, BarChart2
+  ClipboardList, Truck, BarChart2, Receipt
 } from 'lucide-react'
 import SupplyInventory    from './SupplyInventory'
 import SupplyReceive      from './SupplyReceive'
@@ -12,6 +12,7 @@ import SupplyCashSales    from './SupplyCashSales'
 import SupplyPurchaseOrders from './SupplyPurchaseOrders'
 import SupplyVendors      from './SupplyVendors'
 import SupplyReports      from './SupplyReports'
+import SupplyBilling      from './SupplyBilling'
 
 const ALL_TABS = [
   { key: 'inventory', label: 'Inventory',       icon: Package,       component: SupplyInventory,       editOnly: false },
@@ -21,6 +22,7 @@ const ALL_TABS = [
   { key: 'pos',       label: 'Purchase Orders',  icon: ClipboardList, component: SupplyPurchaseOrders,  editOnly: false },
   { key: 'vendors',   label: 'Vendors',          icon: Truck,         component: SupplyVendors,         editOnly: false },
   { key: 'reports',   label: 'Reports',          icon: BarChart2,     component: SupplyReports,         editOnly: false },
+  { key: 'charges',   label: 'Resident Charges', icon: Receipt,       component: SupplyBilling,         editOnly: false, chargesOnly: true },
 ]
 
 export default function CentralSupply() {
@@ -32,7 +34,7 @@ export default function CentralSupply() {
   // View-only users see Inventory, Purchase Orders, Vendors, and Reports in read-only
   // mode; Receive/Issue/Cash Sales are pure write-workflows and are hidden entirely
   // for view-only users.
-  const { canWork: canEditSupply } = useSupplyAccess()
+  const { canWork: canEditSupply, canSeeCharges } = useSupplyAccess()
 
   if (!hasModule('central_supply')) {
     return (
@@ -46,7 +48,7 @@ export default function CentralSupply() {
     )
   }
 
-  const TABS = ALL_TABS.filter(t => !t.editOnly || canEditSupply)
+  const TABS = ALL_TABS.filter(t => (!t.editOnly || canEditSupply) && (!t.chargesOnly || canSeeCharges))
   // If the current tab is no longer visible (e.g. permission downgraded), fall back to inventory
   const current = TABS.find(t => t.key === tab) || TABS[0]
   const ActiveComponent = current?.component

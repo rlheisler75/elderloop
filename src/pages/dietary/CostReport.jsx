@@ -1,9 +1,13 @@
-// Food cost/budget reporting: total purchase spend (from the same
-// supply_purchase_orders / supply_po_line_items the Order Guide already
-// creates, filtered to food-category items) plus waste cost (from the Food
-// Waste log), measured against an editable monthly budget target.
+// Food cost/budget reporting. With the Budgets add-on, Dietary Managers and leaders
+// get FoodCostPPD (food cost per resident day from the spend ledger and census).
+// Otherwise: total purchase spend (from the same supply_purchase_orders /
+// supply_po_line_items the Order Guide already creates, filtered to food-category
+// items) plus waste cost (from the Food Waste log), measured against an editable
+// monthly budget target.
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../context/AuthContext'
+import FoodCostPPD from './FoodCostPPD'
 import { DollarSign, Save, TrendingDown, TrendingUp } from 'lucide-react'
 
 function localDateStr(d) {
@@ -12,6 +16,23 @@ function localDateStr(d) {
 function firstOfMonth(d) { return localDateStr(new Date(d.getFullYear(), d.getMonth(), 1)) }
 
 export default function CostReport({ orgId, canManage }) {
+  const { hasModule } = useAuth()
+  const budgetsOn = hasModule('budgets')
+  const [mode, setMode] = useState(budgetsOn ? 'checking' : 'legacy')
+
+  // dietary_cost_report returns rows only to people who may see Dietary's budget
+  useEffect(() => {
+    if (!budgetsOn || !orgId) { setMode('legacy'); return }
+    supabase.rpc('dietary_cost_report', { p_months: 1, p_org: orgId })
+      .then(({ data }) => setMode(data?.length ? 'ppd' : 'legacy'))
+  }, [budgetsOn, orgId])
+
+  if (mode === 'checking') return <div className="text-slate-400 text-sm">Loading...</div>
+  if (mode === 'ppd') return <FoodCostPPD orgId={orgId} month={firstOfMonth(new Date())} />
+  return <LegacyCostReport orgId={orgId} canManage={canManage} />
+}
+
+function LegacyCostReport({ orgId, canManage }) {
   const today = localDateStr(new Date())
   const [dateFrom, setDateFrom] = useState(firstOfMonth(new Date()))
   const [dateTo, setDateTo] = useState(today)

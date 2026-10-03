@@ -27,7 +27,7 @@ export default function SupplyIssue() {
   async function fetchData() {
     setLoading(true)
     const [itemsRes, residentsRes] = await Promise.all([
-      supabase.from('supply_items').select('id, name, category, barcode, sku, unit, quantity_on_hand, is_resident_chargeable').eq('organization_id', organization.id).eq('is_active', true).order('name'),
+      supabase.from('supply_items').select('id, name, category, barcode, sku, unit, quantity_on_hand, is_resident_chargeable, cost_per_unit, sale_price').eq('organization_id', organization.id).eq('is_active', true).order('name'),
       supabase.from('residents').select('id, first_name, last_name, room, barcode').eq('organization_id', organization.id).eq('is_active', true).order('last_name'),
     ])
     setItems(itemsRes.data || [])
@@ -50,7 +50,7 @@ export default function SupplyIssue() {
 
   const addLine = (item) => {
     if (lines.find(l => l.supply_item_id === item.id)) return
-    setLines(l => [...l, { supply_item_id: item.id, description: item.name, unit: item.unit, quantity: 1, quantity_on_hand: item.quantity_on_hand }])
+    setLines(l => [...l, { supply_item_id: item.id, description: item.name, unit: item.unit, quantity: 1, quantity_on_hand: item.quantity_on_hand, unit_cost: item.cost_per_unit, sale_price: item.sale_price }])
     setItemSearch('')
   }
 
@@ -79,6 +79,9 @@ export default function SupplyIssue() {
         department: issueType === 'dept' ? selectedDept : null,
         resident_id: issueType === 'resident' ? selectedResident.id : null,
         performed_by: profile.id,
+        // Prices at the time of issue, so later price changes don't rewrite spend or billing
+        unit_cost: line.unit_cost ?? null,
+        sale_price: line.sale_price ?? null,
         notes: notes || null,
       })
     }
