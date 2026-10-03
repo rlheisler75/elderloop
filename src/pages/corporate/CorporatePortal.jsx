@@ -5,8 +5,9 @@ import { supabase } from '../../lib/supabase'
 import MustChangePasswordGate from '../../components/auth/MustChangePasswordGate'
 import {
   Building2, LogOut, KeyRound, Loader2, AlertCircle, Megaphone, LayoutDashboard,
-  Users, Wrench, ShieldAlert, Award, MessageSquareWarning, ChevronRight, X, CheckCircle, RefreshCw
+  Users, Wrench, ShieldAlert, Award, MessageSquareWarning, ChevronRight, X, CheckCircle, RefreshCw, Wallet
 } from 'lucide-react'
+import CorporateBudgets from './CorporateBudgets'
 
 // Corporate Executive portal (access tier 5). Everything here comes from the
 // corporate_* database functions, which return counts per community: no resident,
@@ -312,6 +313,7 @@ function ChainAnnouncement() {
 
 const TABS = [
   { key: 'portfolio', label: 'Portfolio', icon: LayoutDashboard },
+  { key: 'budgets',   label: 'Budgets', icon: Wallet },
   { key: 'announce',  label: 'Announcements', icon: Megaphone },
 ]
 
@@ -363,7 +365,7 @@ export default function CorporatePortal() {
         </div>
       </header>
       <main className="max-w-7xl mx-auto px-4 py-6">
-        {tab === 'portfolio' ? <Portfolio /> : <ChainAnnouncement />}
+        {tab === 'portfolio' ? <Portfolio /> : tab === 'budgets' ? <CorporateBudgets /> : <ChainAnnouncement />}
       </main>
     </div>
   )

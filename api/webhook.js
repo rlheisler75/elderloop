@@ -73,6 +73,7 @@ export default async function handler(req, res) {
         }).eq('id', orgId)
         await enableModulesForPlan(orgId, plan)
         await syncAiAddon(orgId, subscription)
+        await syncBudgetsAddon(orgId, subscription)
         await redeemPromoCodeIfUsed(session.id, orgId)
         break
       }
@@ -97,6 +98,7 @@ export default async function handler(req, res) {
         }).eq('id', orgId)
         await enableModulesForPlan(orgId, plan)
         await syncAiAddon(orgId, sub)
+        await syncBudgetsAddon(orgId, sub)
         break
       }
 
@@ -114,6 +116,7 @@ export default async function handler(req, res) {
         }).eq('id', orgId)
         await enableModulesForPlan(orgId, 'starter')
         await syncAiAddon(orgId, null)
+        await syncBudgetsAddon(orgId, null)
         break
       }
 
@@ -171,6 +174,34 @@ async function syncAiAddon(orgId, sub) {
     { organization_id: orgId, module_key: 'ai_assist', is_enabled: hasAddon },
     { onConflict: 'organization_id,module_key' })
   if (error) console.error('syncAiAddon error:', error.message)
+}
+
+// Budgets add-on (budgets module). Included with Professional and for Enterprise
+// communities (a corporation with 3+ active communities); otherwise sold as a
+// $79/mo add-on line (STRIPE_PRICE_BUDGETS_ADDON, once that price exists). Like
+// ai_assist, only billing (or a super admin) turns it on or off.
+const BUDGETS_ADDON_PRICE = process.env.STRIPE_PRICE_BUDGETS_ADDON
+const ENTERPRISE_MIN_COMMUNITIES = 3
+
+async function isEnterpriseCommunity(orgId) {
+  const { data: org } = await supabase.from('organizations').select('corporation_id').eq('id', orgId).maybeSingle()
+  if (!org?.corporation_id) return false
+  const { count } = await supabase.from('organizations').select('id', { count: 'exact', head: true })
+    .eq('corporation_id', org.corporation_id).neq('is_active', false)
+  return (count || 0) >= ENTERPRISE_MIN_COMMUNITIES
+}
+
+async function syncBudgetsAddon(orgId, sub) {
+  const live = !!sub && ['active', 'trialing', 'past_due'].includes(sub.status)
+  const included = live && (
+    getPlanFromPriceId(getPlanItem(sub)?.price?.id) === 'professional' ||
+    (!!BUDGETS_ADDON_PRICE && (sub.items?.data || []).some(i => i.price?.id === BUDGETS_ADDON_PRICE)) ||
+    await isEnterpriseCommunity(orgId)
+  )
+  const { error } = await supabase.from('organization_modules').upsert(
+    { organization_id: orgId, module_key: 'budgets', is_enabled: included },
+    { onConflict: 'organization_id,module_key' })
+  if (error) console.error('syncBudgetsAddon error:', error.message)
 }
 
 // Unix seconds → ISO string, or null when absent

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { useSupplyAccess } from '../../hooks/useSupplyAccess'
+import { SPEND_CATEGORIES } from '../../lib/budgets'
 import {
   Plus, Search, X, Edit2, Trash2, Package,
   AlertTriangle, CheckCircle2, XCircle, ChevronDown,
@@ -69,6 +70,8 @@ function ItemModal({ item, vendors, orgId, profileId, canEdit, showCosts = true,
     is_resident_chargeable:item?.is_resident_chargeable ?? false,
     is_active:             item?.is_active             ?? true,
     preferred_vendor_id:   item?.preferred_vendor_id   || '',
+    budget_department:     item?.budget_department     || '',
+    spend_category:        item?.spend_category        || '',
   })
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
@@ -89,6 +92,8 @@ function ItemModal({ item, vendors, orgId, profileId, canEdit, showCosts = true,
       cost_per_unit:      form.cost_per_unit !== '' ? Number(form.cost_per_unit) : null,
       sale_price:         form.sale_price    !== '' ? Number(form.sale_price)    : null,
       preferred_vendor_id:form.preferred_vendor_id || null,
+      budget_department:  form.budget_department || null,
+      spend_category:     form.spend_category || null,
       updated_at:         new Date().toISOString(),
     }
 
@@ -201,6 +206,27 @@ function ItemModal({ item, vendors, orgId, profileId, canEdit, showCosts = true,
                 <textarea value={form.description} onChange={e => set('description', e.target.value)}
                   rows={2} className={inputCls + ' resize-none'}
                   placeholder="Optional details about this item" />
+              </div>
+
+              {/* Budgets: which department's budget this item is charged to, and its spend category */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelCls}>Budget department</label>
+                  <select value={form.budget_department} onChange={e => set('budget_department', e.target.value)} disabled={readOnly} className={inputCls}>
+                    <option value="">Central stock</option>
+                    <option value="dietary">Dietary</option>
+                    <option value="housekeeping">Housekeeping</option>
+                    <option value="maintenance">Maintenance</option>
+                  </select>
+                  <p className="text-[11px] text-slate-400 mt-1">{form.budget_department ? 'Counts toward this department when ordered.' : 'Counts toward Central Supply when ordered, and toward a department when issued to it.'}</p>
+                </div>
+                <div>
+                  <label className={labelCls}>Spend category</label>
+                  <select value={form.spend_category} onChange={e => set('spend_category', e.target.value)} disabled={readOnly} className={inputCls}>
+                    <option value="">Not set</option>
+                    {SPEND_CATEGORIES.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
+                  </select>
+                </div>
               </div>
 
               <div>

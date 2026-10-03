@@ -46,6 +46,7 @@ const UserSettings   = lazy(() => import('./pages/settings/UserSettings'))
 const SuperAdmin     = lazy(() => import('./pages/superadmin/SuperAdminDashboard'))
 const RepPortal      = lazy(() => import('./pages/rep/RepPortal'))
 const CorporatePortal = lazy(() => import('./pages/corporate/CorporatePortal'))
+const Budgets        = lazy(() => import('./pages/budgets/Budgets'))
 const TrainingHub    = lazy(() => import('./pages/training/TrainingHub'))
 const SocialServicesGuide = lazy(() => import('./pages/training/SocialServicesGuide'))
 const DietaryGuide   = lazy(() => import('./pages/training/DietaryGuide'))
@@ -338,6 +339,8 @@ export default function App() {
             element={<ProtectedRoute requireModule="marketing"><Lazy><Marketing /></Lazy></ProtectedRoute>} />
           <Route path="property-management"
             element={<ProtectedRoute requireModule="property_management"><Lazy><PropertyMgmt /></Lazy></ProtectedRoute>} />
+          <Route path="budgets"
+            element={<ProtectedRoute requireModule="budgets"><Lazy><Budgets /></Lazy></ProtectedRoute>} />
           <Route path="central-supply" 
             element={<ProtectedRoute requireModule="central_supply"><CentralSupply /></ProtectedRoute>} />
 

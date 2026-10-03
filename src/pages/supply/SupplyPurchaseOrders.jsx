@@ -50,6 +50,8 @@ function CreatePOModal({ orgId, profileId, vendors, items, editPO, editLines, on
   const [vendorFree, setVendorFree] = useState(editPO?.vendor_name_free || '')
   const [orderedDate, setOrderedDate] = useState(editPO?.ordered_date || today())
   const [expectedDate, setExpectedDate] = useState(editPO?.expected_date || '')
+  // Budgets: which department a line with no catalog item is charged to
+  const [department, setDepartment] = useState(editPO?.department || '')
   const [notes, setNotes]     = useState(editPO?.notes || '')
   const [lines, setLines]     = useState(editLines?.length ? editLines.map(l => ({ supply_item_id: l.supply_item_id || '', description: l.description, unit: l.unit, quantity_ordered: l.quantity_ordered, unit_cost: l.unit_cost ?? '' })) : [{ supply_item_id: '', description: '', unit: 'each', quantity_ordered: 1, unit_cost: '' }])
   const [saving, setSaving]   = useState(false)
@@ -85,6 +87,7 @@ function CreatePOModal({ orgId, profileId, vendors, items, editPO, editLines, on
       vendor_name_free: vendorFree || null,
       ordered_date: orderedDate,
       expected_date: expectedDate || null,
+      department: department || null,
       notes: notes || null,
     }
 
@@ -180,6 +183,16 @@ function CreatePOModal({ orgId, profileId, vendors, items, editPO, editLines, on
                 <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Expected</label>
                 <input type="date" value={expectedDate} onChange={e => setExpectedDate(e.target.value)} className={inputCls} />
               </div>
+            </div>
+            <div className="mt-3">
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Charge to budget</label>
+              <select value={department} onChange={e => setDepartment(e.target.value)} className={inputCls}>
+                <option value="">Central Supply</option>
+                <option value="dietary">Dietary</option>
+                <option value="housekeeping">Housekeeping</option>
+                <option value="maintenance">Maintenance</option>
+              </select>
+              <p className="text-[11px] text-slate-400 mt-1">Lines for catalog items follow the item's own budget department; this covers free-text lines and shipping.</p>
             </div>
           </div>
 

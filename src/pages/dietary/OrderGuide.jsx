@@ -283,7 +283,7 @@ export default function OrderGuide({ orgId, residents, menus, menuItems, canMana
     const { count } = await supabase.from('supply_purchase_orders').select('*', { count: 'exact', head: true }).eq('organization_id', orgId)
     const poNumber = `PO-${1000 + (count || 0) + 1}`
     const { data: po, error } = await supabase.from('supply_purchase_orders').insert({
-      organization_id: orgId, po_number: poNumber, po_type: 'stock', status: 'draft',
+      organization_id: orgId, po_number: poNumber, po_type: 'stock', status: 'draft', department: 'dietary',
       vendor_id: vendorId, ordered_by: profile.id, ordered_date: today,
       notes: `Auto-generated from Dietary Order Guide, ${startDate} to ${endDate}`,
     }).select().single()

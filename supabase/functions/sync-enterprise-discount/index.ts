@@ -6,9 +6,12 @@ import Stripe from 'npm:stripe@17'
 // community's subscription, keeping any other discount (e.g. a rep promo code) in
 // place. The coupon covers the plan products only, never the AI Add-on.
 // Super admin only — run from Super Admin → Corporations after linking/unlinking.
+// Also keeps the Budgets add-on in step: Enterprise communities get it included;
+// one that leaves keeps it only on Professional or with the paid add-on line.
 
 const COUPON_ID = 'ELDERLOOP_ENTERPRISE_15'
 const MIN_COMMUNITIES = 3
+const BUDGETS_ADDON_PRICE = Deno.env.get('STRIPE_PRICE_BUDGETS_ADDON')
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -44,7 +47,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: orgs, error: orgErr } = await admin
       .from('organizations')
-      .select('id, name, is_active, stripe_subscription_id')
+      .select('id, name, plan, is_active, stripe_subscription_id')
       .eq('corporation_id', corporation_id)
     if (orgErr) return json({ success: false, error: orgErr.message })
 
@@ -54,7 +57,7 @@ Deno.serve(async (req: Request) => {
     // Communities unlinked from any corporation may still carry the coupon from an earlier sync
     const { data: orphans } = await admin
       .from('organizations')
-      .select('id, name, is_active, stripe_subscription_id')
+      .select('id, name, plan, is_active, stripe_subscription_id')
       .is('corporation_id', null)
       .not('stripe_subscription_id', 'is', null)
 
@@ -63,10 +66,16 @@ Deno.serve(async (req: Request) => {
     const results: string[] = []
     let applied = 0, removed = 0, skipped = 0
 
-    const sync = async (org: { name: string; stripe_subscription_id: string | null }, want: boolean) => {
+    const sync = async (org: { id: string; name: string; plan: string | null; stripe_subscription_id: string | null }, want: boolean) => {
       if (!org.stripe_subscription_id) { skipped++; if (want) results.push(`${org.name}: no subscription yet`); return }
       const sub = await stripe.subscriptions.retrieve(org.stripe_subscription_id, { expand: ['discounts'] })
       if (['canceled', 'incomplete_expired'].includes(sub.status)) { skipped++; return }
+      const budgetsOn = want || org.plan === 'professional'
+        || (!!BUDGETS_ADDON_PRICE && (sub.items?.data ?? []).some(i => i.price?.id === BUDGETS_ADDON_PRICE))
+      const { error: modErr } = await admin.from('organization_modules').upsert(
+        { organization_id: org.id, module_key: 'budgets', is_enabled: budgetsOn },
+        { onConflict: 'organization_id,module_key' })
+      if (modErr) results.push(`${org.name}: could not update Budgets (${modErr.message})`)
       const discounts = (sub.discounts ?? []) as Stripe.Discount[]
       const has = discounts.some(d => d.coupon?.id === COUPON_ID)
       if (want === has) return

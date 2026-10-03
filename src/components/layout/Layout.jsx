@@ -5,7 +5,7 @@ import {
   Settings, LogOut, Menu, X, ChevronRight, Megaphone, Home, Church,
   CalendarDays, BookUser, Car, Gauge, Shield, UserCheck, CalendarCheck,
   Stethoscope, HeartHandshake, ClipboardList, AlertTriangle, Clock,
-  Monitor, TrendingUp, Heart, Users, UserCog
+  Monitor, TrendingUp, Heart, Users, UserCog, Wallet
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { Bell } from 'lucide-react'
@@ -13,6 +13,7 @@ import { ShoppingBag } from 'lucide-react'
 import { getOrgDepartments, STAFF_LEVELS, LEVEL_RANK } from '../../lib/departments'
 import EmergencyEditBar from './EmergencyEditBar'
 import { MODULE_DEPARTMENTS } from '../../lib/accessTiers'
+import { BUDGET_DEPARTMENT_KEYS } from '../../lib/budgets'
 
 // In tiered communities these modules are readable only by their own department
 // (20260930_access_tiers_remaining_modules.sql), so the sidebar hides them from
@@ -60,6 +61,7 @@ const NAV_GROUPS = [
       { to: '/app/transportation',      label: 'Transportation', icon: Car,             module: 'transportation' },
       { to: '/app/security',            label: 'Security',       icon: Shield,          module: 'security' },
       { to: '/app/dietary',             label: 'Dietary',        icon: UtensilsCrossed, module: 'dietary' },
+      { to: '/app/budgets',             label: 'Budgets',        icon: Wallet,          module: 'budgets' },
     ],
   },
   {
@@ -145,8 +147,12 @@ export default function Layout() {
 
   const hiddenByTier = (mod) => accessModel === 'tiered' && DEPARTMENT_ONLY_MODULES.includes(mod)
     && !ABOVE_EMPLOYEE.includes(tierFor(mod)) && !hasDepartmentAccess(MODULE_DEPARTMENTS[mod], 'employee')
+  // Budgets: only people who can see a budget (department Managers of the budget
+  // departments, the NHA, Org Admins), matching can_see_budget() in the database
+  const seesBudgets = isOrgAdmin || isSuperAdmin
+    || (departmentRoles || []).some(d => d.level === 'manager' && BUDGET_DEPARTMENT_KEYS.includes(d.department))
   const visibleGroups = NAV_GROUPS
-    .map(group => ({ ...group, items: group.items.filter(item => !item.module || (hasModule(item.module) && !hiddenByTier(item.module))) }))
+    .map(group => ({ ...group, items: group.items.filter(item => !item.module || (hasModule(item.module) && !hiddenByTier(item.module) && (item.module !== 'budgets' || seesBudgets))) }))
     .filter(group => group.items.length > 0)
 
   return (
