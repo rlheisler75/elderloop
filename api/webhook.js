@@ -155,7 +155,8 @@ const AI_ADDON_PRICE = process.env.STRIPE_PRICE_AI_ADDON
 
 function getPlanItem(sub) {
   const items = sub.items?.data || []
-  return items.find(i => i.price?.id !== AI_ADDON_PRICE) || items[0]
+  // the plan, not an add-on line (AI or Budgets)
+  return items.find(i => i.price?.id !== AI_ADDON_PRICE && i.price?.id !== BUDGETS_ADDON_PRICE) || items[0]
 }
 
 // Turn the ai_assist module on/off to match whether the subscription carries the

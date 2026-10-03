@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import {
   CreditCard, CheckCircle, AlertTriangle, XCircle, Clock,
   Zap, Building2, ChevronRight, ExternalLink, RefreshCw,
-  Star, Shield, Infinity, UserCircle2, Mail, Phone, Sparkles
+  Star, Shield, Infinity, UserCircle2, Mail, Phone, Sparkles, Wallet
 } from 'lucide-react'
 
 // ── Plan definitions — update price IDs after creating in Stripe ──
@@ -46,6 +46,7 @@ const PLANS = [
       'Marketing, Surveys & Property Management',
       'Time Clock, IT, Meters & Resident Portal',
       'AI Add-on available ($99/mo)',
+      'Budgets Add-on available ($79/mo)',
       'Priority email support',
     ],
   },
@@ -62,6 +63,7 @@ const PLANS = [
       'Everything in Essential',
       'Up to 200 residents & 75 staff',
       'AI Add-on available ($99/mo)',
+      'Budgets Add-on available ($79/mo)',
       'Priority email support',
     ],
   },
@@ -77,7 +79,7 @@ const PLANS = [
     features: [
       'Everything in Plus',
       'Unlimited residents & staff',
-      'AI Add-on included',
+      'AI Add-on and Budgets included',
       'Every new module — included automatically',
       'Dedicated onboarding & phone support',
     ],
@@ -97,8 +99,26 @@ const STATUS_CONFIG = {
   unpaid:   { label: 'Unpaid',      icon: AlertTriangle,  color: 'text-red-600',    bg: 'bg-red-50    border-red-200 dark:bg-red-950/50 dark:border-red-900' },
 }
 
-// Keep in sync with the $99/mo price on STRIPE_PRICE_AI_ADDON in Stripe
-const AI_ADDON_PRICE = 99
+// Add-ons sold as extra lines on an Essential/Plus subscription (create-checkout).
+// Keep prices in sync with STRIPE_PRICE_AI_ADDON ($99) and STRIPE_PRICE_BUDGETS_ADDON ($79).
+const ADDONS = [
+  {
+    key: 'ai', module: 'ai_assist', name: 'AI Add-on', price: 99, icon: Sparkles,
+    includedOnPro: true, includedForEnterprise: false,
+    desc: 'AI suggestions across Maintenance, Marketing, and Communication — plus Social Services once clinical AI is approved for your community. Staff always review before anything is saved.',
+    removeConfirm: 'Remove the AI Add-on? AI buttons disappear right away; unused time is credited on your next invoice.',
+    addedMessage: 'AI Add-on added! Turn sections on or off and pick models under Admin Panel → AI Add-on.',
+    manageHref: '/app/admin?tab=ai', manageLabel: 'Manage AI settings',
+  },
+  {
+    key: 'budgets', module: 'budgets', name: 'Budgets Add-on', price: 79, icon: Wallet,
+    includedOnPro: true, includedForEnterprise: true,
+    desc: 'Monthly budgets for Dietary, Housekeeping, Central Supply, and Maintenance, with spending tracked as it happens, cost per resident day, and pace warnings before a month runs over.',
+    removeConfirm: 'Remove the Budgets Add-on? The Budgets page disappears right away (your budgets are kept); unused time is credited on your next invoice.',
+    addedMessage: 'Budgets Add-on added! Open Budgets in the sidebar to set your monthly budgets.',
+    manageHref: '/app/budgets', manageLabel: 'Open Budgets',
+  },
+]
 
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '—'
 const fmtMoney = (n) => n != null ? `$${Number(n).toLocaleString()}` : '—'
@@ -110,8 +130,9 @@ export default function BillingTab() {
   const [loading, setLoading]   = useState(true)
   const [actionLoading, setActionLoading] = useState(null)
   const [message, setMessage]   = useState(null)
-  const [aiAddonOn, setAiAddonOn] = useState(false)
-  const [aiConfirm, setAiConfirm] = useState(false)
+  const [addonOn, setAddonOn] = useState({})
+  const [addonConfirm, setAddonConfirm] = useState(null)
+  const [isEnterprise, setIsEnterprise] = useState(false)
   // organization reflects super admin impersonation; profile.organization_id is null for them
   const orgId = organization?.id || profile?.organization_id
 
@@ -137,9 +158,11 @@ export default function BillingTab() {
       .single()
     setOrg(data)
 
-    const { data: aiMod } = await supabase.from('organization_modules').select('is_enabled')
-      .eq('organization_id', orgId).eq('module_key', 'ai_assist').maybeSingle()
-    setAiAddonOn(!!aiMod && aiMod.is_enabled !== false)
+    const { data: mods } = await supabase.from('organization_modules').select('module_key, is_enabled')
+      .eq('organization_id', orgId).in('module_key', ADDONS.map(a => a.module))
+    setAddonOn(Object.fromEntries(ADDONS.map(a => [a.key, (mods || []).some(m => m.module_key === a.module && m.is_enabled !== false)])))
+    const { data: ent } = await supabase.rpc('org_is_enterprise', { p_org: orgId })
+    setIsEnterprise(!!ent)
 
     if (data?.rep_id) {
       const { data: rep } = await supabase
@@ -155,30 +178,31 @@ export default function BillingTab() {
     setLoading(false)
   }
 
-  // Adds/removes the AI Add-on line on the existing subscription (create-checkout edge function)
-  const handleAiAddon = async () => {
-    setActionLoading('ai')
+  // Adds/removes an add-on line on the existing subscription (create-checkout edge function)
+  const handleAddon = async (addon) => {
+    const on = !!addonOn[addon.key]
+    setActionLoading(addon.key)
     try {
       const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ addon: 'ai', action: aiAddonOn ? 'remove' : 'add' }),
+        body: JSON.stringify({ addon: addon.key, action: on ? 'remove' : 'add' }),
       })
       const data = await res.json()
       if (!data.success) {
-        setMessage({ type: 'error', text: data.error || 'Could not update the AI Add-on.' })
+        setMessage({ type: 'error', text: data.error || `Could not update the ${addon.name}.` })
       } else {
-        setAiAddonOn(data.ai_addon)
-        setMessage({ type: 'success', text: data.ai_addon
-          ? 'AI Add-on added! Turn sections on or off and pick models under Admin Panel → AI Add-on.'
-          : 'AI Add-on removed. Unused time will be credited on your next invoice.' })
+        setAddonOn(s => ({ ...s, [addon.key]: data.enabled }))
+        setMessage({ type: 'success', text: data.enabled
+          ? addon.addedMessage
+          : `${addon.name} removed. Unused time will be credited on your next invoice.` })
         refreshModules?.()
       }
     } catch (err) {
       setMessage({ type: 'error', text: 'Something went wrong. Please try again.' })
     }
-    setAiConfirm(false)
+    setAddonConfirm(null)
     setActionLoading(null)
   }
 
@@ -258,8 +282,7 @@ export default function BillingTab() {
   const hasActiveSub = ['active', 'trialing'].includes(status)
   const currentPlan = PLANS.find(p => p.key === org?.plan)
   // Add-on rides on a paid plan's subscription (see create-checkout); Professional includes AI
-  const aiIncludedInPlan = org?.plan === 'professional'
-  const aiEligible = hasActiveSub && ['essential', 'plus'].includes(org?.plan) && !!org?.stripe_subscription_id
+  const addonEligible = hasActiveSub && ['essential', 'plus'].includes(org?.plan) && !!org?.stripe_subscription_id
   // Moving up a paid tier is a prorated in-place upgrade; anything else goes through the portal
   const PLAN_RANK = { essential: 1, plus: 2, professional: 3 }
   const isUpgradeTo = (key) => !!PLAN_RANK[org?.plan] && PLAN_RANK[key] > PLAN_RANK[org?.plan]
@@ -458,68 +481,73 @@ export default function BillingTab() {
             })}
           </div>
           <p className="text-xs text-slate-400 mt-3">
-            Upgrading to a higher plan is prorated — you only pay for the remaining days in your billing cycle. Professional includes AI, so an AI Add-on is removed (and credited) when you upgrade to it. Downgrades and cancellations are made in the Stripe billing portal and take effect at the end of your current billing period. If you have more residents or staff than the smaller plan allows, everyone stays active, but you can't add more until you're under the limit.
+            Upgrading to a higher plan is prorated — you only pay for the remaining days in your billing cycle. Professional includes AI and Budgets, so those add-ons are removed (and credited) when you upgrade to it. Downgrades and cancellations are made in the Stripe billing portal and take effect at the end of your current billing period. If you have more residents or staff than the smaller plan allows, everyone stays active, but you can't add more until you're under the limit.
           </p>
         </div>
       )}
 
-      {/* AI Add-on */}
-      <div className="mb-8 p-5 rounded-2xl border border-brand-200 dark:border-brand-900 bg-brand-50/40 dark:bg-brand-950/20">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-brand-100 dark:border-brand-900 flex items-center justify-center flex-shrink-0">
-              <Sparkles size={18} className="text-brand-600" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-slate-800 dark:text-slate-100">AI Add-on</span>
-                {aiAddonOn && <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400 font-semibold">Active</span>}
-              </div>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5 max-w-xl">
-                AI suggestions across Maintenance, Marketing, and Communication — plus Social Services once clinical AI is approved for your community. Staff always review before anything is saved.
-              </p>
-              {!aiIncludedInPlan && <p className="text-lg font-bold text-slate-700 dark:text-slate-300 mt-2">${AI_ADDON_PRICE}<span className="text-xs font-normal text-slate-400">/mo</span></p>}
-            </div>
-          </div>
-
-          <div className="flex flex-col items-end gap-2">
-            {aiIncludedInPlan ? (
-              <p className="text-xs text-slate-500 max-w-[220px] text-right">Included with your Professional plan.</p>
-            ) : !aiEligible && aiAddonOn ? (
-              // Enabled by ElderLoop (pilot / comped) rather than purchased
-              <p className="text-xs text-slate-500 max-w-[220px] text-right">Included for your community by ElderLoop.</p>
-            ) : !aiEligible ? (
-              <p className="text-xs text-slate-500 max-w-[220px] text-right">Available on the Essential and Plus plans, and included with Professional — upgrade above to add it.</p>
-            ) : aiConfirm ? (
-              <>
-                <p className="text-xs text-slate-600 dark:text-slate-300 max-w-[260px] text-right">
-                  {aiAddonOn
-                    ? 'Remove the AI Add-on? AI buttons disappear right away; unused time is credited on your next invoice.'
-                    : `Add the AI Add-on for $${AI_ADDON_PRICE}/mo? The prorated amount for this billing period is charged now.`}
-                </p>
-                <div className="flex gap-2">
-                  <button onClick={() => setAiConfirm(false)} disabled={actionLoading === 'ai'}
-                    className="px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">Cancel</button>
-                  <button onClick={handleAiAddon} disabled={actionLoading === 'ai'}
-                    className={`px-4 py-1.5 text-xs font-semibold text-white rounded-lg disabled:opacity-50 ${aiAddonOn ? 'bg-red-600 hover:bg-red-700' : 'bg-brand-600 hover:bg-brand-700'}`}>
-                    {actionLoading === 'ai' ? 'Processing...' : aiAddonOn ? 'Yes, remove' : `Yes, add for $${AI_ADDON_PRICE}/mo`}
-                  </button>
+      {/* Add-ons */}
+      {ADDONS.map(a => {
+        const on = !!addonOn[a.key]
+        const included = a.includedOnPro && org?.plan === 'professional'
+          ? 'Included with your Professional plan.'
+          : a.includedForEnterprise && isEnterprise ? 'Included with your Enterprise pricing.' : null
+        const Icon = a.icon
+        return (
+          <div key={a.key} className="mb-6 p-5 rounded-2xl border border-brand-200 dark:border-brand-900 bg-brand-50/40 dark:bg-brand-950/20">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-brand-100 dark:border-brand-900 flex items-center justify-center flex-shrink-0">
+                  <Icon size={18} className="text-brand-600" />
                 </div>
-              </>
-            ) : (
-              <button onClick={() => setAiConfirm(true)} disabled={!!actionLoading}
-                className={`px-4 py-2 text-sm font-semibold rounded-xl disabled:opacity-50 transition-colors ${aiAddonOn
-                  ? 'text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:bg-slate-50'
-                  : 'text-white bg-brand-600 hover:bg-brand-700'}`}>
-                {aiAddonOn ? 'Remove AI Add-on' : 'Add AI Add-on'}
-              </button>
-            )}
-            {aiAddonOn && (
-              <a href="/app/admin?tab=ai" className="text-xs font-semibold text-brand-600 hover:underline">Manage AI settings →</a>
-            )}
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-slate-800 dark:text-slate-100">{a.name}</span>
+                    {on && <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400 font-semibold">Active</span>}
+                  </div>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5 max-w-xl">{a.desc}</p>
+                  {!included && <p className="text-lg font-bold text-slate-700 dark:text-slate-300 mt-2">${a.price}<span className="text-xs font-normal text-slate-400">/mo</span></p>}
+                </div>
+              </div>
+
+              <div className="flex flex-col items-end gap-2">
+                {included ? (
+                  <p className="text-xs text-slate-500 max-w-[220px] text-right">{included}</p>
+                ) : !addonEligible && on ? (
+                  // Enabled by ElderLoop (pilot / comped) rather than purchased
+                  <p className="text-xs text-slate-500 max-w-[220px] text-right">Included for your community by ElderLoop.</p>
+                ) : !addonEligible ? (
+                  <p className="text-xs text-slate-500 max-w-[220px] text-right">Available on the Essential and Plus plans, and included with Professional — upgrade above to add it.</p>
+                ) : addonConfirm === a.key ? (
+                  <>
+                    <p className="text-xs text-slate-600 dark:text-slate-300 max-w-[260px] text-right">
+                      {on ? a.removeConfirm : `Add the ${a.name} for $${a.price}/mo? The prorated amount for this billing period is charged now.`}
+                    </p>
+                    <div className="flex gap-2">
+                      <button onClick={() => setAddonConfirm(null)} disabled={actionLoading === a.key}
+                        className="px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">Cancel</button>
+                      <button onClick={() => handleAddon(a)} disabled={actionLoading === a.key}
+                        className={`px-4 py-1.5 text-xs font-semibold text-white rounded-lg disabled:opacity-50 ${on ? 'bg-red-600 hover:bg-red-700' : 'bg-brand-600 hover:bg-brand-700'}`}>
+                        {actionLoading === a.key ? 'Processing...' : on ? 'Yes, remove' : `Yes, add for $${a.price}/mo`}
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <button onClick={() => setAddonConfirm(a.key)} disabled={!!actionLoading}
+                    className={`px-4 py-2 text-sm font-semibold rounded-xl disabled:opacity-50 transition-colors ${on
+                      ? 'text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:bg-slate-50'
+                      : 'text-white bg-brand-600 hover:bg-brand-700'}`}>
+                    {on ? `Remove ${a.name}` : `Add ${a.name}`}
+                  </button>
+                )}
+                {on && a.manageHref && (
+                  <a href={a.manageHref} className="text-xs font-semibold text-brand-600 hover:underline">{a.manageLabel} →</a>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        )
+      })}
 
       {/* Invoice history */}
       <InvoiceHistory organizationId={orgId} customerId={org?.stripe_customer_id} />
