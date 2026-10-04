@@ -58,3 +58,13 @@ export function budgetTone(row) {
   if (row.pct_used >= 80 || row.projected_pct > 100) return 'warn'
   return 'ok'
 }
+
+// Budget alerts (budget_alerts.kind), sent once per department per month by
+// check_budget_alerts() (20261004_budget_alerts.sql)
+export const ALERT_LABELS = {
+  pace: 'On pace to go over',
+  pct80: '80% spent',
+  pct90: '90% spent',
+  pct100: 'Over budget',
+}
+export const alertDate = (ts) => new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })

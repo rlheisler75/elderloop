@@ -270,6 +270,7 @@ export default function Budgets() {
   const [tab, setTab] = useState('month')
   const [rows, setRows] = useState(null)
   const [canSet, setCanSet] = useState(false)
+  const [alerts, setAlerts] = useState([])
   const [error, setError] = useState('')
 
   const role = isSuperAdmin ? 'super_admin' : profile?.role
@@ -283,10 +284,15 @@ export default function Budgets() {
 
   const load = useCallback(async () => {
     setRows(null); setError('')
-    const { data, error } = await supabase.rpc('budget_status', { p_month: month })
+    const [{ data, error }, al] = await Promise.all([
+      supabase.rpc('budget_status', { p_month: month }),
+      // Alerts sent this month (RLS: only departments the viewer may see)
+      supabase.from('budget_alerts').select('department, kind, created_at').eq('organization_id', orgId).eq('month', month).eq('suppressed', false).order('created_at'),
+    ])
+    setAlerts(al.data || [])
     if (error) setError(error.message)
     setRows(data || [])
-  }, [month])
+  }, [month, orgId])
   useEffect(() => { if (orgId) load() }, [orgId, load])
   useEffect(() => {
     if (!orgId) return
@@ -339,7 +345,7 @@ export default function Budgets() {
               </div>
             ) : (
               <div className="grid md:grid-cols-2 gap-4">
-                {rows.map(r => <BudgetStatusCard key={r.department} row={r} month={month} />)}
+                {rows.map(r => <BudgetStatusCard key={r.department} row={r} month={month} alerts={alerts.filter(a => a.department === r.department)} />)}
               </div>
             )}
             {rows[0]?.resident_days === 0 && rows.length > 0 && (

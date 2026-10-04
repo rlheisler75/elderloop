@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
-import { departmentLabel, categoryLabel, SOURCE_LABELS, money, budgetTone } from '../../lib/budgets'
+import { departmentLabel, categoryLabel, SOURCE_LABELS, money, budgetTone, ALERT_LABELS, alertDate } from '../../lib/budgets'
 
 const TONE = {
   ok:   { bar: 'bg-brand-600', text: 'text-slate-800 dark:text-slate-100', chip: 'bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-400', label: 'On track' },
@@ -12,7 +12,7 @@ const TONE = {
 
 // One department's month: spent vs. budget with the projected month-end marker.
 // The bar spans 0–150% of budget so an over-budget projection stays visible.
-export default function BudgetStatusCard({ row, month, orgId }) {
+export default function BudgetStatusCard({ row, month, orgId, alerts = [] }) {
   const [open, setOpen] = useState(false)
   const [lines, setLines] = useState(null)
   const tone = TONE[budgetTone(row)]
@@ -59,6 +59,16 @@ export default function BudgetStatusCard({ row, month, orgId }) {
         )}
         <div><div className="text-xs text-slate-400">Per resident day</div><div className="font-semibold text-slate-700 dark:text-slate-200">{row.spend_ppd != null ? money(row.spend_ppd, 2) : '—'}</div></div>
       </div>
+
+      {alerts.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {alerts.map(a => (
+            <span key={a.kind} className={`text-xs px-2 py-0.5 rounded-full ${a.kind === 'pct100' ? 'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-400' : 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400'}`}>
+              {ALERT_LABELS[a.kind]} · alerted {alertDate(a.created_at)}
+            </span>
+          ))}
+        </div>
+      )}
 
       <button onClick={toggle} className="mt-4 flex items-center gap-1 text-xs font-medium text-brand-600 hover:text-brand-700">
         {open ? <ChevronUp size={13} /> : <ChevronDown size={13} />} Where the money went

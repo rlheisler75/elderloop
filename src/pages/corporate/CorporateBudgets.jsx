@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabase'
 import { Loader2, AlertCircle, ChevronLeft, ChevronRight, Check, X } from 'lucide-react'
 import BudgetStatusCard from '../../components/budgets/BudgetStatusCard'
 import BudgetYearEditor from '../../components/budgets/BudgetYearEditor'
-import { BUDGET_DEPARTMENTS, departmentLabel, money, firstOfMonth, monthLabel, shiftMonth, budgetTone } from '../../lib/budgets'
+import { BUDGET_DEPARTMENTS, departmentLabel, money, firstOfMonth, monthLabel, shiftMonth, budgetTone, ALERT_LABELS, alertDate } from '../../lib/budgets'
 
 // Corporate Portal → Budgets. The per-community tools (status cards, year editor)
 // are the same components a standalone community uses on its Budgets page; the
@@ -15,13 +15,18 @@ const TONE_CELL = {
 
 function Overview({ month, onOpen }) {
   const [rows, setRows] = useState(null)
+  const [alerts, setAlerts] = useState([])
   const [error, setError] = useState('')
 
   useEffect(() => {
     setRows(null)
-    supabase.rpc('corporate_budget_overview', { p_month: month }).then(({ data, error }) => {
+    Promise.all([
+      supabase.rpc('corporate_budget_overview', { p_month: month }),
+      supabase.rpc('corporate_budget_alerts', { p_month: month }),
+    ]).then(([{ data, error }, al]) => {
       if (error) setError(error.message)
       setRows(data || [])
+      setAlerts(al.data || [])
     })
   }, [month])
 
@@ -30,7 +35,15 @@ function Overview({ month, onOpen }) {
   if (communities.length === 0) {
     return <div className="bg-white border border-slate-200 rounded-xl p-8 text-center text-slate-500 text-sm">{error || 'No communities have the Budgets add-on turned on yet.'}</div>
   }
+  const over = rows.filter(r => budgetTone(r) === 'over').length
+  const onPaceOver = rows.filter(r => budgetTone(r) !== 'over' && r.budget != null && r.projected_pct > 100).length
   return (
+    <div className="space-y-3">
+    <p className="text-sm text-slate-600">
+      {over === 0 && onPaceOver === 0 ? 'Every department is within budget and on pace.'
+        : [over > 0 && `${over} department${over === 1 ? ' is' : 's are'} over budget`,
+           onPaceOver > 0 && `${onPaceOver} ${onPaceOver === 1 ? 'is' : 'are'} on pace to go over`].filter(Boolean).join('; ') + '.'}
+    </p>
     <div className="bg-white border border-slate-200 rounded-xl overflow-x-auto">
       <table className="w-full text-sm min-w-[640px]">
         <thead>
@@ -53,6 +66,11 @@ function Overview({ month, onOpen }) {
                       {r.pct_used != null ? `${r.pct_used}% · on pace for ${r.projected_pct}%` : 'No budget'}
                       {r.spend_ppd != null && ` · ${money(r.spend_ppd, 2)} PPD`}
                     </div>
+                    {alerts.filter(a => a.organization_id === id && a.department === d.key).map(a => (
+                      <div key={a.kind} className={`text-xs ${a.kind === 'pct100' ? 'text-red-600' : 'text-amber-700'}`}>
+                        {ALERT_LABELS[a.kind]} · {alertDate(a.created_at)}
+                      </div>
+                    ))}
                   </td>
                 )
               })}
@@ -60,6 +78,7 @@ function Overview({ month, onOpen }) {
           ))}
         </tbody>
       </table>
+    </div>
     </div>
   )
 }
