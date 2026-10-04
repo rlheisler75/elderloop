@@ -23,7 +23,7 @@ export const SPEND_CATEGORIES = [
   { key: 'maintenance_parts', label: 'Maintenance parts' },
   { key: 'other',             label: 'Other' },
 ]
-const EXTRA_CATEGORY_LABELS = { shipping: 'Shipping' }
+const EXTRA_CATEGORY_LABELS = { shipping: 'Shipping', vendor_services: 'Vendor services' }
 export const categoryLabel = (key) =>
   SPEND_CATEGORIES.find(c => c.key === key)?.label ?? EXTRA_CATEGORY_LABELS[key] ?? key
 
@@ -32,6 +32,7 @@ export const SOURCE_LABELS = {
   shipping: 'Shipping',
   issue: 'Issued from Central Supply',
   manual: 'Off-system purchases',
+  work_order: 'Closed work orders',
 }
 
 export const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']

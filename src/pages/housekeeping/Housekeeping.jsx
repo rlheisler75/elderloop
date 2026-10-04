@@ -5,10 +5,11 @@ import {
   Plus, X, Edit2, Trash2, Search, Check, X as XIcon,
   ClipboardCheck, Calendar, Printer, ChevronDown,
   Building2, Home, AlertTriangle, Clock, DollarSign,
-  Phone, User, CheckCircle2, Circle
+  Phone, User, CheckCircle2, Circle, Shirt
 } from 'lucide-react'
 import { HOUSEKEEPING_STATE_REFS } from '../../lib/housekeepingStateRefs'
 import RegRefBanner from '../../components/ui/RegRefBanner'
+import HousekeepingLinen from './HousekeepingLinen'
 
 // ── Status helpers ─────────────────────────────────────────────
 const IL_STATUSES = [
@@ -473,6 +474,10 @@ export default function Housekeeping() {
     : (hasDepartmentAccess('housekeeping', 'supervisor') || hasAnyDepartmentLevel('manager'))
   const canManageAreas = tiered ? hkRank >= 2 : isHousekeepingManager
   const canBill        = !tiered || hkRank >= 1
+  // Linen discards (20261004_budget_maintenance_housekeeping.sql): Housekeeping staff log;
+  // Supervisor+ corrects anyone's entry; the NHA views but doesn't log in tiered communities
+  const canLogLinen     = !tiered || (hkRank >= 0 && hkTier !== 'administrator')
+  const canCorrectLinen = !tiered || hkRank >= 1
   const [tab, setTab]             = useState('ltc')
   const [areas, setAreas]         = useState([])
   const [checklistItems, setChecklistItems] = useState([])
@@ -569,6 +574,7 @@ export default function Housekeeping() {
         {[
           { key: 'ltc', label: 'LTC Inspections',   icon: ClipboardCheck },
           { key: 'il',  label: 'Independent Living', icon: Calendar },
+          { key: 'linen', label: 'Linen', icon: Shirt },
         ].map(t => {
           const Icon = t.icon
           return (
@@ -579,6 +585,9 @@ export default function Housekeeping() {
           )
         })}
       </div>
+
+      {/* ── LINEN TAB ── */}
+      {tab === 'linen' && <HousekeepingLinen canLog={canLogLinen} canCorrectAny={canCorrectLinen} />}
 
       {/* ── LTC TAB ── */}
       {tab === 'ltc' && (

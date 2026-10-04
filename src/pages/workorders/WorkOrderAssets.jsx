@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import { useTierAccess } from '../../hooks/useTierAccess'
 import {
   Plus, X, Edit2, Trash2, Search, AlertTriangle,
   Wrench, Calendar, ChevronRight, CheckCircle2,
@@ -31,6 +32,7 @@ const getCat = (key) => ASSET_CATEGORIES.find(c => c.key === key) || ASSET_CATEG
 function AssetModal({ asset, orgId, profile, onClose, onSaved }) {
   const fileRef = useRef()
   const isNew = !asset
+  const showCosts = useTierAccess('work_orders').atLeast('manager')
   const [form, setForm] = useState({
     asset_number:   asset?.asset_number   || '',
     name:           asset?.name           || '',
@@ -47,6 +49,11 @@ function AssetModal({ asset, orgId, profile, onClose, onSaved }) {
     status:         asset?.status         || 'active',
     notes:          asset?.notes          || '',
     photo_url:      asset?.photo_url      || '',
+    // Budget layer: replacement planning (shown to Maintenance Managers and leaders)
+    purchase_cost:       asset?.purchase_cost       ?? '',
+    replacement_cost:    asset?.replacement_cost    ?? '',
+    expected_life_years: asset?.expected_life_years ?? '',
+    salvage_value:       asset?.salvage_value       ?? '',
   })
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving]       = useState(false)
@@ -76,6 +83,10 @@ function AssetModal({ asset, orgId, profile, onClose, onSaved }) {
       last_service_date: form.last_service_date || null,
       next_service_date: form.next_service_date || null,
       photo_url:         form.photo_url         || null,
+      purchase_cost:       form.purchase_cost       === '' ? null : Number(form.purchase_cost),
+      replacement_cost:    form.replacement_cost    === '' ? null : Number(form.replacement_cost),
+      expected_life_years: form.expected_life_years === '' ? null : Number(form.expected_life_years),
+      salvage_value:       form.salvage_value       === '' ? null : Number(form.salvage_value),
       updated_at:        new Date().toISOString(),
     }
     const { error: err } = asset?.id
@@ -161,6 +172,18 @@ function AssetModal({ asset, orgId, profile, onClose, onSaved }) {
               <input type="date" value={form.warranty_expiry} onChange={e => set('warranty_expiry', e.target.value)}
                 className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
+            {showCosts && [
+              ['purchase_cost', 'Purchase Cost ($)', '0.01'],
+              ['replacement_cost', 'Replacement Cost ($)', '0.01'],
+              ['expected_life_years', 'Expected Life (years)', '0.5'],
+              ['salvage_value', 'Salvage Value ($)', '0.01'],
+            ].map(([key, label, step]) => (
+              <div key={key}>
+                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">{label}</label>
+                <input type="number" min="0" step={step} value={form[key]} onChange={e => set(key, e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              </div>
+            ))}
             <div>
               <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Last Service Date</label>
               <input type="date" value={form.last_service_date} onChange={e => set('last_service_date', e.target.value)}

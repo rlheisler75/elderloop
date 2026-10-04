@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { useAiSection } from '../../hooks/useAiSection'
 import {
-  Plus, Search, Filter, Wrench, X, Edit2, ChevronDown,
+  Plus, Search, Filter, Wrench, X, Edit2, ChevronDown, Wallet,
   Clock, AlertTriangle, CheckCircle2, User, MapPin,
   Truck, PauseCircle, XCircle, RefreshCw, Calendar,
   ChevronRight, MessageSquare, ArrowUpDown, ShieldCheck,
@@ -36,6 +36,7 @@ import CompliancePanel from './Compliance'
 import WorkOrderAssets from './WorkOrderAssets'
 import PMSchedules from './PMSchedules'
 import Reports from './Reports'
+import MaintenanceCosts from './MaintenanceCosts'
 import MaintenanceSettings from './MaintenanceSettings'
 import LocationPicker from '../../components/ui/LocationPicker'
 import BroadcastPanel from '../communication/BroadcastPanel'
@@ -188,6 +189,55 @@ function LocationPickerButton({ value, onChange }) {
 }
 
 // ── Work Order Detail Modal ───────────────────────────────────
+// ── Close-out (budget layer Phase 4) ─────────────────────────────
+// Parts and vendor cost on a closed job count toward the Maintenance budget the day
+// it closes (spend_ledger). Parts taken from Central Supply stock already count when
+// issued, so only parts bought for this job are entered here. Hours aren't priced.
+const WORK_TYPES = [
+  { key: 'planned',   label: 'Planned' },
+  { key: 'routine',   label: 'Routine repair' },
+  { key: 'emergency', label: 'Emergency' },
+]
+const numOrNull = (v) => (v === '' || v == null ? null : Math.max(0, Number(v)))
+function closeOutPayload(form) {
+  return {
+    work_type: form.work_type || 'routine',
+    actual_hours: numOrNull(form.actual_hours),
+    parts_cost: numOrNull(form.parts_cost),
+    vendor_cost: numOrNull(form.vendor_cost),
+  }
+}
+const fmtCost = (n) => n == null || n === '' ? null : `$${Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+
+function CloseOutFields({ form, set }) {
+  const cls = 'w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100'
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-1.5">
+        {WORK_TYPES.map(t => (
+          <button key={t.key} type="button" onClick={() => set('work_type', t.key)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium border ${form.work_type === t.key
+              ? 'bg-brand-600 text-white border-brand-600' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'}`}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        <label className="text-xs text-slate-500">Labor hours
+          <input type="number" min="0" step="0.25" value={form.actual_hours} onChange={e => set('actual_hours', e.target.value)} className={cls} />
+        </label>
+        <label className="text-xs text-slate-500">Parts bought ($)
+          <input type="number" min="0" step="0.01" value={form.parts_cost} onChange={e => set('parts_cost', e.target.value)} className={cls} />
+        </label>
+        <label className="text-xs text-slate-500">Vendor cost ($)
+          <input type="number" min="0" step="0.01" value={form.vendor_cost} onChange={e => set('vendor_cost', e.target.value)} className={cls} />
+        </label>
+      </div>
+      <p className="text-[11px] text-slate-400">Parts taken from Central Supply stock are already counted when issued. Enter only parts bought for this job.</p>
+    </div>
+  )
+}
+
 function WOModal({ wo, onClose, onSave, staffList, residentList, categories, canEdit, canClose, canAssign, canTriage = true }) {
   const { profile, organization } = useAuth()
   const aiEnabled = useAiSection('maintenance')
@@ -213,7 +263,11 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
     is_recurring: wo.is_recurring || false, recur_type: wo.recur_type || 'interval',
     recur_interval_days: wo.recur_interval_days || 90,
     recur_day: wo.recur_day || 1, recur_month: wo.recur_month || '',
+    // Close-out (budget layer): labor hours, parts bought for the job, vendor cost, type
+    work_type: wo.work_type || 'routine', actual_hours: wo.actual_hours ?? '',
+    parts_cost: wo.parts_cost ?? '', vendor_cost: wo.vendor_cost ?? '',
   } : { ...EMPTY_FORM })
+  const [closing, setClosing]     = useState(false) // Mark Complete opens the close-out form first
   const [note, setNote]           = useState('')
   const [notePhoto, setNotePhoto]   = useState(null)
   const [activity, setActivity]     = useState([])
@@ -392,6 +446,7 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
         if (!wo.sla_responded_at) payload.sla_responded_at = new Date().toISOString()
       }
       payload.status = form.status
+      Object.assign(payload, closeOutPayload(form))
       if (form.status === 'closed' && wo.status !== 'closed') payload.completed_at = new Date().toISOString();
       ({ error: err } = await supabase.from('work_orders').update(payload).eq('id', wo.id))
     } else {
@@ -762,6 +817,22 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
               </div>
             )}
 
+            {/* Close-out: type, hours, parts, vendor cost */}
+            {wo && (editing || wo.status === 'closed') && (
+              <div className="p-4 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl">
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Close-out</label>
+                {editing ? <CloseOutFields form={form} set={set} /> : (
+                  <div className="text-sm text-slate-700 dark:text-slate-300 flex flex-wrap gap-x-4 gap-y-1">
+                    <span>{WORK_TYPES.find(t => t.key === wo.work_type)?.label ?? 'Routine repair'}</span>
+                    {wo.actual_hours != null && <span>{Number(wo.actual_hours)} h labor</span>}
+                    {fmtCost(wo.parts_cost) && <span>Parts {fmtCost(wo.parts_cost)}</span>}
+                    {fmtCost(wo.vendor_cost) && <span>Vendor {fmtCost(wo.vendor_cost)}</span>}
+                    {wo.actual_hours == null && wo.parts_cost == null && wo.vendor_cost == null && <span className="text-slate-400">No costs recorded</span>}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Recurring */}
             {editing && (
               <div className="p-4 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl">
@@ -911,6 +982,7 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
                       key={action.status}
                       type="button"
                       onClick={async () => {
+                        if (action.status === 'closed') { setClosing(true); return }
                         const updatePayload = {
                           status: action.status,
                           updated_at: new Date().toISOString(),
@@ -929,6 +1001,39 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
                     </button>
                   ))}
                 </div>
+                {closing && (
+                  <div className="mt-3 p-4 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900 rounded-xl">
+                    <div className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-2">Close this job</div>
+                    <CloseOutFields form={form} set={set} />
+                    <div className="flex justify-end gap-2 mt-3">
+                      <button type="button" onClick={() => setClosing(false)} className="px-3 py-1.5 text-xs text-slate-500">Cancel</button>
+                      <button type="button" disabled={saving}
+                        onClick={async () => {
+                          setSaving(true); setError('')
+                          const now = new Date().toISOString()
+                          const costs = closeOutPayload(form)
+                          const { error: err } = await supabase.from('work_orders')
+                            .update({ status: 'closed', completed_at: now, updated_at: now, ...costs }).eq('id', wo.id)
+                          if (err) { setError(err.message); setSaving(false); return }
+                          const parts = [
+                            WORK_TYPES.find(t => t.key === costs.work_type)?.label,
+                            costs.actual_hours != null && `${costs.actual_hours} h`,
+                            costs.parts_cost != null && `parts ${fmtCost(costs.parts_cost)}`,
+                            costs.vendor_cost != null && `vendor ${fmtCost(costs.vendor_cost)}`,
+                          ].filter(Boolean).join(', ')
+                          await supabase.from('wo_activity').insert({
+                            work_order_id: wo.id, user_id: profile.id,
+                            action: `Status changed to Closed (${parts})`, action_type: 'status_change',
+                          })
+                          setSaving(false); setClosing(false)
+                          onSave()
+                        }}
+                        className="px-4 py-1.5 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-xs font-semibold rounded-lg">
+                        {saving ? 'Closing...' : 'Close job'}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -1025,6 +1130,12 @@ export default function WorkOrders() {
   const [selected, setSelected]       = useState(null)
   const [sortBy, setSortBy]           = useState('created_at')
   const [mainView, setMainView]       = useState('work_orders') // 'work_orders' | 'compliance'
+  // Costs tab: only when maintenance_cost_report returns rows (Budgets add-on + may see the Maintenance budget)
+  const [canSeeCosts, setCanSeeCosts] = useState(false)
+  useEffect(() => {
+    if (!organization?.id) return
+    supabase.rpc('maintenance_cost_report', { p_months: 1, p_org: organization.id }).then(({ data }) => setCanSeeCosts(!!data?.length))
+  }, [organization?.id])
 
   const canCreate      = profile && ['super_admin','org_admin','ceo','supervisor','manager','maintenance','staff','dietary','housekeeping'].includes(profile.role)
   // Any level (employee/supervisor/manager) in the maintenance department works the shared queue;
@@ -1120,6 +1231,7 @@ export default function WorkOrders() {
             { key: 'pm',          label: 'Preventive Maintenance', icon: RefreshCw },
             { key: 'compliance',  label: 'Life Safety',  icon: ShieldCheck },
             { key: 'reports',     label: 'Reports',      icon: BarChart3 },
+            ...(canSeeCosts ? [{ key: 'costs', label: 'Costs', icon: Wallet }] : []),
             { key: 'communication', label: 'Communication', icon: MessageSquare },
             { key: 'settings',    label: 'Settings',     icon: Settings },
           ] : []),
@@ -1138,6 +1250,7 @@ export default function WorkOrders() {
       {mainView === 'pm'         && isPrivileged && <PMSchedules        orgId={organization?.id} profile={profile} />}
       {mainView === 'compliance' && isPrivileged && <CompliancePanel    orgId={organization?.id} profile={profile} />}
       {mainView === 'reports'    && isPrivileged && <Reports            orgId={organization?.id} profile={profile} />}
+      {mainView === 'costs'      && canSeeCosts && <MaintenanceCosts orgId={organization?.id} />}
       {mainView === 'communication' && isPrivileged && (
         <BroadcastPanel
           isStarter={organization?.plan === 'starter'}
