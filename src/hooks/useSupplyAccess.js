@@ -14,6 +14,9 @@ import { useAuth } from '../context/AuthContext'
 //               Org Admin, plus the Administrator in legacy communities.
 //   canSeeCharges — the Resident Charges tab: anyone who can bill, plus the
 //               Administrator (view only in tiered communities).
+//   canOrder  — send submitted orders to vendors (download / print / email). Mirrors
+//               supply_can_order() (20261004_vendor_ordering.sql): whoever manages
+//               purchase orders, Org Admins, and the Administrator only in legacy communities.
 export function useSupplyAccess() {
   const { accessModel, tierFor, canEdit, hasDepartmentAccess, hasAnyDepartmentLevel, profile, isSuperAdmin, departmentRoles } = useAuth()
 
@@ -25,7 +28,7 @@ export function useSupplyAccess() {
   if (accessModel !== 'tiered') {
     const canWork = canEdit('central_supply', ['supervisor', 'manager'])
       || hasDepartmentAccess('central_supply', 'employee') || hasAnyDepartmentLevel('supervisor')
-    return { canWork, canManage: canWork, showCosts: true, canBill, canSeeCharges }
+    return { canWork, canManage: canWork, showCosts: true, canBill, canSeeCharges, canOrder: canWork || ['org_admin', 'super_admin', 'ceo'].includes(role) }
   }
 
   const csTier = tierFor('central_supply')
@@ -34,5 +37,5 @@ export function useSupplyAccess() {
   const canWork = canManage || csTier === 'supervisor'
     || (csTier !== 'administrator' && hasDepartmentAccess('central_supply', 'employee'))
   const showCosts = canManage || csTier === 'administrator'
-  return { canWork, canManage, showCosts, canBill, canSeeCharges }
+  return { canWork, canManage, showCosts, canBill, canSeeCharges, canOrder: role !== 'ceo' && canManage }
 }

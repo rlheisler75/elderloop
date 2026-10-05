@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { useSupplyAccess } from '../../hooks/useSupplyAccess'
+import SendToVendor from './SendToVendor'
 import {
   Plus, X, ChevronRight, ClipboardList, Check, AlertTriangle,
   Package, Truck, Search, CheckCircle2, Clock, XCircle,
@@ -453,7 +454,7 @@ function ReceiveLineRow({ line, po, orgId, profileId, canEdit, showCosts = true,
 // ── PO Detail / Receive View ───────────────────────────────────
 function PODetail({ po, orgId, profileId, canEdit, canManagePO = canEdit, onBack, onRefresh, onEdit }) {
   const { profile } = useAuth()
-  const { showCosts } = useSupplyAccess()
+  const { showCosts, canOrder } = useSupplyAccess()
   // The Administrator (NHA) or an Org Admin approves orders over the threshold
   const isApprover = ['ceo', 'org_admin', 'super_admin'].includes(profile?.role)
   const [actionError, setActionError] = useState('')
@@ -634,6 +635,12 @@ function PODetail({ po, orgId, profileId, canEdit, canManagePO = canEdit, onBack
         </div>
       )}
 
+      {/* Send to vendor: download / print / email, with the send history */}
+      {['submitted', 'partially_received', 'received'].includes(po.status) && (canOrder || isApprover) && (
+        <SendToVendor po={po} canSend={canOrder}
+          vendorEmail={po.supply_vendors?.order_email || po.supply_vendors?.email || ''} />
+      )}
+
       {/* Receive All button */}
       {anyPending && !['cancelled', 'draft', 'awaiting_approval'].includes(po.status) && canEdit && (
         <div className="flex justify-end mb-4">
@@ -704,7 +711,7 @@ export default function SupplyPurchaseOrders() {
   async function fetchAll() {
     setLoading(true)
     const [posRes, vendorsRes, itemsRes] = await Promise.all([
-      supabase.from('supply_purchase_orders').select('*, supply_vendors(name)').eq('organization_id', organization.id).order('created_at', { ascending: false }),
+      supabase.from('supply_purchase_orders').select('*, supply_vendors(name, email, order_email)').eq('organization_id', organization.id).order('created_at', { ascending: false }),
       supabase.from('supply_vendors').select('id, name').eq('organization_id', organization.id).eq('is_active', true).order('name'),
       supabase.from('supply_items').select('id, name, category, unit, cost_per_unit').eq('organization_id', organization.id).eq('is_active', true).order('name'),
     ])

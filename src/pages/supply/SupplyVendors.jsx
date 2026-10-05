@@ -20,6 +20,10 @@ function VendorModal({ vendor, orgId, canEdit, onClose, onSaved }) {
     lead_time_days: vendor?.lead_time_days ?? 3,
     notes:          vendor?.notes          || '',
     is_active:      vendor?.is_active      ?? true,
+    // Ordering (20261004_vendor_ordering.sql): where orders are emailed, and how they're sent.
+    // edi / punchout / api are set up by ElderLoop, not chosen here.
+    order_email:    vendor?.order_email    || '',
+    order_channel:  vendor?.order_channel  || 'manual',
   })
   const [saving, setSaving] = useState(false)
   const [error, setError]   = useState('')
@@ -30,7 +34,8 @@ function VendorModal({ vendor, orgId, canEdit, onClose, onSaved }) {
   const handleSave = async () => {
     if (!form.name.trim()) { setError('Vendor name is required'); return }
     setSaving(true); setError('')
-    const payload = { ...form, organization_id: orgId, lead_time_days: Number(form.lead_time_days) || 3, updated_at: new Date().toISOString() }
+    const payload = { ...form, organization_id: orgId, lead_time_days: Number(form.lead_time_days) || 3,
+      order_email: form.order_email.trim() || null, updated_at: new Date().toISOString() }
     const { error: err } = vendor?.id
       ? await supabase.from('supply_vendors').update(payload).eq('id', vendor.id)
       : await supabase.from('supply_vendors').insert(payload)
@@ -91,6 +96,25 @@ function VendorModal({ vendor, orgId, canEdit, onClose, onSaved }) {
           <div>
             <label className={labelCls}>Address</label>
             <input value={form.address} onChange={e => set('address', e.target.value)} className={inputCls} />
+          </div>
+          <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 space-y-3">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Ordering</div>
+            <div>
+              <label className={labelCls}>Order email</label>
+              <input value={form.order_email} onChange={e => set('order_email', e.target.value)} className={inputCls} type="email"
+                placeholder={form.email ? `Leave blank to use ${form.email}` : 'Where purchase orders are emailed'} disabled={readOnly} />
+            </div>
+            <div>
+              <label className={labelCls}>How orders are sent</label>
+              {['manual', 'email'].includes(form.order_channel) ? (
+                <select value={form.order_channel} onChange={e => set('order_channel', e.target.value)} className={inputCls} disabled={readOnly}>
+                  <option value="manual">Download or print, and send it myself</option>
+                  <option value="email">Email from ElderLoop</option>
+                </select>
+              ) : (
+                <p className="text-sm text-slate-600 dark:text-slate-300">Connected by ElderLoop ({form.order_channel.toUpperCase()})</p>
+              )}
+            </div>
           </div>
           <div>
             <label className={labelCls}>Notes</label>
