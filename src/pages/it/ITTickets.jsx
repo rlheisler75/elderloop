@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import BarcodeScanner from '../supply/BarcodeScanner'
 import ITAssetLabels from './ITAssetLabels'
+import { daysUntil } from '../../lib/dates'
 
 // ── Helpers ────────────────────────────────────────────────────
 const fmtDate = (ts) => ts
@@ -677,7 +678,7 @@ export default function ITTickets() {
   })
   const licensesExpiringSoon = licenses.filter(l => {
     if (l.status !== 'active' || !l.renewal_date) return false
-    const days = (new Date(l.renewal_date) - new Date()) / (24*60*60*1000)
+    const days = daysUntil(l.renewal_date)
     return days >= 0 && days <= 30
   }).length
 
@@ -974,8 +975,8 @@ export default function ITTickets() {
                   {filteredLicenses.map(l => {
                     const typeLabel = LICENSE_TYPES.find(t => t.value === l.license_type)?.label || l.license_type
                     const now = new Date()
-                    const renewalPassed = l.renewal_date && new Date(l.renewal_date) < now
-                    const renewalSoon = l.renewal_date && !renewalPassed && new Date(l.renewal_date) < new Date(now.getTime() + 30*24*60*60*1000)
+                    const renewalPassed = l.renewal_date && daysUntil(l.renewal_date) < 0
+                    const renewalSoon = l.renewal_date && !renewalPassed && daysUntil(l.renewal_date) < 30
                     return (
                       <tr key={l.id} className="border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                         <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-100 max-w-48 truncate">{l.name}</td>

@@ -10,6 +10,7 @@ import {
 import { HOUSEKEEPING_STATE_REFS } from '../../lib/housekeepingStateRefs'
 import RegRefBanner from '../../components/ui/RegRefBanner'
 import HousekeepingLinen from './HousekeepingLinen'
+import { parseDay } from '../../lib/dates'
 
 // ── Status helpers ─────────────────────────────────────────────
 const IL_STATUSES = [
@@ -60,7 +61,7 @@ function PrintReceipt({ request, orgName, onClose }) {
 
   const hours = request.actual_hours || request.duration_hours || 0
   const date  = request.booked_date
-    ? new Date(request.booked_date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+    ? parseDay(request.booked_date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
     : 'N/A'
 
   return (
@@ -802,7 +803,7 @@ export default function Housekeeping() {
                         {req.booked_date && (
                           <span className="flex items-center gap-1">
                             <Calendar size={11} />
-                            {new Date(req.booked_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            {parseDay(req.booked_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                             {req.booked_time && ` at ${req.booked_time}`}
                             {req.duration_hours && ` · ${req.duration_hours}h est.`}
                           </span>

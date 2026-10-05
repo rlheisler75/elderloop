@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { useSocialServicesAccess } from '../../hooks/useSocialServicesAccess'
 import { useAiSection } from '../../hooks/useAiSection'
+import { daysUntil } from '../../lib/dates'
 import { Plus, X, ClipboardList, Search, Loader2, AlertCircle, Check,
          Phone, Users, Mail, MessageSquare, ChevronDown, ShieldCheck, Sparkles } from 'lucide-react'
 
@@ -269,7 +270,7 @@ export default function CaseNotes({ canWrite }) {
   })
 
   const formatDate = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''
-  const thisWeek = notes.filter(n => new Date(n.contact_date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length
+  const thisWeek = notes.filter(n => daysUntil(n.contact_date) >= -7).length
   const followUps = notes.filter(n => n.follow_up_needed && !n.entered_in_error).length
 
   return (

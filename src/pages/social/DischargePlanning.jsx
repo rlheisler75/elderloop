@@ -5,6 +5,7 @@ import { Plus, X, LogOut, Search, Loader2, AlertCircle, Check,
          Home, Building2, ChevronDown, ShieldCheck, CalendarClock } from 'lucide-react'
 import { SOCIAL_STATE_REFS } from '../../lib/socialStateRefs'
 import RegRefBanner from '../../components/ui/RegRefBanner'
+import { daysUntil } from '../../lib/dates'
 
 const STATUSES = [
   { key: 'planning',  label: 'Planning',  light: 'bg-slate-100 text-slate-600',       dark: 'dark:bg-slate-800 dark:text-slate-300' },
@@ -255,7 +256,7 @@ export default function DischargePlanning({ canWrite }) {
   const active = plans.filter(p => ['planning', 'ready'].includes(p.status)).length
   const upcoming = plans.filter(p => {
     if (!['planning', 'ready'].includes(p.status) || !p.anticipated_discharge_date) return false
-    const days = (new Date(p.anticipated_discharge_date) - new Date()) / (1000 * 60 * 60 * 24)
+    const days = daysUntil(p.anticipated_discharge_date)
     return days >= 0 && days <= 14
   }).length
   const discharged = plans.filter(p => p.status === 'discharged').length

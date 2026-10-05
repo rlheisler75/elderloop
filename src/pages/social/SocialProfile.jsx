@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { useSocialServicesAccess } from '../../hooks/useSocialServicesAccess'
+import { daysUntil } from '../../lib/dates'
 import { Search, Plus, ChevronRight, User, Save, X, Check,
          Shield, Heart, Book, Loader2, AlertCircle, UserCheck, CalendarCheck, ClipboardCheck } from 'lucide-react'
 
@@ -328,7 +329,7 @@ export default function SocialProfile({ canWrite }) {
     const prof = profilesByResident.get(residentId)
     if (!prof) return { label: 'No profile', color: 'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400' }
     if (!prof.review_due_date) return null
-    const days = Math.floor((new Date(prof.review_due_date) - new Date()) / (1000 * 60 * 60 * 24))
+    const days = daysUntil(prof.review_due_date)
     if (days < 0) return { label: 'Overdue', color: 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-400' }
     if (days <= 30) return { label: 'Due soon', color: 'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400' }
     return null
@@ -430,7 +431,7 @@ export default function SocialProfile({ canWrite }) {
                     <span className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/50 dark:text-amber-400 px-2 py-0.5 rounded-full font-medium">No profile yet</span>
                   )}
                   {ssProfile?.review_due_date && (() => {
-                    const days = Math.floor((new Date(ssProfile.review_due_date) - new Date()) / (1000 * 60 * 60 * 24))
+                    const days = daysUntil(ssProfile.review_due_date)
                     if (days < 0) return <span className="text-xs text-red-600 bg-red-50 dark:bg-red-950/50 dark:text-red-400 px-2 py-0.5 rounded-full font-medium">Review overdue</span>
                     if (days <= 30) return <span className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/50 dark:text-amber-400 px-2 py-0.5 rounded-full font-medium">Review due in {days}d</span>
                     return null

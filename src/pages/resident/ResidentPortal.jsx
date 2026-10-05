@@ -13,6 +13,7 @@ import {
   Maximize, Star, Sun, Coffee, Soup, Cookie,
   MapPin, User
 } from 'lucide-react'
+import { daysUntil } from '../../lib/dates'
 
 // ── Helpers ───────────────────────────────────────────────────
 const relativeTime = (iso) => {
@@ -721,7 +722,7 @@ export default function ResidentPortal() {
                         <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wide px-1 mb-2">Coming Up</h4>
                         <div className="space-y-2">
                           {laterActivities.map(a => {
-                            const isThisWeek = new Date(a.start_date) <= new Date(Date.now() + 6 * 86400000)
+                            const isThisWeek = daysUntil(a.start_date) <= 6
                             return (
                               <div key={a.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-4 flex items-start gap-3">
                                 <div className="w-2 h-2 rounded-full mt-2 flex-shrink-0" style={{ background: a.color || '#0c90e1' }} />

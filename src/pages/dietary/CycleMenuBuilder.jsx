@@ -8,6 +8,7 @@ import {
   BookOpen, Package, Save, ArrowLeft, RefreshCw, Check, ShieldCheck,
   ChefHat, ChevronDown, ChevronUp
 } from 'lucide-react'
+import { parseDay } from '../../lib/dates'
 
 const MEAL_PERIODS = [
   { key: 'breakfast', label: 'Breakfast' },
@@ -1060,7 +1061,7 @@ function CycleMenuList({ menus, onSelect, onCreate, onDelete, onSetCurrent, canE
                   </p>
                   {menu.start_date && (
                     <p className="text-slate-400 text-xs mt-1">
-                      Started {new Date(menu.start_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                      Started {parseDay(menu.start_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                     </p>
                   )}
                   <p className={`text-xs mt-1 flex items-center gap-1 ${menu.approved_at ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>

@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { DIETARY_STATE_REFS } from '../../lib/dietaryStateRefs'
 import RegRefBanner from '../../components/ui/RegRefBanner'
+import { daysUntil } from '../../lib/dates'
 
 // ── Constants ─────────────────────────────────────────────────
 // Diet types — aligned with AND (Academy of Nutrition and Dietetics) current terminology
@@ -276,7 +277,7 @@ function ResidentCard({ resident, onEdit, onPrint, canEdit, weightAlert }) {
           <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">No RD review yet</span>
         )}
         {resident.review_due_date && (() => {
-          const days = Math.floor((new Date(resident.review_due_date) - new Date()) / (1000 * 60 * 60 * 24))
+          const days = daysUntil(resident.review_due_date)
           if (days < 0) return <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-400">RD review overdue</span>
           if (days <= 14) return <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400">RD review due in {days}d</span>
           return null

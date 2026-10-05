@@ -41,6 +41,7 @@ import MaintenanceSettings from './MaintenanceSettings'
 import LocationPicker from '../../components/ui/LocationPicker'
 import BroadcastPanel from '../communication/BroadcastPanel'
 import { fetchWOCategories, topLevelCategories, subcategoriesOf } from '../../lib/workOrderCategories'
+import { daysUntil, parseDay } from '../../lib/dates'
 
 const STATUSES = [
   { key: 'open',             label: 'Open',             color: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-900',     dot: 'bg-blue-500' },
@@ -89,7 +90,7 @@ function StatusBadge({ status }) {
 function WORow({ wo, categories, onClick }) {
   const pri = getPriority(wo.priority)
   const cat = categories.find(c => c.key === wo.category)
-  const isOverdue = wo.due_date && new Date(wo.due_date) < new Date() && wo.status !== 'closed' && wo.status !== 'cancelled'
+  const isOverdue = wo.due_date && daysUntil(wo.due_date) < 0 && wo.status !== 'closed' && wo.status !== 'cancelled'
 
   return (
     <tr onClick={onClick} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors">
@@ -146,7 +147,7 @@ function WORow({ wo, categories, onClick }) {
       </td>
       <td className={`px-4 py-3 text-xs ${isOverdue ? 'text-red-600 font-medium' : 'text-slate-500'}`}>
         {wo.due_date
-          ? new Date(wo.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+          ? parseDay(wo.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
           : <span className="text-slate-300">—</span>}
         {isOverdue && <span className="ml-1">⚠</span>}
       </td>
@@ -740,7 +741,7 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
                 {triageEditable
                   ? <input type="date" value={form.due_date} onChange={e => set('due_date', e.target.value)}
                       className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
-                  : <p className="text-sm text-slate-700 dark:text-slate-300">{wo.due_date ? new Date(wo.due_date).toLocaleDateString() : '—'}</p>}
+                  : <p className="text-sm text-slate-700 dark:text-slate-300">{wo.due_date ? parseDay(wo.due_date).toLocaleDateString() : '—'}</p>}
               </div>
             </div>
 
