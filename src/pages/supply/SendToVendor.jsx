@@ -30,17 +30,19 @@ export default function SendToVendor({ po, vendorEmail, canSend }) {
     return data?.[0]?.payload
   }
 
+  // Each action reloads the history before it finishes, so the badge, the history,
+  // and the success message change together
   const download = async () => {
     setBusy('download'); setError(''); setNotice('')
     const doc = await record('download')
     if (doc) downloadOrderCsv(doc)
-    setBusy(null); load()
+    await load(); setBusy(null)
   }
   const print = async () => {
     setBusy('print'); setError(''); setNotice('')
     const doc = await record('print')
     if (doc && !printOrder(doc)) setError('Your browser blocked the print window. Allow pop-ups for ElderLoop and try again.')
-    setBusy(null); load()
+    await load(); setBusy(null)
   }
   const email = async () => {
     setBusy('email'); setError(''); setNotice('')
@@ -52,12 +54,14 @@ export default function SendToVendor({ po, vendorEmail, canSend }) {
         body: JSON.stringify({ po_id: po.id, to: to.trim(), cc_me: ccMe }),
       })
       const data = await res.json()
+      await load()
       if (!data.success) setError(data.error || 'The email could not be sent.')
       else setNotice(`Sent to ${to.trim()}.${ccMe ? ' A copy went to you.' : ''} Replies come to your email.`)
     } catch {
+      await load()
       setError('Something went wrong. Try again, or download the order and send it yourself.')
     }
-    setBusy(null); load()
+    setBusy(null)
   }
 
   const sent = (history || []).filter(h => h.direction === 'outbound' && h.status !== 'failed')

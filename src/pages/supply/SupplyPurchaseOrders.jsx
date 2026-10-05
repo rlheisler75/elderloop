@@ -37,6 +37,10 @@ async function submitPO(poId) {
   return { error: error.message }
 }
 
+// Date-only columns (ordered_date, expected_date) are calendar days: read them as local
+// noon, not UTC midnight, or US time zones show the day before
+const fmtDay = (d) => new Date(`${d}T12:00:00`).toLocaleDateString()
+
 function poTotal(lines) {
   return lines.reduce((s, l) => s + (Number(l.quantity_ordered) * Number(l.unit_cost || 0)), 0)
 }
@@ -559,8 +563,8 @@ function PODetail({ po, orgId, profileId, canEdit, canManagePO = canEdit, onBack
             </div>
             <div className="text-sm text-slate-500 dark:text-slate-400 space-y-0.5">
               {po.supply_vendors?.name && <div>Vendor: <span className="text-slate-700 dark:text-slate-300 font-medium">{po.supply_vendors.name}</span></div>}
-              {po.ordered_date && <div>Ordered: <span className="text-slate-700 dark:text-slate-300">{new Date(po.ordered_date).toLocaleDateString()}</span></div>}
-              {po.expected_date && <div>Expected: <span className="text-slate-700 dark:text-slate-300">{new Date(po.expected_date).toLocaleDateString()}</span></div>}
+              {po.ordered_date && <div>Ordered: <span className="text-slate-700 dark:text-slate-300">{fmtDay(po.ordered_date)}</span></div>}
+              {po.expected_date && <div>Expected: <span className="text-slate-700 dark:text-slate-300">{fmtDay(po.expected_date)}</span></div>}
               {po.notes && <div className="mt-2 text-slate-600 dark:text-slate-300 italic">{po.notes}</div>}
             </div>
           </div>
@@ -797,8 +801,8 @@ export default function SupplyPurchaseOrders() {
                     <td className="px-4 py-3 font-medium text-slate-800 text-sm">{po.po_number}</td>
                     <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${TYPE_CFG[po.po_type]?.color}`}>{TYPE_CFG[po.po_type]?.label}</span></td>
                     <td className="px-4 py-3 text-sm text-slate-600">{po.supply_vendors?.name || po.vendor_name_free || <span className="text-slate-300">—</span>}</td>
-                    <td className="px-4 py-3 text-sm text-slate-500">{po.ordered_date ? new Date(po.ordered_date).toLocaleDateString() : '—'}</td>
-                    <td className="px-4 py-3 text-sm text-slate-500">{po.expected_date ? new Date(po.expected_date).toLocaleDateString() : '—'}</td>
+                    <td className="px-4 py-3 text-sm text-slate-500">{po.ordered_date ? fmtDay(po.ordered_date) : '—'}</td>
+                    <td className="px-4 py-3 text-sm text-slate-500">{po.expected_date ? fmtDay(po.expected_date) : '—'}</td>
                     <td className="px-4 py-3"><span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${cfg.color}`}>{cfg.label}</span></td>
                     <td className="px-4 py-3"><ChevronRight size={16} className="text-slate-300 group-hover:text-slate-500 transition-colors" /></td>
                   </tr>
