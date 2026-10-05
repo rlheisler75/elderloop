@@ -134,7 +134,7 @@ export default function MaintenanceCosts({ orgId }) {
                       {a.location && <div className="text-xs text-slate-400">{a.location}</div>}
                     </td>
                     <td className="py-2 text-right text-slate-500">{a.age_years != null ? `${a.age_years} yr` : '—'}</td>
-                    <td className="py-2 text-right text-slate-600 dark:text-slate-300">{money(a.lifetime_repairs)}{Number(a.repair_jobs) > 0 && <span className="text-xs text-slate-400"> · {a.repair_jobs} jobs</span>}</td>
+                    <td className="py-2 text-right text-slate-600 dark:text-slate-300">{money(a.lifetime_repairs)}{Number(a.repair_jobs) > 0 && <span className="text-xs text-slate-400"> · {a.repair_jobs} job{Number(a.repair_jobs) === 1 ? '' : 's'}</span>}</td>
                     <td className="py-2 text-right text-slate-600 dark:text-slate-300">{money(a.replacement_cost)}</td>
                     <td className={`py-2 text-right font-semibold ${a.replace_flag ? 'text-red-700 dark:text-red-400' : 'text-slate-800 dark:text-slate-100'}`}>{pct(a.repair_pct)}</td>
                     <td className="py-2 text-right text-slate-500">{money(a.est_book_value)}{a.annual_depreciation != null && <div className="text-xs text-slate-400">−{money(a.annual_depreciation)}/yr</div>}</td>

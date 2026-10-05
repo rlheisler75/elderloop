@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useSessionTimeout } from '../hooks/useSessionTimeout'
 import SessionTimeoutModal from '../components/SessionTimeoutModal'
 import { tierFor as tierForProfile, NHA_WRITABLE_MODULES } from '../lib/accessTiers'
+import { BUDGET_DEPARTMENT_KEYS } from '../lib/budgets'
 
 const AuthContext = createContext({})
 
@@ -167,6 +168,8 @@ export function AuthProvider({ children }) {
     if (ROLE_MODULE_DEFAULTS[key]?.includes(profile?.role)) return true
     // Department+level equivalent of the above, for reassigned accounts
     if (LEVEL_MODULE_DEFAULTS[key] && hasAnyDepartmentLevel(LEVEL_MODULE_DEFAULTS[key])) return true
+    // Budgets: Managers of the budget departments (mirrors can_see_budget() in the database)
+    if (key === 'budgets' && departmentRoles.some(d => d.level === 'manager' && BUDGET_DEPARTMENT_KEYS.includes(d.department))) return true
     // Org-configurable role defaults (Admin Panel → Role Templates) — a sensible
     // starting baseline per role, editable per org. Explicit grants below still win.
     if (roleVisibility.includes(key)) return true

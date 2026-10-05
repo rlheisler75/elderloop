@@ -42,7 +42,7 @@ function Overview({ month, onOpen }) {
     <p className="text-sm text-slate-600">
       {over === 0 && onPaceOver === 0 ? 'Every department is within budget and on pace.'
         : [over > 0 && `${over} department${over === 1 ? ' is' : 's are'} over budget`,
-           onPaceOver > 0 && `${onPaceOver} ${onPaceOver === 1 ? 'is' : 'are'} on pace to go over`].filter(Boolean).join('; ') + '.'}
+           onPaceOver > 0 && `${onPaceOver} ${over > 0 ? '' : onPaceOver === 1 ? 'department ' : 'departments '}${onPaceOver === 1 ? 'is' : 'are'} on pace to go over`].filter(Boolean).join('; ') + '.'}
     </p>
     <div className="bg-white border border-slate-200 rounded-xl overflow-x-auto">
       <table className="w-full text-sm min-w-[640px]">
