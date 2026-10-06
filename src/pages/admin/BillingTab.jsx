@@ -334,8 +334,16 @@ export default function BillingTab() {
               {status === 'pilot' && 'Founding customer — pilot arrangement'}
               {status === 'free' && 'Starter plan — free forever'}
               {status === 'inactive' && 'No active subscription'}
-              {org?.cancel_at_period_end && org?.current_period_end && ` · Cancels ${fmtDate(org.current_period_end)}`}
+              {(org?.scheduled_plan === 'canceled' || org?.cancel_at_period_end) && (org?.scheduled_change_at || org?.current_period_end)
+                && ` · Cancels ${fmtDate(org.scheduled_change_at || org.current_period_end)}`}
             </p>
+            {/* A portal downgrade waits for the end of the billing period (webhook: scheduledChange) */}
+            {org?.scheduled_plan && org.scheduled_plan !== 'canceled' && org?.scheduled_change_at && (
+              <p className="text-sm font-medium text-amber-700 dark:text-amber-400 mt-1">
+                Changes to {PLANS.find(p => p.key === org.scheduled_plan)?.name ?? org.scheduled_plan} on {fmtDate(org.scheduled_change_at)}.
+                {' '}You keep {currentPlan?.name ?? 'your current plan'} until then.
+              </p>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -468,6 +476,9 @@ export default function BillingTab() {
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-medium text-slate-800 dark:text-slate-100">{plan.name}</span>
                     {isCurrent && <span className="text-xs text-brand-600 font-semibold">Current</span>}
+                    {!isCurrent && plan.key === org?.scheduled_plan && org?.scheduled_change_at && (
+                      <span className="text-xs text-amber-700 dark:text-amber-400 font-semibold">Starts {fmtDate(org.scheduled_change_at)}</span>
+                    )}
                   </div>
                   <p className="text-lg font-bold text-slate-700 dark:text-slate-300">
                     {plan.price === 0 ? 'Free' : `$${plan.price}`}

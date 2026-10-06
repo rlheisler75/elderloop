@@ -95,6 +95,7 @@ export default async function handler(req, res) {
           plan,
           plan_price:           (planItem?.price?.unit_amount / 100) || null,
           ...PLAN_LIMITS[plan],
+          ...(await scheduledChange(sub, plan)),
         }).eq('id', orgId)
         await enableModulesForPlan(orgId, plan)
         await syncAiAddon(orgId, sub)
@@ -110,6 +111,8 @@ export default async function handler(req, res) {
           subscription_status:    'canceled',
           billing_status:         'canceled',
           cancel_at_period_end:   false,
+          scheduled_plan:         null,
+          scheduled_change_at:    null,
           stripe_subscription_id: null,
           plan:                   'starter',
           ...PLAN_LIMITS['starter'],
@@ -220,6 +223,34 @@ function periodFields(sub) {
   return {
     current_period_start: toIso(item?.current_period_start ?? sub.current_period_start),
     current_period_end:   toIso(item?.current_period_end   ?? sub.current_period_end),
+  }
+}
+
+// The next change waiting on this subscription, for the Billing tab's "Changes to
+// Essential on Oct 19". A portal downgrade is a subscription schedule whose next
+// phase holds the new plan; a cancellation is cancel_at_period_end. Returns {}
+// (leave the stored value alone) if the schedule can't be read.
+async function scheduledChange(sub, currentPlan) {
+  const none = { scheduled_plan: null, scheduled_change_at: null }
+  if (sub.cancel_at_period_end || sub.cancel_at) {
+    const at = sub.cancel_at ?? sub.items?.data?.[0]?.current_period_end ?? sub.current_period_end
+    return { scheduled_plan: 'canceled', scheduled_change_at: toIso(at) }
+  }
+  const scheduleId = typeof sub.schedule === 'string' ? sub.schedule : sub.schedule?.id
+  if (!scheduleId) return none
+  try {
+    const schedule = await stripe.subscriptionSchedules.retrieve(scheduleId)
+    const now = Math.floor(Date.now() / 1000)
+    const next = (schedule.phases || []).find(p => p.start_date > now)
+    if (!next) return none
+    const prices = (next.items || []).map(i => (typeof i.price === 'string' ? i.price : i.price?.id))
+    const planPrice = prices.find(id => id && id !== AI_ADDON_PRICE && id !== BUDGETS_ADDON_PRICE)
+    const nextPlan = planPrice ? getPlanFromPriceId(planPrice) : null
+    if (!nextPlan || nextPlan === currentPlan) return none
+    return { scheduled_plan: nextPlan, scheduled_change_at: toIso(next.start_date) }
+  } catch (err) {
+    console.error('scheduledChange: could not read schedule', scheduleId, err.message)
+    return {}
   }
 }
 
