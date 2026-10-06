@@ -124,7 +124,7 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-US', { month: 'lon
 const fmtMoney = (n) => n != null ? `$${Number(n).toLocaleString()}` : '—'
 
 export default function BillingTab() {
-  const { profile, organization, refreshModules } = useAuth()
+  const { profile, organization, refreshModules, refreshOrganization } = useAuth()
   const [org, setOrg]           = useState(null)
   const [repInfo, setRepInfo]   = useState(null)
   const [loading, setLoading]   = useState(true)
@@ -234,9 +234,21 @@ export default function BillingTab() {
       if (!data.success) {
         setMessage({ type: 'error', text: data.error || 'Failed to start checkout.' })
       } else if (data.upgraded) {
-        // Prorated upgrade — already done, reload billing info
-        setMessage({ type: 'success', text: `Upgraded to ${plan.name}! Your account has been updated.` })
-        fetchOrg()
+        // Prorated upgrade done in Stripe. The plan, limits, and modules change when
+        // Stripe's webhook lands a moment later, so wait for it before reloading
+        setMessage({ type: 'info', text: `Upgrading to ${plan.name}…` })
+        let applied = false
+        for (let i = 0; i < 15 && !applied; i++) {
+          await new Promise(r => setTimeout(r, 1000))
+          const { data: o } = await supabase.from('organizations').select('plan').eq('id', orgId).single()
+          applied = o?.plan === plan.key
+        }
+        await fetchOrg()
+        refreshOrganization?.()
+        refreshModules?.()
+        setMessage(applied
+          ? { type: 'success', text: `Upgraded to ${plan.name}! Your account has been updated.` }
+          : { type: 'info', text: `Your upgrade to ${plan.name} went through. It's still being applied; refresh in a minute to see it.` })
       } else if (data.checkout_url) {
         window.location.href = data.checkout_url
       }
