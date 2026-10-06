@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import {
@@ -130,6 +130,9 @@ export default function BillingTab() {
   const [loading, setLoading]   = useState(true)
   const [actionLoading, setActionLoading] = useState(null)
   const [message, setMessage]   = useState(null)
+  // The banner sits at the top of the tab; bring it into view when an action below reports back
+  const messageRef = useRef(null)
+  useEffect(() => { if (message) messageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }) }, [message])
   const [addonOn, setAddonOn] = useState({})
   const [addonConfirm, setAddonConfirm] = useState(null)
   const [isEnterprise, setIsEnterprise] = useState(false)
@@ -292,7 +295,7 @@ export default function BillingTab() {
 
       {/* Message banner */}
       {message && (
-        <div className={`mb-6 px-4 py-3 rounded-xl border text-sm font-medium flex items-center justify-between ${
+        <div ref={messageRef} className={`mb-6 px-4 py-3 rounded-xl border text-sm font-medium flex items-center justify-between ${
           message.type === 'success' ? 'bg-green-50 border-green-200 text-green-700 dark:bg-green-950/50 dark:border-green-900 dark:text-green-400' :
           message.type === 'error'   ? 'bg-red-50 border-red-200 text-red-700 dark:bg-red-950/50 dark:border-red-900 dark:text-red-400' :
           'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-950/50 dark:border-blue-900 dark:text-blue-400'
