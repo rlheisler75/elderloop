@@ -36,7 +36,7 @@ function NewUserModal({ corporation, onClose, onCreated }) {
   const save = async () => {
     setError('')
     if (!form.first_name.trim() || !form.email.trim()) return setError('First name and email are required.')
-    if (form.password.length < 8) return setError('Temporary password must be at least 8 characters.')
+    if (form.password.length < 12) return setError('Temporary password must be at least 12 characters.')
     setSaving(true)
     try {
       await callFunction('create-corporate-user', {

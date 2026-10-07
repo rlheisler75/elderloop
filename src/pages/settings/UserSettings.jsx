@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { usePushNotifications } from '../../hooks/usePushNotifications'
+import TwoFactorCard from '../../components/auth/TwoFactorCard'
 import { Palette, Check, Mail, Bell, Smartphone, Loader2, AlertCircle, Sun, Moon } from 'lucide-react'
 
 const ACCENT_COLORS = [
@@ -68,6 +69,8 @@ export default function UserSettings() {
           <AlertCircle size={15} /> {error}
         </div>
       )}
+
+      <TwoFactorCard />
 
       {/* Appearance */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6 mb-5">

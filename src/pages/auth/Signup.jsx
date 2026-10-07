@@ -79,8 +79,8 @@ export default function Signup() {
       return setError('Please enter your first and last name.')
     if (!form.email.trim())
       return setError('Please enter your email address.')
-    if (!form.password || form.password.length < 8)
-      return setError('Password must be at least 8 characters.')
+    if (!form.password || form.password.length < 12)
+      return setError('Password must be at least 12 characters.')
     if (!form.community_name.trim())
       return setError('Please enter your community name.')
 
@@ -310,7 +310,7 @@ export default function Signup() {
                       type={showPw ? 'text' : 'password'}
                       value={form.password}
                       onChange={e => set('password', e.target.value)}
-                      placeholder="At least 8 characters"
+                      placeholder="At least 12 characters"
                       className="w-full px-4 py-3 pr-12 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/20 text-sm focus:outline-none focus:border-brand-500/50 transition-all" />
                     <button type="button" onClick={() => setShowPw(v => !v)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors">

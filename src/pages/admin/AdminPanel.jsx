@@ -15,7 +15,7 @@ import SupplyVendors from '../supply/SupplyVendors'
 import BillingTab from './BillingTab'
 import AiSettingsTab from './AiSettingsTab'
 import PccAuthorizationLetter from './PccAuthorizationLetter'
-import { CreditCard, Sparkles, Lock } from 'lucide-react'
+import { CreditCard, Sparkles, Lock, ShieldCheck, ShieldAlert, RotateCcw } from 'lucide-react'
 import { planAllowsModule } from '../../lib/planModules'
 import { ALL_STATES } from '../../lib/complianceStates'
 import { DepartmentLevelEditor, getOrgDepartments } from '../staff/StaffManagement'
@@ -681,6 +681,7 @@ export default function AdminPanel() {
   const [users, setUsers]         = useState([])
   const [orgModules, setOrgModules] = useState([])
   const [allModules, setAllModules] = useState([])
+  const [mfaByUser, setMfaByUser] = useState({}) // profile_id -> { enrolled, required } from org_mfa_status()
   const [loading, setLoading]     = useState(true)
   const [search, setSearch]       = useState('')
   const [selectedOrg, setSelectedOrg] = useState(null)
@@ -722,14 +723,24 @@ export default function AdminPanel() {
   }
 
   async function fetchUsers() {
-    const [usersRes, modulesRes, allModsRes] = await Promise.all([
+    const [usersRes, modulesRes, allModsRes, mfaRes] = await Promise.all([
       supabase.from('profiles').select('*').eq('organization_id', currentOrgId).neq('role','super_admin').order('last_name'),
       supabase.from('organization_modules').select('*').eq('organization_id', currentOrgId),
       supabase.from('modules').select('key, label').eq('is_active', true).order('label'),
+      supabase.rpc('org_mfa_status', { p_org: currentOrgId }),
     ])
     setUsers(usersRes.data || [])
     setOrgModules(modulesRes.data || [])
     setAllModules(allModsRes.data || [])
+    setMfaByUser(Object.fromEntries((mfaRes.data || []).map(r => [r.profile_id, r])))
+  }
+
+  // Lost or replaced phone: remove the person's authenticators (reset-user-mfa checks can_reset_mfa)
+  const handleResetMfa = async (u) => {
+    if (!confirm(`Reset two-factor sign-in for ${u.first_name} ${u.last_name}? Their authenticator app will stop working for ElderLoop${mfaByUser[u.id]?.required ? ', and they will set up a new one at their next sign-in' : ''}.`)) return
+    const { data, error } = await supabase.functions.invoke('reset-user-mfa', { body: { target_user_id: u.id } })
+    if (error || data?.error) { alert(data?.error || error.message); return }
+    fetchUsers()
   }
 
   const handleDeactivate = async (userId) => {
@@ -822,6 +833,7 @@ export default function AdminPanel() {
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Role</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Phone</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">2FA</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Joined</th>
                   <th className="px-4 py-3"></th>
                 </tr>
@@ -850,6 +862,13 @@ export default function AdminPanel() {
                         ? <span className="flex items-center gap-1 text-xs text-green-600 font-medium"><CheckCircle2 size={13} /> Active</span>
                         : <span className="flex items-center gap-1 text-xs text-slate-400 font-medium"><Ban size={13} /> Inactive</span>}
                     </td>
+                    <td className="px-4 py-3">
+                      {mfaByUser[u.id]?.enrolled
+                        ? <span className="flex items-center gap-1 text-xs text-green-600 font-medium"><ShieldCheck size={13} /> On</span>
+                        : mfaByUser[u.id]?.required
+                          ? <span className="flex items-center gap-1 text-xs text-amber-600 font-medium" title="Required for this role; they'll be asked to set it up at their next sign-in"><ShieldAlert size={13} /> Setup due</span>
+                          : <span className="text-xs text-slate-300">—</span>}
+                    </td>
                     <td className="px-4 py-3 text-xs text-slate-400">
                       {new Date(u.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </td>
@@ -857,6 +876,10 @@ export default function AdminPanel() {
                       <div className="flex items-center gap-1 justify-end">
                         <button onClick={() => { setEditingUser(u); setShowEditUser(true) }}
                           className="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 transition-colors"><Edit2 size={14} /></button>
+                        {u.id !== profile?.id && mfaByUser[u.id]?.enrolled && (
+                          <button onClick={() => handleResetMfa(u)} title="Reset two-factor (lost phone)"
+                            className="p-1.5 text-slate-400 hover:text-amber-600 rounded-lg hover:bg-amber-50 transition-colors"><RotateCcw size={14} /></button>
+                        )}
                         {u.id !== profile?.id && u.is_active !== false && (
                           <button onClick={() => handleDeactivate(u.id)}
                             className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors"><Ban size={14} /></button>
@@ -866,7 +889,7 @@ export default function AdminPanel() {
                   </tr>
                 ))}
                 {filteredUsers.length === 0 && (
-                  <tr><td colSpan={6} className="px-4 py-12 text-center text-slate-400 text-sm">No users found</td></tr>
+                  <tr><td colSpan={7} className="px-4 py-12 text-center text-slate-400 text-sm">No users found</td></tr>
                 )}
               </tbody>
             </table>

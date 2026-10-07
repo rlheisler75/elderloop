@@ -659,7 +659,7 @@ export default function SuperAdminDashboard() {
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-slate-800">
-                        {['Organization','Location','Plan','Billing','Access','Users','Rep','Modules','Contact','Actions'].map(h => (
+                        {['Organization','Location','Plan','Billing','Access','2FA','Users','Rep','Modules','Contact','Actions'].map(h => (
                           <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
                         ))}
                       </tr>
@@ -739,6 +739,31 @@ export default function SuperAdminDashboard() {
                               </button>
                             </td>
 
+                            {/* Two-factor requirement for Org Admins, the Administrator, Nursing and
+                                Social Services (mfa_required() in the database). Never on the demo. */}
+                            <td className="px-5 py-4">
+                              {org.is_demo ? (
+                                <span className="text-xs text-slate-600" title="Demo logins share a password, so two-factor is off">Demo</span>
+                              ) : (
+                                <button
+                                  onClick={async () => {
+                                    const next = !org.require_mfa
+                                    if (next && !confirm(`Require two-factor sign-in at ${org.name}? Org Admins, the Administrator, and Nursing and Social Services staff will set it up at their next sign-in.`)) return
+                                    const { error } = await supabase.from('organizations').update({ require_mfa: next }).eq('id', org.id)
+                                    if (error) alert(error.message)
+                                    fetchAll()
+                                  }}
+                                  title="Click to turn the two-factor requirement on or off"
+                                  className="hover:opacity-70 transition-opacity">
+                                  <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${org.require_mfa
+                                    ? 'text-sage-300 bg-sage-900/40 border-sage-700'
+                                    : 'text-slate-400 bg-slate-800 border-slate-700'}`}>
+                                    {org.require_mfa ? 'Required' : 'Optional'}
+                                  </span>
+                                </button>
+                              )}
+                            </td>
+
                             <td className="px-5 py-4">
                               <div className="text-white text-sm font-medium">{org.user_count}</div>
                               <div className="text-slate-600 text-xs">{org.staff_count} staff / {org.resident_count} res</div>
@@ -793,7 +818,7 @@ export default function SuperAdminDashboard() {
                         )
                       })}
                       {orgs.length === 0 && (
-                        <tr><td colSpan={7} className="px-5 py-12 text-center text-slate-600 text-sm">No organizations yet.</td></tr>
+                        <tr><td colSpan={11} className="px-5 py-12 text-center text-slate-600 text-sm">No organizations yet.</td></tr>
                       )}
                     </tbody>
                   </table>

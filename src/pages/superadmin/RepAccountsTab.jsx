@@ -41,7 +41,7 @@ function NewRepModal({ onClose, onCreated }) {
     setError('')
     if (!form.first_name.trim()) return setError('First name is required.')
     if (!form.email.trim()) return setError('Email is required.')
-    if (form.password.length < 8) return setError('Password must be at least 8 characters.')
+    if (form.password.length < 12) return setError('Password must be at least 12 characters.')
     if (form.rep_code && form.rep_code.trim().length < 3) return setError('Rep code must be at least 3 characters.')
 
     setSaving(true)

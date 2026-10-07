@@ -18,7 +18,7 @@ export default function MustChangePasswordGate({ onDone, subtitle }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    if (password.length < 8) return setError('Password must be at least 8 characters.')
+    if (password.length < 12) return setError('Password must be at least 12 characters.')
     if (password !== confirm) return setError('Passwords do not match.')
 
     setSaving(true)
@@ -66,7 +66,7 @@ export default function MustChangePasswordGate({ onDone, subtitle }) {
                   onChange={e => setPassword(e.target.value)}
                   autoFocus
                   autoComplete="new-password"
-                  placeholder="At least 8 characters"
+                  placeholder="At least 12 characters"
                   className="w-full px-3 py-2.5 pr-10 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
                 <button type="button" onClick={() => setShowPw(v => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">

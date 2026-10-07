@@ -21,6 +21,9 @@ export function AuthProvider({ children }) {
   const [suspended, setSuspended]     = useState(false)
   const [impersonating, setImpersonating] = useState(false)
   const [emergencyUntil, setEmergencyUntil] = useState(null) // NHA Emergency Edit expiry (ISO)
+  // Two-factor step before anything loads: null | 'challenge' (enter code) | 'enroll' (required, not set up)
+  const [mfaStep, setMfaStep]         = useState(null)
+  const [mfaStatus, setMfaStatus]     = useState(null) // { required, enrolled, demo } from my_mfa_status()
   const navigate                      = useNavigate()
 
   // Load an Administrator's active Emergency Edit, and clear it the moment it expires
@@ -42,19 +45,49 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
-      if (session?.user) fetchProfile(session.user.id)
+      if (session?.user) checkMfaThenLoad(session.user.id)
       else setLoading(false)
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
-      if (session?.user) fetchProfile(session.user.id)
+      // Deferred: calling other auth methods inside this callback can deadlock supabase-js
+      if (session?.user) setTimeout(() => checkMfaThenLoad(session.user.id), 0)
       else {
-        setProfile(null); setOrg(null); setOrgModules([])
+        setProfile(null); setOrg(null); setOrgModules([]); setMfaStep(null); setMfaStatus(null)
         setUserPerms([]); setRoleVisibility([]); setSuperAdmin(false); setLoading(false)
       }
     })
     return () => subscription.unsubscribe()
   }, [])
+
+  // Two-factor first: until the session has passed the code step (or the person has no
+  // authenticator and isn't required to have one) the database returns nothing
+  // (mfa_ok()), so show MfaGate instead of loading the profile.
+  async function checkMfaThenLoad(userId) {
+    setLoading(true)
+    try {
+      const [{ data: aal }, { data: status }] = await Promise.all([
+        supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
+        supabase.rpc('my_mfa_status'),
+      ])
+      setMfaStatus(status || null)
+      if (aal?.nextLevel === 'aal2' && aal?.currentLevel !== 'aal2') {
+        setMfaStep('challenge'); setLoading(false); return
+      }
+      if (status?.required && !status?.enrolled) {
+        setMfaStep('enroll'); setLoading(false); return
+      }
+      setMfaStep(null)
+    } catch (e) {
+      console.error('Two-factor check failed:', e)   // the database still enforces it
+    }
+    fetchProfile(userId)
+  }
+
+  const recheckMfa = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.user) await checkMfaThenLoad(session.user.id)
+  }
 
   // Apply the user's chosen accent color app-wide (see src/index.css —
   // Tailwind's brand.* palette reads from these CSS vars). Defaults to the
@@ -317,6 +350,7 @@ export function AuthProvider({ children }) {
       departmentRoles, hasDepartmentAccess, hasAnyDepartmentLevel, refreshDepartmentRoles,
       accessModel, isPlatformAdmin, tierFor,
       nhaViewOnly, canManagePlatform, emergencyEditOn, emergencyUntil, startEmergencyEdit, endEmergencyEdit,
+      mfaStep, mfaStatus, recheckMfa,
     }}>
       {children}
 

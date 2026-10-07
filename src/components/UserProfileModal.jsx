@@ -153,7 +153,7 @@ function PasswordTab() {
 
   const handleSave = async () => {
     if (!form.current) { setToast({ type: 'error', message: 'Current password is required' }); return }
-    if (form.next.length < 8) { setToast({ type: 'error', message: 'New password must be at least 8 characters' }); return }
+    if (form.next.length < 12) { setToast({ type: 'error', message: 'New password must be at least 12 characters' }); return }
     if (form.next !== form.confirm) { setToast({ type: 'error', message: 'Passwords do not match' }); return }
 
     setSaving(true)
@@ -209,7 +209,7 @@ function PasswordTab() {
       <Toast {...(toast || {})} message={toast?.message} />
 
       <PasswordField label="Current Password" field="current" placeholder="Your current password" />
-      <PasswordField label="New Password" field="next" placeholder="Min 8 characters" />
+      <PasswordField label="New Password" field="next" placeholder="Min 12 characters" />
 
       {/* Strength meter */}
       {form.next && (

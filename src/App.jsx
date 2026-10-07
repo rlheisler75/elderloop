@@ -2,6 +2,7 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { Suspense, lazy } from 'react'
 import { useAuth } from './context/AuthContext'
 import Layout from './components/layout/Layout'
+import MfaGate from './components/auth/MfaGate'
 import { Analytics } from '@vercel/analytics/react'
 
 // Landing & Auth
@@ -200,7 +201,7 @@ function SuspendedWall() {
 // ── App ───────────────────────────────────────────────────────
 
 export default function App() {
-  const { user, loading, profile, isSuperAdmin, impersonating, suspended } = useAuth()
+  const { user, loading, profile, isSuperAdmin, impersonating, suspended, mfaStep } = useAuth()
 
   // A super admin with no org actively impersonated has nothing to see in the
   // staff dashboard shell — send them to the platform Super Admin Dashboard instead.
@@ -211,6 +212,9 @@ export default function App() {
       <div className="text-white font-display text-3xl tracking-wide">ElderLoop</div>
     </div>
   )
+
+  // Two-factor code (or required setup) before anything else loads — every role
+  if (user && mfaStep) return <MfaGate mode={mfaStep} />
 
   // Deactivated org — AuthContext never sets this for super admins
   if (user && suspended) return <SuspendedWall />
