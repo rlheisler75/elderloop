@@ -37,15 +37,9 @@ async function logLoginSuccess() {
 
 async function logLoginFailed(email) {
   try {
-    // Failed logins have no auth session, so we log anonymously via a
-    // separate insert. We use the service-free anon key path here —
-    // the RLS insert policy is intentionally open for LOGIN_FAILED rows
-    // so they're captured even without a valid session.
-    await supabase.from('audit_log').insert({
-      action:     'LOGIN_FAILED',
-      user_email: email,
-      notes:      'Failed login attempt'
-    })
+    // Failed logins have no session. log_failed_login fills in every field
+    // server-side (community, user, IP) and rate-limits, so nobody can forge rows.
+    await supabase.rpc('log_failed_login', { p_email: email })
   } catch (_) {}
 }
 
