@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>ElderLoop sign-in emails</title>
+<style>
+  body{font-family:Segoe UI,Helvetica,Arial,sans-serif;background:#f1f5f9;margin:0;padding:24px;color:#0f172a}
+  main{max-width:760px;margin:0 auto} h1{font-size:22px} p.lead{color:#475569}
+  section{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:18px 20px;margin:18px 0}
+  h2{font-size:17px;margin:0 0 10px} .row{display:flex;align-items:center;gap:10px;margin:6px 0;flex-wrap:wrap}
+  .label{font-size:12px;font-weight:600;color:#64748b;width:56px} .hint{color:#94a3b8;font-size:13px}
+  code{background:#f1f5f9;padding:3px 8px;border-radius:6px}
+  button{margin-left:auto;border:1px solid #cbd5e1;background:#fff;border-radius:8px;padding:5px 12px;cursor:pointer;font-size:13px}
+  button.done{background:#dcfce7;border-color:#86efac}
+  iframe{width:100%;height:520px;border:1px solid #e2e8f0;border-radius:10px;margin-top:10px;background:#f8fafc}
+</style></head>
+<body><main>
+  <h1>ElderLoop sign-in emails</h1>
+  <p class="lead">Supabase dashboard &rarr; Authentication &rarr; Emails. For each template: paste the subject, switch the body to the HTML/source view, replace everything with the copied HTML, and save. Previews use sample names and links.</p>
+
+  <section>
+    <h2>1. Confirm sign up</h2>
+    <div class="row"><span class="label">Subject</span><code id="s0">Confirm your ElderLoop account</code>
+      <button onclick="copy('s0', this)">Copy subject</button></div>
+    <div class="row"><span class="label">Body</span><span class="hint">confirm-signup.html</span>
+      <button onclick="copy('h0', this)">Copy HTML</button></div>
+    <textarea id="h0" hidden>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;&lt;title&gt;Confirm your email&lt;/title&gt;&lt;/head&gt;
+&lt;body style=&quot;margin:0;padding:0;background:#f8fafc;&quot;&gt;
+  &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;background:#f8fafc;padding:24px 12px;&quot;&gt;
+    &lt;tr&gt;&lt;td align=&quot;center&quot;&gt;
+      &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;max-width:520px;background:#ffffff;border-radius:16px;border:1px solid #e2e8f0;&quot;&gt;
+        &lt;tr&gt;&lt;td style=&quot;padding:32px 28px;font-family:Segoe UI,Helvetica,Arial,sans-serif;&quot;&gt;
+          &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;margin-bottom:24px;&quot;&gt;&lt;tr&gt;
+            &lt;td&gt;&lt;img src=&quot;https://www.elderloop.xyz/icon-192.png&quot; width=&quot;28&quot; height=&quot;28&quot; alt=&quot;ElderLoop&quot; style=&quot;display:block;border-radius:8px;&quot; /&gt;&lt;/td&gt;
+            &lt;td style=&quot;padding-left:10px;&quot;&gt;&lt;span style=&quot;font-size:18px;font-weight:700;color:#0c2340;&quot;&gt;ElderLoop&lt;/span&gt;&lt;/td&gt;
+          &lt;/tr&gt;&lt;/table&gt;
+          &lt;h2 style=&quot;color:#1e3a5f;font-size:22px;margin:0 0 12px;&quot;&gt;Confirm your email&lt;/h2&gt;
+          &lt;p style=&quot;color:#475569;font-size:15px;line-height:1.6;margin:0 0 12px;&quot;&gt;Welcome to ElderLoop! Confirm that &lt;strong&gt;{{ .Email }}&lt;/strong&gt; is your email address to finish setting up your account.&lt;/p&gt;
+          &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;margin:28px 0;&quot;&gt;&lt;tr&gt;
+            &lt;td style=&quot;border-radius:10px;background:#0c90e1;&quot;&gt;
+              &lt;a href=&quot;{{ .ConfirmationURL }}&quot; style=&quot;display:inline-block;padding:12px 28px;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:600;font-size:15px;font-family:Segoe UI,Helvetica,Arial,sans-serif;&quot;&gt;Confirm Email&lt;/a&gt;
+            &lt;/td&gt;
+          &lt;/tr&gt;&lt;/table&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:12px;line-height:1.5;margin:0 0 4px;&quot;&gt;Button not working? Copy this link into your browser:&lt;/p&gt;
+          &lt;p style=&quot;color:#64748b;font-size:12px;line-height:1.5;margin:0;word-break:break-all;&quot;&gt;{{ .ConfirmationURL }}&lt;/p&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:13px;line-height:1.6;margin:24px 0 0;&quot;&gt;If you didn’t create an ElderLoop account, you can ignore this email.&lt;/p&gt;
+          &lt;hr style=&quot;border:none;border-top:1px solid #e2e8f0;margin:24px 0;&quot; /&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:12px;margin:0;&quot;&gt;ElderLoop &amp;middot; Loopware Solutions LLC &amp;middot; &lt;a href=&quot;https://www.elderloop.xyz&quot; style=&quot;color:#94a3b8;&quot;&gt;elderloop.xyz&lt;/a&gt;&lt;/p&gt;
+        &lt;/td&gt;&lt;/tr&gt;
+      &lt;/table&gt;
+    &lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</textarea>
+    <iframe srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;&lt;title&gt;Confirm your email&lt;/title&gt;&lt;/head&gt;
+&lt;body style=&quot;margin:0;padding:0;background:#f8fafc;&quot;&gt;
+  &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;background:#f8fafc;padding:24px 12px;&quot;&gt;
+    &lt;tr&gt;&lt;td align=&quot;center&quot;&gt;
+      &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;max-width:520px;background:#ffffff;border-radius:16px;border:1px solid #e2e8f0;&quot;&gt;
+        &lt;tr&gt;&lt;td style=&quot;padding:32px 28px;font-family:Segoe UI,Helvetica,Arial,sans-serif;&quot;&gt;
+          &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;margin-bottom:24px;&quot;&gt;&lt;tr&gt;
+            &lt;td&gt;&lt;img src=&quot;https://www.elderloop.xyz/icon-192.png&quot; width=&quot;28&quot; height=&quot;28&quot; alt=&quot;ElderLoop&quot; style=&quot;display:block;border-radius:8px;&quot; /&gt;&lt;/td&gt;
+            &lt;td style=&quot;padding-left:10px;&quot;&gt;&lt;span style=&quot;font-size:18px;font-weight:700;color:#0c2340;&quot;&gt;ElderLoop&lt;/span&gt;&lt;/td&gt;
+          &lt;/tr&gt;&lt;/table&gt;
+          &lt;h2 style=&quot;color:#1e3a5f;font-size:22px;margin:0 0 12px;&quot;&gt;Confirm your email&lt;/h2&gt;
+          &lt;p style=&quot;color:#475569;font-size:15px;line-height:1.6;margin:0 0 12px;&quot;&gt;Welcome to ElderLoop! Confirm that &lt;strong&gt;jane.smith@example.com&lt;/strong&gt; is your email address to finish setting up your account.&lt;/p&gt;
+          &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;margin:28px 0;&quot;&gt;&lt;tr&gt;
+            &lt;td style=&quot;border-radius:10px;background:#0c90e1;&quot;&gt;
+              &lt;a href=&quot;https://www.elderloop.xyz/example-link&quot; style=&quot;display:inline-block;padding:12px 28px;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:600;font-size:15px;font-family:Segoe UI,Helvetica,Arial,sans-serif;&quot;&gt;Confirm Email&lt;/a&gt;
+            &lt;/td&gt;
+          &lt;/tr&gt;&lt;/table&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:12px;line-height:1.5;margin:0 0 4px;&quot;&gt;Button not working? Copy this link into your browser:&lt;/p&gt;
+          &lt;p style=&quot;color:#64748b;font-size:12px;line-height:1.5;margin:0;word-break:break-all;&quot;&gt;https://www.elderloop.xyz/example-link&lt;/p&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:13px;line-height:1.6;margin:24px 0 0;&quot;&gt;If you didn’t create an ElderLoop account, you can ignore this email.&lt;/p&gt;
+          &lt;hr style=&quot;border:none;border-top:1px solid #e2e8f0;margin:24px 0;&quot; /&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:12px;margin:0;&quot;&gt;ElderLoop &amp;middot; Loopware Solutions LLC &amp;middot; &lt;a href=&quot;https://www.elderloop.xyz&quot; style=&quot;color:#94a3b8;&quot;&gt;elderloop.xyz&lt;/a&gt;&lt;/p&gt;
+        &lt;/td&gt;&lt;/tr&gt;
+      &lt;/table&gt;
+    &lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+" title="Confirm sign up preview"></iframe>
+  </section>
+
+  <section>
+    <h2>2. Invite user</h2>
+    <div class="row"><span class="label">Subject</span><code id="s1">You’ve been invited to ElderLoop</code>
+      <button onclick="copy('s1', this)">Copy subject</button></div>
+    <div class="row"><span class="label">Body</span><span class="hint">invite-user.html</span>
+      <button onclick="copy('h1', this)">Copy HTML</button></div>
+    <textarea id="h1" hidden>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;&lt;title&gt;You’re invited to ElderLoop&lt;/title&gt;&lt;/head&gt;
+&lt;body style=&quot;margin:0;padding:0;background:#f8fafc;&quot;&gt;
+  &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;background:#f8fafc;padding:24px 12px;&quot;&gt;
+    &lt;tr&gt;&lt;td align=&quot;center&quot;&gt;
+      &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;max-width:520px;background:#ffffff;border-radius:16px;border:1px solid #e2e8f0;&quot;&gt;
+        &lt;tr&gt;&lt;td style=&quot;padding:32px 28px;font-family:Segoe UI,Helvetica,Arial,sans-serif;&quot;&gt;
+          &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;margin-bottom:24px;&quot;&gt;&lt;tr&gt;
+            &lt;td&gt;&lt;img src=&quot;https://www.elderloop.xyz/icon-192.png&quot; width=&quot;28&quot; height=&quot;28&quot; alt=&quot;ElderLoop&quot; style=&quot;display:block;border-radius:8px;&quot; /&gt;&lt;/td&gt;
+            &lt;td style=&quot;padding-left:10px;&quot;&gt;&lt;span style=&quot;font-size:18px;font-weight:700;color:#0c2340;&quot;&gt;ElderLoop&lt;/span&gt;&lt;/td&gt;
+          &lt;/tr&gt;&lt;/table&gt;
+          &lt;h2 style=&quot;color:#1e3a5f;font-size:22px;margin:0 0 12px;&quot;&gt;You’re invited to ElderLoop&lt;/h2&gt;
+          &lt;p style=&quot;color:#475569;font-size:15px;line-height:1.6;margin:0 0 12px;&quot;&gt;Your community has set up an ElderLoop account for you. ElderLoop brings your community’s work orders, dining, care team updates, and messages into one place.&lt;/p&gt;          &lt;p style=&quot;color:#475569;font-size:15px;line-height:1.6;margin:0 0 12px;&quot;&gt;Click below to accept the invitation and choose your password.&lt;/p&gt;
+          &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;margin:28px 0;&quot;&gt;&lt;tr&gt;
+            &lt;td style=&quot;border-radius:10px;background:#0c90e1;&quot;&gt;
+              &lt;a href=&quot;{{ .ConfirmationURL }}&quot; style=&quot;display:inline-block;padding:12px 28px;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:600;font-size:15px;font-family:Segoe UI,Helvetica,Arial,sans-serif;&quot;&gt;Accept Invitation&lt;/a&gt;
+            &lt;/td&gt;
+          &lt;/tr&gt;&lt;/table&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:12px;line-height:1.5;margin:0 0 4px;&quot;&gt;Button not working? Copy this link into your browser:&lt;/p&gt;
+          &lt;p style=&quot;color:#64748b;font-size:12px;line-height:1.5;margin:0;word-break:break-all;&quot;&gt;{{ .ConfirmationURL }}&lt;/p&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:13px;line-height:1.6;margin:24px 0 0;&quot;&gt;This invitation link can be used once. If you weren’t expecting it, you can ignore this email.&lt;/p&gt;
+          &lt;hr style=&quot;border:none;border-top:1px solid #e2e8f0;margin:24px 0;&quot; /&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:12px;margin:0;&quot;&gt;ElderLoop &amp;middot; Loopware Solutions LLC &amp;middot; &lt;a href=&quot;https://www.elderloop.xyz&quot; style=&quot;color:#94a3b8;&quot;&gt;elderloop.xyz&lt;/a&gt;&lt;/p&gt;
+        &lt;/td&gt;&lt;/tr&gt;
+      &lt;/table&gt;
+    &lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</textarea>
+    <iframe srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;&lt;title&gt;You’re invited to ElderLoop&lt;/title&gt;&lt;/head&gt;
+&lt;body style=&quot;margin:0;padding:0;background:#f8fafc;&quot;&gt;
+  &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;background:#f8fafc;padding:24px 12px;&quot;&gt;
+    &lt;tr&gt;&lt;td align=&quot;center&quot;&gt;
+      &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;max-width:520px;background:#ffffff;border-radius:16px;border:1px solid #e2e8f0;&quot;&gt;
+        &lt;tr&gt;&lt;td style=&quot;padding:32px 28px;font-family:Segoe UI,Helvetica,Arial,sans-serif;&quot;&gt;
+          &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;margin-bottom:24px;&quot;&gt;&lt;tr&gt;
+            &lt;td&gt;&lt;img src=&quot;https://www.elderloop.xyz/icon-192.png&quot; width=&quot;28&quot; height=&quot;28&quot; alt=&quot;ElderLoop&quot; style=&quot;display:block;border-radius:8px;&quot; /&gt;&lt;/td&gt;
+            &lt;td style=&quot;padding-left:10px;&quot;&gt;&lt;span style=&quot;font-size:18px;font-weight:700;color:#0c2340;&quot;&gt;ElderLoop&lt;/span&gt;&lt;/td&gt;
+          &lt;/tr&gt;&lt;/table&gt;
+          &lt;h2 style=&quot;color:#1e3a5f;font-size:22px;margin:0 0 12px;&quot;&gt;You’re invited to ElderLoop&lt;/h2&gt;
+          &lt;p style=&quot;color:#475569;font-size:15px;line-height:1.6;margin:0 0 12px;&quot;&gt;Your community has set up an ElderLoop account for you. ElderLoop brings your community’s work orders, dining, care team updates, and messages into one place.&lt;/p&gt;          &lt;p style=&quot;color:#475569;font-size:15px;line-height:1.6;margin:0 0 12px;&quot;&gt;Click below to accept the invitation and choose your password.&lt;/p&gt;
+          &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;margin:28px 0;&quot;&gt;&lt;tr&gt;
+            &lt;td style=&quot;border-radius:10px;background:#0c90e1;&quot;&gt;
+              &lt;a href=&quot;https://www.elderloop.xyz/example-link&quot; style=&quot;display:inline-block;padding:12px 28px;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:600;font-size:15px;font-family:Segoe UI,Helvetica,Arial,sans-serif;&quot;&gt;Accept Invitation&lt;/a&gt;
+            &lt;/td&gt;
+          &lt;/tr&gt;&lt;/table&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:12px;line-height:1.5;margin:0 0 4px;&quot;&gt;Button not working? Copy this link into your browser:&lt;/p&gt;
+          &lt;p style=&quot;color:#64748b;font-size:12px;line-height:1.5;margin:0;word-break:break-all;&quot;&gt;https://www.elderloop.xyz/example-link&lt;/p&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:13px;line-height:1.6;margin:24px 0 0;&quot;&gt;This invitation link can be used once. If you weren’t expecting it, you can ignore this email.&lt;/p&gt;
+          &lt;hr style=&quot;border:none;border-top:1px solid #e2e8f0;margin:24px 0;&quot; /&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:12px;margin:0;&quot;&gt;ElderLoop &amp;middot; Loopware Solutions LLC &amp;middot; &lt;a href=&quot;https://www.elderloop.xyz&quot; style=&quot;color:#94a3b8;&quot;&gt;elderloop.xyz&lt;/a&gt;&lt;/p&gt;
+        &lt;/td&gt;&lt;/tr&gt;
+      &lt;/table&gt;
+    &lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+" title="Invite user preview"></iframe>
+  </section>
+
+  <section>
+    <h2>3. Magic link</h2>
+    <div class="row"><span class="label">Subject</span><code id="s2">Your ElderLoop sign-in link</code>
+      <button onclick="copy('s2', this)">Copy subject</button></div>
+    <div class="row"><span class="label">Body</span><span class="hint">magic-link.html</span>
+      <button onclick="copy('h2', this)">Copy HTML</button></div>
+    <textarea id="h2" hidden>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;&lt;title&gt;Sign in to ElderLoop&lt;/title&gt;&lt;/head&gt;
+&lt;body style=&quot;margin:0;padding:0;background:#f8fafc;&quot;&gt;
+  &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;background:#f8fafc;padding:24px 12px;&quot;&gt;
+    &lt;tr&gt;&lt;td align=&quot;center&quot;&gt;
+      &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;max-width:520px;background:#ffffff;border-radius:16px;border:1px solid #e2e8f0;&quot;&gt;
+        &lt;tr&gt;&lt;td style=&quot;padding:32px 28px;font-family:Segoe UI,Helvetica,Arial,sans-serif;&quot;&gt;
+          &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;margin-bottom:24px;&quot;&gt;&lt;tr&gt;
+            &lt;td&gt;&lt;img src=&quot;https://www.elderloop.xyz/icon-192.png&quot; width=&quot;28&quot; height=&quot;28&quot; alt=&quot;ElderLoop&quot; style=&quot;display:block;border-radius:8px;&quot; /&gt;&lt;/td&gt;
+            &lt;td style=&quot;padding-left:10px;&quot;&gt;&lt;span style=&quot;font-size:18px;font-weight:700;color:#0c2340;&quot;&gt;ElderLoop&lt;/span&gt;&lt;/td&gt;
+          &lt;/tr&gt;&lt;/table&gt;
+          &lt;h2 style=&quot;color:#1e3a5f;font-size:22px;margin:0 0 12px;&quot;&gt;Sign in to ElderLoop&lt;/h2&gt;
+          &lt;p style=&quot;color:#475569;font-size:15px;line-height:1.6;margin:0 0 12px;&quot;&gt;Click below to sign in. This link works once and expires soon.&lt;/p&gt;
+          &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;margin:28px 0;&quot;&gt;&lt;tr&gt;
+            &lt;td style=&quot;border-radius:10px;background:#0c90e1;&quot;&gt;
+              &lt;a href=&quot;{{ .ConfirmationURL }}&quot; style=&quot;display:inline-block;padding:12px 28px;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:600;font-size:15px;font-family:Segoe UI,Helvetica,Arial,sans-serif;&quot;&gt;Sign In&lt;/a&gt;
+            &lt;/td&gt;
+          &lt;/tr&gt;&lt;/table&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:12px;line-height:1.5;margin:0 0 4px;&quot;&gt;Button not working? Copy this link into your browser:&lt;/p&gt;
+          &lt;p style=&quot;color:#64748b;font-size:12px;line-height:1.5;margin:0;word-break:break-all;&quot;&gt;{{ .ConfirmationURL }}&lt;/p&gt;          &lt;p style=&quot;color:#475569;font-size:15px;line-height:1.6;margin:0 0 12px;&quot;&gt;Or enter this code:&lt;/p&gt;
+          &lt;div style=&quot;margin:28px 0;padding:16px 0;background:#f1f5f9;border-radius:10px;text-align:center;&quot;&gt;
+            &lt;span style=&quot;font-family:Consolas,Menlo,monospace;font-size:30px;letter-spacing:8px;font-weight:700;color:#0c2340;&quot;&gt;{{ .Token }}&lt;/span&gt;
+          &lt;/div&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:13px;line-height:1.6;margin:24px 0 0;&quot;&gt;If you didn’t try to sign in, you can ignore this email — nobody can get in without this link or code.&lt;/p&gt;
+          &lt;hr style=&quot;border:none;border-top:1px solid #e2e8f0;margin:24px 0;&quot; /&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:12px;margin:0;&quot;&gt;ElderLoop &amp;middot; Loopware Solutions LLC &amp;middot; &lt;a href=&quot;https://www.elderloop.xyz&quot; style=&quot;color:#94a3b8;&quot;&gt;elderloop.xyz&lt;/a&gt;&lt;/p&gt;
+        &lt;/td&gt;&lt;/tr&gt;
+      &lt;/table&gt;
+    &lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</textarea>
+    <iframe srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;&lt;title&gt;Sign in to ElderLoop&lt;/title&gt;&lt;/head&gt;
+&lt;body style=&quot;margin:0;padding:0;background:#f8fafc;&quot;&gt;
+  &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;background:#f8fafc;padding:24px 12px;&quot;&gt;
+    &lt;tr&gt;&lt;td align=&quot;center&quot;&gt;
+      &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;max-width:520px;background:#ffffff;border-radius:16px;border:1px solid #e2e8f0;&quot;&gt;
+        &lt;tr&gt;&lt;td style=&quot;padding:32px 28px;font-family:Segoe UI,Helvetica,Arial,sans-serif;&quot;&gt;
+          &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;margin-bottom:24px;&quot;&gt;&lt;tr&gt;
+            &lt;td&gt;&lt;img src=&quot;https://www.elderloop.xyz/icon-192.png&quot; width=&quot;28&quot; height=&quot;28&quot; alt=&quot;ElderLoop&quot; style=&quot;display:block;border-radius:8px;&quot; /&gt;&lt;/td&gt;
+            &lt;td style=&quot;padding-left:10px;&quot;&gt;&lt;span style=&quot;font-size:18px;font-weight:700;color:#0c2340;&quot;&gt;ElderLoop&lt;/span&gt;&lt;/td&gt;
+          &lt;/tr&gt;&lt;/table&gt;
+          &lt;h2 style=&quot;color:#1e3a5f;font-size:22px;margin:0 0 12px;&quot;&gt;Sign in to ElderLoop&lt;/h2&gt;
+          &lt;p style=&quot;color:#475569;font-size:15px;line-height:1.6;margin:0 0 12px;&quot;&gt;Click below to sign in. This link works once and expires soon.&lt;/p&gt;
+          &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;margin:28px 0;&quot;&gt;&lt;tr&gt;
+            &lt;td style=&quot;border-radius:10px;background:#0c90e1;&quot;&gt;
+              &lt;a href=&quot;https://www.elderloop.xyz/example-link&quot; style=&quot;display:inline-block;padding:12px 28px;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:600;font-size:15px;font-family:Segoe UI,Helvetica,Arial,sans-serif;&quot;&gt;Sign In&lt;/a&gt;
+            &lt;/td&gt;
+          &lt;/tr&gt;&lt;/table&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:12px;line-height:1.5;margin:0 0 4px;&quot;&gt;Button not working? Copy this link into your browser:&lt;/p&gt;
+          &lt;p style=&quot;color:#64748b;font-size:12px;line-height:1.5;margin:0;word-break:break-all;&quot;&gt;https://www.elderloop.xyz/example-link&lt;/p&gt;          &lt;p style=&quot;color:#475569;font-size:15px;line-height:1.6;margin:0 0 12px;&quot;&gt;Or enter this code:&lt;/p&gt;
+          &lt;div style=&quot;margin:28px 0;padding:16px 0;background:#f1f5f9;border-radius:10px;text-align:center;&quot;&gt;
+            &lt;span style=&quot;font-family:Consolas,Menlo,monospace;font-size:30px;letter-spacing:8px;font-weight:700;color:#0c2340;&quot;&gt;123456&lt;/span&gt;
+          &lt;/div&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:13px;line-height:1.6;margin:24px 0 0;&quot;&gt;If you didn’t try to sign in, you can ignore this email — nobody can get in without this link or code.&lt;/p&gt;
+          &lt;hr style=&quot;border:none;border-top:1px solid #e2e8f0;margin:24px 0;&quot; /&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:12px;margin:0;&quot;&gt;ElderLoop &amp;middot; Loopware Solutions LLC &amp;middot; &lt;a href=&quot;https://www.elderloop.xyz&quot; style=&quot;color:#94a3b8;&quot;&gt;elderloop.xyz&lt;/a&gt;&lt;/p&gt;
+        &lt;/td&gt;&lt;/tr&gt;
+      &lt;/table&gt;
+    &lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+" title="Magic link preview"></iframe>
+  </section>
+
+  <section>
+    <h2>4. Change email address</h2>
+    <div class="row"><span class="label">Subject</span><code id="s3">Confirm your new ElderLoop email address</code>
+      <button onclick="copy('s3', this)">Copy subject</button></div>
+    <div class="row"><span class="label">Body</span><span class="hint">change-email.html</span>
+      <button onclick="copy('h3', this)">Copy HTML</button></div>
+    <textarea id="h3" hidden>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;&lt;title&gt;Confirm your new email&lt;/title&gt;&lt;/head&gt;
+&lt;body style=&quot;margin:0;padding:0;background:#f8fafc;&quot;&gt;
+  &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;background:#f8fafc;padding:24px 12px;&quot;&gt;
+    &lt;tr&gt;&lt;td align=&quot;center&quot;&gt;
+      &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;max-width:520px;background:#ffffff;border-radius:16px;border:1px solid #e2e8f0;&quot;&gt;
+        &lt;tr&gt;&lt;td style=&quot;padding:32px 28px;font-family:Segoe UI,Helvetica,Arial,sans-serif;&quot;&gt;
+          &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;margin-bottom:24px;&quot;&gt;&lt;tr&gt;
+            &lt;td&gt;&lt;img src=&quot;https://www.elderloop.xyz/icon-192.png&quot; width=&quot;28&quot; height=&quot;28&quot; alt=&quot;ElderLoop&quot; style=&quot;display:block;border-radius:8px;&quot; /&gt;&lt;/td&gt;
+            &lt;td style=&quot;padding-left:10px;&quot;&gt;&lt;span style=&quot;font-size:18px;font-weight:700;color:#0c2340;&quot;&gt;ElderLoop&lt;/span&gt;&lt;/td&gt;
+          &lt;/tr&gt;&lt;/table&gt;
+          &lt;h2 style=&quot;color:#1e3a5f;font-size:22px;margin:0 0 12px;&quot;&gt;Confirm your new email&lt;/h2&gt;
+          &lt;p style=&quot;color:#475569;font-size:15px;line-height:1.6;margin:0 0 12px;&quot;&gt;Someone asked to change the email address on your ElderLoop account from &lt;strong&gt;{{ .Email }}&lt;/strong&gt; to &lt;strong&gt;{{ .NewEmail }}&lt;/strong&gt;.&lt;/p&gt;          &lt;p style=&quot;color:#475569;font-size:15px;line-height:1.6;margin:0 0 12px;&quot;&gt;Click below to confirm the change.&lt;/p&gt;
+          &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;margin:28px 0;&quot;&gt;&lt;tr&gt;
+            &lt;td style=&quot;border-radius:10px;background:#0c90e1;&quot;&gt;
+              &lt;a href=&quot;{{ .ConfirmationURL }}&quot; style=&quot;display:inline-block;padding:12px 28px;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:600;font-size:15px;font-family:Segoe UI,Helvetica,Arial,sans-serif;&quot;&gt;Confirm New Email&lt;/a&gt;
+            &lt;/td&gt;
+          &lt;/tr&gt;&lt;/table&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:12px;line-height:1.5;margin:0 0 4px;&quot;&gt;Button not working? Copy this link into your browser:&lt;/p&gt;
+          &lt;p style=&quot;color:#64748b;font-size:12px;line-height:1.5;margin:0;word-break:break-all;&quot;&gt;{{ .ConfirmationURL }}&lt;/p&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:13px;line-height:1.6;margin:24px 0 0;&quot;&gt;If you didn’t ask for this, don’t click the link, and tell your community’s administrator.&lt;/p&gt;
+          &lt;hr style=&quot;border:none;border-top:1px solid #e2e8f0;margin:24px 0;&quot; /&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:12px;margin:0;&quot;&gt;ElderLoop &amp;middot; Loopware Solutions LLC &amp;middot; &lt;a href=&quot;https://www.elderloop.xyz&quot; style=&quot;color:#94a3b8;&quot;&gt;elderloop.xyz&lt;/a&gt;&lt;/p&gt;
+        &lt;/td&gt;&lt;/tr&gt;
+      &lt;/table&gt;
+    &lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</textarea>
+    <iframe srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;&lt;title&gt;Confirm your new email&lt;/title&gt;&lt;/head&gt;
+&lt;body style=&quot;margin:0;padding:0;background:#f8fafc;&quot;&gt;
+  &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;background:#f8fafc;padding:24px 12px;&quot;&gt;
+    &lt;tr&gt;&lt;td align=&quot;center&quot;&gt;
+      &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;max-width:520px;background:#ffffff;border-radius:16px;border:1px solid #e2e8f0;&quot;&gt;
+        &lt;tr&gt;&lt;td style=&quot;padding:32px 28px;font-family:Segoe UI,Helvetica,Arial,sans-serif;&quot;&gt;
+          &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;margin-bottom:24px;&quot;&gt;&lt;tr&gt;
+            &lt;td&gt;&lt;img src=&quot;https://www.elderloop.xyz/icon-192.png&quot; width=&quot;28&quot; height=&quot;28&quot; alt=&quot;ElderLoop&quot; style=&quot;display:block;border-radius:8px;&quot; /&gt;&lt;/td&gt;
+            &lt;td style=&quot;padding-left:10px;&quot;&gt;&lt;span style=&quot;font-size:18px;font-weight:700;color:#0c2340;&quot;&gt;ElderLoop&lt;/span&gt;&lt;/td&gt;
+          &lt;/tr&gt;&lt;/table&gt;
+          &lt;h2 style=&quot;color:#1e3a5f;font-size:22px;margin:0 0 12px;&quot;&gt;Confirm your new email&lt;/h2&gt;
+          &lt;p style=&quot;color:#475569;font-size:15px;line-height:1.6;margin:0 0 12px;&quot;&gt;Someone asked to change the email address on your ElderLoop account from &lt;strong&gt;jane.smith@example.com&lt;/strong&gt; to &lt;strong&gt;jane.new@example.com&lt;/strong&gt;.&lt;/p&gt;          &lt;p style=&quot;color:#475569;font-size:15px;line-height:1.6;margin:0 0 12px;&quot;&gt;Click below to confirm the change.&lt;/p&gt;
+          &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;margin:28px 0;&quot;&gt;&lt;tr&gt;
+            &lt;td style=&quot;border-radius:10px;background:#0c90e1;&quot;&gt;
+              &lt;a href=&quot;https://www.elderloop.xyz/example-link&quot; style=&quot;display:inline-block;padding:12px 28px;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:600;font-size:15px;font-family:Segoe UI,Helvetica,Arial,sans-serif;&quot;&gt;Confirm New Email&lt;/a&gt;
+            &lt;/td&gt;
+          &lt;/tr&gt;&lt;/table&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:12px;line-height:1.5;margin:0 0 4px;&quot;&gt;Button not working? Copy this link into your browser:&lt;/p&gt;
+          &lt;p style=&quot;color:#64748b;font-size:12px;line-height:1.5;margin:0;word-break:break-all;&quot;&gt;https://www.elderloop.xyz/example-link&lt;/p&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:13px;line-height:1.6;margin:24px 0 0;&quot;&gt;If you didn’t ask for this, don’t click the link, and tell your community’s administrator.&lt;/p&gt;
+          &lt;hr style=&quot;border:none;border-top:1px solid #e2e8f0;margin:24px 0;&quot; /&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:12px;margin:0;&quot;&gt;ElderLoop &amp;middot; Loopware Solutions LLC &amp;middot; &lt;a href=&quot;https://www.elderloop.xyz&quot; style=&quot;color:#94a3b8;&quot;&gt;elderloop.xyz&lt;/a&gt;&lt;/p&gt;
+        &lt;/td&gt;&lt;/tr&gt;
+      &lt;/table&gt;
+    &lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+" title="Change email address preview"></iframe>
+  </section>
+
+  <section>
+    <h2>5. Reset password</h2>
+    <div class="row"><span class="label">Subject</span><code id="s4">Reset your ElderLoop password</code>
+      <button onclick="copy('s4', this)">Copy subject</button></div>
+    <div class="row"><span class="label">Body</span><span class="hint">reset-password.html</span>
+      <button onclick="copy('h4', this)">Copy HTML</button></div>
+    <textarea id="h4" hidden>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;&lt;title&gt;Reset your password&lt;/title&gt;&lt;/head&gt;
+&lt;body style=&quot;margin:0;padding:0;background:#f8fafc;&quot;&gt;
+  &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;background:#f8fafc;padding:24px 12px;&quot;&gt;
+    &lt;tr&gt;&lt;td align=&quot;center&quot;&gt;
+      &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;max-width:520px;background:#ffffff;border-radius:16px;border:1px solid #e2e8f0;&quot;&gt;
+        &lt;tr&gt;&lt;td style=&quot;padding:32px 28px;font-family:Segoe UI,Helvetica,Arial,sans-serif;&quot;&gt;
+          &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;margin-bottom:24px;&quot;&gt;&lt;tr&gt;
+            &lt;td&gt;&lt;img src=&quot;https://www.elderloop.xyz/icon-192.png&quot; width=&quot;28&quot; height=&quot;28&quot; alt=&quot;ElderLoop&quot; style=&quot;display:block;border-radius:8px;&quot; /&gt;&lt;/td&gt;
+            &lt;td style=&quot;padding-left:10px;&quot;&gt;&lt;span style=&quot;font-size:18px;font-weight:700;color:#0c2340;&quot;&gt;ElderLoop&lt;/span&gt;&lt;/td&gt;
+          &lt;/tr&gt;&lt;/table&gt;
+          &lt;h2 style=&quot;color:#1e3a5f;font-size:22px;margin:0 0 12px;&quot;&gt;Reset your password&lt;/h2&gt;
+          &lt;p style=&quot;color:#475569;font-size:15px;line-height:1.6;margin:0 0 12px;&quot;&gt;We received a request to reset the password for your ElderLoop account. Click below to choose a new one.&lt;/p&gt;
+          &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;margin:28px 0;&quot;&gt;&lt;tr&gt;
+            &lt;td style=&quot;border-radius:10px;background:#0c90e1;&quot;&gt;
+              &lt;a href=&quot;{{ .ConfirmationURL }}&quot; style=&quot;display:inline-block;padding:12px 28px;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:600;font-size:15px;font-family:Segoe UI,Helvetica,Arial,sans-serif;&quot;&gt;Reset Password&lt;/a&gt;
+            &lt;/td&gt;
+          &lt;/tr&gt;&lt;/table&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:12px;line-height:1.5;margin:0 0 4px;&quot;&gt;Button not working? Copy this link into your browser:&lt;/p&gt;
+          &lt;p style=&quot;color:#64748b;font-size:12px;line-height:1.5;margin:0;word-break:break-all;&quot;&gt;{{ .ConfirmationURL }}&lt;/p&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:13px;line-height:1.6;margin:24px 0 0;&quot;&gt;This link expires in 1 hour. If you didn’t request this, you can ignore this email — your password will stay the same.&lt;/p&gt;
+          &lt;hr style=&quot;border:none;border-top:1px solid #e2e8f0;margin:24px 0;&quot; /&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:12px;margin:0;&quot;&gt;ElderLoop &amp;middot; Loopware Solutions LLC &amp;middot; &lt;a href=&quot;https://www.elderloop.xyz&quot; style=&quot;color:#94a3b8;&quot;&gt;elderloop.xyz&lt;/a&gt;&lt;/p&gt;
+        &lt;/td&gt;&lt;/tr&gt;
+      &lt;/table&gt;
+    &lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</textarea>
+    <iframe srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;&lt;title&gt;Reset your password&lt;/title&gt;&lt;/head&gt;
+&lt;body style=&quot;margin:0;padding:0;background:#f8fafc;&quot;&gt;
+  &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;background:#f8fafc;padding:24px 12px;&quot;&gt;
+    &lt;tr&gt;&lt;td align=&quot;center&quot;&gt;
+      &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;max-width:520px;background:#ffffff;border-radius:16px;border:1px solid #e2e8f0;&quot;&gt;
+        &lt;tr&gt;&lt;td style=&quot;padding:32px 28px;font-family:Segoe UI,Helvetica,Arial,sans-serif;&quot;&gt;
+          &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;margin-bottom:24px;&quot;&gt;&lt;tr&gt;
+            &lt;td&gt;&lt;img src=&quot;https://www.elderloop.xyz/icon-192.png&quot; width=&quot;28&quot; height=&quot;28&quot; alt=&quot;ElderLoop&quot; style=&quot;display:block;border-radius:8px;&quot; /&gt;&lt;/td&gt;
+            &lt;td style=&quot;padding-left:10px;&quot;&gt;&lt;span style=&quot;font-size:18px;font-weight:700;color:#0c2340;&quot;&gt;ElderLoop&lt;/span&gt;&lt;/td&gt;
+          &lt;/tr&gt;&lt;/table&gt;
+          &lt;h2 style=&quot;color:#1e3a5f;font-size:22px;margin:0 0 12px;&quot;&gt;Reset your password&lt;/h2&gt;
+          &lt;p style=&quot;color:#475569;font-size:15px;line-height:1.6;margin:0 0 12px;&quot;&gt;We received a request to reset the password for your ElderLoop account. Click below to choose a new one.&lt;/p&gt;
+          &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;margin:28px 0;&quot;&gt;&lt;tr&gt;
+            &lt;td style=&quot;border-radius:10px;background:#0c90e1;&quot;&gt;
+              &lt;a href=&quot;https://www.elderloop.xyz/example-link&quot; style=&quot;display:inline-block;padding:12px 28px;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:600;font-size:15px;font-family:Segoe UI,Helvetica,Arial,sans-serif;&quot;&gt;Reset Password&lt;/a&gt;
+            &lt;/td&gt;
+          &lt;/tr&gt;&lt;/table&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:12px;line-height:1.5;margin:0 0 4px;&quot;&gt;Button not working? Copy this link into your browser:&lt;/p&gt;
+          &lt;p style=&quot;color:#64748b;font-size:12px;line-height:1.5;margin:0;word-break:break-all;&quot;&gt;https://www.elderloop.xyz/example-link&lt;/p&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:13px;line-height:1.6;margin:24px 0 0;&quot;&gt;This link expires in 1 hour. If you didn’t request this, you can ignore this email — your password will stay the same.&lt;/p&gt;
+          &lt;hr style=&quot;border:none;border-top:1px solid #e2e8f0;margin:24px 0;&quot; /&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:12px;margin:0;&quot;&gt;ElderLoop &amp;middot; Loopware Solutions LLC &amp;middot; &lt;a href=&quot;https://www.elderloop.xyz&quot; style=&quot;color:#94a3b8;&quot;&gt;elderloop.xyz&lt;/a&gt;&lt;/p&gt;
+        &lt;/td&gt;&lt;/tr&gt;
+      &lt;/table&gt;
+    &lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+" title="Reset password preview"></iframe>
+  </section>
+
+  <section>
+    <h2>6. Reauthentication</h2>
+    <div class="row"><span class="label">Subject</span><code id="s5">Your ElderLoop verification code</code>
+      <button onclick="copy('s5', this)">Copy subject</button></div>
+    <div class="row"><span class="label">Body</span><span class="hint">reauthentication.html</span>
+      <button onclick="copy('h5', this)">Copy HTML</button></div>
+    <textarea id="h5" hidden>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;&lt;title&gt;Confirm it’s you&lt;/title&gt;&lt;/head&gt;
+&lt;body style=&quot;margin:0;padding:0;background:#f8fafc;&quot;&gt;
+  &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;background:#f8fafc;padding:24px 12px;&quot;&gt;
+    &lt;tr&gt;&lt;td align=&quot;center&quot;&gt;
+      &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;max-width:520px;background:#ffffff;border-radius:16px;border:1px solid #e2e8f0;&quot;&gt;
+        &lt;tr&gt;&lt;td style=&quot;padding:32px 28px;font-family:Segoe UI,Helvetica,Arial,sans-serif;&quot;&gt;
+          &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;margin-bottom:24px;&quot;&gt;&lt;tr&gt;
+            &lt;td&gt;&lt;img src=&quot;https://www.elderloop.xyz/icon-192.png&quot; width=&quot;28&quot; height=&quot;28&quot; alt=&quot;ElderLoop&quot; style=&quot;display:block;border-radius:8px;&quot; /&gt;&lt;/td&gt;
+            &lt;td style=&quot;padding-left:10px;&quot;&gt;&lt;span style=&quot;font-size:18px;font-weight:700;color:#0c2340;&quot;&gt;ElderLoop&lt;/span&gt;&lt;/td&gt;
+          &lt;/tr&gt;&lt;/table&gt;
+          &lt;h2 style=&quot;color:#1e3a5f;font-size:22px;margin:0 0 12px;&quot;&gt;Confirm it’s you&lt;/h2&gt;
+          &lt;p style=&quot;color:#475569;font-size:15px;line-height:1.6;margin:0 0 12px;&quot;&gt;Enter this code in ElderLoop to confirm a change to your account:&lt;/p&gt;
+          &lt;div style=&quot;margin:28px 0;padding:16px 0;background:#f1f5f9;border-radius:10px;text-align:center;&quot;&gt;
+            &lt;span style=&quot;font-family:Consolas,Menlo,monospace;font-size:30px;letter-spacing:8px;font-weight:700;color:#0c2340;&quot;&gt;{{ .Token }}&lt;/span&gt;
+          &lt;/div&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:13px;line-height:1.6;margin:24px 0 0;&quot;&gt;If you didn’t ask for this code, someone may know your password. Change it and tell your community’s administrator.&lt;/p&gt;
+          &lt;hr style=&quot;border:none;border-top:1px solid #e2e8f0;margin:24px 0;&quot; /&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:12px;margin:0;&quot;&gt;ElderLoop &amp;middot; Loopware Solutions LLC &amp;middot; &lt;a href=&quot;https://www.elderloop.xyz&quot; style=&quot;color:#94a3b8;&quot;&gt;elderloop.xyz&lt;/a&gt;&lt;/p&gt;
+        &lt;/td&gt;&lt;/tr&gt;
+      &lt;/table&gt;
+    &lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</textarea>
+    <iframe srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;&lt;title&gt;Confirm it’s you&lt;/title&gt;&lt;/head&gt;
+&lt;body style=&quot;margin:0;padding:0;background:#f8fafc;&quot;&gt;
+  &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;background:#f8fafc;padding:24px 12px;&quot;&gt;
+    &lt;tr&gt;&lt;td align=&quot;center&quot;&gt;
+      &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;max-width:520px;background:#ffffff;border-radius:16px;border:1px solid #e2e8f0;&quot;&gt;
+        &lt;tr&gt;&lt;td style=&quot;padding:32px 28px;font-family:Segoe UI,Helvetica,Arial,sans-serif;&quot;&gt;
+          &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;margin-bottom:24px;&quot;&gt;&lt;tr&gt;
+            &lt;td&gt;&lt;img src=&quot;https://www.elderloop.xyz/icon-192.png&quot; width=&quot;28&quot; height=&quot;28&quot; alt=&quot;ElderLoop&quot; style=&quot;display:block;border-radius:8px;&quot; /&gt;&lt;/td&gt;
+            &lt;td style=&quot;padding-left:10px;&quot;&gt;&lt;span style=&quot;font-size:18px;font-weight:700;color:#0c2340;&quot;&gt;ElderLoop&lt;/span&gt;&lt;/td&gt;
+          &lt;/tr&gt;&lt;/table&gt;
+          &lt;h2 style=&quot;color:#1e3a5f;font-size:22px;margin:0 0 12px;&quot;&gt;Confirm it’s you&lt;/h2&gt;
+          &lt;p style=&quot;color:#475569;font-size:15px;line-height:1.6;margin:0 0 12px;&quot;&gt;Enter this code in ElderLoop to confirm a change to your account:&lt;/p&gt;
+          &lt;div style=&quot;margin:28px 0;padding:16px 0;background:#f1f5f9;border-radius:10px;text-align:center;&quot;&gt;
+            &lt;span style=&quot;font-family:Consolas,Menlo,monospace;font-size:30px;letter-spacing:8px;font-weight:700;color:#0c2340;&quot;&gt;123456&lt;/span&gt;
+          &lt;/div&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:13px;line-height:1.6;margin:24px 0 0;&quot;&gt;If you didn’t ask for this code, someone may know your password. Change it and tell your community’s administrator.&lt;/p&gt;
+          &lt;hr style=&quot;border:none;border-top:1px solid #e2e8f0;margin:24px 0;&quot; /&gt;
+          &lt;p style=&quot;color:#94a3b8;font-size:12px;margin:0;&quot;&gt;ElderLoop &amp;middot; Loopware Solutions LLC &amp;middot; &lt;a href=&quot;https://www.elderloop.xyz&quot; style=&quot;color:#94a3b8;&quot;&gt;elderloop.xyz&lt;/a&gt;&lt;/p&gt;
+        &lt;/td&gt;&lt;/tr&gt;
+      &lt;/table&gt;
+    &lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+" title="Reauthentication preview"></iframe>
+  </section>
+</main>
+<script>
+  function copy(id, btn) {
+    const el = document.getElementById(id)
+    const text = el.tagName === 'TEXTAREA' ? el.value : el.textContent
+    navigator.clipboard.writeText(text).then(() => {
+      const old = btn.textContent; btn.textContent = 'Copied'; btn.classList.add('done')
+      setTimeout(() => { btn.textContent = old; btn.classList.remove('done') }, 1500)
+    })
+  }
+</script>
+</body></html>
