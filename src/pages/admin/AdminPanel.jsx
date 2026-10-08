@@ -16,7 +16,7 @@ import BillingTab from './BillingTab'
 import AiSettingsTab from './AiSettingsTab'
 import PccAuthorizationLetter from './PccAuthorizationLetter'
 import { CreditCard, Sparkles, Lock, ShieldCheck, ShieldAlert, RotateCcw } from 'lucide-react'
-import { planAllowsModule } from '../../lib/planModules'
+import { planAllowsModule, PHI_MODULES } from '../../lib/planModules'
 import { ALL_STATES } from '../../lib/complianceStates'
 import { DepartmentLevelEditor, getOrgDepartments } from '../staff/StaffManagement'
 
@@ -356,7 +356,9 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
   const fileRef = useRef()
   const { refreshModules, refreshOrganization, isSuperAdmin } = useAuth()
   // Org admins can turn any module off, but only on if their plan includes it (DB-enforced too)
-  const canEnable = (key) => isSuperAdmin || planAllowsModule(org.plan, key)
+  // Health modules also need the community cleared for health data (phi_allowed, DB-enforced)
+  const needsBaa  = (key) => PHI_MODULES.includes(key) && !org.phi_allowed
+  const canEnable = (key) => !needsBaa(key) && (isSuperAdmin || planAllowsModule(org.plan, key))
   const [form, setForm] = useState({
     name:    org.name    || '',
     address: org.address || '',
@@ -510,11 +512,13 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
                 const locked = !on && !canEnable(m.key)
                 return (
                   <button key={m.key} onClick={() => toggleModule(m.key)} disabled={locked}
-                    title={locked ? 'Not included in your plan — upgrade under Billing' : ''}
+                    title={locked ? (needsBaa(m.key)
+                      ? 'Holds health information — ElderLoop turns this on once the business associate agreements are signed'
+                      : 'Not included in your plan — upgrade under Billing') : ''}
                     className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition-all ${on ? 'bg-brand-600 text-white border-brand-600' : locked ? 'border-slate-100 dark:border-slate-800 text-slate-300 dark:text-slate-600 cursor-not-allowed' : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-brand-300'}`}>
                     {on ? <Check size={14} /> : locked ? <Lock size={13} /> : <div className="w-3.5 h-3.5 rounded-sm border border-slate-300" />}
                     <span className="flex-1 text-left">{m.label}</span>
-                    {locked && <span className="text-[10px] font-semibold uppercase tracking-wide">Upgrade</span>}
+                    {locked && <span className="text-[10px] font-semibold uppercase tracking-wide">{needsBaa(m.key) ? 'Needs BAA' : 'Upgrade'}</span>}
                   </button>
                 )
               })}

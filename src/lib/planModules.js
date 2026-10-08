@@ -25,3 +25,8 @@ export const PLAN_LIMITS = {
   plus:         { resident_limit: 200,  staff_limit: 75   },
   professional: { resident_limit: null, staff_limit: null },
 }
+
+// Health modules stay locked until ElderLoop turns on organizations.phi_allowed (BAAs
+// signed with the community and with Supabase). Must match phi_module_keys() in the
+// database (20261008_health_data_switch.sql), which forces these off regardless.
+export const PHI_MODULES = ['nursing', 'social_services', 'incidents', 'ai_assist_clinical']

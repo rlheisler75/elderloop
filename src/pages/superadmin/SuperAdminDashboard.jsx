@@ -659,7 +659,7 @@ export default function SuperAdminDashboard() {
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-slate-800">
-                        {['Organization','Location','Plan','Billing','Access','2FA','Users','Rep','Modules','Contact','Actions'].map(h => (
+                        {['Organization','Location','Plan','Billing','Access','2FA','Health data','Users','Rep','Modules','Contact','Actions'].map(h => (
                           <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
                         ))}
                       </tr>
@@ -764,6 +764,34 @@ export default function SuperAdminDashboard() {
                               )}
                             </td>
 
+                            {/* Health data (phi_allowed): unlocks Nursing, Social Services, Incident Reports and
+                                the clinical tables. Only after BAAs with the community and with Supabase. */}
+                            <td className="px-5 py-4">
+                              {org.is_demo ? (
+                                <span className="text-xs text-slate-600" title="Demo data is made up">Demo</span>
+                              ) : (
+                                <button
+                                  onClick={async () => {
+                                    const next = !org.phi_allowed
+                                    const msg = next
+                                      ? `Allow health information at ${org.name}?\n\nOnly turn this on when BOTH business associate agreements are signed: with ${org.name}, and with Supabase (HIPAA add-on). It unlocks Nursing Notes, Social Services, Incident Reports and the clinical records.`
+                                      : `Stop health information at ${org.name}? Nursing Notes, Social Services and Incident Reports turn off, and clinical records can no longer be added or changed.`
+                                    if (!confirm(msg)) return
+                                    const { error } = await supabase.from('organizations').update({ phi_allowed: next }).eq('id', org.id)
+                                    if (error) alert(error.message)
+                                    fetchAll()
+                                  }}
+                                  title="Click to allow or stop health information for this community"
+                                  className="hover:opacity-70 transition-opacity">
+                                  <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${org.phi_allowed
+                                    ? 'text-sage-300 bg-sage-900/40 border-sage-700'
+                                    : 'text-amber-300 bg-amber-900/30 border-amber-800'}`}>
+                                    {org.phi_allowed ? 'Allowed' : 'Locked'}
+                                  </span>
+                                </button>
+                              )}
+                            </td>
+
                             <td className="px-5 py-4">
                               <div className="text-white text-sm font-medium">{org.user_count}</div>
                               <div className="text-slate-600 text-xs">{org.staff_count} staff / {org.resident_count} res</div>
@@ -818,7 +846,7 @@ export default function SuperAdminDashboard() {
                         )
                       })}
                       {orgs.length === 0 && (
-                        <tr><td colSpan={11} className="px-5 py-12 text-center text-slate-600 text-sm">No organizations yet.</td></tr>
+                        <tr><td colSpan={12} className="px-5 py-12 text-center text-slate-600 text-sm">No organizations yet.</td></tr>
                       )}
                     </tbody>
                   </table>
