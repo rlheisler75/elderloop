@@ -55,7 +55,7 @@ export default function Terms() {
         <div className="max-w-4xl mx-auto">
           <h1 className="font-display font-bold text-slate-900 text-4xl mb-3">Terms of Service</h1>
           <p className="text-slate-500">{COMPANY} · <strong>{PRODUCT}</strong></p>
-          <p className="text-slate-400 text-sm mt-1">Effective Date: {EFFECTIVE_DATE} · Last Updated: {EFFECTIVE_DATE}</p>
+          <p className="text-slate-400 text-sm mt-1">Effective Date: {EFFECTIVE_DATE} · Last Updated: October 8, 2026</p>
         </div>
       </div>
 
@@ -84,6 +84,17 @@ export default function Terms() {
             ]} />
           </Sub>
           <p>We reserve the right to modify, suspend, or discontinue any module or feature of the Service at any time with reasonable notice, and we will not be liable to you or any third party for any such modification.</p>
+          <Sub title="2.1 Text Messages (SMS)">
+            <p>Communities can use the Service to send announcements, event reminders, and facility notices by text message to residents, family members, and staff who have agreed to receive them. Text messages are off until the recipient opts in, either in the Service (Settings or My Profile → Notifications) or in writing, such as on move-in paperwork recorded by community staff. Agreeing to texts is not a condition of residency, employment, or any purchase.</p>
+            <Bullets items={[
+              'Message frequency varies. Message and data rates may apply.',
+              'Reply STOP to any message to opt out, or turn Text Messages off in the Service. Reply HELP for help, or contact us at ' + CONTACT + '.',
+              'Carriers are not liable for delayed or undelivered messages.',
+              'Texts never include health information, and are not used for marketing.',
+              'Communities using the Service must text only people who have agreed, and must not use text messages to send Protected Health Information.',
+            ]} />
+            <p>Full details of the program and how people agree are at <Link to="/sms" className="text-brand-600 hover:underline">elderloop.xyz/sms</Link>. How we handle mobile numbers is described in our <Link to="/privacy" className="text-brand-600 hover:underline">Privacy Policy</Link> (section 7.5).</p>
+          </Sub>
         </Section>
 
         <Section number="3" title="Account Registration and Security">
@@ -143,7 +154,7 @@ export default function Terms() {
         </Section>
 
         <Section number="8" title="Third-Party Services">
-          <p>The Service integrates with third-party services including Stripe (payment processing), Resend (email delivery), and Supabase (database infrastructure). Your use of such services is subject to their respective terms and privacy policies. We are not responsible for the acts or omissions of any third-party service provider.</p>
+          <p>The Service integrates with third-party services including Stripe (payment processing), Resend (email delivery), Twilio (text message delivery), and Supabase (database infrastructure). Your use of such services is subject to their respective terms and privacy policies. We are not responsible for the acts or omissions of any third-party service provider.</p>
         </Section>
 
         <Section number="9" title="Warranties and Disclaimers">

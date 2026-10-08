@@ -113,6 +113,7 @@ import EarlyAccess   from './pages/landing/EarlyAccess'
 import SurveyPublic  from './pages/surveys/SurveyPublic'
 import Terms            from './pages/landing/Terms'
 import Privacy          from './pages/landing/Privacy'
+import SmsProgram       from './pages/landing/SmsProgram'
 import CampaignLandingPage from './pages/landing/CampaignLandingPage'
 import EmailOptOut         from './pages/landing/EmailOptOut'
 
@@ -275,6 +276,7 @@ export default function App() {
         <Route path="/email-optout"   element={<EmailOptOut />} />
         <Route path="/terms"           element={<Terms />} />
         <Route path="/privacy"         element={<Privacy />} />
+        <Route path="/sms"             element={<SmsProgram />} />
         {trainingRoutes}
         <Route path="/resident"       element={user ? <ResidentPortal /> : <Navigate to="/login" replace />} />
         <Route path="/family-portal"  element={user ? <FamilyPortal />  : <Navigate to="/login" replace />} />
