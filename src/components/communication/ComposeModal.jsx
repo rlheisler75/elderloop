@@ -85,7 +85,6 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
   const [showTemplates, setShowTemplates]   = useState(false)
   const [sending, setSending]               = useState(false)
   const [error, setError]                   = useState('')
-  const [smsWarning, setSmsWarning]         = useState(false)
 
   useEffect(() => {
     if (!organization) return
@@ -96,7 +95,7 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
     // Staff + family come from profiles (they have auth accounts)
     let profileQuery = supabase
       .from('profiles')
-      .select('id, first_name, last_name, role, email, cell_phone, phone, department')
+      .select('id, first_name, last_name, role, email, cell_phone, phone, department, sms_opt_in')
       .eq('organization_id', organization.id)
       .eq('is_active', true)
       .not('role', 'in', '(super_admin,resident)')
@@ -116,7 +115,7 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
     // Residents are in a separate table
     const { data: resData } = await supabase
       .from('residents')
-      .select('id, first_name, last_name, phone, unit, room')
+      .select('id, first_name, last_name, phone, unit, room, sms_opt_in')
       .eq('organization_id', organization.id)
       .eq('is_active', true)
       .order('last_name')
@@ -127,7 +126,6 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
   }
 
   function toggleChannel(ch) {
-    if (ch === 'sms') setSmsWarning(true)
     setForm(f => ({
       ...f,
       channels: f.channels.includes(ch)
@@ -180,6 +178,25 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
     all_residents: residentList.length,
     all_family:    familyList.length,
   }
+
+  // Who would get a text: agreed to texts (sms_opt_in) and has a phone on file — the same
+  // rule send-broadcast applies (it also skips numbers it can't read and sends one text per number).
+  function smsReach() {
+    const canText = p => p.sms_opt_in === true && !!(p.cell_phone || p.phone)
+    let people
+    if (form.audience_type === 'all')                people = [...staffList, ...familyList, ...residentList]
+    else if (form.audience_type === 'all_staff')     people = staffList
+    else if (form.audience_type === 'all_family')    people = familyList
+    else if (form.audience_type === 'all_residents') people = residentList
+    else if (form.audience_type === 'department')    people = staffList.filter(p => p.department === form.audience_dept)
+    else                                             people = selectedPeople
+    return { yes: people.filter(canText).length, total: people.length }
+  }
+
+  // The text adds "— Sender via ElderLoop. Reply STOP to opt out." after the subject and message
+  const smsLength = form.subject.length + form.body.length + 4 +
+    `— ${profile?.first_name || ''} ${profile?.last_name || ''} via ElderLoop. Reply STOP to opt out.`.length
+  const smsSegments = smsLength <= 160 ? 1 : Math.ceil(smsLength / 153)
 
   function audienceSummary() {
     if (form.audience_type === 'all')           return `Everyone (${audienceCounts.all})`
@@ -318,18 +335,19 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
                     className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 font-medium text-sm transition-all
                       ${active ? ch.activeClass : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'}`}>
                     <Icon size={15} />{ch.label}
-                    {ch.key === 'sms' && active && (
-                      <span className="text-[10px] bg-yellow-100 dark:bg-yellow-950/50 text-yellow-700 dark:text-yellow-400 px-1.5 py-0.5 rounded-full font-semibold">Pending A2P</span>
-                    )}
                   </button>
                 )
               })}
             </div>
-            {smsWarning && form.channels.includes('sms') && (
-              <p className="text-xs text-yellow-700 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-900 rounded-lg px-3 py-2 mt-2">
-                ⚠️ SMS requires Twilio A2P 10DLC registration (~2–4 weeks). Messages queued until approved.
-              </p>
-            )}
+            {form.channels.includes('sms') && (() => {
+              const { yes, total } = smsReach()
+              return (
+                <p className="text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 mt-2">
+                  Texts go only to people who agreed to receive them and have a mobile number on file:
+                  <strong> {yes} of {total}</strong>{total ? '' : ' (pick an audience)'}. Everyone else still gets the in-app and email versions you selected.
+                </p>
+              )
+            })()}
           </div>
 
           {/* Category */}
@@ -491,7 +509,17 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
               className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none text-slate-800 dark:text-slate-100"
             />
             {form.channels.includes('sms') && (
-              <p className="text-xs text-slate-400 mt-1">{form.body.length}/160 chars (SMS)</p>
+              <p className="text-xs text-slate-400 mt-1">
+                Text: about {smsLength} characters with the subject and sign-off
+                {smsSegments > 1 ? ` (sent as ${smsSegments} texts, each billed)` : ' (1 text)'}
+              </p>
+            )}
+            {/* No health information outside ElderLoop (decided 2026-10-06: no BAA with Resend; Twilio not used for it) */}
+            {(form.channels.includes('email') || form.channels.includes('sms') || form.channels.includes('push')) && (
+              <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-lg px-3 py-2 mt-2">
+                Don't include health information (diagnoses, medications, care details, or anything about a resident's
+                condition). Email, texts, and phone notifications aren't private. For that, use the care team's notes in ElderLoop.
+              </p>
             )}
           </div>
         </div>

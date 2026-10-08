@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { usePushNotifications } from '../hooks/usePushNotifications'
+import SmsConsentRow from './communication/SmsConsentRow'
 import {
   X, User, Lock, Bell, Save, Eye, EyeOff,
   CheckCircle2, AlertCircle, Mail, Smartphone, Loader2
@@ -308,6 +309,11 @@ function NotificationsTab({ profile, refreshProfile }) {
             This browser/device doesn't support push notifications — email is still available above.
           </p>
         )}
+      </div>
+
+      <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4">
+        <SmsConsentRow profile={profile} refreshProfile={refreshProfile}
+          phoneHint="Add your mobile number on the Profile tab to get texts" />
       </div>
     </div>
   )

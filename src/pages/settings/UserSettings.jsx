@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { usePushNotifications } from '../../hooks/usePushNotifications'
 import TwoFactorCard from '../../components/auth/TwoFactorCard'
+import SmsConsentRow from '../../components/communication/SmsConsentRow'
 import { Palette, Check, Mail, Bell, Smartphone, Loader2, AlertCircle, Sun, Moon } from 'lucide-react'
 
 const ACCENT_COLORS = [
@@ -157,6 +158,11 @@ export default function UserSettings() {
               This browser/device doesn't support push notifications — you'll still see alerts in-app and can enable email above.
             </p>
           )}
+
+          <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+            <SmsConsentRow profile={profile} refreshProfile={refreshProfile}
+              phoneHint="Ask your administrator to add your mobile number to get texts" />
+          </div>
         </div>
       </div>
     </div>

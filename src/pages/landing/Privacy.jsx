@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 
 const EFFECTIVE_DATE = 'June 25, 2026'
+const LAST_UPDATED = 'October 8, 2026'
 const COMPANY = 'Loopware Solutions LLC'
 const PRODUCT = 'ElderLoop'
 const CONTACT = 'info@loopwaresolutions.com'
@@ -55,7 +56,7 @@ export default function Privacy() {
         <div className="max-w-4xl mx-auto">
           <h1 className="font-display font-bold text-slate-900 text-4xl mb-3">Privacy Policy</h1>
           <p className="text-slate-500">{COMPANY} · <strong>{PRODUCT}</strong></p>
-          <p className="text-slate-400 text-sm mt-1">Effective Date: {EFFECTIVE_DATE} · Last Updated: {EFFECTIVE_DATE}</p>
+          <p className="text-slate-400 text-sm mt-1">Effective Date: {EFFECTIVE_DATE} · Last Updated: {LAST_UPDATED}</p>
         </div>
       </div>
 
@@ -123,6 +124,7 @@ export default function Privacy() {
               'Supabase — database infrastructure and authentication',
               'Stripe — payment processing',
               'Resend — transactional email delivery',
+              'Twilio — text message (SMS) delivery',
               'Vercel — application hosting',
             ]} />
             <p className="mt-2">These providers are permitted to use your information only to provide services to us and are prohibited from using it for any other purpose.</p>
@@ -171,7 +173,12 @@ export default function Privacy() {
           <Sub title="7.4 Marketing Communications">
             <p>You may opt out of marketing emails by clicking the unsubscribe link in any marketing email or by contacting us. Transactional communications (invoices, security alerts) cannot be opted out of while you maintain an active account.</p>
           </Sub>
-          <Sub title="7.5 California Residents (CCPA)">
+          <Sub title="7.5 Text Messages (SMS)">
+            <p>Your community may send announcements, event reminders, and facility notices by text message through {PRODUCT}. You receive texts only if you agree to them: residents, family members, and staff turn text messages on in {PRODUCT} (Settings or My Profile), or a resident or their representative agrees in writing, for example on move-in paperwork. Message frequency varies. Message and data rates may apply.</p>
+            <p>Reply <strong>STOP</strong> to any text to stop receiving them, or <strong>HELP</strong> for help. You can also turn text messages off in {PRODUCT} at any time. Texts never include health information.</p>
+            <p>We use your mobile number only to send the messages you agreed to receive. <strong>We do not sell, rent, or share mobile numbers or text-message consent with third parties or affiliates for marketing or promotional purposes.</strong> Mobile numbers are shared only with our text-message provider (Twilio) to deliver messages.</p>
+          </Sub>
+          <Sub title="7.6 California Residents (CCPA)">
             <p>If you are a California resident, you may have additional rights under the CCPA, including the right to know what personal information we collect, the right to delete it, and the right to opt out of its sale. We do not sell personal information. To exercise your rights, contact us at <a href={`mailto:${CONTACT}`} className="text-brand-600 hover:underline">{CONTACT}</a>.</p>
           </Sub>
         </Section>

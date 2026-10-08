@@ -75,37 +75,46 @@ serve(async (req) => {
     // notifyEmail/notifyPush default true (matches profiles column defaults) — only
     // present for profile-backed recipients (staff/family); residents have no
     // account/Settings page, so they're unaffected by these fields (undefined !== false).
-    let recipients: Array<{id: string, name: string, email: string|null, phone: string|null, hasAuth: boolean, notifyEmail?: boolean, notifyPush?: boolean}> = []
+    // smsOk: the person agreed to texts (profiles.sms_opt_in / residents.sms_opt_in) —
+    // nobody is texted without it (TCPA / carrier rules).
+    let recipients: Array<{id: string, name: string, email: string|null, phone: string|null, hasAuth: boolean, notifyEmail?: boolean, notifyPush?: boolean, smsOk: boolean, source: 'profiles'|'residents'}> = []
 
     const mapProfile = (p: any) => ({
       id: p.id, name: `${p.first_name} ${p.last_name}`, email: p.email, phone: p.cell_phone || p.phone,
       hasAuth: true, notifyEmail: p.notify_email, notifyPush: p.notify_push,
+      smsOk: p.sms_opt_in === true, source: 'profiles' as const,
     })
+    const mapResident = (r: any) => ({
+      id: r.id, name: `${r.first_name} ${r.last_name}`, email: null, phone: r.phone, hasAuth: false,
+      smsOk: r.sms_opt_in === true, source: 'residents' as const,
+    })
+    const PROFILE_COLS  = 'id, first_name, last_name, email, cell_phone, phone, notify_email, notify_push, sms_opt_in'
+    const RESIDENT_COLS = 'id, first_name, last_name, phone, sms_opt_in'
 
     if (msg.audience_type === 'all' || msg.audience_type === 'all_staff') {
       const { data } = await supabase.from('profiles')
-        .select('id, first_name, last_name, email, cell_phone, phone, notify_email, notify_push')
+        .select(PROFILE_COLS)
         .eq('organization_id', msg.org_id).in('role', staffRoles).eq('is_active', true)
       if (data) recipients.push(...data.map(mapProfile))
     }
 
     if (msg.audience_type === 'all' || msg.audience_type === 'all_family') {
       const { data } = await supabase.from('profiles')
-        .select('id, first_name, last_name, email, cell_phone, phone, notify_email, notify_push')
+        .select(PROFILE_COLS)
         .eq('organization_id', msg.org_id).eq('role', 'family').eq('is_active', true)
       if (data) recipients.push(...data.map(mapProfile))
     }
 
     if (msg.audience_type === 'all' || msg.audience_type === 'all_residents') {
       const { data } = await supabase.from('residents')
-        .select('id, first_name, last_name, phone')
+        .select(RESIDENT_COLS)
         .eq('organization_id', msg.org_id).eq('is_active', true)
-      if (data) recipients.push(...data.map((r: any) => ({ id: r.id, name: `${r.first_name} ${r.last_name}`, email: null, phone: r.phone, hasAuth: false })))
+      if (data) recipients.push(...data.map(mapResident))
     }
 
     if (msg.audience_type === 'department') {
       const { data } = await supabase.from('profiles')
-        .select('id, first_name, last_name, email, cell_phone, phone, notify_email, notify_push')
+        .select(PROFILE_COLS)
         .eq('organization_id', msg.org_id).eq('department', msg.audience_dept).eq('is_active', true)
       if (data) recipients.push(...data.map(mapProfile))
     }
@@ -113,16 +122,16 @@ serve(async (req) => {
     // Picked recipients must belong to the message's community.
     if (msg.audience_type === 'individual' && msg.audience_ids?.length) {
       const { data: profileData } = await supabase.from('profiles')
-        .select('id, first_name, last_name, email, cell_phone, phone, notify_email, notify_push')
+        .select(PROFILE_COLS)
         .eq('organization_id', msg.org_id).in('id', msg.audience_ids)
       if (profileData) recipients.push(...profileData.map(mapProfile))
       const foundIds = profileData?.map((p: any) => p.id) || []
       const residentIds = msg.audience_ids.filter((id: string) => !foundIds.includes(id))
       if (residentIds.length) {
         const { data: resData } = await supabase.from('residents')
-          .select('id, first_name, last_name, phone')
+          .select(RESIDENT_COLS)
           .eq('organization_id', msg.org_id).in('id', residentIds)
-        if (resData) recipients.push(...resData.map((r: any) => ({ id: r.id, name: `${r.first_name} ${r.last_name}`, email: null, phone: r.phone, hasAuth: false })))
+        if (resData) recipients.push(...resData.map(mapResident))
       }
     }
 
@@ -207,19 +216,40 @@ serve(async (req) => {
       if (!TWILIO_SID || !TWILIO_TOKEN || !TWILIO_FROM) {
         console.warn('Twilio not configured')
       } else {
-        const smsRecipients = recipients.filter(r => r.phone)
+        // Twilio wants E.164 (+15551234567); numbers are typed in any format.
+        const toE164 = (raw: string | null) => {
+          if (!raw) return null
+          const digits = raw.replace(/\D/g, '')
+          if (raw.trim().startsWith('+') && digits.length >= 8) return `+${digits}`
+          if (digits.length === 10) return `+1${digits}`
+          if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`
+          return null
+        }
+        // Only people who agreed to texts; one text per number (a shared phone gets one).
+        const seen = new Set<string>()
+        const smsRecipients = recipients
+          .filter(r => r.smsOk)
+          .map(r => ({ ...r, to: toE164(r.phone) }))
+          .filter(r => r.to && !seen.has(r.to) && seen.add(r.to))
         for (const r of smsRecipients) {
           try {
             const smsBody = new URLSearchParams({
-              From: TWILIO_FROM, To: r.phone!,
-              Body: `${msg.subject}\n\n${msg.body}\n\n— ${senderName} via ElderLoop`
+              From: TWILIO_FROM, To: r.to!,
+              Body: `${msg.subject}\n\n${msg.body}\n\n— ${senderName} via ElderLoop. Reply STOP to opt out.`
             })
             const res = await fetch(
               `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_SID}/Messages.json`,
               { method: 'POST', headers: { 'Authorization': `Basic ${btoa(`${TWILIO_SID}:${TWILIO_TOKEN}`)}`, 'Content-Type': 'application/x-www-form-urlencoded' }, body: smsBody }
             )
             if (res.ok) smsSent++
-            else { const e = await res.json(); console.error(`SMS failed:`, JSON.stringify(e)) }
+            else {
+              const e = await res.json()
+              console.error(`SMS failed:`, JSON.stringify(e))
+              // 21610: the number replied STOP to our Twilio number — record the opt-out
+              if (e?.code === 21610) {
+                await supabase.from(r.source).update({ sms_opt_in: false }).eq('id', r.id)
+              }
+            }
           } catch (e) { console.error('SMS error:', e) }
         }
       }

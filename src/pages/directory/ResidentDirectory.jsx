@@ -265,6 +265,8 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
     care_level:         resident?.care_level         || 'independent',
     photo_url:          resident?.photo_url          || '',
     show_in_directory:  resident?.show_in_directory  ?? false,
+    // Text consent; the database stamps who recorded it and when (residents_sms_opt_in_stamp)
+    sms_opt_in:         resident?.sms_opt_in         ?? false,
   })
   const [emergencyContacts, setEmergencyContacts] = useState([])
   const [medicalContacts, setMedicalContacts]     = useState([])
@@ -483,6 +485,20 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
                     placeholder="Resident's phone" />
                 </div>
               </div>
+
+              {/* Text-message consent (send-broadcast texts only residents with this on) */}
+              <label className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer">
+                <input type="checkbox" checked={form.sms_opt_in} onChange={e => set('sms_opt_in', e.target.checked)}
+                  className="mt-0.5 w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" />
+                <span className="text-sm text-slate-700 dark:text-slate-300">
+                  Agreed to receive community announcements by text at this phone number
+                  <span className="block text-xs text-slate-400 mt-0.5">
+                    Check only if the resident or their representative agreed, for example on move-in paperwork.
+                    They can reply STOP to any text to opt out.
+                    {resident?.sms_opt_in && resident?.sms_opt_in_at && ` Recorded ${new Date(resident.sms_opt_in_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}.`}
+                  </span>
+                </span>
+              </label>
 
               {/* Location */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
