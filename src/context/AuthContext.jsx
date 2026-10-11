@@ -50,8 +50,13 @@ export function AuthProvider({ children }) {
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
-      // Deferred: calling other auth methods inside this callback can deadlock supabase-js
-      if (session?.user) setTimeout(() => checkMfaThenLoad(session.user.id), 0)
+      // Deferred: calling other auth methods inside this callback can deadlock supabase-js.
+      // Mark loading now, not inside the deferred call: otherwise /login sees a user with
+      // no profile yet and redirects a super admin to /app/dashboard instead of /superadmin.
+      if (session?.user) {
+        setLoading(true)
+        setTimeout(() => checkMfaThenLoad(session.user.id), 0)
+      }
       else {
         setProfile(null); setOrg(null); setOrgModules([]); setMfaStep(null); setMfaStatus(null)
         setUserPerms([]); setRoleVisibility([]); setSuperAdmin(false); setLoading(false)
