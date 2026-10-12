@@ -1,4 +1,4 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import {
   LayoutDashboard, Wrench, MessageSquare, UtensilsCrossed, SprayCan,
@@ -12,6 +12,7 @@ import { Bell } from 'lucide-react'
 import { ShoppingBag } from 'lucide-react'
 import { getOrgDepartments, STAFF_LEVELS, LEVEL_RANK } from '../../lib/departments'
 import EmergencyEditBar from './EmergencyEditBar'
+import ErrorBoundary from '../ErrorBoundary'
 import { MODULE_DEPARTMENTS } from '../../lib/accessTiers'
 import { BUDGET_DEPARTMENT_KEYS } from '../../lib/budgets'
 
@@ -83,6 +84,7 @@ const NAV_GROUPS = [
 
 export default function Layout() {
   const { profile, organization, hasModule, isOrgAdmin, isSuperAdmin, signOut, impersonating, exitImpersonation, departmentRoles, accessModel, tierFor, hasDepartmentAccess } = useAuth()
+  const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [notifs, setNotifs]       = useState([])
   const [showNotifs, setShowNotifs] = useState(false)
@@ -343,7 +345,7 @@ export default function Layout() {
           </div>
         )}
         <EmergencyEditBar />
-        <main className="flex-1 overflow-y-auto p-6"><Outlet /></main>
+        <main className="flex-1 overflow-y-auto p-6"><ErrorBoundary key={location.pathname}><Outlet /></ErrorBoundary></main>
       </div>
     </div>
 
