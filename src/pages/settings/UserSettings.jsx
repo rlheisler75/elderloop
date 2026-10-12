@@ -5,42 +5,26 @@ import { usePushNotifications } from '../../hooks/usePushNotifications'
 import TwoFactorCard from '../../components/auth/TwoFactorCard'
 import SmsConsentRow from '../../components/communication/SmsConsentRow'
 import { activeWeeks, nextWeek } from '../../lib/appreciationWeeks'
+import { ACCENT_COLORS } from '../../lib/accentColors'
 import { Palette, Check, Mail, Bell, Smartphone, Loader2, AlertCircle, Sun, Moon, PartyPopper } from 'lucide-react'
-
-const ACCENT_COLORS = [
-  { key: 'blue',   label: 'Ocean Blue',    swatch: '#0072bf' },
-  { key: 'green',  label: 'Forest Green',  swatch: '#3a653f' },
-  { key: 'purple', label: 'Plum Purple',   swatch: '#642e97' },
-  { key: 'rose',   label: 'Burgundy Rose', swatch: '#a82442' },
-  { key: 'slate',  label: 'Slate',         swatch: '#475569' },
-  { key: 'teal',   label: 'Lagoon Teal',   swatch: '#0f766e' },
-  { key: 'indigo', label: 'Twilight Indigo', swatch: '#4f46e5' },
-  { key: 'navy',   label: 'Midnight Navy', swatch: '#284686' },
-  { key: 'violet', label: 'Violet',        swatch: '#7c3aed' },
-  { key: 'berry',  label: 'Berry Pink',    swatch: '#db2777' },
-  { key: 'cherry', label: 'Cherry Red',    swatch: '#dc2626' },
-  { key: 'coral',  label: 'Sunset Coral',  swatch: '#cd462d' },
-  { key: 'copper', label: 'Copper',        swatch: '#c2410c' },
-  { key: 'gold',   label: 'Harvest Gold',  swatch: '#b45309' },
-  { key: 'cocoa',  label: 'Cocoa Brown',   swatch: '#7a553a' },
-]
 
 const fmtDay = d => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
 
 // "Celebrate" swatch: the appreciation-week colors in a ring.
 const CELEBRATE_SWATCH = 'conic-gradient(#db2777, #b45309, #0f766e, #284686, #7c3aed, #a82442, #cd462d, #3a653f, #c2410c, #dc2626, #7a553a, #db2777)'
 
-function CelebrateNote() {
-  const now = activeWeeks()
+// What "Celebrate" is showing today, from the community's calendar.
+function CelebrateNote({ list }) {
+  const now = activeWeeks(list)
   if (now.length) return (
     <p className="text-sm text-slate-600 dark:text-slate-300 mt-4">
-      {now.map(w => `${w.emoji} Happy ${w.name}!`).join(' ')} <span className="text-slate-400">(through {fmtDay(now[0].end)})</span>
+      {now.map(w => `${w.emoji || '🎉'} Happy ${w.name}!`).join(' ')} <span className="text-slate-400">(through {fmtDay(now[0].end)})</span>
     </p>
   )
-  const next = nextWeek()
+  const next = nextWeek(list)
   return (
     <p className="text-sm text-slate-400 mt-4">
-      Ocean Blue for now. Next up: {next.emoji} {next.name}, starting {fmtDay(next.start)}.
+      Ocean Blue for now.{next && <> Next up: {next.emoji} {next.name}, starting {fmtDay(next.start)}.</>}
     </p>
   )
 }
@@ -55,7 +39,7 @@ function Toggle({ checked, onChange, disabled }) {
 }
 
 export default function UserSettings() {
-  const { profile, refreshProfile } = useAuth()
+  const { profile, refreshProfile, celebrations } = useAuth()
   const { permission, subscribed, loading: pushLoading, supported, subscribe, unsubscribe } = usePushNotifications(profile?.id)
 
   const [accent, setAccent]           = useState(profile?.accent_color || 'blue')
@@ -154,7 +138,7 @@ export default function UserSettings() {
             <span className="block text-xs text-slate-400">Changes color for each staff appreciation week (Nurses Week, CNA Week, Maintenance Week and more), and Ocean Blue the rest of the year.</span>
           </span>
         </button>
-        {accent === 'celebrate' && <CelebrateNote />}
+        {accent === 'celebrate' && <CelebrateNote list={celebrations} />}
         {saving === 'accent_color' && <p className="text-xs text-slate-400 mt-3">Saving...</p>}
       </div>
 

@@ -14,8 +14,9 @@ import RoleTemplates from './RoleTemplates'
 import SupplyVendors from '../supply/SupplyVendors'
 import BillingTab from './BillingTab'
 import AiSettingsTab from './AiSettingsTab'
+import CelebrationsTab from './CelebrationsTab'
 import PccAuthorizationLetter from './PccAuthorizationLetter'
-import { CreditCard, Sparkles, Lock, ShieldCheck, ShieldAlert, RotateCcw } from 'lucide-react'
+import { CreditCard, Sparkles, Lock, ShieldCheck, ShieldAlert, RotateCcw, PartyPopper } from 'lucide-react'
 import { planAllowsModule, PHI_MODULES } from '../../lib/planModules'
 import { ALL_STATES } from '../../lib/complianceStates'
 import { DepartmentLevelEditor, getOrgDepartments } from '../staff/StaffManagement'
@@ -767,6 +768,7 @@ export default function AdminPanel() {
     { key: 'pcc',          label: 'PointClickCare',     icon: Plug },
     { key: 'billing',      label: 'Billing',            icon: CreditCard },
     { key: 'ai',           label: 'AI Add-on',          icon: Sparkles },
+    { key: 'celebrations', label: 'Celebrations',       icon: PartyPopper },
   ].filter(t => canManagePlatform || t.key === 'billing')
 
   return (
@@ -1001,6 +1003,7 @@ export default function AdminPanel() {
       {tab === 'billing' && <BillingTab />}
 
       {tab === 'ai' && <AiSettingsTab orgId={currentOrgId} />}
+      {tab === 'celebrations' && <CelebrationsTab orgId={currentOrgId} />}
 
       {/* ── LISTS TAB ── */}
       {tab === 'lists' && (

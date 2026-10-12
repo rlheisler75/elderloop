@@ -5,7 +5,7 @@ import { useSessionTimeout } from '../hooks/useSessionTimeout'
 import SessionTimeoutModal from '../components/SessionTimeoutModal'
 import { tierFor as tierForProfile, NHA_WRITABLE_MODULES } from '../lib/accessTiers'
 import { BUDGET_DEPARTMENT_KEYS } from '../lib/budgets'
-import { resolveAccent } from '../lib/appreciationWeeks'
+import { resolveAccent, DEFAULT_CELEBRATIONS } from '../lib/appreciationWeeks'
 
 const AuthContext = createContext({})
 
@@ -25,6 +25,7 @@ export function AuthProvider({ children }) {
   // Two-factor step before anything loads: null | 'challenge' (enter code) | 'enroll' (required, not set up)
   const [mfaStep, setMfaStep]         = useState(null)
   const [mfaStatus, setMfaStatus]     = useState(null) // { required, enrolled, demo } from my_mfa_status()
+  const [celebrations, setCelebrations] = useState(DEFAULT_CELEBRATIONS) // "Celebrate" accent calendar: org_celebrations, or the defaults
   const navigate                      = useNavigate()
 
   // Load an Administrator's active Emergency Edit, and clear it the moment it expires
@@ -101,12 +102,23 @@ export function AuthProvider({ children }) {
   // 'celebrate' follows the appreciation-week calendar, rechecked hourly so
   // an open tab changes over at midnight.
   useEffect(() => {
-    const apply = () => { document.documentElement.dataset.accent = resolveAccent(profile?.accent_color) }
+    const apply = () => { document.documentElement.dataset.accent = resolveAccent(profile?.accent_color, celebrations) }
     apply()
     if (profile?.accent_color !== 'celebrate') return
     const t = setInterval(apply, 60 * 60 * 1000)
     return () => clearInterval(t)
-  }, [profile?.accent_color])
+  }, [profile?.accent_color, celebrations])
+
+  // The community's own celebration calendar (Admin Panel → Celebrations);
+  // none saved means ElderLoop's defaults. Only needed for 'celebrate'.
+  const refreshCelebrations = async () => {
+    const orgId = organization?.id
+    if (!orgId || profile?.accent_color !== 'celebrate') { setCelebrations(DEFAULT_CELEBRATIONS); return }
+    const { data } = await supabase.from('org_celebrations').select('*')
+      .eq('organization_id', orgId).order('sort').order('created_at')
+    setCelebrations(data?.length ? data.filter(c => c.enabled) : DEFAULT_CELEBRATIONS)
+  }
+  useEffect(() => { refreshCelebrations() }, [organization?.id, profile?.accent_color])
 
   // Light/dark mode — a per-user Settings preference (not OS-level), so it's
   // driven by profile.theme_mode via Tailwind's `darkMode: 'class'`.
@@ -362,7 +374,7 @@ export function AuthProvider({ children }) {
       departmentRoles, hasDepartmentAccess, hasAnyDepartmentLevel, refreshDepartmentRoles,
       accessModel, isPlatformAdmin, tierFor,
       nhaViewOnly, canManagePlatform, emergencyEditOn, emergencyUntil, startEmergencyEdit, endEmergencyEdit,
-      mfaStep, mfaStatus, recheckMfa,
+      mfaStep, mfaStatus, recheckMfa, celebrations, refreshCelebrations,
     }}>
       {children}
 
