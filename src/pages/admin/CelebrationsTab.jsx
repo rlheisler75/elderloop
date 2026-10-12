@@ -12,6 +12,10 @@ import { PartyPopper, Plus, Pencil, Trash2, RotateCcw, Loader2, Check, X } from 
 const RULE_FIELDS = ['name', 'emoji', 'accent', 'kind', 'month', 'day', 'end_month', 'end_day', 'n', 'weekday', 'days']
 const BLANK = { name: '', emoji: '🎉', accent: 'teal', kind: 'week', month: 1, n: 1, day: 1, end_month: 1, end_day: 7, weekday: 0, days: 7 }
 
+// Saved rows have nulls in the columns their kind doesn't use; keep BLANK's
+// values there so switching kinds in the editor starts from something sensible.
+const withoutEmpty = (row) => Object.fromEntries(Object.entries(row).filter(([, v]) => v != null))
+
 const fmtDay = d => d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
 
 // This year's dates, or next year's once this year's have passed.
@@ -30,7 +34,7 @@ function clean(form) {
   if (row.kind !== 'dates')   Object.assign(row, { day: null, end_month: null, end_day: null })
   if (row.kind === 'dates')   Object.assign(row, { n: null })
   if (row.kind !== 'weekday') Object.assign(row, { weekday: null, days: null })
-  row.name = row.name.trim()
+  row.name = (row.name || '').trim()
   row.emoji = row.emoji?.trim() || null
   return row
 }
@@ -216,7 +220,7 @@ export default function CelebrationsTab({ orgId }) {
         {list.map((c, i) => {
           const id = c.id || i
           if (editing && editing === c.id) return (
-            <CelebrationForm key={id} initial={{ ...BLANK, ...c }} onSave={save} onCancel={() => setEditing(null)} saving={saving} />
+            <CelebrationForm key={id} initial={{ ...BLANK, ...withoutEmpty(c) }} onSave={save} onCancel={() => setEditing(null)} saving={saving} />
           )
           const next = upcoming(c)
           const off = custom && !c.enabled
