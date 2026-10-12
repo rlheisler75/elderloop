@@ -5,6 +5,7 @@ import { useSessionTimeout } from '../hooks/useSessionTimeout'
 import SessionTimeoutModal from '../components/SessionTimeoutModal'
 import { tierFor as tierForProfile, NHA_WRITABLE_MODULES } from '../lib/accessTiers'
 import { BUDGET_DEPARTMENT_KEYS } from '../lib/budgets'
+import { resolveAccent } from '../lib/appreciationWeeks'
 
 const AuthContext = createContext({})
 
@@ -97,8 +98,14 @@ export function AuthProvider({ children }) {
   // Apply the user's chosen accent color app-wide (see src/index.css —
   // Tailwind's brand.* palette reads from these CSS vars). Defaults to the
   // original blue via :root when no profile/preference is set yet.
+  // 'celebrate' follows the appreciation-week calendar, rechecked hourly so
+  // an open tab changes over at midnight.
   useEffect(() => {
-    document.documentElement.dataset.accent = profile?.accent_color || 'blue'
+    const apply = () => { document.documentElement.dataset.accent = resolveAccent(profile?.accent_color) }
+    apply()
+    if (profile?.accent_color !== 'celebrate') return
+    const t = setInterval(apply, 60 * 60 * 1000)
+    return () => clearInterval(t)
   }, [profile?.accent_color])
 
   // Light/dark mode — a per-user Settings preference (not OS-level), so it's
