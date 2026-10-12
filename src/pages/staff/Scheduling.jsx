@@ -65,11 +65,24 @@ const shiftsOverlap = (s1, s2) => {
   return as < beAdj && aeAdj > bs
 }
 
+// Everyone sees only their own departments' schedules (database: sched_dept_scope,
+// 20261012_scheduling_department_scope.sql — keep the two in step). The Administrator,
+// Org/Platform Admins, super admins, and HR see every department; of those, the ones
+// who are Managers (hasAnyDepartmentLevel is true for admins) schedule any department.
+function useScheduleScope() {
+  const { profile, departmentRoles, hasDepartmentAccess, hasAnyDepartmentLevel, isSuperAdmin, isPlatformAdmin } = useAuth()
+  const seesAllDepts = ['ceo', 'org_admin', 'super_admin'].includes(profile?.role) || isSuperAdmin
+    || isPlatformAdmin || hasDepartmentAccess('hr', 'employee')
+  const inMyDept = (dept) => !dept || departmentRoles.some(d => d.department === dept) || profile?.department === dept
+  const isOrgWideManager = seesAllDepts && hasAnyDepartmentLevel('manager')
+  return { seesAllDepts, inMyDept, isOrgWideManager }
+}
+
 // ── Shift Template Manager ─────────────────────────────────────
 function TemplateManager({ orgId, templates, onRefresh, onClose }) {
-  const { organization, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
+  const { organization, hasDepartmentAccess } = useAuth()
   const DEPTS = organization?.departments?.length ? organization.departments : DEPARTMENTS_DEFAULT
-  const isOrgWideManager = hasAnyDepartmentLevel('manager')
+  const { isOrgWideManager } = useScheduleScope()
   const assignableDepts = isOrgWideManager ? DEPTS : DEPTS.filter(d => hasDepartmentAccess(d.key, 'supervisor'))
   const canManageTemplateDept = (dept) => !dept ? isOrgWideManager : hasDepartmentAccess(dept, 'supervisor') || isOrgWideManager
   const visibleTemplates = templates.filter(t => canManageTemplateDept(t.department))
@@ -159,11 +172,11 @@ function TemplateManager({ orgId, templates, onRefresh, onClose }) {
 
 // ── Schedule Shift Modal ───────────────────────────────────────
 function ShiftModal({ shift, date, orgId, staff, templates, existingShifts, onClose, onSave }) {
-  const { profile, organization, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
+  const { profile, organization, hasDepartmentAccess } = useAuth()
   const DEPTS = organization?.departments?.length ? organization.departments : DEPARTMENTS_DEFAULT
-  const isOrgWideManager = hasAnyDepartmentLevel('manager')
-  // A department Supervisor can only schedule shifts for department(s) they supervise;
-  // an org-wide Manager (or org_admin/ceo) can schedule for any department, or leave it unset ("All").
+  const { isOrgWideManager } = useScheduleScope()
+  // A department Supervisor or Manager schedules only the department(s) they supervise;
+  // an org-wide manager (useScheduleScope) can schedule any department, or leave it unset ("All").
   const assignableDepts = isOrgWideManager ? DEPTS : DEPTS.filter(d => hasDepartmentAccess(d.key, 'supervisor'))
   const isNew = !shift
   const [form, setForm] = useState({
@@ -789,7 +802,9 @@ function SwapPanel({ orgId, profile, staff, shifts, canManageDept, onRefresh }) 
 // ── Main Scheduling Page ───────────────────────────────────────
 export default function Scheduling() {
   const { profile, organization, hasAnyDepartmentLevel, hasDepartmentAccess } = useAuth()
-  const DEPTS = organization?.departments?.length ? organization.departments : DEPARTMENTS_DEFAULT
+  const ALL_DEPTS = organization?.departments?.length ? organization.departments : DEPARTMENTS_DEFAULT
+  const { seesAllDepts, inMyDept, isOrgWideManager } = useScheduleScope()
+  const DEPTS = seesAllDepts ? ALL_DEPTS : ALL_DEPTS.filter(d => inMyDept(d.key))
   const [shifts, setShifts]       = useState([])
   const [staff, setStaff]         = useState([])
   const [templates, setTemplates] = useState([])
@@ -811,7 +826,7 @@ export default function Scheduling() {
   // department Supervisor still builds their department's schedule
   const tierAccess = useTierAccess('scheduling')
   const canManageTemplates = isMgr && tierAccess.anyManager
-  const canManageDept = (dept) => hasDepartmentAccess(dept, 'supervisor') || hasAnyDepartmentLevel('manager')
+  const canManageDept = (dept) => hasDepartmentAccess(dept, 'supervisor') || isOrgWideManager
 
   useEffect(() => { if (organization) fetchAll() }, [organization])
 
@@ -833,7 +848,8 @@ export default function Scheduling() {
         .eq('organization_id', organization.id).eq('is_active', true).order('name'),
     ])
     setShifts(shiftsRes.data || [])
-    setStaff(staffRes.data || [])
+    setStaff((staffRes.data || []).filter(s =>
+      seesAllDepts || s.id === profile?.id || inMyDept(s.department)))
     setTemplates(templatesRes.data || [])
     setLoading(false)
   }
@@ -919,7 +935,7 @@ export default function Scheduling() {
           <div className="flex items-center gap-2">
             <select value={filterDept} onChange={e => setFilterDept(e.target.value)}
               className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
-              <option value="all">All Departments</option>
+              <option value="all">{seesAllDepts ? 'All Departments' : 'All my departments'}</option>
               {DEPTS.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
             </select>
           </div>

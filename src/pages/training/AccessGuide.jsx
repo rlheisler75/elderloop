@@ -31,7 +31,7 @@ const MODULE_ROWS = [
   ['Meters', 'Record readings', 'Same as staff', 'Meters and utility rates'],
   ['Property (IL)', 'Units, keys, walkthroughs', 'Same as staff', 'Tenants, leases, rent, notices'],
   ['Marketing', 'Work leads and follow-ups', 'Campaigns, templates, sequences, sources', 'Deletes'],
-  ['Scheduling & Time Clock', 'Your shifts and punches', 'Build the schedule; HR/Payroll fix punches', 'Shift templates'],
+  ['Scheduling & Time Clock', "Your departments' schedules; your punches", "Build your departments' schedule; HR/Payroll fix punches", 'Shift templates'],
   ['Announcements', 'Read', 'Post and edit', 'Post and edit'],
 ]
 
