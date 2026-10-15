@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../context/AuthContext'
 import { MessageSquare, Loader2 } from 'lucide-react'
 
 // Text-message consent (Settings for staff, My Profile in the family / resident portals).
@@ -10,6 +11,8 @@ export default function SmsConsentRow({ profile, refreshProfile, phoneHint }) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
+  const { organization } = useAuth()
+  const community = organization?.name || 'your community'
   const phone = profile?.cell_phone || profile?.phone
 
   const toggle = async () => {
@@ -44,7 +47,7 @@ export default function SmsConsentRow({ profile, refreshProfile, phoneHint }) {
       </div>
       <p className="text-[11px] leading-snug text-slate-400 mt-2 pl-[30px]">
         {on && profile?.sms_opt_in_at && <>You agreed on {new Date(profile.sms_opt_in_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}. </>}
-        By turning this on you agree to receive community announcements by text from ElderLoop.
+        By turning this on you agree to receive community announcements by text from {community}, sent by Loopware Solutions LLC through ElderLoop.
         Message frequency varies. Msg &amp; data rates may apply. Reply STOP to opt out or HELP for help.
         Texts never include health information.
       </p>

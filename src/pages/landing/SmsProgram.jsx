@@ -8,7 +8,7 @@ import { MessageSquare } from 'lucide-react'
 const COMPANY = 'Loopware Solutions LLC'
 const CONTACT = 'info@loopwaresolutions.com'
 const UPDATED = 'October 15, 2026'
-const CONSENT = 'By turning this on you agree to receive community announcements by text from ElderLoop. Message frequency varies. Msg & data rates may apply. Reply STOP to opt out or HELP for help. Texts never include health information.'
+const CONSENT = 'By turning this on you agree to receive community announcements by text from your community, sent by Loopware Solutions LLC through ElderLoop. Message frequency varies. Msg & data rates may apply. Reply STOP to opt out or HELP for help. Texts never include health information.'
 
 function Block({ title, children }) {
   return (
@@ -87,7 +87,7 @@ export default function SmsProgram() {
           <h3 className="font-semibold text-slate-700 mt-6">2. On paper (residents)</h3>
           <p>A resident, or their representative, may agree in writing, for example on move-in paperwork. Community staff then record that agreement on the resident's record in ElderLoop, which notes who recorded it and when. The paper wording is:</p>
           <p className="bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700">
-            ☐ I agree to receive community announcements by text message from [Community name] via ElderLoop at the mobile number above. Message frequency varies. Msg &amp; data rates may apply. Reply STOP to opt out or HELP for help. Agreeing is not a condition of residency or of any purchase.
+            ☐ I agree to receive community announcements by text message from [Community name], sent by Loopware Solutions LLC through ElderLoop, at the mobile number above. Message frequency varies. Msg &amp; data rates may apply. Reply STOP to opt out or HELP for help. Agreeing is not a condition of residency or of any purchase.
           </p>
         </Block>
 

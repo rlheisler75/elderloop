@@ -55,7 +55,7 @@ export default function Terms() {
         <div className="max-w-4xl mx-auto">
           <h1 className="font-display font-bold text-slate-900 text-4xl mb-3">Terms of Service</h1>
           <p className="text-slate-500">{COMPANY} · <strong>{PRODUCT}</strong></p>
-          <p className="text-slate-400 text-sm mt-1">Effective Date: {EFFECTIVE_DATE} · Last Updated: October 8, 2026</p>
+          <p className="text-slate-400 text-sm mt-1">Effective Date: {EFFECTIVE_DATE} · Last Updated: October 15, 2026</p>
         </div>
       </div>
 
@@ -85,7 +85,7 @@ export default function Terms() {
           </Sub>
           <p>We reserve the right to modify, suspend, or discontinue any module or feature of the Service at any time with reasonable notice, and we will not be liable to you or any third party for any such modification.</p>
           <Sub title="2.1 Text Messages (SMS)">
-            <p>Communities can use the Service to send announcements, event reminders, and facility notices by text message to residents, family members, and staff who have agreed to receive them. Text messages are off until the recipient opts in, either in the Service (Settings or My Profile → Notifications) or in writing, such as on move-in paperwork recorded by community staff. Agreeing to texts is not a condition of residency, employment, or any purchase.</p>
+            <p>Communities can use the Service to send announcements, event reminders, and facility notices by text message to residents, family members, and staff who have agreed to receive them. Texts are sent by {COMPANY} on the community's behalf and signed with the community's name. Text messages are off until the recipient opts in, either in the Service (Settings or My Profile → Notifications) or in writing, such as on move-in paperwork recorded by community staff. Agreeing to texts is not a condition of residency, employment, or any purchase.</p>
             <Bullets items={[
               'Message frequency varies. Message and data rates may apply.',
               'Reply STOP to any message to opt out, or turn Text Messages off in the Service. Reply HELP for help, or contact us at ' + CONTACT + '.',

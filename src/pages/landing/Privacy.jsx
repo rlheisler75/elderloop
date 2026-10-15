@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 
 const EFFECTIVE_DATE = 'June 25, 2026'
-const LAST_UPDATED = 'October 8, 2026'
+const LAST_UPDATED = 'October 15, 2026'
 const COMPANY = 'Loopware Solutions LLC'
 const PRODUCT = 'ElderLoop'
 const CONTACT = 'info@loopwaresolutions.com'
@@ -174,7 +174,7 @@ export default function Privacy() {
             <p>You may opt out of marketing emails by clicking the unsubscribe link in any marketing email or by contacting us. Transactional communications (invoices, security alerts) cannot be opted out of while you maintain an active account.</p>
           </Sub>
           <Sub title="7.5 Text Messages (SMS)">
-            <p>Your community may send announcements, event reminders, and facility notices by text message through {PRODUCT}. You receive texts only if you agree to them: residents, family members, and staff turn text messages on in {PRODUCT} (Settings or My Profile), or a resident or their representative agrees in writing, for example on move-in paperwork. Message frequency varies. Message and data rates may apply.</p>
+            <p>Your community may send announcements, event reminders, and facility notices by text message through {PRODUCT}. Texts are sent by {COMPANY} on your community's behalf. You receive texts only if you agree to them: residents, family members, and staff turn text messages on in {PRODUCT} (Settings or My Profile), or a resident or their representative agrees in writing, for example on move-in paperwork. Message frequency varies. Message and data rates may apply.</p>
             <p>Reply <strong>STOP</strong> to any text to stop receiving them, or <strong>HELP</strong> for help. You can also turn text messages off in {PRODUCT} at any time. Texts never include health information.</p>
             <p>We use your mobile number only to send the messages you agreed to receive. <strong>We do not sell, rent, or share mobile numbers or text-message consent with third parties or affiliates for marketing or promotional purposes.</strong> Mobile numbers are shared only with our text-message provider (Twilio) to deliver messages.</p>
             <p>Program details and how people agree: <Link to="/sms" className="text-brand-600 hover:underline">elderloop.xyz/sms</Link>.</p>
