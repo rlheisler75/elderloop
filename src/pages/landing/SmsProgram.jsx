@@ -7,7 +7,7 @@ import { MessageSquare } from 'lucide-react'
 // src/components/communication/SmsConsentRow.jsx, Privacy 7.5, and Terms 2.1.
 const COMPANY = 'Loopware Solutions LLC'
 const CONTACT = 'info@loopwaresolutions.com'
-const UPDATED = 'October 8, 2026'
+const UPDATED = 'October 15, 2026'
 const CONSENT = 'By turning this on you agree to receive community announcements by text from ElderLoop. Message frequency varies. Msg & data rates may apply. Reply STOP to opt out or HELP for help. Texts never include health information.'
 
 function Block({ title, children }) {
@@ -66,10 +66,10 @@ export default function SmsProgram() {
       <div className="max-w-4xl mx-auto px-6 py-12">
         <Block title="What these messages are">
           <p>ElderLoop is software that senior living communities use to run their community. Through ElderLoop, a community can send text messages to residents, family members, and staff who have agreed to receive them: event and activity reminders, dining changes, weather closures, maintenance notices, and other facility updates.</p>
-          <p>Each text names the staff member who sent it and ends with "via ElderLoop. Reply STOP to opt out." Texts are <strong>never marketing</strong> and <strong>never include health information</strong>.</p>
-          <p className="bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700">
+          <p>Each text starts with the community's name, names the staff member who sent it, and ends with "Sent by Loopware Solutions LLC. Reply STOP to opt out." Texts are <strong>never marketing</strong> and <strong>never include health information</strong>.</p>
+          <p className="bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 whitespace-pre-line">
             <span className="text-slate-400 text-xs block mb-1">Example</span>
-            Holiday Lunch: The dining room opens at 11:30 today for the holiday lunch. All residents and families welcome! — Jane Smith via ElderLoop. Reply STOP to opt out.
+            {'Sunrise Gardens: Holiday Lunch\n\nThe dining room opens at 11:30 today for the holiday lunch. All residents and families welcome!\n\n— Jane Smith, Sunrise Gardens.\nSent by Loopware Solutions LLC.\nReply STOP to opt out.'}
           </p>
         </Block>
 

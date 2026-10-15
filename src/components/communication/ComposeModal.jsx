@@ -193,9 +193,10 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
     return { yes: people.filter(canText).length, total: people.length }
   }
 
-  // The text adds "— Sender via ElderLoop. Reply STOP to opt out." after the subject and message
-  const smsLength = form.subject.length + form.body.length + 4 +
-    `— ${profile?.first_name || ''} ${profile?.last_name || ''} via ElderLoop. Reply STOP to opt out.`.length
+  // send-broadcast puts "Community: " before the subject and the signature after the message
+  const orgName = organization?.name || ''
+  const smsLength = `${orgName}: `.length + form.subject.length + form.body.length + 4 +
+    `— ${profile?.first_name || ''} ${profile?.last_name || ''}, ${orgName}.\nSent by Loopware Solutions LLC.\nReply STOP to opt out.`.length
   const smsSegments = smsLength <= 160 ? 1 : Math.ceil(smsLength / 153)
 
   function audienceSummary() {

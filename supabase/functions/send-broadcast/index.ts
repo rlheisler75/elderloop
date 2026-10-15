@@ -61,10 +61,11 @@ serve(async (req) => {
     // Plan gate: Starter orgs cannot send SMS
     const { data: org } = await supabase
       .from('organizations')
-      .select('plan')
+      .select('plan, name')
       .eq('id', msg.org_id)
       .single()
 
+    const orgName = org?.name || 'Your community'
     const channels = msg.channels || ['push']
     const smsBlocked = org?.plan === 'starter' && channels.includes('sms')
     const activeChannels = smsBlocked
@@ -235,7 +236,9 @@ serve(async (req) => {
           try {
             const smsBody = new URLSearchParams({
               From: TWILIO_FROM, To: r.to!,
-              Body: `${msg.subject}\n\n${msg.body}\n\n— ${senderName} via ElderLoop. Reply STOP to opt out.`
+              // Must match the sample on the Twilio toll-free verification and elderloop.xyz/sms:
+              // the community up front, the registered business (Loopware Solutions LLC) at the end.
+              Body: `${orgName}: ${msg.subject}\n\n${msg.body}\n\n— ${senderName}, ${orgName}.\nSent by Loopware Solutions LLC.\nReply STOP to opt out.`
             })
             const res = await fetch(
               `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_SID}/Messages.json`,
