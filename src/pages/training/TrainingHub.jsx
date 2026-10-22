@@ -1,13 +1,27 @@
 import { Link } from 'react-router-dom'
-import { Sparkles, HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays, Church, Megaphone, MessageSquare, Car, Building2, Package, ShieldCheck, Gauge, Laptop, Contact, Heart, AlertTriangle, CalendarClock, Users, Clock, ClipboardList } from 'lucide-react'
+import { Sparkles, HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays, Church, Megaphone, MessageSquare, Car, Building2, Package, ShieldCheck, Gauge, Laptop, Contact, Heart, AlertTriangle, CalendarClock, Users, Clock, ClipboardList, KeyRound, Settings } from 'lucide-react'
 
 const GUIDES = [
+  {
+    to: '/training/admin-setup',
+    icon: Settings,
+    title: 'Admin Setup',
+    desc: 'Setting up a community: Org Settings and modules, departments and pick lists, adding staff, Role Templates and View Only, Module Access exceptions, importing residents, billing and add-ons, and Celebrations.',
+    tag: '9 sections',
+  },
   {
     to: '/training/access',
     icon: ShieldCheck,
     title: 'Roles & Access',
     desc: 'The five access levels, who can do what in each module, the Administrator’s view-and-approve role and Emergency Edit, approvals, entered-in-error, and the Corporate Portal.',
     tag: '8 sections',
+  },
+  {
+    to: '/training/two-factor',
+    icon: KeyRound,
+    title: 'Two-Factor Sign-In',
+    desc: 'Who needs it, setting up an authenticator app, signing in with a code, changing or losing a phone, and how admins see status and reset it.',
+    tag: '5 sections',
   },
   {
     to: '/training/ai',
