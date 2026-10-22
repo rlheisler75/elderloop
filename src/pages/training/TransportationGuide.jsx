@@ -8,6 +8,7 @@ const NAV = [
   { id: 'day',        num: '03', label: 'Day View & Trip Log' },
   { id: 'list',       num: '04', label: 'All Trips' },
   { id: 'sheet',      num: '05', label: 'Trip Sheet' },
+  { id: 'requests',   num: '06', label: 'Ride Requests' },
 ]
 
 export default function TransportationGuide() {
@@ -17,8 +18,8 @@ export default function TransportationGuide() {
       <GuideMasthead
         eyebrow="ElderLoop Staff Training"
         title="Transportation"
-        dek="A working guide to medical transport scheduling — scheduling trips, logging what actually happened, and printing a driver's sheet for the day."
-        chips={['For: Transportation staff, Drivers, Supervisors', 'Where: Sidebar → Transportation', '5 sections']}
+        dek="A working guide to medical transport — scheduling trips, handling ride requests from Nursing and residents, logging what actually happened, and printing a driver's sheet for the day."
+        chips={['For: Transportation staff, Drivers, Nursing', 'Where: Sidebar → Transportation', '6 sections']}
       />
 
       <div className="max-w-5xl mx-auto px-6 grid md:grid-cols-[200px_minmax(0,1fr)] gap-10 py-4">
@@ -47,7 +48,7 @@ export default function TransportationGuide() {
               { k: 3, text: <>Fill in <b className="text-slate-900">Appointment Details</b> — type (Medical, Dental, Therapy, Vision, Lab/Tests), provider name, address, and phone.</> },
               { k: 4, text: <>Assign a <b className="text-slate-900">Driver</b> and <b className="text-slate-900">Vehicle</b> if you know them ahead of time — both can be added or changed later.</> },
             ]} />
-            <Tip>Only people in the Transportation department, at any level, schedule and change trips. That includes whoever supervises Transportation, even if their main job is in another department. Everyone else sees the calendar as view only and asks Transportation to book a ride. To give someone access, an Org Admin adds Transportation to their departments in Admin Panel → Users.</Tip>
+            <Tip>Only people in the Transportation department, at any level, schedule and change trips. That includes whoever supervises Transportation, even if their main job is in another department. Everyone else sees the calendar as view only. Nursing staff and IL residents send a ride request instead (see Ride Requests below). To give someone access, an Org Admin adds Transportation to their departments in Admin Panel → Users.</Tip>
           </SectionBlock>
 
           <SectionBlock id="day" num="03" title="Day View & Trip Log"
@@ -82,9 +83,28 @@ export default function TransportationGuide() {
             ]} />
           </SectionBlock>
 
+          <SectionBlock id="requests" num="06" title="Ride Requests"
+            dek="Nursing staff and IL residents ask for a ride; Transportation picks the pickup time and schedules it.">
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Asking for a ride</h3>
+            <Steps items={[
+              { k: 1, text: <><b className="text-slate-900">Nursing staff:</b> in Transportation, click <b className="text-slate-900">Request a Ride</b>. Choose the resident, the appointment date and time, the type, where it is, and any needs (wheelchair, walker, escort). Click <b className="text-slate-900">Send request</b>.</> },
+              { k: 2, text: <><b className="text-slate-900">IL residents:</b> in the resident portal, open <b className="text-slate-900">Rides → Request a Ride</b> and fill in the same details for themselves.</> },
+              { k: 3, text: <>Track it on the <b className="text-slate-900">Requests</b> tab (residents: <b className="text-slate-900">Rides → My requests</b>). It shows <b className="text-slate-900">Requested</b>, then <b className="text-slate-900">Scheduled</b> with the ride date and pickup time, or <b className="text-slate-900">Declined</b> with the reason. You can <b className="text-slate-900">Cancel request</b> while it's still waiting.</> },
+            ]} />
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Working the requests (Transportation)</h3>
+            <Steps items={[
+              { k: 1, text: <>A new request rings the bell for everyone in the Transportation department (Org Admins, if the department has nobody yet). The <b className="text-slate-900">Requests</b> tab shows how many are waiting.</> },
+              { k: 2, text: <>Click <b className="text-slate-900">Schedule</b>. The trip form opens filled in from the request; set the <b className="text-slate-900">Pickup</b> time, driver, and vehicle, and save. The request turns Scheduled and the nurse who asked gets a bell.</> },
+              { k: 3, text: <>Can't do it? Click <b className="text-slate-900">Decline</b> and give a reason. The requester sees it.</> },
+            ]} />
+            <Tip>Requests are never deleted. Nursing staff see every request filed by staff, so a nurse on the next shift can follow up. Residents see only their own requests and their own rides, never anyone else's.</Tip>
+          </SectionBlock>
+
           <QuickRefTable rows={[
             ['See every trip for a month at a glance', 'Month View'],
             ['Book a new medical transport', 'Schedule Trip'],
+            ['Ask Transportation for a ride (Nursing)', 'Request a Ride'],
+            ['Schedule or decline a ride request', 'Requests → Schedule / Decline'],
             ['Log actual pickup/return time and mileage', 'Open trip → Status → In Progress/Completed'],
             ['Find a specific past or future trip', 'All Trips → search'],
             ['Print a driver roster for the day', 'Day View → Trip Sheet → Print Sheet'],

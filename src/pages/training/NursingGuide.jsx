@@ -83,6 +83,7 @@ export default function NursingGuide() {
             ['Document an observation from this shift', 'Select resident → Notes → Add Care Note'],
             ['Put something in front of a supervisor', 'Add Care Note → Flag for supervisor review'],
             ['See how busy the floor has been today', 'Stat tiles above the resident list'],
+            ['Get a resident a ride to an appointment', 'Transportation → Request a Ride'],
           ]} />
 
           <GuideFooter label="Nursing Notes Module" />

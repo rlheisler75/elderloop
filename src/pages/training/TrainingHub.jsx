@@ -104,8 +104,8 @@ const GUIDES = [
     to: '/training/transportation',
     icon: Car,
     title: 'Transportation',
-    desc: 'Medical transport scheduling by month or day, the trip log for actual times and mileage, and printing a daily driver trip sheet.',
-    tag: '5 sections',
+    desc: 'Medical transport scheduling by month or day, ride requests from Nursing and IL residents, the trip log for actual times and mileage, and printing a daily driver trip sheet.',
+    tag: '6 sections',
   },
   {
     to: '/training/property-management',
