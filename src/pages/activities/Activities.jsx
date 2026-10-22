@@ -736,6 +736,9 @@ export default function Activities() {
   const canEditActivities = tierAccess.tiered ? tierAccess.atLeast('supervisor') : legacyCanEdit
   const canTakeAttendance = tierAccess.tiered ? tierAccess.member : legacyCanEdit
   const canDeleteActivities = tierAccess.tiered ? tierAccess.atLeast('manager') : legacyCanEdit
+  // Participation reports: Activities department (any level) plus the Administrator,
+  // Org Admins, and super admins — hasDepartmentAccess passes all three
+  const canSeeReports = hasDepartmentAccess('activities', 'employee')
   const [activities, setActivities] = useState([])
   const [loading, setLoading]       = useState(true)
   const [view, setView]             = useState('calendar') // 'calendar' | 'list'
@@ -881,10 +884,12 @@ export default function Activities() {
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${view === 'list' ? 'bg-white dark:bg-slate-900 text-brand-700 shadow-sm' : 'text-slate-500'}`}>
             <List size={14} /> Upcoming
           </button>
-          <button onClick={() => setView('reports')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${view === 'reports' ? 'bg-white dark:bg-slate-900 text-brand-700 shadow-sm' : 'text-slate-500'}`}>
-            <BarChart3 size={14} /> Reports
-          </button>
+          {canSeeReports && (
+            <button onClick={() => setView('reports')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${view === 'reports' ? 'bg-white dark:bg-slate-900 text-brand-700 shadow-sm' : 'text-slate-500'}`}>
+              <BarChart3 size={14} /> Reports
+            </button>
+          )}
         </div>
 
         {/* Category filter */}
@@ -948,7 +953,7 @@ export default function Activities() {
       )}
 
       {/* REPORTS VIEW */}
-      {view === 'reports' && (
+      {view === 'reports' && canSeeReports && (
         <ParticipationReport orgId={organization.id} />
       )}
 
