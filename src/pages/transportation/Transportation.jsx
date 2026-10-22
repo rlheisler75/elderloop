@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { TRANSPORTATION_STATE_REFS } from '../../lib/transportationStateRefs'
 import RegRefBanner from '../../components/ui/RegRefBanner'
+import { TripRequestModal, TripRequestList } from '../../components/transportation/TripRequests'
 
 // ── Constants ─────────────────────────────────────────────────
 const TRIP_STATUSES = [
@@ -224,7 +225,7 @@ function ResidentLookup({ residents, value, onChange }) {
     const name = `${r.first_name} ${r.last_name}`
     setSearch(name)
     setOpen(false)
-    onChange(name, r.room || '', r.phone || '')
+    onChange(name, r.room || '', r.phone || '', r.id)
   }
 
   return (
@@ -233,7 +234,7 @@ function ResidentLookup({ residents, value, onChange }) {
         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
         <input
           value={search}
-          onChange={e => { setSearch(e.target.value); setOpen(true); onChange(e.target.value, '', '') }}
+          onChange={e => { setSearch(e.target.value); setOpen(true); onChange(e.target.value, '', '', null) }}
           onFocus={() => setOpen(true)}
           onBlur={() => setTimeout(() => setOpen(false), 150)}
           placeholder="Search resident by name or room *"
@@ -327,21 +328,25 @@ function TripMonthCalendar({ trips, year, month, onDayClick, onTripClick }) {
   )
 }
 
-function TripModal({ trip, vehicles, residents, defaultDate, readOnly = false, onClose, onSave }) {
+// fromRequest: a pending trip_requests row to schedule; the form starts from it and
+// the request is marked scheduled once the trip is saved.
+function TripModal({ trip, fromRequest, vehicles, residents, defaultDate, readOnly = false, onClose, onSave }) {
   const { profile } = useAuth()
   const isNew = !trip
+  const src = trip || fromRequest
   const [form, setForm] = useState({
-    resident_name:    trip?.resident_name    || '',
-    unit:             trip?.unit             || '',
-    phone:            trip?.phone            || '',
-    trip_date:        trip?.trip_date        || defaultDate || today(),
+    resident_id:      src?.resident_id      || null,
+    resident_name:    src?.resident_name    || '',
+    unit:             src?.unit             || '',
+    phone:            trip?.phone            || residents.find(r => r.id === fromRequest?.resident_id)?.phone || '',
+    trip_date:        trip?.trip_date        || fromRequest?.appointment_date || defaultDate || today(),
     pickup_time:      trip?.pickup_time      || '',
     return_time:      trip?.return_time      || '',
-    appointment_type: trip?.appointment_type || 'medical',
-    provider_name:    trip?.provider_name    || '',
-    provider_address: trip?.provider_address || '',
-    provider_phone:   trip?.provider_phone   || '',
-    appointment_time: trip?.appointment_time || '',
+    appointment_type: src?.appointment_type || 'medical',
+    provider_name:    src?.provider_name    || '',
+    provider_address: src?.provider_address || '',
+    provider_phone:   src?.provider_phone   || '',
+    appointment_time: src?.appointment_time || '',
     driver_name:      trip?.driver_name      || '',
     vehicle_id:       trip?.vehicle_id       || '',
     status:           trip?.status           || 'scheduled',
@@ -349,7 +354,7 @@ function TripModal({ trip, vehicles, residents, defaultDate, readOnly = false, o
     actual_return:    trip?.actual_return    || '',
     mileage_start:    trip?.mileage_start    || '',
     mileage_end:      trip?.mileage_end      || '',
-    notes:            trip?.notes            || '',
+    notes:            trip?.notes            || [fromRequest?.needs && `Needs: ${fromRequest.needs}`, fromRequest?.notes].filter(Boolean).join('\n'),
   })
   const [saving, setSaving] = useState(false)
   const [error, setError]   = useState('')
@@ -373,13 +378,19 @@ function TripModal({ trip, vehicles, residents, defaultDate, readOnly = false, o
       appointment_time: form.appointment_time || null,
       updated_at: new Date().toISOString(),
     }
-    let err
+    let err, created
     if (trip?.id) {
       ({ error: err } = await supabase.from('trips').update(payload).eq('id', trip.id))
     } else {
-      ({ error: err } = await supabase.from('trips').insert(payload))
+      ({ data: created, error: err } = await supabase.from('trips').insert(payload).select('id').single())
     }
     if (err) { setError(err.message); setSaving(false); return }
+    if (fromRequest && created) {
+      const { error: reqErr } = await supabase.from('trip_requests').update({
+        status: 'scheduled', trip_id: created.id, scheduled_date: form.trip_date, scheduled_pickup: form.pickup_time,
+      }).eq('id', fromRequest.id)
+      if (reqErr) { setError(`Trip saved, but the request wasn't updated: ${reqErr.message}`); setSaving(false); return }
+    }
     onSave()
   }
 
@@ -392,7 +403,7 @@ function TripModal({ trip, vehicles, residents, defaultDate, readOnly = false, o
           <div className="flex items-center gap-3">
             <Car size={18} className="text-brand-600" />
             <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">
-              {isNew ? 'Schedule Trip' : `Edit Trip — ${trip.resident_name}`}
+              {isNew ? (fromRequest ? 'Schedule Requested Trip' : 'Schedule Trip') : `Edit Trip — ${trip.resident_name}`}
             </h2>
             {!isNew && <StatusBadge status={form.status} />}
           </div>
@@ -408,7 +419,7 @@ function TripModal({ trip, vehicles, residents, defaultDate, readOnly = false, o
             <ResidentLookup
               residents={residents}
               value={form.resident_name}
-              onChange={(name, unit, phone) => { set('resident_name', name); set('unit', unit || ''); set('phone', phone || '') }}
+              onChange={(name, unit, phone, id) => { set('resident_name', name); set('unit', unit || ''); set('phone', phone || ''); set('resident_id', id || null) }}
             />
             <input value={form.phone} onChange={e => set('phone', e.target.value)}
               className="w-full mt-2 px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
@@ -538,7 +549,7 @@ function TripModal({ trip, vehicles, residents, defaultDate, readOnly = false, o
         </div>
 
         <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
-          {readOnly && <span className="mr-auto self-center text-xs text-slate-400">Only Transportation staff or the person who scheduled this trip can change it.</span>}
+          {readOnly && <span className="mr-auto self-center text-xs text-slate-400">View only. Transportation staff schedule and change trips.</span>}
           <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">{readOnly ? 'Close' : 'Cancel'}</button>
           {!readOnly && (
             <button onClick={handleSave} disabled={saving}
@@ -554,12 +565,22 @@ function TripModal({ trip, vehicles, residents, defaultDate, readOnly = false, o
 
 // ── Main Transportation Page ───────────────────────────────────
 export default function Transportation() {
-  const { profile, organization } = useAuth()
-  // Tiered communities: anyone schedules a trip; Transportation staff (or whoever
-  // scheduled it) change it; only the Transportation Manager deletes
+  const { profile, organization, canEdit, isViewOnly } = useAuth()
+  // Tiered communities: everyone views trips; only people in the Transportation
+  // department (any level) schedule and change them; only the Transportation
+  // Manager deletes. The NHA writes only under Emergency Edit (nha_write_guard).
   const tierAccess = useTierAccess('transportation')
-  const canEditTrip = (t) => !t || tierAccess.member || t.scheduled_by === profile?.id
+  const canWrite = tierAccess.member && !isViewOnly('transportation')
+    && (profile?.role !== 'ceo' || canEdit('transportation'))
+  const canEditTrip = () => canWrite
   const canDeleteTrips = tierAccess.atLeast('manager')
+  // Trip requests: Nursing staff ask for a ride, Transportation schedules it
+  // (trip_can_request() / trip_can_schedule() in 20261022_trip_requests.sql)
+  const nursingAccess = useTierAccess('nursing')
+  const canRequest = !canWrite && nursingAccess.tiered && nursingAccess.member
+  const [requests, setRequests]   = useState([])
+  const [showRequest, setShowRequest] = useState(false)
+  const [fromRequest, setFromRequest] = useState(null)
   const [trips, setTrips]         = useState([])
   const [vehicles, setVehicles]   = useState([])
   const [residents, setResidents] = useState([])
@@ -578,7 +599,7 @@ export default function Transportation() {
 
   async function fetchAll() {
     setLoading(true)
-    const [tripsRes, vehiclesRes, resRes] = await Promise.all([
+    const [tripsRes, vehiclesRes, resRes, reqRes] = await Promise.all([
       supabase.from('trips').select('*')
         .eq('organization_id', organization.id)
         .order('trip_date', { ascending: true })
@@ -589,16 +610,24 @@ export default function Transportation() {
       supabase.from('residents').select('id,first_name,last_name,room,phone')
         .eq('organization_id', organization.id)
         .eq('is_active', true).order('last_name'),
+      // RLS: Transportation sees every request; Nursing sees staff requests; others their own
+      supabase.from('trip_requests').select('*')
+        .eq('organization_id', organization.id)
+        .order('appointment_date', { ascending: true }).limit(200),
     ])
+    setRequests(reqRes.data || [])
     setTrips(tripsRes.data || [])
     setResidents(resRes.data || [])
     setVehicles(vehiclesRes.data || [])
     setLoading(false)
   }
 
-  const handleEdit  = (t) => { setEditTrip(t); setShowModal(true) }
-  const handleNew   = () => { setEditTrip(null); setShowModal(true) }
-  const handleSave  = () => { setShowModal(false); fetchAll() }
+  const handleEdit  = (t) => { setEditTrip(t); setFromRequest(null); setShowModal(true) }
+  const handleNew   = () => { setEditTrip(null); setFromRequest(null); setShowModal(true) }
+  const handleSave  = () => { setShowModal(false); setFromRequest(null); fetchAll() }
+  const handleScheduleRequest = (r) => { setEditTrip(null); setFromRequest(r); setShowModal(true) }
+  const pendingRequests = requests.filter(r => r.status === 'pending').length
+  const showRequestsTab = canWrite || canRequest || requests.length > 0
 
   const handleDelete = async (id) => {
     if (!confirm('Delete this trip?')) return
@@ -648,10 +677,18 @@ export default function Transportation() {
             className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 rounded-xl text-xs sm:text-sm font-medium transition-colors">
             <Printer size={15} /> Trip Sheet
           </button>
-          <button onClick={handleNew}
-            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs sm:text-sm font-medium transition-colors">
-            <Plus size={15} /> Schedule Trip
-          </button>
+          {canRequest && (
+            <button onClick={() => setShowRequest(true)}
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs sm:text-sm font-medium transition-colors">
+              <Plus size={15} /> Request a Ride
+            </button>
+          )}
+          {canWrite && (
+            <button onClick={handleNew}
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs sm:text-sm font-medium transition-colors">
+              <Plus size={15} /> Schedule Trip
+            </button>
+          )}
         </div>
       </div>
 
@@ -707,8 +744,25 @@ export default function Transportation() {
             className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${view === 'list' ? 'bg-white dark:bg-slate-900 text-brand-700 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}>
             All Trips
           </button>
+          {showRequestsTab && (
+            <button onClick={() => setView('requests')}
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${view === 'requests' ? 'bg-white dark:bg-slate-900 text-brand-700 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}>
+              Requests
+              {pendingRequests > 0 && <span className="text-[10px] font-bold bg-amber-500 text-white rounded-full px-1.5 py-0.5">{pendingRequests}</span>}
+            </button>
+          )}
         </div>
       </div>
+
+      {/* REQUESTS */}
+      {view === 'requests' && (
+        <TripRequestList
+          requests={[...requests].sort((a, b) => (a.status === 'pending' ? 0 : 1) - (b.status === 'pending' ? 0 : 1))}
+          canSchedule={canWrite}
+          onSchedule={handleScheduleRequest}
+          onChanged={fetchAll}
+          emptyText={canWrite ? 'No ride requests yet.' : 'You have no ride requests.'} />
+      )}
 
       {/* MONTH VIEW */}
       {view === 'month' && (
@@ -730,7 +784,7 @@ export default function Transportation() {
             trips={trips}
             year={calYear}
             month={calMonth}
-            onDayClick={(date) => { setSelectedDate(date); setEditTrip(null); setShowModal(true) }}
+            onDayClick={(date) => { if (!canWrite) return; setSelectedDate(date); setEditTrip(null); setShowModal(true) }}
             onTripClick={(trip) => { setEditTrip(trip); setShowModal(true) }}
           />
         </>
@@ -912,10 +966,14 @@ export default function Transportation() {
 
       {/* Modals */}
       {showModal && (
-        <TripModal trip={editTrip} vehicles={vehicles} residents={residents}
+        <TripModal trip={editTrip} fromRequest={fromRequest} vehicles={vehicles} residents={residents}
           defaultDate={!editTrip ? selectedDate : undefined}
           readOnly={!canEditTrip(editTrip)}
-          onClose={() => setShowModal(false)} onSave={handleSave} />
+          onClose={() => { setShowModal(false); setFromRequest(null) }} onSave={handleSave} />
+      )}
+      {showRequest && (
+        <TripRequestModal residents={residents} onClose={() => setShowRequest(false)}
+          onSaved={() => { setShowRequest(false); setView('requests'); fetchAll() }} />
       )}
       {showPrint && (
         <TripSheetPrint allTrips={trips} defaultDate={selectedDate}

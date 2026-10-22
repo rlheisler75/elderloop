@@ -10,6 +10,7 @@ const NAV = [
   { id: 'pos',       num: '05', label: 'Purchase Orders' },
   { id: 'vendors',   num: '06', label: 'Vendors' },
   { id: 'reports',   num: '07', label: 'Reports' },
+  { id: 'charges',   num: '08', label: 'Resident Charges' },
 ]
 
 export default function SupplyGuide() {
@@ -88,6 +89,15 @@ export default function SupplyGuide() {
               { k: 3, text: <>Open a submitted PO and use <b className="text-slate-900">Receive All</b>, or receive lines one at a time as shipments arrive partially.</> },
               { k: 4, text: <>Made a mistake receiving? Use <b className="text-slate-900">Reverse</b> on a line to undo it — this backs the quantity back out of inventory.</> },
             ]} />
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Approval</h3>
+            <p className="text-[15px] text-slate-700 mb-6">An order whose lines plus shipping go over the community's approval limit ($1,000 unless your Org Admin changed it in Org Settings) goes to <b className="text-slate-900">Awaiting Approval</b> when you submit it. So does any order charged to a department that is already over its monthly budget. The Administrator or an Org Admin approves it or sends it back.</p>
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Sending it to the vendor</h3>
+            <Steps items={[
+              { k: 1, text: <>Open a submitted order. The <b className="text-slate-900">Send to vendor</b> panel shows <b className="text-slate-900">Not sent yet</b> until it goes out.</> },
+              { k: 2, text: <>Choose <b className="text-slate-900">Download CSV</b> or <b className="text-slate-900">Print / Save PDF</b> to send it yourself (vendor portal, fax), or enter the vendor's order email and click <b className="text-slate-900">Email order</b>. Tick <b className="text-slate-900">Copy me</b> to get a copy.</> },
+              { k: 3, text: <>Emailed orders come from ElderLoop with the CSV attached, and the vendor's replies go to you. Every send is listed under the panel, and the order then shows <b className="text-slate-900">Sent</b>.</> },
+            ]} />
+            <Tip>The order lists each item's <b className="text-slate-900">SKU / Item #</b> as the vendor's item code for the item's Preferred Vendor, so set it to the number that vendor uses.</Tip>
           </SectionBlock>
 
           <SectionBlock id="vendors" num="06" title="Vendors"
@@ -96,7 +106,8 @@ export default function SupplyGuide() {
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
             <Steps items={[
               { k: 1, text: <>Click <b className="text-slate-900">Add Vendor</b> and fill in name (the only required field), contact info, account number, and typical lead time in days.</> },
-              { k: 2, text: <>Mark a vendor inactive instead of deleting it if you stop ordering from them — inactive vendors hide from pickers but stay attached to past POs.</> },
+              { k: 2, text: <>Under <b className="text-slate-900">Ordering</b>, set the vendor's <b className="text-slate-900">Order email</b> (blank uses their main email) and <b className="text-slate-900">How orders are sent</b>: <b className="text-slate-900">Download or print, and send it myself</b>, or <b className="text-slate-900">Email from ElderLoop</b>.</> },
+              { k: 3, text: <>Mark a vendor inactive instead of deleting it if you stop ordering from them — inactive vendors hide from pickers but stay attached to past POs.</> },
             ]} />
           </SectionBlock>
 
@@ -112,6 +123,16 @@ export default function SupplyGuide() {
             ]} />
           </SectionBlock>
 
+          <SectionBlock id="charges" num="08" title="Resident Charges"
+            dek="Chargeable items issued to residents, so each one gets billed. Shown to the Central Supply Manager and Org Admins.">
+            <Steps items={[
+              { k: 1, text: <>Pick the month. <b className="text-slate-900">Not billed</b> shows what still needs billing; <b className="text-slate-900">All charges</b> shows everything.</> },
+              { k: 2, text: <>Bill them in your own billing system (ElderLoop doesn't keep resident accounts). <b className="text-slate-900">Export CSV</b> gives you the list.</> },
+              { k: 3, text: <>Tick what you billed, optionally add an invoice or batch number, and click <b className="text-slate-900">Mark billed</b>.</> },
+            ]} />
+            <p className="text-[15px] text-slate-700 mb-6"><b className="text-slate-900">Billable leakage</b> at the top shows chargeable items that were issued but never charged or not yet billed. Lines marked <b className="text-slate-900">No price</b> have no sale price; set one in Inventory. The <a href="/training/budgets" className="text-brand-700 font-semibold hover:underline">Budgets</a> guide explains how supply spending counts toward budgets.</p>
+          </SectionBlock>
+
           <QuickRefTable rows={[
             ['Add a new supply item', 'Inventory → Add Item'],
             ['Print shelf labels or resident ID badges', 'Inventory → Item Labels / Resident IDs'],
@@ -120,6 +141,8 @@ export default function SupplyGuide() {
             ['Ring up an employee purchase', 'Cash Sales'],
             ['Order more from a vendor', 'Purchase Orders → New PO'],
             ['See what needs reordering', 'Reports → Low Stock'],
+            ['Send an order to the vendor', 'Purchase Orders → open the order → Send to vendor'],
+            ['Bill resident supply charges', 'Resident Charges → Mark billed'],
           ]} />
 
           <GuideFooter label="Central Supply Module" />

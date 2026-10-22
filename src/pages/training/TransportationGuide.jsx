@@ -17,7 +17,7 @@ export default function TransportationGuide() {
       <GuideMasthead
         eyebrow="ElderLoop Staff Training"
         title="Transportation"
-        dek="A working guide to medical transport scheduling — booking trips, logging what actually happened, and printing a driver's sheet for the day."
+        dek="A working guide to medical transport scheduling — scheduling trips, logging what actually happened, and printing a driver's sheet for the day."
         chips={['For: Transportation staff, Drivers, Supervisors', 'Where: Sidebar → Transportation', '5 sections']}
       />
 
@@ -47,6 +47,7 @@ export default function TransportationGuide() {
               { k: 3, text: <>Fill in <b className="text-slate-900">Appointment Details</b> — type (Medical, Dental, Therapy, Vision, Lab/Tests), provider name, address, and phone.</> },
               { k: 4, text: <>Assign a <b className="text-slate-900">Driver</b> and <b className="text-slate-900">Vehicle</b> if you know them ahead of time — both can be added or changed later.</> },
             ]} />
+            <Tip>Only people in the Transportation department, at any level, schedule and change trips. That includes whoever supervises Transportation, even if their main job is in another department. Everyone else sees the calendar as view only and asks Transportation to book a ride. To give someone access, an Org Admin adds Transportation to their departments in Admin Panel → Users.</Tip>
           </SectionBlock>
 
           <SectionBlock id="day" num="03" title="Day View & Trip Log"

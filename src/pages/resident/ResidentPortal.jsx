@@ -11,8 +11,9 @@ import {
   CheckCircle2, AlertCircle, Activity, Send,
   ThumbsUp, ThumbsDown, Save, Home, Radio,
   Maximize, Star, Sun, Coffee, Soup, Cookie,
-  MapPin, User
+  MapPin, User, Car
 } from 'lucide-react'
+import { TripRequestModal, TripRequestList } from '../../components/transportation/TripRequests'
 import { daysUntil } from '../../lib/dates'
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -330,7 +331,7 @@ function DiningTab({ resident, orgId }) {
 
 // ── Main Resident Portal ──────────────────────────────────────
 export default function ResidentPortal() {
-  const { profile, organization, signOut } = useAuth()
+  const { profile, organization, orgModules, signOut } = useAuth()
   const navigate = useNavigate()
 
   const [resident, setResident]         = useState(null)
@@ -345,6 +346,12 @@ export default function ResidentPortal() {
   const [showWOModal, setShowWOModal]   = useState(false)
   const [showProfile, setShowProfile]   = useState(false)
   const [openWOs, setOpenWOs]           = useState(0)
+  // Rides: the resident's own trips and ride requests only (RLS portal_scope on
+  // trips / trip_requests, 20261022_trip_requests.sql)
+  const [myTrips, setMyTrips]           = useState([])
+  const [rideRequests, setRideRequests] = useState([])
+  const [showRideModal, setShowRideModal] = useState(false)
+  const hasRides = (orgModules || []).includes('transportation')
 
   const orgId = organization?.id || profile?.organization_id
 
@@ -383,6 +390,18 @@ export default function ResidentPortal() {
 
     const residentRecord = residentRes.data?.[0] || null
     setResident(residentRecord)
+
+    if (residentRecord) {
+      const [tripRes, reqRes] = await Promise.all([
+        supabase.from('trips').select('id,trip_date,pickup_time,return_time,appointment_type,provider_name,status')
+          .eq('resident_id', residentRecord.id).gte('trip_date', todayStr)
+          .order('trip_date').order('pickup_time').limit(20),
+        supabase.from('trip_requests').select('*')
+          .eq('requested_by', profile.id).order('requested_at', { ascending: false }).limit(20),
+      ])
+      setMyTrips(tripRes.data || [])
+      setRideRequests(reqRes.data || [])
+    }
     setAnnouncements(annRes.data || [])
     setActivities(actRes.data || [])
 
@@ -440,7 +459,8 @@ export default function ResidentPortal() {
     { key: 'dining',      label: 'Dining',       icon: UtensilsCrossed },
     { key: 'activities',  label: 'Activities',   icon: Calendar },
     { key: 'chapel',      label: 'Chapel',       icon: Church },
-  ]
+    hasRides && { key: 'rides', label: 'Rides',      icon: Car, badge: rideRequests.filter(r => r.status === 'pending').length },
+  ].filter(Boolean)
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
@@ -667,6 +687,49 @@ export default function ResidentPortal() {
               </div>
             )}
 
+            {/* ── RIDES ── */}
+            {tab === 'rides' && !resident && (
+              <div className="text-center py-16 text-slate-400">
+                <Car size={32} className="mx-auto mb-3 opacity-30" />
+                <p>Your resident record hasn't been linked yet. Please contact the front desk.</p>
+              </div>
+            )}
+            {tab === 'rides' && resident && (
+              <div className="space-y-4">
+                <button onClick={() => setShowRideModal(true)}
+                  className="w-full flex items-center justify-center gap-2 py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-2xl transition-colors">
+                  <Plus size={18} /> Request a Ride
+                </button>
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-2">My upcoming rides</h3>
+                  {myTrips.length === 0 ? (
+                    <div className="text-center py-8 text-slate-400 text-sm bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">No rides scheduled.</div>
+                  ) : (
+                    <div className="space-y-2">
+                      {myTrips.map(t => (
+                        <div key={t.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-4 flex items-start gap-3">
+                          <div className="w-9 h-9 bg-blue-50 dark:bg-blue-950/50 rounded-xl flex items-center justify-center flex-shrink-0"><Car size={16} className="text-blue-600" /></div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-slate-800 dark:text-slate-100 text-sm">
+                              {new Date(t.trip_date + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
+                            </p>
+                            <p className="text-xs text-slate-500 mt-0.5">
+                              Pickup {t.pickup_time?.slice(0, 5)}{t.provider_name ? ` · ${t.provider_name}` : ''}
+                              {t.status !== 'scheduled' ? ` · ${t.status.replace('_', ' ')}` : ''}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-2">My requests</h3>
+                  <TripRequestList requests={rideRequests} onChanged={fetchAll} emptyText="No ride requests yet." />
+                </div>
+              </div>
+            )}
+
             {/* ── DINING ── */}
             {tab === 'dining' && resident && <DiningTab resident={resident} orgId={orgId} />}
             {tab === 'dining' && !resident && (
@@ -829,6 +892,10 @@ export default function ResidentPortal() {
       </div>
 
       {/* Maintenance modal */}
+      {showRideModal && resident && (
+        <TripRequestModal resident={resident} onClose={() => setShowRideModal(false)}
+          onSaved={() => { setShowRideModal(false); fetchAll() }} />
+      )}
       {showWOModal && resident && (
         <MaintenanceModal
           resident={resident}

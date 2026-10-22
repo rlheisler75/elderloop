@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Sparkles, HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays, Church, Megaphone, MessageSquare, Car, Building2, Package, ShieldCheck, Gauge, Laptop, Contact, Heart, AlertTriangle, CalendarClock, Users, Clock, ClipboardList, KeyRound, Settings } from 'lucide-react'
+import { Sparkles, HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays, Church, Megaphone, MessageSquare, Car, Building2, Package, ShieldCheck, Gauge, Laptop, Contact, Heart, AlertTriangle, CalendarClock, Users, Clock, ClipboardList, KeyRound, Settings, Wallet } from 'lucide-react'
 
 const GUIDES = [
   {
@@ -22,6 +22,13 @@ const GUIDES = [
     title: 'Two-Factor Sign-In',
     desc: 'Who needs it, setting up an authenticator app, signing in with a code, changing or losing a phone, and how admins see status and reset it.',
     tag: '5 sections',
+  },
+  {
+    to: '/training/budgets',
+    icon: Wallet,
+    title: 'Budgets',
+    desc: 'Setting monthly budgets, reading spent vs. projected, alerts and over-budget approvals, keeping spend accurate, off-system purchases and census, food cost per resident day, maintenance costs, linen, and resident charges.',
+    tag: '8 sections',
   },
   {
     to: '/training/ai',
@@ -111,8 +118,8 @@ const GUIDES = [
     to: '/training/central-supply',
     icon: Package,
     title: 'Central Supply',
-    desc: 'The supply catalog, receiving stock, issuing to departments or residents, cash sales, purchase orders, vendors, and usage reports.',
-    tag: '7 sections',
+    desc: 'The supply catalog, receiving stock, issuing to departments or residents, cash sales, purchase orders with approval and sending to vendors, vendors, usage reports, and billing resident charges.',
+    tag: '8 sections',
   },
   {
     to: '/training/security',

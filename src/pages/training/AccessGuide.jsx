@@ -25,7 +25,7 @@ const MODULE_ROWS = [
   ['Nursing', 'Notes and vitals under your name', 'Correct any note', 'Medication lists (DON)'],
   ['Incidents', 'File and see your own reports', 'See and investigate every report', 'Close: NHA or Org Admin'],
   ['Activities & Chapel', 'Take attendance', 'Run the calendar and services', 'Deletes'],
-  ['Transportation', 'Work trips (anyone can book one)', 'Same as staff', 'Delete trips, vehicles'],
+  ['Transportation', 'Schedule, drive, and log trips (view only for everyone else)', 'Same as staff', 'Delete trips, vehicles'],
   ['Security', 'Rounds, check-ins, reports', 'Guard schedules, review reports', 'Checkpoints'],
   ['IT', 'Work the ticket queue, update assets', 'Same as staff', 'Add assets, licenses and costs'],
   ['Meters', 'Record readings', 'Same as staff', 'Meters and utility rates'],
@@ -84,7 +84,7 @@ export default function AccessGuide() {
                 </tbody>
               </table>
             </div>
-            <Tip>Security, Marketing, Property, and Meters only appear in the sidebar for people in those departments. Everyone can still file an IT ticket, book a trip, and submit a work order.</Tip>
+            <Tip>Security, Marketing, Property, and Meters only appear in the sidebar for people in those departments. Everyone can still file an IT ticket and submit a work order. Transportation trips are view only outside the Transportation department.</Tip>
           </SectionBlock>
 
           <SectionBlock id="nha" num="03" title="The Administrator"

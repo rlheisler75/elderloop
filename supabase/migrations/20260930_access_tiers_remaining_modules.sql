@@ -49,7 +49,8 @@ declare
     ['activities',          null, $$t_at_least('activities','supervisor')$$, $$t_at_least('activities','supervisor')$$, $$t_at_least('activities','manager')$$],
     ['activity_attendance', null, $$t_member('activities')$$,                $$t_member('activities')$$,                $$t_at_least('activities','supervisor')$$],
     ['chapel_services',     null, $$t_at_least('chapel','supervisor')$$,     $$t_at_least('chapel','supervisor')$$,     $$t_at_least('chapel','manager')$$],
-    -- Transportation: anyone may schedule a trip; drivers/dispatch work them;
+    -- Transportation (superseded by 20261022_trips_transportation_only.sql: only the
+    -- Transportation department schedules or changes trips): anyone may schedule a trip; drivers/dispatch work them;
     -- the scheduler can still edit their own request; vehicles are the Manager's
     ['trips',    null, null, $$t_member('transportation') or scheduled_by = auth.uid()$$, $$t_at_least('transportation','manager')$$],
     ['vehicles', null, $$t_at_least('transportation','manager')$$, $$t_at_least('transportation','manager')$$, $$t_at_least('transportation','manager')$$],
