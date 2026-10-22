@@ -18,12 +18,19 @@ import { useAuth } from '../context/AuthContext'
 //               supply_can_order() (20261004_vendor_ordering.sql): whoever manages
 //               purchase orders, Org Admins, and the Administrator only in legacy communities.
 export function useSupplyAccess() {
-  const { accessModel, tierFor, canEdit, hasDepartmentAccess, hasAnyDepartmentLevel, profile, isSuperAdmin, departmentRoles } = useAuth()
+  const { accessModel, tierFor, canEdit, isViewOnly, hasDepartmentAccess, hasAnyDepartmentLevel, profile, isSuperAdmin, departmentRoles } = useAuth()
 
   const role = isSuperAdmin ? 'super_admin' : profile?.role
   const csManager = (departmentRoles || []).some(d => d.department === 'central_supply' && d.level === 'manager')
   const canBill = ['org_admin', 'super_admin'].includes(role) || (role === 'ceo' && accessModel !== 'tiered') || csManager
   const canSeeCharges = canBill || role === 'ceo'
+
+  // Role Template set to View (outside Central Supply): read only, costs still shown
+  // to whoever would normally see them. role_view_only_guard enforces it.
+  if (isViewOnly('central_supply')) {
+    const showCosts = accessModel !== 'tiered' || ['manager', 'administrator', 'org_admin', 'super_admin'].includes(tierFor('central_supply'))
+    return { canWork: false, canManage: false, showCosts, canBill: false, canSeeCharges, canOrder: false }
+  }
 
   if (accessModel !== 'tiered') {
     const canWork = canEdit('central_supply', ['supervisor', 'manager'])

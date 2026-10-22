@@ -10,6 +10,7 @@ import {
 import { useState, useEffect, useRef } from 'react'
 import { Bell } from 'lucide-react'
 import { ShoppingBag } from 'lucide-react'
+import { Eye } from 'lucide-react'
 import { getOrgDepartments, STAFF_LEVELS, LEVEL_RANK } from '../../lib/departments'
 import EmergencyEditBar from './EmergencyEditBar'
 import ErrorBoundary from '../ErrorBoundary'
@@ -83,8 +84,12 @@ const NAV_GROUPS = [
 ]
 
 export default function Layout() {
-  const { profile, organization, hasModule, isOrgAdmin, isSuperAdmin, signOut, impersonating, exitImpersonation, departmentRoles, accessModel, tierFor, hasDepartmentAccess } = useAuth()
+  const { profile, organization, hasModule, isOrgAdmin, isSuperAdmin, signOut, impersonating, exitImpersonation, departmentRoles, accessModel, tierFor, hasDepartmentAccess, isViewOnly } = useAuth()
   const location = useLocation()
+  // Module of the page being shown, for the "View only" bar (Role Template set to View)
+  const currentModule = NAV_GROUPS.flatMap(g => g.items)
+    .find(item => item.module && (location.pathname === item.to || location.pathname.startsWith(item.to + '/')))?.module
+  const viewOnlyHere = !!currentModule && isViewOnly(currentModule)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [notifs, setNotifs]       = useState([])
   const [showNotifs, setShowNotifs] = useState(false)
@@ -345,6 +350,12 @@ export default function Layout() {
           </div>
         )}
         <EmergencyEditBar />
+        {viewOnlyHere && (
+          <div className="flex items-center gap-3 px-6 py-1.5 bg-slate-100 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs">
+            <Eye size={14} className="flex-shrink-0" />
+            <span>View only: you can see this module but not make changes. Ask your Org Admin if you need edit access.</span>
+          </div>
+        )}
         <main className="flex-1 overflow-y-auto p-6"><ErrorBoundary key={location.pathname}><Outlet /></ErrorBoundary></main>
       </div>
     </div>

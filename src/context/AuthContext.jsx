@@ -3,11 +3,23 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useSessionTimeout } from '../hooks/useSessionTimeout'
 import SessionTimeoutModal from '../components/SessionTimeoutModal'
-import { tierFor as tierForProfile, NHA_WRITABLE_MODULES } from '../lib/accessTiers'
+import { tierFor as tierForProfile, NHA_WRITABLE_MODULES, MODULE_DEPARTMENTS } from '../lib/accessTiers'
 import { BUDGET_DEPARTMENT_KEYS } from '../lib/budgets'
 import { resolveAccent, DEFAULT_CELEBRATIONS } from '../lib/appreciationWeeks'
 
 const AuthContext = createContext({})
+
+// Modules that are automatically visible to certain roles
+// without needing a user_module_permissions row.
+// Format: module_key -> minimum roles that get it by default
+// (also read by Admin Panel → Module Access by User to show the role default)
+export const ROLE_MODULE_DEFAULTS = {
+  // Surveys: supervisor+ see the module; staff take via public link only
+  surveys:    ['supervisor', 'manager', 'ceo', 'org_admin', 'super_admin'],
+  // Incidents: all filing-eligible roles see their own reports
+  incidents:  ['staff', 'dietary', 'housekeeping', 'maintenance', 'nursing',
+               'supervisor', 'manager', 'ceo', 'org_admin', 'super_admin'],
+}
 
 export function AuthProvider({ children }) {
   const [user, setUser]               = useState(null)
@@ -16,6 +28,7 @@ export function AuthProvider({ children }) {
   const [orgModules, setOrgModules]   = useState([])
   const [userPerms, setUserPerms]     = useState([])
   const [roleVisibility, setRoleVisibility] = useState([])
+  const [roleViewOnly, setRoleViewOnly]     = useState([]) // Role Template modules set to View
   const [departmentRoles, setDepartmentRoles] = useState([]) // [{ department, level }] for the current user
   const [superAdmin, setSuperAdmin]   = useState(false)
    const [loading, setLoading]         = useState(true)
@@ -61,7 +74,7 @@ export function AuthProvider({ children }) {
       }
       else {
         setProfile(null); setOrg(null); setOrgModules([]); setMfaStep(null); setMfaStatus(null)
-        setUserPerms([]); setRoleVisibility([]); setSuperAdmin(false); setLoading(false)
+        setUserPerms([]); setRoleVisibility([]); setRoleViewOnly([]); setSuperAdmin(false); setLoading(false)
       }
     })
     return () => subscription.unsubscribe()
@@ -149,7 +162,7 @@ export function AuthProvider({ children }) {
             .eq('organization_id', orgIdToLoad),
           supabase.from('user_module_permissions').select('module_key, access_level')
             .eq('user_id', userId),
-          supabase.from('role_module_visibility').select('module_key')
+          supabase.from('role_module_visibility').select('module_key, access_level')
             .eq('organization_id', orgIdToLoad).eq('role', prof?.role),
           supabase.from('staff_department_roles').select('department, level')
             .eq('profile_id', userId),
@@ -168,6 +181,7 @@ export function AuthProvider({ children }) {
         setOrgModules(modsRes.data?.filter(m => m.is_enabled !== false).map(m => m.module_key) || [])
         setUserPerms(permsRes.data || [])
         setRoleVisibility(roleVisRes.data?.map(r => r.module_key) || [])
+        setRoleViewOnly(roleVisRes.data?.filter(r => r.access_level === 'view').map(r => r.module_key) || [])
         setDepartmentRoles(deptRolesRes.data || [])
         if (storedOrgId) setImpersonating(true)
       }
@@ -183,17 +197,6 @@ export function AuthProvider({ children }) {
     enabled: !!user,
     onTimeout: () => navigate('/login?reason=timeout'),
   })
-
-    // Modules that are automatically visible to certain roles
-  // without needing a user_module_permissions row.
-  // Format: module_key -> minimum roles that get it by default
-  const ROLE_MODULE_DEFAULTS = {
-    // Surveys: supervisor+ see the module; staff take via public link only
-    surveys:    ['supervisor', 'manager', 'ceo', 'org_admin', 'super_admin'],
-    // Incidents: all filing-eligible roles see their own reports
-    incidents:  ['staff', 'dietary', 'housekeeping', 'maintenance', 'nursing',
-                 'supervisor', 'manager', 'ceo', 'org_admin', 'super_admin'],
-  }
 
   // Same defaults as ROLE_MODULE_DEFAULTS, but expressed as a minimum
   // department+level rank instead of a literal legacy role string — so
@@ -221,6 +224,10 @@ export function AuthProvider({ children }) {
     if (!orgModules.includes(key)) return false
     // org_admin, ceo, super_admin always have full access
     if (['org_admin','ceo','super_admin'].includes(profile?.role) || superAdmin) return true
+    // An explicit per-user setting (Admin Panel → Module Access by User) beats every
+    // default below — 'none' hides the module even when the Role Template grants it.
+    const perm = userPerms.find(p => p.module_key === key)
+    if (perm) return perm.access_level !== 'none'
     // Role-based defaults: some modules auto-grant to specific roles
     if (ROLE_MODULE_DEFAULTS[key]?.includes(profile?.role)) return true
     // Department+level equivalent of the above, for reassigned accounts
@@ -228,10 +235,8 @@ export function AuthProvider({ children }) {
     // Budgets: Managers of the budget departments (mirrors can_see_budget() in the database)
     if (key === 'budgets' && departmentRoles.some(d => d.level === 'manager' && BUDGET_DEPARTMENT_KEYS.includes(d.department))) return true
     // Org-configurable role defaults (Admin Panel → Role Templates) — a sensible
-    // starting baseline per role, editable per org. Explicit grants below still win.
-    if (roleVisibility.includes(key)) return true
-    // Otherwise fall back to explicit user_module_permissions
-    return userPerms.some(p => p.module_key === key)
+    // starting baseline per role, editable per org.
+    return roleVisibility.includes(key)
   }
 
   // canEdit(key, defaultRoles?) — explicit user_module_permissions always wins.
@@ -248,7 +253,22 @@ export function AuthProvider({ children }) {
     if (['org_admin','ceo','super_admin'].includes(profile?.role) || superAdmin) return true
     const perm = userPerms.find(p => p.module_key === key)
     if (perm) return perm.access_level === 'edit'
+    if (isViewOnly(key)) return false
     return defaultRoles.includes(profile?.role)
+  }
+
+  // isViewOnly(key) — read only in this module: a per-user View row, or a Role
+  // Template set to View outside the person's own department (a per-user Edit row
+  // overrides it). The template rule is enforced by role_view_only_guard in the
+  // database (20261021_role_template_view_only.sql); module → department is
+  // MODULE_DEPARTMENTS / module_department().
+  function isViewOnly(key) {
+    if (['org_admin','ceo','super_admin'].includes(profile?.role) || superAdmin) return false
+    const perm = userPerms.find(p => p.module_key === key)
+    if (perm) return perm.access_level === 'view'
+    if (!roleViewOnly.includes(key)) return false
+    const dept = MODULE_DEPARTMENTS[key]
+    return !(dept && (profile?.department === dept || departmentRoles.some(d => d.department === dept)))
   }
 
   // hasDepartmentAccess(dept, minLevel) — for the "everyone can submit, only the
@@ -368,7 +388,7 @@ export function AuthProvider({ children }) {
   return (
       <AuthContext.Provider value={{
       user, profile, organization, orgModules, userPerms,
-      loading, suspended, hasModule, canEdit, accessibleModules,
+      loading, suspended, hasModule, canEdit, isViewOnly, accessibleModules,
       isOrgAdmin, isSuperAdmin, isCEO, signOut, refreshModules, refreshProfile, refreshOrganization,
       impersonating, impersonateOrg, exitImpersonation,
       departmentRoles, hasDepartmentAccess, hasAnyDepartmentLevel, refreshDepartmentRoles,

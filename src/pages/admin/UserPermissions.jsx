@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
-import { useAuth } from '../../context/AuthContext'
+import { useAuth, ROLE_MODULE_DEFAULTS } from '../../context/AuthContext'
 import {
   Shield, Check, X, Eye, Edit2, ChevronDown,
   ChevronUp, Users, Search, Info
@@ -41,7 +41,7 @@ function RoleBadge({ role }) {
 }
 
 // Single user permission row
-function UserPermRow({ user, orgModules, permissions, onPermChange }) {
+function UserPermRow({ user, orgModules, permissions, roleModules, onPermChange }) {
   const [expanded, setExpanded] = useState(false)
   const [localPerms, setLocalPerms] = useState(permissions)
   const [saving, setSaving] = useState(null) // moduleKey being saved
@@ -51,12 +51,17 @@ function UserPermRow({ user, orgModules, permissions, onPermChange }) {
   useEffect(() => { setLocalPerms(permissions) }, [permissions])
 
   const getPerm = (key) => localPerms.find(p => p.module_key === key)
+  // What the person gets with no per-user row: Role Template or built-in role default
+  const fromRole = (key) => !!roleModules[key] || !!ROLE_MODULE_DEFAULTS[key]?.includes(user.role)
+
+  // Cycle: Role default (no row) → Edit → View → No Access ('none' row) → Role default
+  const NEXT_LEVEL = { edit: 'view', view: 'none', none: null }
 
   const handleToggle = async (moduleKey, currentPerm) => {
     if (isAdmin || saving === moduleKey) return
 
     // Optimistic update — change UI immediately
-    const nextLevel = !currentPerm ? 'edit' : currentPerm.access_level === 'edit' ? 'view' : null
+    const nextLevel = !currentPerm ? 'edit' : NEXT_LEVEL[currentPerm.access_level] ?? null
 
     if (nextLevel) {
       setLocalPerms(prev => {
@@ -76,8 +81,8 @@ function UserPermRow({ user, orgModules, permissions, onPermChange }) {
           module_key:      moduleKey,
           access_level:    'edit',
         }, { onConflict: 'user_id,module_key' })
-      } else if (currentPerm.access_level === 'edit') {
-        await supabase.from('user_module_permissions').update({ access_level: 'view' })
+      } else if (nextLevel) {
+        await supabase.from('user_module_permissions').update({ access_level: nextLevel })
           .eq('user_id', user.id).eq('module_key', moduleKey)
       } else {
         await supabase.from('user_module_permissions')
@@ -92,7 +97,11 @@ function UserPermRow({ user, orgModules, permissions, onPermChange }) {
     setSaving(null)
   }
 
-  const permCount = isAdmin ? orgModules.length : localPerms.length
+  // Modules the person can actually open (per-user setting, else the role default)
+  const permCount = isAdmin ? orgModules.length : orgModules.filter(key => {
+    const perm = getPerm(key)
+    return perm ? perm.access_level !== 'none' : fromRole(key)
+  }).length
 
   return (
     <div className="border border-slate-100 dark:border-slate-800 rounded-xl overflow-hidden">
@@ -127,33 +136,44 @@ function UserPermRow({ user, orgModules, permissions, onPermChange }) {
             <>
               <div className="text-xs text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-1.5">
                 <Info size={12} />
-                Click to cycle: No Access → <span className="font-medium text-brand-600">Edit</span> → <span className="font-medium text-amber-600">View Only</span> → No Access
+                Click to cycle: Role default → <span className="font-medium text-brand-600">Edit</span> → <span className="font-medium text-amber-600">View Only</span> → <span className="font-medium text-red-600">No Access</span> → Role default
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {orgModules.map(moduleKey => {
                   const perm = getPerm(moduleKey)
                   const level = perm?.access_level || null
+                  const roleOn = !level && fromRole(moduleKey)
                   const isSavingThis = saving === moduleKey
                   return (
                     <button key={moduleKey} onClick={() => handleToggle(moduleKey, perm)}
                       disabled={!!saving}
+                      title={!level ? `Role default — ${roleOn ? 'has access from their role' : 'no access from their role'}` : undefined}
                       className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium transition-all text-left ${
                         level === 'edit' ? 'bg-brand-50 border-brand-300 text-brand-700' :
                         level === 'view' ? 'bg-amber-50 dark:bg-amber-950/50 border-amber-300 dark:border-amber-800 text-amber-700 dark:text-amber-400' :
-                        'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
+                        level === 'none' ? 'bg-red-50 dark:bg-red-950/50 border-red-300 dark:border-red-800 text-red-700 dark:text-red-400' :
+                        roleOn ? 'bg-white dark:bg-slate-900 border-dashed border-sage-300 dark:border-sage-700 text-sage-700 dark:text-sage-400 hover:border-sage-400' :
+                        'bg-white dark:bg-slate-900 border-dashed border-slate-200 dark:border-slate-700 text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
                       } ${isSavingThis ? 'opacity-60' : ''}`}>
                       <div className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 ${
                         level === 'edit' ? 'bg-brand-500' :
                         level === 'view' ? 'bg-amber-400' :
+                        level === 'none' ? 'bg-red-500' :
+                        roleOn ? 'bg-sage-100 dark:bg-sage-900' :
                         'bg-slate-200 dark:bg-slate-700'}`}>
                         {isSavingThis
                           ? <div className="w-2 h-2 border border-current rounded-full animate-spin opacity-70" />
                           : level === 'edit' ? <Edit2 size={9} className="text-white" />
                           : level === 'view' ? <Eye size={9} className="text-white" />
+                          : level === 'none' ? <X size={9} className="text-white" />
+                          : roleOn ? <Check size={9} className="text-sage-600 dark:text-sage-400" />
                           : <X size={9} className="text-slate-400" />
                         }
                       </div>
                       <span className="truncate">{MODULE_LABELS[moduleKey] || moduleKey}</span>
+                      {!level && <span className="ml-auto text-[10px] font-normal opacity-70 flex-shrink-0">
+                        {roleModules[moduleKey] === 'view' ? 'role · view' : 'role'}
+                      </span>}
                     </button>
                   )
                 })}
@@ -169,6 +189,7 @@ function UserPermRow({ user, orgModules, permissions, onPermChange }) {
 export default function UserPermissions({ orgId, orgModules }) {
   const [users, setUsers]   = useState([])
   const [perms, setPerms]   = useState({}) // userId -> [{module_key, access_level}]
+  const [roleVis, setRoleVis] = useState({}) // role -> { module_key: 'edit' | 'view' } from Role Templates
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
 
@@ -176,17 +197,26 @@ export default function UserPermissions({ orgId, orgModules }) {
 
   async function fetchAll() {
     setLoading(true)
-    const [usersRes, permsRes] = await Promise.all([
+    const [usersRes, permsRes, roleVisRes] = await Promise.all([
       supabase.from('profiles').select('id,first_name,last_name,role,organization_id')
         .eq('organization_id', orgId)
         .not('role', 'in', '(resident,family,super_admin)')
         .order('last_name'),
       supabase.from('user_module_permissions').select('user_id,module_key,access_level')
         .eq('organization_id', orgId),
+      supabase.from('role_module_visibility').select('role,module_key,access_level')
+        .eq('organization_id', orgId),
     ])
 
     const profileList = usersRes.data || []
     const permList = permsRes.data || []
+
+    const roleMap = {}
+    roleVisRes.data?.forEach(r => {
+      if (!roleMap[r.role]) roleMap[r.role] = {}
+      roleMap[r.role][r.module_key] = r.access_level || 'edit'
+    })
+    setRoleVis(roleMap)
 
     const permsMap = {}
     permList.forEach(p => {
@@ -238,9 +268,13 @@ export default function UserPermissions({ orgId, orgModules }) {
           <div className="w-5 h-5 rounded bg-amber-400 flex items-center justify-center"><Eye size={9} className="text-white" /></div>
           View — read only
         </div>
-        <div className="flex items-center gap-1.5 text-slate-400">
-          <div className="w-5 h-5 rounded bg-slate-200 dark:bg-slate-700 flex items-center justify-center"><X size={9} className="text-slate-400" /></div>
-          No access
+        <div className="flex items-center gap-1.5 text-red-600">
+          <div className="w-5 h-5 rounded bg-red-500 flex items-center justify-center"><X size={9} className="text-white" /></div>
+          No access — overrides the role template
+        </div>
+        <div className="flex items-center gap-1.5 text-sage-700 dark:text-sage-400">
+          <div className="w-5 h-5 rounded border border-dashed border-sage-300 bg-sage-100 dark:bg-sage-900 flex items-center justify-center"><Check size={9} className="text-sage-600 dark:text-sage-400" /></div>
+          Role default — follows Role Templates
         </div>
       </div>
 
@@ -261,6 +295,7 @@ export default function UserPermissions({ orgId, orgModules }) {
               user={user}
               orgModules={enabledModules}
               permissions={perms[user.id] || []}
+              roleModules={roleVis[user.role] || {}}
               onPermChange={silentRefresh} />
           ))}
           {filtered.length === 0 && (

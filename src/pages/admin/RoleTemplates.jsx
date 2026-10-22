@@ -1,8 +1,18 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import {
-  Layers, Check, X, ChevronDown, ChevronUp, Search, Info
+  Layers, Check, X, ChevronDown, ChevronUp, Search, Info, Edit2, Eye
 } from 'lucide-react'
+
+// Modules whose tables carry role_view_only_guard (20261021_role_template_view_only.sql),
+// so a template can be set to View. View never applies inside the person's own
+// department. Cross-department modules (communication, incidents, surveys, staff,
+// timeclock, family) stay on/off only.
+const VIEW_ONLY_MODULES = [
+  'work_orders', 'meters', 'dietary', 'housekeeping', 'central_supply', 'social_services',
+  'nursing', 'activities', 'chapel', 'transportation', 'security', 'it',
+  'property_management', 'marketing', 'directory',
+]
 
 const MODULE_LABELS = {
   communication:       'Communication',
@@ -43,9 +53,9 @@ const TEMPLATE_ROLES = [
   { key: 'social_services', label: 'Social Services' },
 ]
 
-function RoleRow({ role, orgModules, activeKeys, onToggle, savingKey }) {
+function RoleRow({ role, orgModules, levels, onToggle, savingKey }) {
   const [expanded, setExpanded] = useState(false)
-  const count = orgModules.filter(m => activeKeys.has(`${role.key}|${m}`)).length
+  const count = orgModules.filter(m => levels.has(`${role.key}|${m}`)).length
 
   return (
     <div className="border border-slate-100 dark:border-slate-800 rounded-xl overflow-hidden">
@@ -65,23 +75,34 @@ function RoleRow({ role, orgModules, activeKeys, onToggle, savingKey }) {
 
       {expanded && (
         <div className="border-t border-slate-100 dark:border-slate-800 p-4 bg-slate-50 dark:bg-slate-800">
+          <div className="text-xs text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-1.5">
+            <Info size={12} />
+            Click to cycle: Off → <span className="font-medium text-brand-600">Edit</span> → <span className="font-medium text-amber-600">View Only</span> → Off.
+            View Only never applies in the person's own department.
+          </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {orgModules.map(moduleKey => {
               const cellKey = `${role.key}|${moduleKey}`
-              const active = activeKeys.has(cellKey)
+              const level = levels.get(cellKey) || null
+              const viewable = VIEW_ONLY_MODULES.includes(moduleKey)
               const isSaving = savingKey === cellKey
               return (
-                <button key={moduleKey} onClick={() => onToggle(role.key, moduleKey, active)}
+                <button key={moduleKey} onClick={() => onToggle(role.key, moduleKey, level, viewable)}
                   disabled={!!savingKey}
+                  title={viewable ? undefined : 'On / off only — this module is shared across departments'}
                   className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium transition-all text-left ${
-                    active ? 'bg-brand-50 border-brand-300 text-brand-700' :
+                    level === 'edit' ? 'bg-brand-50 border-brand-300 text-brand-700' :
+                    level === 'view' ? 'bg-amber-50 dark:bg-amber-950/50 border-amber-300 dark:border-amber-800 text-amber-700 dark:text-amber-400' :
                     'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
                   } ${isSaving ? 'opacity-60' : ''}`}>
                   <div className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 ${
-                    active ? 'bg-brand-500' : 'bg-slate-200 dark:bg-slate-700'}`}>
+                    level === 'edit' ? 'bg-brand-500' :
+                    level === 'view' ? 'bg-amber-400' : 'bg-slate-200 dark:bg-slate-700'}`}>
                     {isSaving
                       ? <div className="w-2 h-2 border border-current rounded-full animate-spin opacity-70" />
-                      : active ? <Check size={9} className="text-white" /> : <X size={9} className="text-slate-400" />
+                      : level === 'edit' ? (viewable ? <Edit2 size={9} className="text-white" /> : <Check size={9} className="text-white" />)
+                      : level === 'view' ? <Eye size={9} className="text-white" />
+                      : <X size={9} className="text-slate-400" />
                     }
                   </div>
                   <span className="truncate">{MODULE_LABELS[moduleKey] || moduleKey}</span>
@@ -96,7 +117,7 @@ function RoleRow({ role, orgModules, activeKeys, onToggle, savingKey }) {
 }
 
 export default function RoleTemplates({ orgId, orgModules }) {
-  const [rows, setRows] = useState([]) // [{role, module_key}]
+  const [rows, setRows] = useState([]) // [{role, module_key, access_level}]
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [savingKey, setSavingKey] = useState(null) // "role|module_key" being saved
@@ -106,31 +127,34 @@ export default function RoleTemplates({ orgId, orgModules }) {
   async function fetchAll() {
     setLoading(true)
     const { data } = await supabase.from('role_module_visibility')
-      .select('role, module_key').eq('organization_id', orgId)
+      .select('role, module_key, access_level').eq('organization_id', orgId)
     setRows(data || [])
     setLoading(false)
   }
 
-  const activeKeys = new Set(rows.map(r => `${r.role}|${r.module_key}`))
+  // "role|module_key" -> 'edit' | 'view'
+  const levels = new Map(rows.map(r => [`${r.role}|${r.module_key}`, r.access_level || 'edit']))
 
-  const handleToggle = async (role, moduleKey, isActive) => {
+  // Cycle: Off → Edit → View (guarded modules only) → Off
+  const handleToggle = async (role, moduleKey, level, viewable) => {
     const cellKey = `${role}|${moduleKey}`
     if (savingKey) return
+    const next = !level ? 'edit' : level === 'edit' && viewable ? 'view' : null
 
-    setRows(prev => isActive
-      ? prev.filter(r => !(r.role === role && r.module_key === moduleKey))
-      : [...prev, { role, module_key: moduleKey }])
+    setRows(prev => {
+      const without = prev.filter(r => !(r.role === role && r.module_key === moduleKey))
+      return next ? [...without, { role, module_key: moduleKey, access_level: next }] : without
+    })
 
     setSavingKey(cellKey)
     try {
-      if (isActive) {
-        await supabase.from('role_module_visibility').delete()
-          .eq('organization_id', orgId).eq('role', role).eq('module_key', moduleKey)
-      } else {
-        await supabase.from('role_module_visibility').upsert({
-          organization_id: orgId, role, module_key: moduleKey,
-        }, { onConflict: 'organization_id,role,module_key' })
-      }
+      const { error } = next
+        ? await supabase.from('role_module_visibility').upsert({
+            organization_id: orgId, role, module_key: moduleKey, access_level: next,
+          }, { onConflict: 'organization_id,role,module_key' })
+        : await supabase.from('role_module_visibility').delete()
+            .eq('organization_id', orgId).eq('role', role).eq('module_key', moduleKey)
+      if (error) throw error
     } catch (e) {
       fetchAll() // resync from the server on failure
     }
@@ -148,7 +172,8 @@ export default function RoleTemplates({ orgId, orgModules }) {
         <h3 className="font-display font-semibold text-slate-800 dark:text-slate-100">Role Templates</h3>
         <p className="text-slate-400 text-xs mt-0.5">
           Sets the default modules a brand-new login can see, based on their Role — so staff aren't stuck
-          seeing almost nothing until you manually grant access. An explicit grant or revoke for one
+          seeing almost nothing until you manually grant access. View Only lets a role see a department's
+          module without changing anything, except in their own department. An explicit setting for one
           person in Module Access always overrides this default.
         </p>
       </div>
@@ -175,7 +200,7 @@ export default function RoleTemplates({ orgId, orgModules }) {
               key={role.key}
               role={role}
               orgModules={enabledModules}
-              activeKeys={activeKeys}
+              levels={levels}
               onToggle={handleToggle}
               savingKey={savingKey} />
           ))}

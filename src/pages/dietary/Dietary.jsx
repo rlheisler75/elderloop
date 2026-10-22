@@ -983,7 +983,11 @@ export default function Dietary() {
   const canApplyOrders  = tiered ? dRank >= 1 : canEditDietary
   const canApproveMenus = tiered ? (dRank >= 2 || dTier === 'administrator') : canEditDietary
   const canSeeCosts     = !tiered || dRank >= 2 || dTier === 'administrator'
-  const [tab, setTab]               = useState('residents')
+  // Physician orders: Dietary Supervisor+, Nursing, Social Services, administrators
+  // (pdo_read_scope, 20261021_physician_orders_read_scope.sql). Not Dietary aides.
+  const canSeePhysicianOrders = !tiered || dRank >= 1
+    || hasDepartmentAccess('nursing', 'employee') || hasDepartmentAccess('social_services', 'employee')
+  const [tab, setTab]             = useState('residents')
   const [residents, setResidents]   = useState([])
   const [menus, setMenus]           = useState([])
   const [menuItems, setMenuItems]   = useState([])
@@ -1060,7 +1064,7 @@ export default function Dietary() {
     { key: 'waste',     label: 'Food Waste',        icon: Trash2 },
     ...(canSeeCosts ? [{ key: 'cost', label: 'Cost Report', icon: DollarSign }] : []),
     { key: 'orders',    label: 'Meal Orders',       icon: UtensilsCrossed },
-    { key: 'physician', label: 'Physician Orders',  icon: ClipboardCheck },
+    ...(canSeePhysicianOrders ? [{ key: 'physician', label: 'Physician Orders', icon: ClipboardCheck }] : []),
   ]
 
   const stateRef = DIETARY_STATE_REFS[organization?.compliance_state] || DIETARY_STATE_REFS.OTHER
@@ -1224,7 +1228,7 @@ export default function Dietary() {
       )}
 
       {/* PHYSICIAN ORDERS TAB */}
-      {tab === 'physician' && (
+      {tab === 'physician' && canSeePhysicianOrders && (
         <PhysicianOrders orgId={organization.id} canManage={canApplyOrders} />
       )}
 

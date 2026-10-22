@@ -9,7 +9,9 @@ import { useAuth } from '../context/AuthContext'
 //   canClose      — Social Services Director, the Administrator (grievance official),
 //                   or an Org Admin: resolves grievances, state-reporting fields
 export function useSocialServicesAccess() {
-  const { accessModel, tierFor } = useAuth()
+  const { accessModel, tierFor, isViewOnly } = useAuth()
+  // Role Template set to View (outside Social Services): read only
+  if (isViewOnly('social_services')) return { tiered: accessModel === 'tiered', isSupervisor: false, canClose: false }
   if (accessModel !== 'tiered') return { tiered: false, isSupervisor: true, canClose: true }
   const t = tierFor('social_services')
   return {
