@@ -6,6 +6,7 @@ const NAV = [
   { id: 'overview', num: '01', label: 'Overview' },
   { id: 'filing',   num: '02', label: 'Filing a Report' },
   { id: 'review',   num: '03', label: 'Manager Review' },
+  { id: 'state',    num: '04', label: 'State Reporting' },
 ]
 
 export default function IncidentsGuide() {
@@ -16,7 +17,7 @@ export default function IncidentsGuide() {
         eyebrow="ElderLoop Staff Training"
         title="Incident Reports"
         dek="A working guide to filing, tracking, and reviewing incident reports — from a fall to a medication error."
-        chips={['For: All staff (family/resident cannot file)', 'Where: Sidebar → Incident Reports', '3 sections']}
+        chips={['For: All staff (family/resident cannot file)', 'Where: Sidebar → Incident Reports', '4 sections']}
       />
 
       <div className="max-w-5xl mx-auto px-6 grid md:grid-cols-[200px_minmax(0,1fr)] gap-10 py-4">
@@ -60,9 +61,23 @@ export default function IncidentsGuide() {
               { k: 3, text: <>Leave <b className="text-slate-900">Review Notes</b> for the record — staff who filed the report can see these, even though they can't edit their own submitted report anymore.</> },
               { k: 4, text: <>Print a formatted, signature-ready copy of any report for physical filing or a survey binder.</> },
             ]} />
+            <Tip>Department Supervisors and above see and investigate every report. Only the Administrator or an Org Admin closes one, and reports are never deleted.</Tip>
+          </SectionBlock>
+
+          <SectionBlock id="state" num="04" title="State Reporting"
+            dek="42 CFR 483.12: the Administrator decides whether an incident must be reported to the state, and the clock tracks the deadlines."
+            roleNote="Administrator / Org Admin">
+            <Steps items={[
+              { k: 1, text: <>When a report is submitted, the Administrator and Org Admins get a <b className="text-slate-900">New incident report</b> bell.</> },
+              { k: 2, text: <>In the report's <b className="text-slate-900">State Reporting</b> panel, enter when the allegation became known and choose <b className="text-slate-900">Not reportable</b>, <b className="text-slate-900">Yes, within 2 hours</b> (abuse or serious bodily injury), or <b className="text-slate-900">Yes, within 24 hours</b>.</> },
+              { k: 3, text: <>The clock counts down to the initial report and to the investigation results (5 working days; weekends skipped, holidays not). Mark each one done when it's sent.</> },
+            ]} />
+            <p className="text-[15px] text-slate-700 mb-6">Reminders ring the bell if it's still undecided after an hour, shortly before each deadline, and when one is overdue. Each reminder is sent once. Bells show the report number, type, and severity, never the resident's name.</p>
+            <Tip warn>If it involves alleged abuse or a serious injury, the state must hear within 2 hours of when it became known. Decide first, then investigate.</Tip>
           </SectionBlock>
 
           <QuickRefTable rows={[
+            ['Decide state reporting', 'Open the report → State Reporting'],
             ['File a new incident report', 'File Incident Report'],
             ['Save without submitting yet', 'Save Draft (in the report form)'],
             ['Move a report through review', 'Open the report → Manager Review section'],

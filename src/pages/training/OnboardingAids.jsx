@@ -171,7 +171,14 @@ export function AdministratorQuickStart() {
         <Tip>Two-factor sign-in is required for your role. See <Link to="/training/two-factor" className="font-semibold underline">Two-Factor Sign-In</Link>.</Tip>
       </SectionBlock>
       <SectionBlock id="daily" num="02" title="Every day" dek="Start on the Administrator Dashboard.">
-        <P>Your dashboard shows key numbers, Central Supply, and live status across the community. The <B>bell</B> brings you budget alerts when a department goes over. Approvals don't ring the bell, so check Central Supply → Purchase Orders for <B>Awaiting Approval</B> and Incident Reports for <B>State report due</B> each day.</P>
+        <P>Your dashboard shows key numbers, Central Supply, and live status across the community. The <B>bell</B> tells you what needs you:</P>
+        <ul className="list-disc pl-6 text-[15px] text-slate-700 mb-4 space-y-1">
+          <li><B>Order needs your approval</B>: a purchase order is waiting in Central Supply → Purchase Orders.</li>
+          <li><B>New incident report</B>: decide whether it's reportable to the state. If it's still undecided an hour later, you get <B>State reporting not decided</B>.</li>
+          <li><B>State report due soon</B> / <B>State report overdue</B>: before and after the 2- or 24-hour deadline, until the report is recorded. Then <B>Investigation results due tomorrow</B> / <B>overdue</B> for the 5-working-day report.</li>
+          <li>Budget alerts when a department goes over.</li>
+        </ul>
+        <P>Org Admins get the same approval and incident bells. Bells never include a resident's name, just the report number, type, and severity.</P>
       </SectionBlock>
       <SectionBlock id="approvals" num="03" title="Approvals" dek="Things wait for you; nothing goes out until you act.">
         <P><B>Purchase orders.</B> An order over the approval limit ($1,000 unless changed), or any order for a department that's over budget, shows <B>Awaiting Approval</B> in Central Supply → Purchase Orders. Open it and click <B>Approve &amp; submit</B>, or <B>Send back</B> for changes.</P>

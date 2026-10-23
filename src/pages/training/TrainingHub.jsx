@@ -195,8 +195,8 @@ const GUIDES = [
     to: '/training/incidents',
     icon: AlertTriangle,
     title: 'Incident Reports',
-    desc: 'Filing an incident report of any type, and the manager review workflow from Submitted through Closed.',
-    tag: '3 sections',
+    desc: 'Filing an incident report of any type, the review workflow from Submitted through Closed, and state reporting with deadline reminders.',
+    tag: '4 sections',
   },
   {
     to: '/training/scheduling',
