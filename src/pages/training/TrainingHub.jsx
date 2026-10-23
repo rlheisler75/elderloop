@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Sparkles, HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays, Church, Megaphone, MessageSquare, Car, Building2, Package, ShieldCheck, Gauge, Laptop, Contact, Heart, AlertTriangle, CalendarClock, Users, Clock, ClipboardList, KeyRound, Settings, Wallet } from 'lucide-react'
+import { Sparkles, HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays, Church, Megaphone, MessageSquare, Car, Building2, Package, ShieldCheck, Gauge, Laptop, Contact, Heart, AlertTriangle, CalendarClock, Users, Clock, ClipboardList, KeyRound, Settings, Wallet, Smartphone } from 'lucide-react'
 
 const GUIDES = [
   {
@@ -97,8 +97,8 @@ const GUIDES = [
     to: '/training/communication',
     icon: MessageSquare,
     title: 'Communication',
-    desc: 'The announcements board and Digital Signage, broadcast messaging over push, email, and SMS, and writing or translating messages with AI.',
-    tag: '5 sections',
+    desc: 'The announcements board and Digital Signage, broadcast messaging over push, email, and SMS, text-message consent, and writing or translating messages with AI.',
+    tag: '6 sections',
   },
   {
     to: '/training/transportation',
@@ -148,6 +148,13 @@ const GUIDES = [
     title: 'Directory',
     desc: 'The resident directory with emergency and medical contacts, plus the staff directory for finding a coworker fast.',
     tag: '3 sections',
+  },
+  {
+    to: '/training/portal',
+    icon: Smartphone,
+    title: 'Family & Resident Portal',
+    desc: 'Written for families and IL residents: signing in, updates and messages, maintenance and meal requests, activities and chapel, requesting a ride, text messages, and privacy.',
+    tag: '6 sections',
   },
   {
     to: '/training/family',

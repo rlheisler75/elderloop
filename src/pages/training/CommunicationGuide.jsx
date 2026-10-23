@@ -8,6 +8,7 @@ const NAV = [
   { id: 'broadcast', num: '03', label: 'Broadcast Messaging' },
   { id: 'compose',   num: '04', label: 'Composing a Broadcast' },
   { id: 'ai',        num: '05', label: 'Write with AI' },
+  { id: 'sms',       num: '06', label: 'Text Message Consent' },
 ]
 
 export default function CommunicationGuide() {
@@ -18,7 +19,7 @@ export default function CommunicationGuide() {
         eyebrow="ElderLoop Staff Training"
         title="Communication"
         dek="A working guide to the announcements board and broadcast messaging — how community updates get posted, and how staff reach residents, family, and each other directly."
-        chips={['For: All staff, Admins, Supervisors', 'Where: Sidebar → Communication', '5 sections', 'AI Assist available']}
+        chips={['For: All staff, Admins, Supervisors', 'Where: Sidebar → Communication', '6 sections', 'AI Assist available']}
       />
 
       <div className="max-w-5xl mx-auto px-6 grid md:grid-cols-[200px_minmax(0,1fr)] gap-10 py-4">
@@ -66,7 +67,7 @@ export default function CommunicationGuide() {
             <Frame src={SHOT('compose-modal.png')} alt="New Message compose form" caption="Individuals picker supports search by name, room, or email" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
             <Steps items={[
-              { k: 1, text: <>Click <b className="text-slate-900">New Message</b>, choose <b className="text-slate-900">Send via</b> channels (In-App, Email, SMS — SMS requires Twilio A2P registration and queues until approved), and a category.</> },
+              { k: 1, text: <>Click <b className="text-slate-900">New Message</b>, choose <b className="text-slate-900">Send via</b> channels (In-App, Email, SMS), and a category. With SMS picked, the form shows how many people in the audience will get a text (see Text Message Consent below).</> },
               { k: 2, text: <>Pick a <b className="text-slate-900">Send to</b> audience — Everyone, All Staff, All Residents, All Family, one Department, or specific Individuals via search.</> },
               { k: 3, text: <>Click <b className="text-slate-900">Templates</b> for ready-made subject and body text for common messages, or write your own Subject and Message.</> },
               { k: 4, text: <>Click <b className="text-slate-900">Send</b> — the footer always shows exactly which channels and audience the message is about to go to before you send it.</> },
@@ -88,7 +89,22 @@ export default function CommunicationGuide() {
             <Tip warn>Only your brief, your draft, the audience type, and channels are sent to the AI — never the names of the people you're messaging. Always read the message before you send or post it.</Tip>
           </SectionBlock>
 
+          <SectionBlock id="sms" num="06" title="Text Message Consent"
+            dek="Texts go only to people who agreed to receive them. Everyone else still gets the in-app and email versions.">
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Who gets a text</h3>
+            <Steps items={[
+              { k: '•', text: <><b className="text-slate-900">Staff, family, and resident portal logins</b> turn texts on themselves: <b className="text-slate-900">Settings → Text Messages</b> for staff, <b className="text-slate-900">My Account → Notifications → Text Messages</b> in the portals. They need a mobile number on their profile first. Nobody can turn it on for someone else.</> },
+              { k: '•', text: <><b className="text-slate-900">Residents without a login:</b> staff record consent on the resident's form in the Directory with <b className="text-slate-900">Agreed to receive community announcements by text at this phone number</b>. Tick it only when the resident or their representative agreed, for example on the move-in paperwork. ElderLoop records who ticked it and when.</> },
+              { k: '•', text: <>Everyone starts with texts off. The date they agreed is shown and saved for your records.</> },
+            ]} />
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">What a text looks like</h3>
+            <p className="text-[15px] text-slate-700 mb-6">Each text starts with your community's name and ends with your name, the community, "Sent by Loopware Solutions LLC," and "Reply STOP to opt out." Someone who replies <b className="text-slate-900">STOP</b> is switched off automatically. Long messages are split into several texts, and the form shows the length as you type.</p>
+            <Tip warn>Never put health information in a text, email, or phone notification: no diagnoses, medications, care details, or anything about a resident's condition. The form reminds you. For that, use the care team's notes in ElderLoop.</Tip>
+          </SectionBlock>
+
           <QuickRefTable rows={[
+            ['Turn on your own texts', 'Settings → Text Messages'],
+            ['Record a resident\'s text consent', 'Directory → edit resident → Agreed to receive … by text'],
             ['Have AI write, improve, or translate a message', 'New Message / New Announcement → Write with AI'],
             ['Post a community update', 'New Announcement'],
             ['Pin something important to the top', 'New Announcement → Pin to top of board'],
