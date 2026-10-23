@@ -77,6 +77,11 @@ const TwoFactorGuide = lazy(() => import('./pages/training/TwoFactorGuide'))
 const AdminSetupGuide = lazy(() => import('./pages/training/AdminSetupGuide'))
 const BudgetsGuide = lazy(() => import('./pages/training/BudgetsGuide'))
 const PortalGuide = lazy(() => import('./pages/training/PortalGuide'))
+const OnboardingAids = () => import('./pages/training/OnboardingAids')
+const GoLiveChecklist = lazy(() => OnboardingAids().then(m => ({ default: m.GoLiveChecklist })))
+const AdministratorQuickStart = lazy(() => OnboardingAids().then(m => ({ default: m.AdministratorQuickStart })))
+const ManagerQuickCards = lazy(() => OnboardingAids().then(m => ({ default: m.ManagerQuickCards })))
+const OnboardingFAQ = lazy(() => OnboardingAids().then(m => ({ default: m.OnboardingFAQ })))
 
 // Training routes — shared between the public route tree and the sales-rep
 // route branch (below) so reps can reach the Training Library from /rep.
@@ -110,6 +115,10 @@ const trainingRoutes = [
   <Route key="training-admin-setup"   path="/training/admin-setup"         element={<Lazy><AdminSetupGuide /></Lazy>} />,
   <Route key="training-budgets"       path="/training/budgets"             element={<Lazy><BudgetsGuide /></Lazy>} />,
   <Route key="training-portal"        path="/training/portal"              element={<Lazy><PortalGuide /></Lazy>} />,
+  <Route key="training-go-live"       path="/training/go-live"             element={<Lazy><GoLiveChecklist /></Lazy>} />,
+  <Route key="training-administrator" path="/training/administrator"       element={<Lazy><AdministratorQuickStart /></Lazy>} />,
+  <Route key="training-manager-cards" path="/training/manager-cards"       element={<Lazy><ManagerQuickCards /></Lazy>} />,
+  <Route key="training-faq"           path="/training/faq"                 element={<Lazy><OnboardingFAQ /></Lazy>} />,
 ]
 
 // Public TV & role-specific portals (outside the staff Layout)

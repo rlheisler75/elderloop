@@ -1,7 +1,35 @@
 import { Link } from 'react-router-dom'
-import { Sparkles, HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays, Church, Megaphone, MessageSquare, Car, Building2, Package, ShieldCheck, Gauge, Laptop, Contact, Heart, AlertTriangle, CalendarClock, Users, Clock, ClipboardList, KeyRound, Settings, Wallet, Smartphone } from 'lucide-react'
+import { Sparkles, HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays, Church, Megaphone, MessageSquare, Car, Building2, Package, ShieldCheck, Gauge, Laptop, Contact, Heart, AlertTriangle, CalendarClock, Users, Clock, ClipboardList, KeyRound, Settings, Wallet, Smartphone, ListChecks, HelpCircle } from 'lucide-react'
 
 const GUIDES = [
+  {
+    to: '/training/go-live',
+    icon: ListChecks,
+    title: 'Go-Live Checklist',
+    desc: 'For the Org Admin: everything to have in place before a community starts, from settings and roles to staff, residents, department setup, go-live day, and the first week. Tick items off as you go.',
+    tag: 'Onboarding',
+  },
+  {
+    to: '/training/administrator',
+    icon: ShieldCheck,
+    title: 'Administrator Quick Start',
+    desc: 'For the NHA: your view-and-approve role, daily checks, approving orders and menus, incidents and state reporting, Emergency Edit, and budgets.',
+    tag: 'Onboarding',
+  },
+  {
+    to: '/training/manager-cards',
+    icon: ClipboardList,
+    title: 'Manager Quick Cards',
+    desc: 'One printable card per department: what your team does, what only managers do, and the daily and monthly checks.',
+    tag: 'Onboarding',
+  },
+  {
+    to: '/training/faq',
+    icon: HelpCircle,
+    title: 'FAQ',
+    desc: 'Quick answers to the questions staff ask most: access and View Only, two-factor, records, orders and budgets, rides, texts, and families.',
+    tag: 'Onboarding',
+  },
   {
     to: '/training/admin-setup',
     icon: Settings,
