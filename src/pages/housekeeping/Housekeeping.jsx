@@ -73,22 +73,22 @@ function PrintReceipt({ request, orgName, onClose }) {
         </div>
         <div className="px-6 py-4">
           <div ref={printRef}>
-            <h2>{orgName}</h2>
-            <div className="sub">Housekeeping Services Receipt</div>
-            <div className="row"><span>Resident</span><span><strong>{request.resident_name}</strong></span></div>
-            {request.unit && <div className="row"><span>Unit</span><span>{request.unit}</span></div>}
-            <div className="row"><span>Date of Service</span><span>{date}</span></div>
+            <h2 className="font-display font-bold text-lg text-slate-800 dark:text-slate-100">{orgName}</h2>
+            <div className="sub text-sm text-slate-500 mb-3">Housekeeping Services Receipt</div>
+            <div className="row flex justify-between gap-4 py-1.5 border-b border-slate-100 dark:border-slate-800 text-sm text-slate-700 dark:text-slate-300"><span>Resident</span><span><strong>{request.resident_name}</strong></span></div>
+            {request.unit && <div className="row flex justify-between gap-4 py-1.5 border-b border-slate-100 dark:border-slate-800 text-sm text-slate-700 dark:text-slate-300"><span>Unit</span><span>{request.unit}</span></div>}
+            <div className="row flex justify-between gap-4 py-1.5 border-b border-slate-100 dark:border-slate-800 text-sm text-slate-700 dark:text-slate-300"><span>Date of Service</span><span>{date}</span></div>
             {request.booked_time && (
-              <div className="row"><span>Time</span><span>{request.booked_time}</span></div>
+              <div className="row flex justify-between gap-4 py-1.5 border-b border-slate-100 dark:border-slate-800 text-sm text-slate-700 dark:text-slate-300"><span>Time</span><span>{String(request.booked_time).slice(0, 5)}</span></div>
             )}
-            <div className="row total"><span>Hours of Service</span><span>{hours} {hours === 1 ? 'hour' : 'hours'}</span></div>
+            <div className="row total flex justify-between gap-4 pt-2 mt-1 font-semibold text-slate-800 dark:text-slate-100"><span>Hours of Service</span><span>{hours} {hours === 1 ? 'hour' : 'hours'}</span></div>
             {request.services_performed && (
               <div style={{marginTop:12,fontSize:13}}>
                 <strong>Services Performed:</strong>
                 <div style={{marginTop:4,color:'#444'}}>{request.services_performed}</div>
               </div>
             )}
-            <div className="footer">
+            <div className="footer mt-5 text-xs text-slate-400 text-center">
               Thank you! Please contact the office with any questions.<br />
               {new Date().toLocaleDateString()}
             </div>
