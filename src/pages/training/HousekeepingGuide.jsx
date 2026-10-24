@@ -58,6 +58,7 @@ export default function HousekeepingGuide() {
 
           <SectionBlock id="linen" num="03" title="Linen"
             dek="Log linen pulled from service so replacement cost is tied to loss. With the Budgets add-on, the tab also shows linen and chemical cost per occupied room day.">
+            <Frame src={SHOT('linen.png')} alt="Linen tab" caption="Linen and chemical cost per occupied room day, the loss rate, and a six-month trend" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
             <Steps items={[
               { k: 1, text: <>Open <b className="text-slate-900">Linen</b> and click <b className="text-slate-900">Log discarded linen</b>. Enter the item, quantity, date, and reason (<b className="text-slate-900">Torn</b>, <b className="text-slate-900">Stained</b>, <b className="text-slate-900">Worn out</b>, <b className="text-slate-900">Lost</b>, <b className="text-slate-900">Other</b>), plus an optional note.</> },
