@@ -81,7 +81,7 @@ export default function SupplyGuide() {
             dek="Create and track formal orders placed with vendors, then receive them — in full or partially — as boxes arrive.">
             <Frame src={SHOT('purchase-orders.png')} alt="Purchase Orders tab" caption="Status flows Draft → Submitted → Partially Received → Received" />
             <Frame src={SHOT('new-po-modal.png')} alt="New Purchase Order form" caption="Stock Reorder pulls items straight from the catalog with cost pre-filled" />
-            <Frame src={SHOT('po-detail.png')} alt="Purchase Order detail view" caption="Receive lines individually, or use Receive All to close out the whole order" />
+            <Frame src={SHOT('po-detail.png')} alt="Purchase Order detail view" caption="Send to vendor at the top; receive lines individually, or use Receive All to close out the whole order" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
             <Steps items={[
               { k: 1, text: <>Click <b className="text-slate-900">New PO</b> and choose <b className="text-slate-900">Stock Reorder</b> (pulls items from the catalog) or <b className="text-slate-900">Non-Stock/One-Time</b> (free-text description, no catalog link).</> },
@@ -125,6 +125,7 @@ export default function SupplyGuide() {
 
           <SectionBlock id="charges" num="08" title="Resident Charges"
             dek="Chargeable items issued to residents, so each one gets billed. Shown to the Central Supply Manager and Org Admins.">
+            <Frame src={SHOT('resident-charges.png')} alt="Resident Charges tab" caption="Billable leakage at the top, then this month's charges that still need billing" />
             <Steps items={[
               { k: 1, text: <>Pick the month. <b className="text-slate-900">Not billed</b> shows what still needs billing; <b className="text-slate-900">All charges</b> shows everything.</> },
               { k: 2, text: <>Bill them in your own billing system (ElderLoop doesn't keep resident accounts). <b className="text-slate-900">Export CSV</b> gives you the list.</> },

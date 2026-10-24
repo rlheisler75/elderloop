@@ -4,6 +4,10 @@ import { useAuth } from '../../context/AuthContext'
 import { DollarSign, Search, ScanLine, X, CheckCircle2, User, Printer } from 'lucide-react'
 import BarcodeScanner from './BarcodeScanner'
 
+// The ceo role key is shown as "Administrator" everywhere in the app.
+const ROLE_LABELS = { ceo: 'Administrator', org_admin: 'Org Admin', super_admin: 'Super Admin' }
+const roleLabel = (role) => ROLE_LABELS[role] || role?.replace('_', ' ')
+
 export default function SupplyCashSales() {
   const { organization, profile } = useAuth()
   const [items,    setItems]    = useState([])
@@ -166,7 +170,7 @@ export default function SupplyCashSales() {
                 </div>
                 <div className="flex-1">
                   <div className="font-medium text-slate-800 dark:text-slate-100 text-sm">{selectedStaff.first_name} {selectedStaff.last_name}</div>
-                  <div className="text-xs text-slate-400 capitalize">{selectedStaff.role?.replace('_', ' ')}</div>
+                  <div className="text-xs text-slate-400 capitalize">{roleLabel(selectedStaff.role)}</div>
                 </div>
                 <button onClick={() => setSelectedStaff(null)} className="text-slate-400 hover:text-red-500"><X size={16} /></button>
               </div>
@@ -181,7 +185,7 @@ export default function SupplyCashSales() {
                     {filteredStaff.slice(0, 6).map(s => (
                       <button key={s.id} onClick={() => { setSelectedStaff(s); setStaffSearch('') }} className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 border-b border-slate-100 dark:border-slate-800 last:border-0 text-left">
                         <span className="text-sm font-medium text-slate-800 dark:text-slate-100">{s.first_name} {s.last_name}</span>
-                        <span className="text-xs text-slate-400 capitalize">{s.role?.replace('_', ' ')}</span>
+                        <span className="text-xs text-slate-400 capitalize">{roleLabel(s.role)}</span>
                       </button>
                     ))}
                     {filteredStaff.length === 0 && <div className="px-4 py-3 text-sm text-slate-400">No staff found</div>}
