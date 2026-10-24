@@ -18,10 +18,11 @@ import { useAuth } from '../context/AuthContext'
 //               supply_can_order() (20261004_vendor_ordering.sql): whoever manages
 //               purchase orders, Org Admins, and the Administrator only in legacy communities.
 export function useSupplyAccess() {
-  const { accessModel, tierFor, canEdit, isViewOnly, hasDepartmentAccess, hasAnyDepartmentLevel, profile, isSuperAdmin, departmentRoles } = useAuth()
+  const { accessModel, tierFor, canEdit, isViewOnly, hasDepartmentAccess, hasAnyDepartmentLevel, profile, isSuperAdmin, can } = useAuth()
 
   const role = isSuperAdmin ? 'super_admin' : profile?.role
-  const csManager = (departmentRoles || []).some(d => d.department === 'central_supply' && d.level === 'manager')
+  // Billing resident charges = Central Supply Costs (supply_can_bill())
+  const csManager = role !== 'ceo' && can('central_supply', 'costs')
   const canBill = ['org_admin', 'super_admin'].includes(role) || (role === 'ceo' && accessModel !== 'tiered') || csManager
   const canSeeCharges = canBill || role === 'ceo'
 

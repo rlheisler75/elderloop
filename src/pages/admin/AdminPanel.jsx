@@ -64,13 +64,13 @@ function StaffAccessFields({ role, onRoleChange, assignments, onAssignmentsChang
   return (
     <div className="space-y-3">
       <div>
-        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Role Template</label>
+        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Account role</label>
         <select value={role} onChange={e => onRoleChange(e.target.value)}
           className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
           {!known && <option value={role}>{role}</option>}
           {TEMPLATE_ROLES.map(r => <option key={r.key} value={r.key}>{r.label}</option>)}
         </select>
-        <p className="text-xs text-slate-400 mt-1">Which modules they see (set in Role Templates). Make someone a supervisor or manager with the department & level below.</p>
+        <p className="text-xs text-slate-400 mt-1">Older accounts carry a role name (Nursing, Manager, ...) that gives a matching carried-over Job Role. What someone can do comes from their Job Roles: department & level below give the Department role (Employee, Supervisor, Manager), and you can add more under Job Roles.</p>
       </div>
       <DepartmentLevelEditor assignments={assignments} onChange={onAssignmentsChange} departments={departments} />
     </div>
@@ -800,8 +800,6 @@ export default function AdminPanel() {
   const tabs = [
     { key: 'users',        label: 'Users',              icon: Users },
     { key: 'job_roles',    label: 'Job Roles',          icon: Key },
-    { key: 'permissions',  label: 'Module Access',      icon: Shield },
-    { key: 'role_templates', label: 'Role Templates',   icon: Layers },
     { key: 'vendors',      label: 'Vendors',            icon: Truck },
     { key: 'settings',     label: 'Org Settings',       icon: Settings },
     { key: 'lists',        label: 'Lists & Pick Lists', icon: List },

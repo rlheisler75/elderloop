@@ -15,11 +15,9 @@ language sql immutable as $function$
   ('everyone', null, null, 'directory',      array['view']),
   ('everyone', null, null, 'activities',     array['view']),
   ('everyone', null, null, 'chapel',         array['view']),
-  ('everyone', null, null, 'dietary',        array['view']),
   ('everyone', null, null, 'transportation', array['view']),
   ('everyone', null, null, 'scheduling',     array['view']),
   ('everyone', null, null, 'timeclock',      array['view']),
-  ('everyone', null, null, 'surveys',        array['view']),
   -- Administrator (NHA): see everything, approve, costs; writes only where the matrix gives them
   ('administrator', null, null, '*',             array['view', 'approve', 'costs']),
   ('administrator', null, null, 'communication', array['create', 'edit']),

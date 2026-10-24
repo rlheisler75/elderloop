@@ -117,7 +117,7 @@ function LinenCosts({ orgId, month, canSetCirculation }) {
 }
 
 export default function HousekeepingLinen({ canLog, canCorrectAny }) {
-  const { profile, organization, isSuperAdmin, departmentRoles, accessModel } = useAuth()
+  const { profile, organization, isSuperAdmin, can, accessModel } = useAuth()
   const orgId = organization?.id
   const [month, setMonth] = useState(firstOfMonth())
   const [rows, setRows] = useState(null)
@@ -129,7 +129,7 @@ export default function HousekeepingLinen({ canLog, canCorrectAny }) {
   const role = isSuperAdmin ? 'super_admin' : profile?.role
   // Mirrors set_linen_in_circulation()
   const canSetCirculation = role === 'org_admin' || (role === 'ceo' && accessModel !== 'tiered')
-    || (departmentRoles || []).some(d => d.department === 'housekeeping' && d.level === 'manager')
+    || (role !== 'ceo' && can('housekeeping', 'settings'))
 
   const load = useCallback(async () => {
     if (!orgId) return

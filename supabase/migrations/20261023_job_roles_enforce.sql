@@ -225,3 +225,42 @@ $function$;
 delete from public.job_role_permissions p using public.job_roles r
  where r.id = p.job_role_id and r.source = 'department' and r.department = 'dietary' and r.level = 'manager'
    and p.module_key = 'central_supply' and p.action = 'costs';
+
+-- Off-system purchases and linen in circulation follow Job Roles too
+-- (department Costs / Housekeeping Settings instead of department & level)
+create or replace function public.budget_department_module(p_department text)
+returns text language sql immutable as $function$
+  select case p_department when 'maintenance' then 'work_orders' else p_department end
+$function$;
+create or replace function public.can_write_manual_spend(p_org uuid, p_department text)
+returns boolean language sql stable security definer set search_path to 'public' as $function$
+  select coalesce(p_org = get_my_org_id() and (
+      get_my_role() in ('org_admin', 'super_admin')
+      or (get_my_role() = 'ceo' and not my_org_tiered())
+      or (get_my_role() is distinct from 'ceo' and can(budget_department_module(p_department), 'costs'))), false)
+$function$;
+drop policy if exists manual_spend_write on public.budget_manual_spend;
+create policy manual_spend_write on public.budget_manual_spend for all to authenticated
+  using ((select can_write_manual_spend(organization_id, department)))
+  with check ((select can_write_manual_spend(organization_id, department)));
+create or replace function public.set_linen_in_circulation(p_count integer)
+returns void language plpgsql security definer set search_path to 'public' as $function$
+declare v_org uuid := get_my_org_id();
+begin
+  if v_org is null or not coalesce(get_my_role() = 'org_admin'
+       or (get_my_role() = 'ceo' and not my_org_tiered())
+       or (get_my_role() is distinct from 'ceo' and can('housekeeping', 'settings')), false) then
+    raise exception 'Only the Housekeeping Manager or an Org Admin sets linen in circulation' using errcode = '42501';
+  end if;
+  if p_count is not null and p_count < 0 then raise exception 'Count cannot be negative' using errcode = '22023'; end if;
+  insert into housekeeping_settings (organization_id, linen_in_circulation, updated_by, updated_at)
+  values (v_org, p_count, auth.uid(), now())
+  on conflict (organization_id) do update set linen_in_circulation = excluded.linen_in_circulation,
+    updated_by = excluded.updated_by, updated_at = excluded.updated_at;
+end;
+$function$;
+
+-- The app shows a module when someone has any permission in it, so Everyone no
+-- longer carries View on Dietary and Surveys (their database reads never used it)
+delete from public.job_role_permissions p using public.job_roles r
+ where r.id = p.job_role_id and r.source = 'everyone' and p.module_key in ('dietary', 'surveys') and p.action = 'view';

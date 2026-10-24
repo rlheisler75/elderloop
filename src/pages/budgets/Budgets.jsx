@@ -264,7 +264,7 @@ function ManualSpendPanel({ month, writableDepartments }) {
 }
 
 export default function Budgets() {
-  const { profile, organization, departmentRoles, accessModel, isSuperAdmin } = useAuth()
+  const { profile, organization, can, accessModel, isSuperAdmin } = useAuth()
   const orgId = organization?.id
   const [month, setMonth] = useState(firstOfMonth())
   const [tab, setTab] = useState('month')
@@ -276,8 +276,8 @@ export default function Budgets() {
   const role = isSuperAdmin ? 'super_admin' : profile?.role
   const isLeader = ['ceo', 'org_admin', 'super_admin'].includes(role)
   const isChain = !!organization?.corporation_id
-  const managerDepts = (departmentRoles || []).filter(d => d.level === 'manager' && BUDGET_DEPARTMENT_KEYS.includes(d.department)).map(d => d.department)
-  // Mirrors the manual_spend_write policy: department Managers, Org Admins, and the
+  const managerDepts = BUDGET_DEPARTMENT_KEYS.filter(d => can(d === 'maintenance' ? 'work_orders' : d, 'costs'))
+  // Mirrors can_write_manual_spend(): the department's Costs permission, Org Admins, and the
   // NHA only in legacy communities
   const writableDepartments = ['org_admin', 'super_admin'].includes(role) || (role === 'ceo' && accessModel !== 'tiered')
     ? BUDGET_DEPARTMENT_KEYS : managerDepts

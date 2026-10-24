@@ -84,12 +84,13 @@ const NAV_GROUPS = [
 ]
 
 export default function Layout() {
-  const { profile, organization, hasModule, isOrgAdmin, isSuperAdmin, signOut, impersonating, exitImpersonation, departmentRoles, accessModel, tierFor, hasDepartmentAccess, isViewOnly } = useAuth()
+  const { profile, organization, hasModule, isOrgAdmin, isSuperAdmin, signOut, impersonating, exitImpersonation, departmentRoles, accessModel, tierFor, hasDepartmentAccess, isViewOnly, can } = useAuth()
   const location = useLocation()
   // Module of the page being shown, for the "View only" bar (Role Template set to View)
   const currentModule = NAV_GROUPS.flatMap(g => g.items)
     .find(item => item.module && (location.pathname === item.to || location.pathname.startsWith(item.to + '/')))?.module
-  const viewOnlyHere = !!currentModule && isViewOnly(currentModule)
+  // Only where role_view_only_guard applies: department modules and Residents
+  const viewOnlyHere = !!currentModule && (!!MODULE_DEPARTMENTS[currentModule] || currentModule === 'directory') && isViewOnly(currentModule)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [notifs, setNotifs]       = useState([])
   const [showNotifs, setShowNotifs] = useState(false)
@@ -157,7 +158,7 @@ export default function Layout() {
   // Budgets: only people who can see a budget (department Managers of the budget
   // departments, the NHA, Org Admins), matching can_see_budget() in the database
   const seesBudgets = isOrgAdmin || isSuperAdmin
-    || (departmentRoles || []).some(d => d.level === 'manager' && BUDGET_DEPARTMENT_KEYS.includes(d.department))
+    || BUDGET_DEPARTMENT_KEYS.some(d => can(d === 'maintenance' ? 'work_orders' : d, 'costs'))
   const visibleGroups = NAV_GROUPS
     .map(group => ({ ...group, items: group.items.filter(item => !item.module || (hasModule(item.module) && !hiddenByTier(item.module) && (item.module !== 'budgets' || seesBudgets))) }))
     .filter(group => group.items.length > 0)

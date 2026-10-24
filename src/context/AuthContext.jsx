@@ -30,6 +30,8 @@ export function AuthProvider({ children }) {
   const [roleVisibility, setRoleVisibility] = useState([])
   const [roleViewOnly, setRoleViewOnly]     = useState([]) // Role Template modules set to View
   const [departmentRoles, setDepartmentRoles] = useState([]) // [{ department, level }] for the current user
+  const [permissions, setPermissions] = useState(new Set())  // Job Roles: 'module|action' (my_permissions())
+  const [thresholds, setThresholds]   = useState({})         // module_access_thresholds by module
   const [superAdmin, setSuperAdmin]   = useState(false)
    const [loading, setLoading]         = useState(true)
   const [suspended, setSuspended]     = useState(false)
@@ -156,7 +158,7 @@ export function AuthProvider({ children }) {
       const orgIdToLoad = storedOrgId || prof?.organization_id
 
       if (orgIdToLoad) {
-        const [orgRes, modsRes, permsRes, roleVisRes, deptRolesRes] = await Promise.all([
+        const [orgRes, modsRes, permsRes, roleVisRes, deptRolesRes, jobPermsRes, thresholdsRes] = await Promise.all([
           supabase.from('organizations').select('*').eq('id', orgIdToLoad).single(),
           supabase.from('organization_modules').select('module_key, is_enabled')
             .eq('organization_id', orgIdToLoad),
@@ -166,6 +168,10 @@ export function AuthProvider({ children }) {
             .eq('organization_id', orgIdToLoad).eq('role', prof?.role),
           supabase.from('staff_department_roles').select('department, level')
             .eq('profile_id', userId),
+          // Job Roles: the caller's effective permissions, and which action makes
+          // someone a member / Supervisor / Manager of a department module
+          supabase.rpc('my_permissions'),
+          supabase.from('module_access_thresholds').select('*'),
         ])
         const org = orgRes.data
 
@@ -183,6 +189,8 @@ export function AuthProvider({ children }) {
         setRoleVisibility(roleVisRes.data?.map(r => r.module_key) || [])
         setRoleViewOnly(roleVisRes.data?.filter(r => r.access_level === 'view').map(r => r.module_key) || [])
         setDepartmentRoles(deptRolesRes.data || [])
+        setPermissions(new Set((jobPermsRes.data || []).map(p => `${p.module_key}|${p.action}`)))
+        setThresholds(Object.fromEntries((thresholdsRes.data || []).map(t => [t.module_key, t])))
         if (storedOrgId) setImpersonating(true)
       }
     } catch (e) {
@@ -219,65 +227,63 @@ export function AuthProvider({ children }) {
   const canManagePlatform = ['org_admin', 'super_admin'].includes(profile?.role) || superAdmin
     || (profile?.role === 'ceo' && (accessModel === 'legacy' || !!profile?.is_platform_admin))
 
-  // Is this module enabled for the org AND does the user have access?
+  // ── Job Roles (20261023_job_roles_*.sql) ──────────────────────────────────
+  // can(module, action) mirrors can() in the database: Org Admins and super admins
+  // can do everything; the NHA also creates / edits / deletes during Emergency
+  // Edit; everyone else has exactly the permissions their Job Roles (plus per-person
+  // overrides) give, loaded from my_permissions().
+  const isFullAdmin = ['org_admin', 'super_admin'].includes(profile?.role) || superAdmin
+  const WRITE_ACTIONS = ['create', 'edit', 'approve', 'delete', 'settings', 'costs']
+  const can = (module, action) => {
+    if (isFullAdmin) return true
+    if (profile?.role === 'ceo' && emergencyEditOn && ['create', 'edit', 'delete'].includes(action)) return true
+    return permissions.has(`${module}|${action}`)
+  }
+  const hasAnyPermission = (module) => isFullAdmin || ['view', ...WRITE_ACTIONS].some(a => permissions.has(`${module}|${a}`))
+  const hasWritePermission = (module) => WRITE_ACTIONS.some(a => can(module, a))
+
+  // Is this module enabled for the org AND does the user have any permission in it?
   const hasModule = (key) => {
     if (!orgModules.includes(key)) return false
-    // org_admin, ceo, super_admin always have full access
+    // org_admin, ceo, super_admin always see every module
     if (['org_admin','ceo','super_admin'].includes(profile?.role) || superAdmin) return true
-    // An explicit per-user setting (Admin Panel → Module Access by User) beats every
-    // default below — 'none' hides the module even when the Role Template grants it.
-    const perm = userPerms.find(p => p.module_key === key)
-    if (perm) return perm.access_level !== 'none'
-    // Role-based defaults: some modules auto-grant to specific roles
-    if (ROLE_MODULE_DEFAULTS[key]?.includes(profile?.role)) return true
-    // Department+level equivalent of the above, for reassigned accounts
-    if (LEVEL_MODULE_DEFAULTS[key] && hasAnyDepartmentLevel(LEVEL_MODULE_DEFAULTS[key])) return true
-    // Budgets: Managers of the budget departments (mirrors can_see_budget() in the database)
-    if (key === 'budgets' && departmentRoles.some(d => d.level === 'manager' && BUDGET_DEPARTMENT_KEYS.includes(d.department))) return true
-    // Org-configurable role defaults (Admin Panel → Role Templates) — a sensible
-    // starting baseline per role, editable per org.
-    return roleVisibility.includes(key)
+    // Budgets: anyone who sees a budget department's costs (mirrors can_see_budget())
+    if (key === 'budgets' && BUDGET_DEPARTMENT_KEYS.some(d => can(d === 'maintenance' ? 'work_orders' : d, 'costs'))) return true
+    return hasAnyPermission(key)
   }
 
-  // canEdit(key, defaultRoles?) — explicit user_module_permissions always wins.
-  // If no explicit permission row exists for this module, defaultRoles (if provided)
-  // grants edit access to those roles by default — e.g. nursing staff can edit
-  // Nursing Notes out of the box without an admin having to configure anything,
-  // but an admin can still override (grant edit to other roles, or downgrade
-  // nursing staff to view-only) via the Admin Panel.
-  const canEdit = (key, defaultRoles = []) => {
+  // canEdit(key) — can make changes in this module (any write permission). The
+  // second argument is ignored now that Job Roles decide; it's kept so old callers
+  // don't break.
+  const canEdit = (key) => {
     // Tiered communities: the Administrator (NHA) edits only the modules they own
     // per the access matrix — elsewhere it's view + approve unless Emergency Edit
     // is on. The database (nha_write_guard) enforces the same rule.
     if (nhaViewOnly && !NHA_WRITABLE_MODULES.includes(key)) return false
     if (['org_admin','ceo','super_admin'].includes(profile?.role) || superAdmin) return true
-    const perm = userPerms.find(p => p.module_key === key)
-    if (perm) return perm.access_level === 'edit'
-    if (isViewOnly(key)) return false
-    return defaultRoles.includes(profile?.role)
+    return hasWritePermission(key)
   }
 
-  // isViewOnly(key) — read only in this module: a per-user View row, or a Role
-  // Template set to View outside the person's own department (a per-user Edit row
-  // overrides it). The template rule is enforced by role_view_only_guard in the
-  // database (20261021_role_template_view_only.sql); module → department is
-  // MODULE_DEPARTMENTS / module_department().
+  // isViewOnly(key) — sees the module but has no write permission in it; the
+  // database's role_view_only_guard refuses their changes the same way.
   function isViewOnly(key) {
     if (['org_admin','ceo','super_admin'].includes(profile?.role) || superAdmin) return false
-    const perm = userPerms.find(p => p.module_key === key)
-    if (perm) return perm.access_level === 'view'
-    if (!roleViewOnly.includes(key)) return false
-    const dept = MODULE_DEPARTMENTS[key]
-    return !(dept && (profile?.department === dept || departmentRoles.some(d => d.department === dept)))
+    return hasAnyPermission(key) && !hasWritePermission(key)
   }
 
-  // hasDepartmentAccess(dept, minLevel) — for the "everyone can submit, only the
-  // owning department's supervisors/managers see and work the full queue" pattern
-  // (IT Tickets, Work Orders, etc.). org_admin/ceo/super_admin always pass.
-  // Level rank: employee < supervisor < manager.
+  // hasDepartmentAccess(dept, minLevel) — mirrors has_department_access() in the
+  // database: for a department that owns modules, membership and level come from
+  // Job Roles (module_access_thresholds); HR, Payroll, and other departments with
+  // no module of their own use department & level. org_admin/ceo/super_admin pass.
   const LEVEL_RANK = { employee: 0, supervisor: 1, manager: 2 }
   const hasDepartmentAccess = (dept, minLevel = 'employee') => {
     if (['org_admin','ceo','super_admin'].includes(profile?.role) || superAdmin) return true
+    const owned = Object.values(thresholds).filter(t => MODULE_DEPARTMENTS[t.module_key] === dept)
+    if (owned.length) {
+      return owned.some(t => minLevel === 'manager' ? can(t.module_key, t.manager_action)
+        : minLevel === 'supervisor' ? can(t.module_key, t.supervisor_action) || can(t.module_key, t.manager_action)
+        : can(t.module_key, t.member_action) || can(t.module_key, t.supervisor_action) || can(t.module_key, t.manager_action))
+    }
     const assignment = departmentRoles.find(d => d.department === dept)
     if (!assignment) return false
     return (LEVEL_RANK[assignment.level] ?? -1) >= (LEVEL_RANK[minLevel] ?? 0)
@@ -303,8 +309,16 @@ export function AuthProvider({ children }) {
 
   const isPlatformAdmin = ['org_admin', 'super_admin'].includes(profile?.role) || superAdmin
     || (profile?.role === 'ceo' && !!profile?.is_platform_admin)
-  const tierFor = (moduleKey) =>
-    tierForProfile({ role: profile?.role, isSuperAdmin: superAdmin, departmentRoles }, moduleKey)
+  // Tier in a module — mirrors my_access_tier(): department modules from Job Roles,
+  // the rest (and special account types) from department & level as before
+  const tierFor = (moduleKey) => {
+    const base = tierForProfile({ role: profile?.role, isSuperAdmin: superAdmin, departmentRoles }, moduleKey)
+    const t = thresholds[moduleKey]
+    if (!t || !['employee', 'supervisor', 'manager'].includes(base)) return base
+    if (can(moduleKey, t.manager_action)) return 'manager'
+    if (can(moduleKey, t.supervisor_action)) return 'supervisor'
+    return 'employee'
+  }
 
   // Emergency Edit — start_emergency_edit() logs it and alerts the Org Admins
   const startEmergencyEdit = async (reason) => {
@@ -348,9 +362,12 @@ export function AuthProvider({ children }) {
 
   const refreshDepartmentRoles = async () => {
     if (!user?.id) return
-    const { data } = await supabase.from('staff_department_roles').select('department, level')
-      .eq('profile_id', user.id)
+    const [{ data }, { data: perms }] = await Promise.all([
+      supabase.from('staff_department_roles').select('department, level').eq('profile_id', user.id),
+      supabase.rpc('my_permissions'),
+    ])
     setDepartmentRoles(data || [])
+    setPermissions(new Set((perms || []).map(p => `${p.module_key}|${p.action}`)))
   }
 
   const refreshOrganization = async () => {
@@ -392,7 +409,7 @@ export function AuthProvider({ children }) {
       isOrgAdmin, isSuperAdmin, isCEO, signOut, refreshModules, refreshProfile, refreshOrganization,
       impersonating, impersonateOrg, exitImpersonation,
       departmentRoles, hasDepartmentAccess, hasAnyDepartmentLevel, refreshDepartmentRoles,
-      accessModel, isPlatformAdmin, tierFor,
+      accessModel, isPlatformAdmin, tierFor, can, permissions,
       nhaViewOnly, canManagePlatform, emergencyEditOn, emergencyUntil, startEmergencyEdit, endEmergencyEdit,
       mfaStep, mfaStatus, recheckMfa, celebrations, refreshCelebrations,
     }}>
