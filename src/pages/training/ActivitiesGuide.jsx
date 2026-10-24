@@ -29,7 +29,7 @@ export default function ActivitiesGuide() {
 
           <SectionBlock id="calendar" num="01" title="Calendar View"
             dek="A full month at a glance, color-coded by category, with recurring classes already expanded onto every date they occur.">
-            <Frame src={SHOT('calendar-view.png')} alt="Activities month calendar" caption="July at a glance, filtered by category chips along the top" />
+            <Frame src={SHOT('calendar-view.png')} alt="Activities month calendar" caption="The month at a glance, with category chips along the top to filter" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
             <Steps items={[
               { k: 1, text: 'Use the category chips (Fitness, Arts & Crafts, Games, Social, and more) to filter the calendar down to one type of programming at a time.' },
@@ -64,6 +64,7 @@ export default function ActivitiesGuide() {
 
           <SectionBlock id="attendance" num="04" title="Attendance & RSVPs"
             dek="Record who came, and see who said they would.">
+            <Frame src={SHOT('attendance-modal.png')} alt="Attendance dialog" caption="Search by name or room and tick who came" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Taking attendance</h3>
             <Steps items={[
               { k: 1, text: <>In <b className="text-slate-900">Upcoming</b>, click <b className="text-slate-900">Attendance</b> on the activity.</> },
@@ -77,6 +78,7 @@ export default function ActivitiesGuide() {
           <SectionBlock id="reports" num="05" title="Participation Report"
             dek="Who is taking part, and who has stopped. Visible to the Activities department, the Administrator, and Org Admins."
             roleNote="Activities staff">
+            <Frame src={SHOT('participation-report.png')} alt="Participation Report" caption="Check-ins, most attended activities, RSVPs, and each resident's participation" />
             <Steps items={[
               { k: 1, text: <>Click <b className="text-slate-900">Reports</b> in the view toggle and choose a date range.</> },
               { k: 2, text: <>The top tiles show <b className="text-slate-900">Total Check-ins</b>, <b className="text-slate-900">Residents Engaged</b>, occurrences with attendance taken, and the average per occurrence. Below are the most attended activities and attendance by department.</> },
@@ -96,6 +98,7 @@ export default function ActivitiesGuide() {
               { k: 2, text: <>Click <b className="text-slate-900">Print Schedule</b> again inside the preview to open a print-formatted version in a new tab, ready to print or post on a bulletin board.</> },
             ]} />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Wall calendar</h3>
+            <Frame src={SHOT('print-calendar-modal.png')} alt="Print Calendar border picker" caption="Fourteen borders, from Plain to Christmas" />
             <p className="text-[15px] text-slate-700 mb-6">Click <b className="text-slate-900">Print Calendar</b> for a full-month, landscape wall calendar to post in a resident's room or a common area. Pick a <b className="text-slate-900">Border</b> to match the season: Plain, Classic, Floral, Garden, Spring, Sunny, Rainbow, Birthday, Patriotic, Autumn, Halloween, Thanksgiving, Wintery, or Christmas.</p>
           </SectionBlock>
 
