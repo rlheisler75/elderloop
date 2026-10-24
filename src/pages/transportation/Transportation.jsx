@@ -823,7 +823,7 @@ export default function Transportation() {
             <div className="text-center py-16 text-slate-400">
               <Car size={40} className="mx-auto mb-3 opacity-30" />
               <p className="font-display text-lg">No trips scheduled</p>
-              <p className="text-sm mt-1">Click "Schedule Trip" to add one.</p>
+              <p className="text-sm mt-1">{canWrite ? 'Click "Schedule Trip" to add one.' : canRequest ? 'Need a ride? Click "Request a Ride".' : null}</p>
             </div>
           ) : (
             <div className="space-y-3">

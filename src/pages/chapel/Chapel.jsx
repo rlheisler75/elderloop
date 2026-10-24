@@ -325,7 +325,11 @@ export default function Chapel() {
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Live Stream Control</h2>
-            {liveService ? (
+            {liveService && !canManage ? (
+              <span className="px-3 py-1 bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 text-xs font-semibold rounded-full flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" /> Live now
+              </span>
+            ) : liveService ? (
               <button onClick={() => toggleLive(liveService)}
                 className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-xl transition-colors flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
