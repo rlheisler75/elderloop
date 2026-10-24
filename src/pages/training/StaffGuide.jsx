@@ -5,7 +5,7 @@ const SHOT = (name) => `/training/staff/${name}`
 const NAV = [
   { id: 'overview', num: '01', label: 'Overview' },
   { id: 'adding',   num: '02', label: 'Adding a Staff Member' },
-  { id: 'access',   num: '03', label: 'Module Access' },
+  { id: 'access',   num: '03', label: 'Access (Job Roles)' },
   { id: 'certs',    num: '04', label: 'Certifications' },
 ]
 
@@ -37,7 +37,7 @@ export default function StaffGuide() {
           </SectionBlock>
 
           <SectionBlock id="adding" num="02" title="Adding a Staff Member"
-            dek="Creates a real login, not just a directory entry. Role sets their identity and, via your org's Role Templates, their default module access — no separate step required for the common case, though you can still fine-tune one person's access afterward."
+            dek="Creates a real login, not just a directory entry. Their department and level then hand out their default Job Roles, so the common case needs no extra step."
             roleNote="Org Admin only">
             <Frame src={SHOT('add-staff-modal.png')} alt="Add Staff Member form" caption="No password field — they set their own from an emailed link" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
@@ -49,18 +49,16 @@ export default function StaffGuide() {
             <Tip warn>The <b className="text-slate-900">Starter</b> plan includes up to 10 active staff accounts, <b className="text-slate-900">Essential</b> up to 40, and <b className="text-slate-900">Plus</b> up to 75 (resident and family portal logins don't count). At the limit, <b className="text-slate-900">Add Staff Member</b> shows an upgrade prompt instead — and reactivating a former staff member or changing a family login into a staff account counts as adding a seat, too. To make room, deactivate someone who's left, or upgrade in Admin Panel → Billing. The Professional plan has no staff limit.</Tip>
           </SectionBlock>
 
-          <SectionBlock id="access" num="03" title="Module Access"
-            dek="A new login gets a sensible baseline automatically, based on their Role (set org-wide in Role Templates) — this screen is for granting or revoking access beyond that baseline for one specific person."
+          <SectionBlock id="access" num="03" title="Access (Job Roles)"
+            dek="What someone can do comes from their Job Roles. Most come automatically from their department and level; an Org Admin adds anything else on their Edit User screen."
             roleNote="Org Admin only">
-            <Frame src={SHOT('module-access.jpg')} alt="Module Access by user" caption="Click a module pill to cycle Edit → View Only → No Access — this overrides that person's Role Template default" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
             <Steps items={[
-              { k: 1, text: <>Go to <b className="text-slate-900">Admin Panel → Module Access</b>, search for the person, and click their row to expand the full module list.</> },
-              { k: 2, text: <>Click a module pill to cycle it: <b className="text-slate-900">No Access → Edit → View Only → No Access</b>. Use this for exceptions — e.g. one Dietary staffer who also needs to see Marketing — not for the baseline every Dietary hire should get, which belongs in Role Templates instead.</> },
-              { k: 3, text: <>Org Admins and Administrators always have full access to every enabled module and don't appear here needing configuration — this screen is for everyone else.</> },
+              { k: 1, text: <>In <b className="text-slate-900">Admin Panel → Users</b>, edit the person and add each <b className="text-slate-900">department &amp; level</b> they work in. That gives them the matching Department role (for example Dietary Employee).</> },
+              { k: 2, text: <>Under <b className="text-slate-900">Job Roles</b>, add any extra role they need, and open <b className="text-slate-900">Effective access</b> to see exactly what they can do or to add or remove one permission for just them.</> },
+              { k: 3, text: <>To change what a whole group can do, edit the role in <b className="text-slate-900">Admin Panel → Job Roles</b>.</> },
             ]} />
-            <Tip>The baseline itself lives in <b className="text-slate-900">Admin Panel → Role Templates</b>: an editable, per-role default (e.g. Dietary role → Dietary, Activities, Communication, Directory, Time Clock) that every new hire with that Role gets automatically, with no manual step required. An explicit grant or revoke here in Module Access for one person always overrides their Role Template default.</Tip>
-            <Tip warn>Org Admins, Administrators, and Super Admins aren't affected by Role Templates — they already have full access unconditionally. Family and Resident logins use a separate fixed portal, not this module list, so Role Templates has no effect on them either.</Tip>
+            <Tip>Org Admins can always do everything. Family and Resident logins use their own portals, so Job Roles don't apply to them. See <a href="/training/access" className="font-semibold underline">Roles &amp; Access</a> for the full picture.</Tip>
           </SectionBlock>
 
           <SectionBlock id="certs" num="04" title="Certifications"
@@ -80,7 +78,7 @@ export default function StaffGuide() {
           <QuickRefTable rows={[
             ['Add a new staff login', 'Add Staff Member'],
             ['Change someone’s Role', 'Admin Panel → Users → pencil icon on their row'],
-            ['Grant or adjust what modules someone can see', 'Admin Panel → Module Access → search their name → click a module pill'],
+            ['Change what someone can do', 'Admin Panel → Users → edit → Job Roles / Effective access'],
             ['Mark someone on leave or terminated', 'Open their card → Profile tab → Status'],
             ['Add or renew a certification', 'Open their card → Certifications tab → Add Certification'],
             ['See who has a cert expiring soon', 'Certification Alerts banner or Certs Expiring stat tile'],

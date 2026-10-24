@@ -32,7 +32,7 @@ export default function FamilyGuide() {
             <Steps items={[
               { k: 1, text: <>Click a thread on the left to open it — this also marks the family member's messages as read.</> },
               { k: 2, text: <>Reply with text, plus an optional image, PDF, or Word attachment. Double checkmarks show once the family member has read your reply.</> },
-              { k: 3, text: <>By default only supervisors, managers, and admins can reply — an org admin can widen this per-user in Admin Panel → Module Access. Everyone else sees threads read-only with a "View-only access" notice.</> },
+              { k: 3, text: <>Supervisors, managers, admins, and anyone whose Job Roles include Family Messaging Create or Edit can reply. An Org Admin can give someone that permission on their Edit User screen. Everyone else sees threads read-only with a "View-only access" notice.</> },
             ]} />
           </SectionBlock>
 

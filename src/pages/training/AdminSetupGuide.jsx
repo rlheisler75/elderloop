@@ -7,8 +7,8 @@ const NAV = [
   { id: 'settings',  num: '02', label: 'Org Settings' },
   { id: 'lists',     num: '03', label: 'Departments & lists' },
   { id: 'users',     num: '04', label: 'Adding staff' },
-  { id: 'templates', num: '05', label: 'Role Templates' },
-  { id: 'access',    num: '06', label: 'Module Access by User' },
+  { id: 'templates', num: '05', label: 'Job Roles' },
+  { id: 'access',    num: '06', label: "One person's access" },
   { id: 'residents', num: '07', label: 'Residents & families' },
   { id: 'billing',   num: '08', label: 'Billing & add-ons' },
   { id: 'celebrate', num: '09', label: 'Celebrations' },
@@ -45,12 +45,12 @@ export default function AdminSetupGuide() {
             <Steps items={[
               { k: 1, text: <><B>Org Settings</B>: name, logo, regulatory state, which modules are on, approval thresholds.</> },
               { k: 2, text: <><B>Lists &amp; Pick Lists</B>: departments, vehicles, inspection areas, checkpoints, and the other lists your modules use.</> },
-              { k: 3, text: <><B>Role Templates</B>: what each role sees (and can change) by default, set <i>before</i> you add people.</> },
+              { k: 3, text: <><B>Job Roles</B>: check the default roles (one per department and level), and build any custom ones before you add people.</> },
               { k: 4, text: <><B>Users</B>: add staff with their department and level.</> },
               { k: 5, text: <><B>Residents</B>: import from a spreadsheet, then link family members.</> },
-              { k: 6, text: <><B>Module Access</B>: individual exceptions, only where someone needs something different from their role.</> },
+              { k: 6, text: <><B>One person's access</B>: add an extra Job Role, or add or remove a single permission, only where someone needs something different.</> },
             ]} />
-            <Tip>For how the five access levels work (Employee, Supervisor, Manager, Administrator, Corporate), approvals, and Emergency Edit, see <GuideLink to="/training/access">Roles &amp; Access</GuideLink>.</Tip>
+            <Tip>For how Job Roles, levels, approvals, and Emergency Edit work, see <GuideLink to="/training/access">Roles &amp; Access</GuideLink>.</Tip>
           </SectionBlock>
 
           <SectionBlock id="settings" num="02" title="Org Settings"
@@ -87,40 +87,39 @@ export default function AdminSetupGuide() {
           </SectionBlock>
 
           <SectionBlock id="users" num="04" title="Adding staff"
-            dek="Each person gets their own login. Their department and level decide what they can do.">
+            dek="Each person gets their own login. Their department and level hand out the matching Job Roles.">
             <Steps items={[
               { k: 1, text: <>Open <B>Admin Panel → Users</B> and click <B>Add User</B>.</> },
               { k: 2, text: <>Enter their name and <B>email</B>. They'll get an email with a link to set their own password, so there's no temporary password to hand out.</> },
               { k: 3, text: <>Choose the <B>Account Type</B>: <B>Staff</B> for almost everyone, <B>Administrator</B> for the NHA, <B>Org Admin</B> for the person who runs ElderLoop. (Resident and Family logins are made from the resident's profile instead.)</> },
-              { k: 4, text: <>For Staff, add their <B>department and level</B>: Employee, Supervisor, or Manager. Someone can belong to more than one department (for example a Dietary Manager who also supervises Housekeeping).</> },
+              { k: 4, text: <>For Staff, add their <B>department and level</B>: Employee, Supervisor, or Manager. Each one gives them that department's default Job Role. Someone can belong to more than one department (for example a Dietary Manager who also supervises Housekeeping).</> },
               { k: 5, text: <>Click <B>Create User</B>. Edit them later (pencil icon) to add a job title, phones, hire date, or admin-only notes.</> },
             ]} />
-            <Tip warn>Department and level matter. Someone with no department sees only their own items in most modules. Check every person's department before go-live.</Tip>
+            <Tip warn>Department and level matter. Someone with no department has only the Everyone role: the shared pages and their own items. Check every person's department before go-live.</Tip>
             <H3>When someone leaves</H3>
             <P>Click the <B>deactivate</B> icon on their row. Their login stops working, but their history (notes, work orders, time punches) stays. Uncheck <B>Active Account</B> in their edit form to do the same thing. Your plan's staff limit counts active accounts only.</P>
             <P>The <B>2FA</B> column shows who has two-factor sign-in on. See <GuideLink to="/training/two-factor">Two-Factor Sign-In</GuideLink> for resets.</P>
           </SectionBlock>
 
-          <SectionBlock id="templates" num="05" title="Role Templates"
-            dek="The starting point for what each role sees and can change, so new staff aren't stuck with an empty sidebar.">
+          <SectionBlock id="templates" num="05" title="Job Roles"
+            dek="A Job Role is a set of things someone can do, module by module. People can hold several; the database enforces exactly what they add up to.">
             <Steps items={[
-              { k: 1, text: <>Open <B>Admin Panel → Role Templates</B> and click a role to expand it.</> },
-              { k: 2, text: <>Click a module to cycle: <B>Off</B> → <B>Edit</B> → <B>View Only</B> → Off.</> },
-              { k: 3, text: <><B>Edit</B> follows the module's normal rules for the person's level. <B>View Only</B> lets the role look but not change anything. Saving is blocked, and they see a "View only" bar on that module.</> },
+              { k: 1, text: <>Open <B>Admin Panel → Job Roles</B>. Roles are grouped: <B>Everyone</B> (every staff login), <B>Administrator</B> (the NHA), <B>Custom roles</B>, <B>Department roles</B> (one per department and level), and roles <B>carried over</B> from the old Role Templates.</> },
+              { k: 2, text: <>Click a role to see its grid: modules down the side, the seven actions across the top (<B>View, Create, Edit, Approve, Delete, Settings, Costs</B>). Click a box to turn it on or off; it saves right away. Hover a box to see what that action allows in that module.</> },
+              { k: 3, text: <>Click <B>New Job Role</B> to make your own, for example "Transportation Coordinator" or "Dietary Aide (no costs)". Start empty or from a copy of an existing role. Add people under <B>People with this role</B>.</> },
+              { k: 4, text: <>Changing a role changes it for everyone who has it, the next time they sign in or refresh.</> },
             ]} />
-            <Tip>View Only never applies in someone's own department. Set Managers to View Only on Dietary and Housekeeping, and the Dietary Manager still runs Dietary fully while only viewing Housekeeping. Even under View Only, people can still file new requests: work orders, IT tickets, meal and dietary requests, and cleaning requests.</Tip>
-            <div className="mt-6" />
-            <P>Modules shared across departments (Communication, Incident Reports, Surveys, Staff, Time Clock, Family) are on/off only. Org Admins and the Administrator always see everything and aren't listed.</P>
+            <Tip>Department roles are handed out automatically from each person's department and level, so you rarely need to assign them by hand. View is separate: give View when people should see everyone's records, and leave it off when they only file requests (they always see their own). Org Admins can always do everything; Job Roles don't apply to them.</Tip>
           </SectionBlock>
 
-          <SectionBlock id="access" num="06" title="Module Access by User"
-            dek="Exceptions for one person. Their own setting always beats their role template.">
+          <SectionBlock id="access" num="06" title="One person's access"
+            dek="Extra roles and one-off changes for a single person, on their Edit User screen.">
             <Steps items={[
-              { k: 1, text: <>Open <B>Admin Panel → Module Access</B> and click the person.</> },
-              { k: 2, text: <>Tiles with a dashed border marked <B>role</B> follow their Role Template. Green means their role gives them the module, gray means it doesn't, and <B>role · view</B> means view only.</> },
-              { k: 3, text: <>Click a tile to cycle: <B>Role default</B> → <B>Edit</B> → <B>View</B> → <B>No Access</B> → Role default. <B>No Access</B> (red) hides the module even when their role would show it.</> },
+              { k: 1, text: <>Open <B>Admin Panel → Users</B> and edit the person. Their Job Roles are listed; ones marked <B>auto</B> come from their department and level or account type.</> },
+              { k: 2, text: <>Use <B>Add a Job Role</B> for anything extra. For example, a Social Services Director who also oversees rides gets <B>Transportation Supervisor</B>. Remove a role you added with its ×.</> },
+              { k: 3, text: <>Open <B>Effective access</B> to see the grid of what they can do. <B>Blue</B> boxes come from their roles (hover to see which), <B>green</B> are added just for them, <B>red</B> are removed just for them. Click a box to add or remove one permission; click again to go back.</> },
             ]} />
-            <Tip>Use this sparingly. Set the rule once in Role Templates; use Module Access only for the person who really is different. The count on each row ("8 modules") is what they can actually open. Changes take effect the next time they sign in or refresh.</Tip>
+            <Tip>Use one-off changes sparingly. If several people need the same thing, make or change a Job Role instead. That keeps everyone's access easy to read.</Tip>
           </SectionBlock>
 
           <SectionBlock id="residents" num="07" title="Residents & families"
@@ -161,9 +160,10 @@ export default function AdminSetupGuide() {
             ['Add a staff member', 'Users → Add User'],
             ['Change someone\'s department or level', 'Users → pencil icon'],
             ['Turn off a login for someone who left', 'Users → deactivate icon'],
-            ['Set what a role sees by default', 'Role Templates'],
-            ['Make a role view-only in a module', 'Role Templates → click module until View Only'],
-            ['Give or block one person\'s access', 'Module Access → click the person'],
+            ['Change what a role can do', 'Job Roles → click the role → click boxes'],
+            ['Make a custom role', 'Job Roles → New Job Role'],
+            ['Give one person an extra role', 'Users → edit → Add a Job Role'],
+            ['Add or remove one permission for one person', 'Users → edit → Effective access'],
             ['Import residents', 'Lists & Pick Lists → Residents → Import from CSV/Excel'],
             ['Change plan or add AI / Budgets', 'Billing'],
             ['Reset someone\'s two-factor', 'Users → reset icon'],

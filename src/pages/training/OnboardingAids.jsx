@@ -90,14 +90,14 @@ const GOLIVE = [
   ]},
   { id: 'lists', num: '02', label: 'Lists & roles', when: '2 weeks before', items: [
     <>Lists & Pick Lists: departments, job titles, and the other pick lists match how your community talks.</>,
-    <><B>Role Templates</B>: for each role, set every module to Edit, View Only, or off. Managers who should look but not touch outside their department get View Only.</>,
+    <><B>Job Roles</B> (Admin Panel → Job Roles): check the default role for each department and level, and build any custom roles your community needs (for example a Transportation Coordinator).</>,
     <>Celebrations: check the staff appreciation weeks you want to mark.</>,
   ]},
   { id: 'staff', num: '03', label: 'Staff logins', when: '1–2 weeks before', items: [
-    <>Add every staff member in Admin Panel → Users with a role <B>and their department & level</B> (Employee, Supervisor, Manager). Someone with no department sees only their own items.</>,
+    <>Add every staff member in Admin Panel → Users with <B>their department & level</B> (Employee, Supervisor, Manager). That hands out their department's Job Role. Someone with no department has only the Everyone role.</>,
     <>Whoever supervises a department from another job (for example, the Director of Social Services over Transportation) gets that department added too, at Supervisor or Manager.</>,
     <>Make the Administrator a <B>Platform Admin</B> only if they'll manage users and settings.</>,
-    <>Module Access by User: set any exceptions (No Access, or Edit for one person).</>,
+    <>On Edit User, add any extra Job Roles, and use <B>Effective access</B> for one-off changes (add or remove a single permission).</>,
     <>Staff set their own passwords from the email link. Resend for anyone who didn't get it.</>,
     <>Admin Panel → Users → 2FA column: everyone marked <B>Setup due</B> sets up two-factor on their first sign-in.</>,
   ]},
@@ -124,7 +124,7 @@ const GOLIVE = [
   ]},
   { id: 'week', num: '07', label: 'First week', when: 'Days 2–7', items: [
     <>2FA column: no one still <B>Setup due</B> in a required role.</>,
-    <>Anyone saying "I can't see it": check their department & level first, then their Role Template.</>,
+    <>Anyone saying "I can't see it": open their Edit User → Effective access, then check their departments and Job Roles.</>,
     <>Work orders, ride requests, and family messages are being answered.</>,
     <>Budgets: the census is recording each night (Budgets → Census).</>,
   ]},
@@ -214,8 +214,8 @@ export function ManagerQuickCards() {
       <SectionBlock id="everyone" num="01" title="Every manager" dek="True in every department.">
         <Card title="Your team and levels">
           <p><B>Employees</B> do the daily work and see their own items. <B>Supervisors</B> work the whole department and correct entries. <B>Managers</B> own settings, lists, and deletes.</p>
-          <p>Outside your department you may be <B>View Only</B>: you can look but not change. You can always file a work order or IT ticket.</p>
-          <p>Someone can't see something? Check their department & level with your Org Admin.</p>
+          <p>Your Job Roles decide what you can do; outside your department you'll often see a <B>View only</B> bar: you can look but not change. You can always file a work order or IT ticket.</p>
+          <p>Someone can't see something? Your Org Admin checks their Effective access on Edit User.</p>
           <p>Clinical and incident records are never deleted. Use <B>Entered in error</B> instead.</p>
         </Card>
       </SectionBlock>
@@ -277,8 +277,8 @@ export function ManagerQuickCards() {
 // ── FAQ ──────────────────────────────────────────────────────────────────────
 const FAQ = [
   { id: 'access', num: '01', label: 'Access & sign-in', qa: [
-    ['I can\'t see a module my coworker sees.', 'What you see depends on your role and your department & level. Ask your Org Admin to check both in Admin Panel → Users.'],
-    ['It says "View only".', 'Your role can look at this module but not change it, because it isn\'t your department. If you need to make changes, your Org Admin can give you Edit for that module.'],
+    ['I can\'t see a module my coworker sees.', 'What you see comes from your Job Roles, which mostly come from your department & level. Your Org Admin can check exactly what you have on your Edit User screen (Effective access).'],
+    ['It says "View only".', 'You can look at this module but none of your Job Roles lets you change it. If you need to, your Org Admin can add a Job Role or a single permission for you.'],
     ['I lost my phone and can\'t get my code.', 'Ask your Org Admin to reset your two-factor sign-in, then set up your new phone when you next sign in.'],
     ['I didn\'t get the invitation email.', 'Check spam for a message from info@elderloop.xyz. Your Org Admin can resend it, or use Forgot password? on the sign-in page.'],
     ['I got signed out.', 'ElderLoop signs you out after a period of no activity to protect resident information. Sign in again.'],

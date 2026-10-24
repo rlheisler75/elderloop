@@ -34,14 +34,14 @@ const GUIDES = [
     to: '/training/admin-setup',
     icon: Settings,
     title: 'Admin Setup',
-    desc: 'Setting up a community: Org Settings and modules, departments and pick lists, adding staff, Role Templates and View Only, Module Access exceptions, importing residents, billing and add-ons, and Celebrations.',
+    desc: 'Setting up a community: Org Settings and modules, departments and pick lists, adding staff, Job Roles, one person\'s access, importing residents, billing and add-ons, and Celebrations.',
     tag: '9 sections',
   },
   {
     to: '/training/access',
     icon: ShieldCheck,
     title: 'Roles & Access',
-    desc: 'The five access levels, who can do what in each module, the Administrator’s view-and-approve role and Emergency Edit, approvals, entered-in-error, and the Corporate Portal.',
+    desc: 'Job Roles and the seven actions, levels and default roles, what the defaults allow in each module, the Administrator\'s view-and-approve role and Emergency Edit, approvals, entered-in-error, and the Corporate Portal.',
     tag: '8 sections',
   },
   {

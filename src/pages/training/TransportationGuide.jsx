@@ -48,7 +48,7 @@ export default function TransportationGuide() {
               { k: 3, text: <>Fill in <b className="text-slate-900">Appointment Details</b> — type (Medical, Dental, Therapy, Vision, Lab/Tests), provider name, address, and phone.</> },
               { k: 4, text: <>Assign a <b className="text-slate-900">Driver</b> and <b className="text-slate-900">Vehicle</b> if you know them ahead of time — both can be added or changed later.</> },
             ]} />
-            <Tip>Only people in the Transportation department, at any level, schedule and change trips. That includes whoever supervises Transportation, even if their main job is in another department. Everyone else sees the calendar as view only. Nursing staff and IL residents send a ride request instead (see Ride Requests below). To give someone access, an Org Admin adds Transportation to their departments in Admin Panel → Users.</Tip>
+            <Tip>Only people whose Job Roles include Transportation Edit schedule and change trips: by default, everyone in the Transportation department at any level, including whoever supervises it from another department. Everyone else sees the calendar as view only. Nursing staff and IL residents send a ride request instead (see Ride Requests below). To give someone access, an Org Admin adds Transportation to their departments, or adds a Transportation Job Role, in Admin Panel → Users → edit.</Tip>
           </SectionBlock>
 
           <SectionBlock id="day" num="03" title="Day View & Trip Log"
