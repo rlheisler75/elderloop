@@ -10,6 +10,8 @@ import {
 } from 'lucide-react'
 import AdminLists from './AdminLists'
 import UserPermissions from './UserPermissions'
+import JobRoles from './JobRoles'
+import UserAccessPanel from './UserAccessPanel'
 import RoleTemplates, { TEMPLATE_ROLES } from './RoleTemplates'
 import SupplyVendors from '../supply/SupplyVendors'
 import BillingTab from './BillingTab'
@@ -200,7 +202,7 @@ function CreateUserModal({ orgId, orgName, departments, onClose, onSave }) {
 }
 
 // ── Edit User Modal ────────────────────────────────────────────
-function EditUserModal({ user, orgId, departments, onClose, onSave }) {
+function EditUserModal({ user, orgId, departments, orgModules, onClose, onSave }) {
   const [form, setForm] = useState({
     first_name:  user.first_name  || '',
     last_name:   user.last_name   || '',
@@ -311,6 +313,13 @@ function EditUserModal({ user, orgId, departments, onClose, onSave }) {
           {isStaffRole(form.role) && (
             <StaffAccessFields role={form.role} onRoleChange={v => set('role', v)}
               assignments={deptAssignments} onAssignmentsChange={setDeptAssignments} departments={departments} />
+          )}
+
+          {/* Job Roles & effective access (saved immediately, separate from Save Changes) */}
+          {form.role !== 'resident' && form.role !== 'family' && (
+            <div className="pt-1">
+              <UserAccessPanel user={user} orgId={orgId} orgModules={orgModules} />
+            </div>
           )}
 
           {/* Job info */}
@@ -790,6 +799,7 @@ export default function AdminPanel() {
 
   const tabs = [
     { key: 'users',        label: 'Users',              icon: Users },
+    { key: 'job_roles',    label: 'Job Roles',          icon: Key },
     { key: 'permissions',  label: 'Module Access',      icon: Shield },
     { key: 'role_templates', label: 'Role Templates',   icon: Layers },
     { key: 'vendors',      label: 'Vendors',            icon: Truck },
@@ -1018,6 +1028,12 @@ export default function AdminPanel() {
           orgId={currentOrgId}
           orgModules={orgModules.map(m => m.module_key || m).filter(Boolean)} />
       )}
+      {/* ── JOB ROLES TAB ── */}
+      {tab === 'job_roles' && (
+        <JobRoles
+          orgId={currentOrgId}
+          orgModules={orgModules.map(m => m.module_key || m).filter(Boolean)} />
+      )}
       {/* ── ROLE TEMPLATES TAB ── */}
       {tab === 'role_templates' && (
         <RoleTemplates
@@ -1085,6 +1101,7 @@ export default function AdminPanel() {
           orgId={currentOrgId}
           orgName={selectedOrg?.name || organization?.name}
           departments={getOrgDepartments(selectedOrg || organization)}
+          orgModules={orgModules.map(m => m.module_key || m).filter(Boolean)}
           onClose={() => setShowCreateUser(false)}
           onSave={() => { setShowCreateUser(false); fetchUsers() }} />
       )}
@@ -1093,6 +1110,7 @@ export default function AdminPanel() {
           user={editingUser}
           orgId={currentOrgId}
           departments={getOrgDepartments(selectedOrg || organization)}
+          orgModules={orgModules.map(m => m.module_key || m).filter(Boolean)}
           onClose={() => { setShowEditUser(false); setEditingUser(null) }}
           onSave={() => { setShowEditUser(false); setEditingUser(null); fetchUsers() }} />
       )}
