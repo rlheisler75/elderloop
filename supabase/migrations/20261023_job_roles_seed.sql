@@ -31,6 +31,9 @@ language sql immutable as $function$
   ('administrator', null, null, 'work_orders',   array['create']),
   ('administrator', null, null, 'it',            array['create']),
   ('administrator', null, null, 'transportation', array['create']),
+  ('administrator', null, null, 'scheduling',    array['edit', 'settings']),
+  ('administrator', null, null, 'timeclock',     array['edit']),
+  ('administrator', null, null, 'staff',         array['create', 'edit', 'delete']),
   -- Any department, by level
   ('department', '*', 'supervisor', 'scheduling',    array['view', 'edit']),
   ('department', '*', 'supervisor', 'timeclock',     array['view', 'edit']),
@@ -55,7 +58,7 @@ language sql immutable as $function$
   ('department', 'dietary', 'supervisor', 'dietary',        array['view', 'create', 'edit']),
   ('department', 'dietary', 'supervisor', 'central_supply', array['view', 'create']),
   ('department', 'dietary', 'manager',    'dietary',        array['view', 'create', 'edit', 'delete', 'settings', 'costs']),
-  ('department', 'dietary', 'manager',    'central_supply', array['view', 'create', 'edit', 'delete', 'settings', 'costs']),
+  ('department', 'dietary', 'manager',    'central_supply', array['view', 'create', 'edit', 'delete', 'settings']),
   -- Housekeeping
   ('department', 'housekeeping', 'employee',   'housekeeping', array['view', 'create']),
   ('department', 'housekeeping', 'supervisor', 'housekeeping', array['view', 'create', 'edit', 'approve']),
@@ -191,6 +194,15 @@ begin
     join job_roles r on r.organization_id = p_org and r.source = 'template'
                     and r.name = 'Template: ' || initcap(replace(v.role::text, '_', ' '))
    where v.organization_id = p_org and v.module_key = any (job_role_open_read_modules())
+  on conflict do nothing;
+  -- Role Templates with Edit on Residents could change resident records
+  insert into job_role_permissions (job_role_id, module_key, action)
+  select r.id, 'directory', a.a
+    from role_module_visibility v
+    join job_roles r on r.organization_id = p_org and r.source = 'template'
+                    and r.name = 'Template: ' || initcap(replace(v.role::text, '_', ' '))
+    cross join (values ('create'), ('edit')) a(a)
+   where v.organization_id = p_org and v.module_key = 'directory' and coalesce(v.access_level, 'edit') = 'edit'
   on conflict do nothing;
 end;
 $function$;
