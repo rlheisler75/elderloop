@@ -167,7 +167,7 @@ export default function BroadcastPanel({ isStarter = false, restrictToDepartment
         <StatCard icon={Clock} label="Sent Today"     value={stats.today}     color="bg-blue-50 text-blue-600" />
         <StatCard icon={Bell}  label="Push Delivered" value={stats.pushSent}  color="bg-purple-50 text-purple-600" />
         <StatCard icon={Mail}  label="Emails Sent"    value={stats.emailSent}
-          sub={stats.smsSent > 0 ? `+ ${stats.smsSent} SMS` : 'SMS pending A2P'}
+          sub={stats.smsSent > 0 ? `+ ${stats.smsSent} SMS` : null}
           color="bg-green-50 text-green-600" />
       </div>
 
