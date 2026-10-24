@@ -63,9 +63,14 @@ export function itemSuitableForResident(item, resident) {
   return true
 }
 
+// An alternate must clear the same allergen, diet, and consistency checks as
+// the main item (dislikes aside) — otherwise a vegetarian could be served the
+// chicken backup just because it has no allergens.
 function altSafeForResident(altItem, resident) {
   if (!altItem) return false
   if (resident.allergens?.some(a => altItem.allergens?.includes(a))) return false
+  if (altItem.suitable_diets?.length > 0 && !altItem.suitable_diets.includes(resident.diet_type)) return false
+  if (altItem.suitable_consistencies?.length > 0 && !altItem.suitable_consistencies.includes(resident.consistency)) return false
   return true
 }
 
