@@ -86,7 +86,8 @@ const CARE_LABELS = {
   assisted:    'Assisted Living',
   memory_care: 'Memory Care',
   skilled:     'Skilled Nursing',
-  rehab:       'Rehab',
+  skilled_nursing: 'Skilled Nursing',
+  rehab:      'Rehab',
 }
 
 const getDiet = (key) => DIET_TYPES.find(d => d.key === key)?.label || key

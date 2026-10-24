@@ -366,7 +366,7 @@ export default function PhysicianOrders({ orgId, canManage }) {
                       <div className="text-sm text-brand-700 dark:text-brand-400 font-medium mt-1">{describeChange(order)}</div>
                       <div className="text-sm text-slate-600 dark:text-slate-300 mt-1">{order.order_details}</div>
                       <div className="text-xs text-slate-400 mt-1">
-                        Dr. {order.ordering_physician} · {SOURCES.find(s => s.key === order.source)?.label} · {new Date(order.order_date + 'T12:00:00').toLocaleDateString()}
+                        {/^dr\.?\s/i.test(order.ordering_physician) ? '' : 'Dr. '}{order.ordering_physician} ·{SOURCES.find(s => s.key === order.source)?.label} · {new Date(order.order_date + 'T12:00:00').toLocaleDateString()}
                         {order.logged_by_name && ` · logged by ${order.logged_by_name}`}
                         {order.status === 'applied' && order.applied_by_name && ` · applied by ${order.applied_by_name}`}
                         {order.status === 'declined' && order.applied_by_name && ` · declined by ${order.applied_by_name}`}

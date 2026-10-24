@@ -121,7 +121,7 @@ export default function DietaryGuide() {
 
           <SectionBlock id="waste" num="08" title="Food Waste Tracking"
             dek="A running log of what's thrown out and why — plate waste, over-production, spoilage, or expired stock — with an estimated cost when the wasted item can be tied to a price.">
-            <Frame src={SHOT('food-waste-log.jpg')} alt="Food waste log" caption="Food Waste Log, filterable by date range and category" />
+            <Frame src={SHOT('food-waste-log.png')} alt="Food waste log" caption="Food Waste Log, filterable by date range and category" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
             <Steps items={[
               { k: 1, text: <>Click <b className="text-slate-900">Log Waste</b> and pick a Category — Over-Production, Plate Waste, Spoilage, Expired, or Other.</> },
@@ -133,7 +133,7 @@ export default function DietaryGuide() {
 
           <SectionBlock id="cost" num="09" title="Cost & Budget Reporting"
             dek="A food-spend snapshot for any date range: what was purchased, what was wasted, and how that compares to a monthly budget you set once.">
-            <Frame src={SHOT('cost-report.jpg')} alt="Food cost report" caption="Cost Report — food purchases, waste cost, and a pro-rated budget" />
+            <Frame src={SHOT('cost-report.png')} alt="Food cost report" caption="Cost Report — food purchases, waste cost, and a pro-rated budget" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
             <Steps items={[
               { k: 1, text: <>The Dietary Manager sets the <b className="text-slate-900">Monthly Food Budget</b>. Costs and the budget are shown to the Dietary Manager, the Administrator, and Org Admins, not to Employees or Supervisors.</> },
@@ -147,7 +147,7 @@ export default function DietaryGuide() {
 
           <SectionBlock id="orders" num="10" title="Meal Delivery Orders"
             dek="Residents and their family members can request a meal or snack be delivered to their room from the Resident and Family Portals. This screen is where Dietary sees those requests and works them.">
-            <Frame src={SHOT('meal-orders.jpg')} alt="Meal delivery orders queue" caption="Meal Delivery Orders — Received, Preparing, and Delivered" />
+            <Frame src={SHOT('meal-orders.png')} alt="Meal delivery orders queue" caption="Meal Delivery Orders — Received, Preparing, and Delivered" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
             <Steps items={[
               { k: 1, text: <>New requests appear as <b className="text-slate-900">Received</b>. Each card shows the resident, room, requested items, delivery time, and who placed the order — the resident themselves or a family member, labeled accordingly.</> },
@@ -158,8 +158,8 @@ export default function DietaryGuide() {
 
           <SectionBlock id="physician" num="11" title="Physician Diet Orders"
             dek="A record of physician-directed diet, texture, allergen, or fluid-restriction changes as they actually come in — by phone, fax, or chart note — with a required human review before the change takes effect on a resident's profile.">
-            <Frame src={SHOT('physician-orders.jpg')} alt="Physician diet orders list" caption="Physician Diet Orders — pending review alongside an already-applied order" />
-            <Frame src={SHOT('log-physician-order-modal.jpg')} alt="Log Physician Diet Order form" caption="Logging an order — fields adapt to the order type selected" />
+            <Frame src={SHOT('physician-orders.png')} alt="Physician diet orders list" caption="Physician Diet Orders — pending review alongside an already-applied order" />
+            <Frame src={SHOT('log-physician-order-modal.png')} alt="Log Physician Diet Order form" caption="Logging an order — fields adapt to the order type selected" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
             <Steps items={[
               { k: 1, text: <>Click <b className="text-slate-900">Log Order</b>, pick the resident and ordering physician, and set how it was received (Phone, Fax, Chart Note, EHR, or Other).</> },
