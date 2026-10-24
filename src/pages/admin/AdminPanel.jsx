@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import AdminLists from './AdminLists'
 import UserPermissions from './UserPermissions'
-import RoleTemplates from './RoleTemplates'
+import RoleTemplates, { TEMPLATE_ROLES } from './RoleTemplates'
 import SupplyVendors from '../supply/SupplyVendors'
 import BillingTab from './BillingTab'
 import AiSettingsTab from './AiSettingsTab'
@@ -30,6 +30,50 @@ const ALL_ROLES = [
   { key: 'resident',    label: 'Resident',    desc: 'Resident portal access' },
   { key: 'family',      label: 'Family',      desc: 'Family portal access' },
 ]
+
+// Every role that isn't one of these is a staff role (staff, supervisor, manager,
+// nursing, maintenance, …): the Staff tile covers them all, and the Role Template
+// picker chooses which one (role_module_visibility is keyed on it).
+const NON_STAFF_ROLES = ['ceo', 'org_admin', 'resident', 'family']
+const isStaffRole = (role) => !NON_STAFF_ROLES.includes(role)
+
+function AccountTypePicker({ role, onChange, cols = 3 }) {
+  return (
+    <div className={`grid gap-2 ${cols === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+      {ALL_ROLES.map(r => {
+        const on = r.key === 'staff' ? isStaffRole(role) : role === r.key
+        return (
+          <button key={r.key} type="button"
+            onClick={() => onChange(r.key === 'staff' ? (isStaffRole(role) ? role : 'staff') : r.key)}
+            className={`text-left px-3 py-2 rounded-lg border text-xs transition-all ${on ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300'}`}>
+            <div className="font-semibold">{r.label}</div>
+            <div className={`text-xs mt-0.5 ${on ? 'text-brand-100' : 'text-slate-400'}`}>{r.desc}</div>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+// Staff accounts: which Role Template applies, plus department & level
+// (Employee / Supervisor / Manager), which drives access in tiered communities
+function StaffAccessFields({ role, onRoleChange, assignments, onAssignmentsChange, departments }) {
+  const known = TEMPLATE_ROLES.some(r => r.key === role)
+  return (
+    <div className="space-y-3">
+      <div>
+        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Role Template</label>
+        <select value={role} onChange={e => onRoleChange(e.target.value)}
+          className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+          {!known && <option value={role}>{role}</option>}
+          {TEMPLATE_ROLES.map(r => <option key={r.key} value={r.key}>{r.label}</option>)}
+        </select>
+        <p className="text-xs text-slate-400 mt-1">Which modules they see (set in Role Templates). Make someone a supervisor or manager with the department & level below.</p>
+      </div>
+      <DepartmentLevelEditor assignments={assignments} onChange={onAssignmentsChange} departments={departments} />
+    </div>
+  )
+}
 
 // ALL_MODULES is now fetched from the `modules` table — no longer hardcoded
 
@@ -128,19 +172,12 @@ function CreateUserModal({ orgId, orgName, departments, onClose, onSave }) {
 
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Account Type</label>
-            <div className="grid grid-cols-2 gap-2">
-              {ALL_ROLES.map(r => (
-                <button key={r.key} onClick={() => set('role', r.key)}
-                  className={`text-left px-3 py-2 rounded-lg border text-xs transition-all ${form.role === r.key ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300'}`}>
-                  <div className="font-medium">{r.label}</div>
-                  <div className={`mt-0.5 ${form.role === r.key ? 'text-brand-200' : 'text-slate-400'}`}>{r.desc}</div>
-                </button>
-              ))}
-            </div>
+            <AccountTypePicker role={form.role} onChange={v => set('role', v)} cols={2} />
           </div>
 
-          {form.role === 'staff' && (
-            <DepartmentLevelEditor assignments={deptAssignments} onChange={setDeptAssignments} departments={departments} />
+          {isStaffRole(form.role) && (
+            <StaffAccessFields role={form.role} onRoleChange={v => set('role', v)}
+              assignments={deptAssignments} onAssignmentsChange={setDeptAssignments} departments={departments} />
           )}
 
           <div>
@@ -256,15 +293,7 @@ function EditUserModal({ user, orgId, departments, onClose, onSave }) {
           {/* Role */}
           <div>
             <label className={labelCls}>Account Type</label>
-            <div className="grid grid-cols-3 gap-2">
-              {ALL_ROLES.map(r => (
-                <button key={r.key} onClick={() => set('role', r.key)}
-                  className={`text-left px-3 py-2 rounded-lg border text-xs transition-all ${form.role === r.key ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300'}`}>
-                  <div className="font-semibold">{r.label}</div>
-                  <div className={`text-xs mt-0.5 ${form.role === r.key ? 'text-brand-100' : 'text-slate-400'}`}>{r.desc}</div>
-                </button>
-              ))}
-            </div>
+            <AccountTypePicker role={form.role} onChange={v => set('role', v)} />
           </div>
 
           {/* Platform Admin switch — Administrator (NHA) only */}
@@ -279,8 +308,9 @@ function EditUserModal({ user, orgId, departments, onClose, onSave }) {
             </label>
           )}
 
-          {form.role === 'staff' && (
-            <DepartmentLevelEditor assignments={deptAssignments} onChange={setDeptAssignments} departments={departments} />
+          {isStaffRole(form.role) && (
+            <StaffAccessFields role={form.role} onRoleChange={v => set('role', v)}
+              assignments={deptAssignments} onAssignmentsChange={setDeptAssignments} departments={departments} />
           )}
 
           {/* Job info */}

@@ -136,11 +136,13 @@ export default function DietaryGuide() {
             <Frame src={SHOT('cost-report.jpg')} alt="Food cost report" caption="Cost Report — food purchases, waste cost, and a pro-rated budget" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
             <Steps items={[
-              { k: 1, text: <>Set the <b className="text-slate-900">Monthly Food Budget</b> once — it's an organization-wide setting, so any dietary staffer can update it as the budget changes.</> },
+              { k: 1, text: <>The Dietary Manager sets the <b className="text-slate-900">Monthly Food Budget</b>. Costs and the budget are shown to the Dietary Manager, the Administrator, and Org Admins, not to Employees or Supervisors.</> },
               { k: 2, text: 'Pick a From/To date range. Food Purchases totals every non-cancelled purchase order line item for a food-category item ordered in that range (including drafts not yet sent to a vendor), pulled straight from the Order Guide\'s own purchase orders rather than a separate spend tracker.' },
               { k: 3, text: 'Waste Cost totals the priced entries from the Food Waste log over the same range.' },
               { k: 4, text: 'The monthly budget is automatically pro-rated to however many days your date range covers, so a one-week view compares fairly against a one-week slice of the monthly number.' },
             ]} />
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">With the Budgets add-on: Food Cost per Resident Day</h3>
+            <p className="text-[15px] text-slate-700 mb-6">When the community has the Budgets add-on, the Cost Report becomes <b className="text-slate-900">Food Cost per Resident Day</b>: food cost per resident day with the change from last month, all Dietary spend per resident day against the budget per day, food spend, the waste share of food spend, a six-month trend, and the top items by spend. Here only <b className="text-slate-900">submitted</b> orders count (not drafts), matching the Dietary budget on the Budgets page. See the <a href="/training/budgets" className="text-brand-700 font-semibold hover:underline">Budgets</a> guide.</p>
           </SectionBlock>
 
           <SectionBlock id="orders" num="10" title="Meal Delivery Orders"
@@ -163,8 +165,10 @@ export default function DietaryGuide() {
               { k: 1, text: <>Click <b className="text-slate-900">Log Order</b>, pick the resident and ordering physician, and set how it was received (Phone, Fax, Chart Note, EHR, or Other).</> },
               { k: 2, text: 'Choose the Order Type — Diet Change, Consistency Change, Allergen Update, Fluid Restriction, or Other — which shows the matching structured field (new diet type, new consistency, new allergen list, or a fluid-restriction toggle).' },
               { k: 3, text: <>Always fill in <b className="text-slate-900">Order Details</b> with what was actually said, in the physician's or nurse's own words — this is the record that justifies the change, not just the structured fields.</> },
-              { k: 4, text: <>The order sits as <b className="text-slate-900">Pending</b> until a dietary staffer reviews it. Click <b className="text-slate-900">Apply</b> to write the change onto the resident's dietary profile, or <b className="text-slate-900">Decline</b> with a reason if it shouldn't go through as logged.</> },
+              { k: 4, text: <>The order sits as <b className="text-slate-900">Pending</b> until a Dietary Supervisor or Manager reviews it. Click <b className="text-slate-900">Apply</b> to write the change onto the resident's dietary profile, or <b className="text-slate-900">Decline</b> with a reason if it shouldn't go through as logged.</> },
             ]} />
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Who sees and logs orders</h3>
+            <p className="text-[15px] text-slate-700 mb-6">Nursing logs physician orders, and Nursing Supervisors can update them. Dietary Supervisors and above apply them. The <b className="text-slate-900">Physician Orders</b> tab is visible only to Dietary Supervisors and above, Nursing, Social Services, the Administrator, and Org Admins; dietary aides don't see it. Orders are never deleted.</p>
             <Tip warn>Logging an order never changes a resident's diet by itself — Apply is a separate, deliberate step. This keeps a person in the loop before a clinically significant change takes effect, with the order itself standing as the audit trail either way.</Tip>
             <Tip>There's no live feed from PointClickCare or any other EHR into this screen — orders have to be logged manually as they come in. Think of it as the paper trail for verbal and faxed orders, not an integration.</Tip>
           </SectionBlock>

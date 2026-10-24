@@ -33,7 +33,7 @@ export default function ITGuide() {
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
             <Steps items={[
               { k: 1, text: <>The stat tiles track <b className="text-slate-900">Open Tickets</b>, tickets <b className="text-slate-900">In Progress</b>, and total <b className="text-slate-900">Tracked Assets</b>.</> },
-              { k: 2, text: <>Switch between <b className="text-slate-900">All</b>, <b className="text-slate-900">My Tickets</b>, and (for admins) <b className="text-slate-900">Assigned to Me</b> — regular staff only ever see their own tickets by default.</> },
+              { k: 2, text: <>IT staff switch between <b className="text-slate-900">All</b>, <b className="text-slate-900">My Tickets</b>, and <b className="text-slate-900">Assigned to Me</b>. Everyone else sees only the tickets they submitted.</> },
               { k: 3, text: <>Filter by status or priority, or search by title, to narrow a long list down fast.</> },
               { k: 4, text: <>Click any ticket to open it — what you see depends on whether you're an admin (see Managing a Ticket below).</> },
             ]} />
@@ -51,8 +51,8 @@ export default function ITGuide() {
           </SectionBlock>
 
           <SectionBlock id="managing" num="03" title="Managing a Ticket"
-            dek="Admins get full control over a ticket's lifecycle — status, priority, assignment, and resolution notes all live in one place.">
-            <Frame src={SHOT('ticket-detail-modal.png')} alt="Ticket detail and edit modal" caption="Non-admins see a read-only view with status, priority, and any resolution notes" />
+            dek="IT staff (anyone in the IT department, plus the Administrator and Org Admins) get full control over a ticket's lifecycle — status, priority, assignment, and resolution notes all live in one place.">
+            <Frame src={SHOT('ticket-detail-modal.png')} alt="Ticket detail and edit modal" caption="Everyone else sees a read-only view with status, priority, and any resolution notes" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
             <Steps items={[
               { k: 1, text: <>Move <b className="text-slate-900">Status</b> through Open → In Progress → Waiting → Resolved → Closed as work happens — marking Resolved or Closed timestamps it automatically.</> },
@@ -67,7 +67,7 @@ export default function ITGuide() {
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
             <Steps items={[
               { k: 1, text: <>Search by name, tag, or serial number, or filter by asset type, to find a specific device.</> },
-              { k: 2, text: <>Click the pencil icon on any row (admins only) to edit that asset's details.</> },
+              { k: 2, text: <>Click the pencil icon on any row to edit that asset's details. The Assets tab is for IT staff; only the IT Manager adds assets.</> },
             ]} />
           </SectionBlock>
 
@@ -81,10 +81,16 @@ export default function ITGuide() {
               { k: 3, text: <>Set Location and Assigned To — leave Assigned To as Unassigned/Shared for equipment like printers or network gear that isn't tied to one person.</> },
             ]} />
             <Tip>Status options include In Repair, In Storage, Retired, and Missing in addition to Active — updating status here keeps the Assets table an accurate picture of what's actually in service.</Tip>
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Barcodes and labels</h3>
+            <Steps items={[
+              { k: 1, text: <>In the asset form, type or scan the <b className="text-slate-900">Barcode</b>. Click <b className="text-slate-900">Scan</b> to use a phone or tablet camera.</> },
+              { k: 2, text: <>On the Assets tab, click <b className="text-slate-900">Print Labels</b>, choose the assets, the label size, and copies per asset, then <b className="text-slate-900">Print Asset Labels</b>. Each label carries a QR code.</> },
+              { k: 3, text: <>To look a device up, use the scan button on the Assets tab and scan its label. ElderLoop matches the barcode, asset tag, or serial number and opens the asset.</> },
+            ]} />
           </SectionBlock>
 
           <SectionBlock id="licenses" num="06" title="Licenses"
-            dek="Every piece of paid software — seats, cost, renewal date, and who owns it — so a subscription never lapses because nobody remembered it existed.">
+            dek="Every piece of paid software — seats, cost, renewal date, and who owns it — so a subscription never lapses because nobody remembered it existed. Licenses (and their costs) are visible to the IT Manager, the Administrator, and Org Admins." roleNote="IT Manager">
             <Frame src={SHOT('licenses.png')} alt="IT Licenses tab" caption="Renewal dates turn amber within 30 days and red once passed; a banner surfaces the count up top" />
             <Frame src={SHOT('add-license-modal.png')} alt="Add License form" caption="Software Name is the only required field — everything else can be filled in as you know it" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>

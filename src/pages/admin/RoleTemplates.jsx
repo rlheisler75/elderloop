@@ -42,7 +42,7 @@ const MODULE_LABELS = {
 // unconditional full access, so a template row would be a silent no-op),
 // family/resident (routed to fixed portals before hasModule() is ever
 // consulted), and sales_rep (org-less).
-const TEMPLATE_ROLES = [
+export const TEMPLATE_ROLES = [
   { key: 'staff',           label: 'Staff' },
   { key: 'supervisor',      label: 'Supervisor' },
   { key: 'manager',         label: 'Manager' },
