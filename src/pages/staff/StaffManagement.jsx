@@ -750,7 +750,7 @@ export default function StaffManagement() {
       supabase.from('certification_types').select('*')
         .or(`organization_id.is.null,organization_id.eq.${organization.id}`)
         .eq('is_active', true).order('sort_order'),
-      supabase.from('staff_certifications').select('*, profiles(first_name,last_name)')
+      supabase.from('staff_certifications').select('*, profiles!staff_id(first_name,last_name)')
         .eq('organization_id', organization.id)
         .not('expiry_date', 'is', null)
         .lte('expiry_date', cutoffStr)

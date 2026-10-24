@@ -615,11 +615,11 @@ function ResidentPanel({ resident, orgId, profile, canEdit, canEditAll = true, c
   async function fetchAll() {
     setLoading(true)
     const [v, m, n] = await Promise.all([
-      supabase.from('resident_vitals').select('*, profiles(first_name,last_name)')
+      supabase.from('resident_vitals').select('*, profiles!recorded_by(first_name,last_name)')
         .eq('resident_id', resident.id).order('recorded_at', { ascending: false }).limit(30),
       supabase.from('resident_medications').select('*')
         .eq('resident_id', resident.id).eq('is_active', true).order('name'),
-      supabase.from('care_notes').select('*, profiles(first_name,last_name)')
+      supabase.from('care_notes').select('*, profiles!authored_by(first_name,last_name)')
         .eq('resident_id', resident.id).eq('is_active', true)
         .order('note_date', { ascending: false }).order('created_at', { ascending: false }).limit(50),
     ])
