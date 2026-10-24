@@ -82,6 +82,7 @@ export default function ITGuide() {
             ]} />
             <Tip>Status options include In Repair, In Storage, Retired, and Missing in addition to Active — updating status here keeps the Assets table an accurate picture of what's actually in service.</Tip>
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Barcodes and labels</h3>
+            <Frame src={SHOT('print-labels-modal.png')} alt="Print Asset Labels" caption="Pick the assets, label size, and copies; each label carries a QR code" />
             <Steps items={[
               { k: 1, text: <>In the asset form, type or scan the <b className="text-slate-900">Barcode</b>. Click <b className="text-slate-900">Scan</b> to use a phone or tablet camera.</> },
               { k: 2, text: <>On the Assets tab, click <b className="text-slate-900">Print Labels</b>, choose the assets, the label size, and copies per asset, then <b className="text-slate-900">Print Asset Labels</b>. Each label carries a QR code.</> },
