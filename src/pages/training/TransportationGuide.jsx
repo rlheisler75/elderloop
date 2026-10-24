@@ -75,16 +75,17 @@ export default function TransportationGuide() {
 
           <SectionBlock id="sheet" num="05" title="Trip Sheet"
             dek="A printable roster for drivers — resident, pickup time, provider, driver, and a signature line, ready to hand off before the day starts.">
-            <Frame src={SHOT('trip-sheet-modal.png')} alt="Daily Trip Sheet print preview" caption="Prints the currently selected day in Day View" />
+            <Frame src={SHOT('trip-sheet-modal.png')} alt="Daily Trip Sheet print preview" caption="Pick a From and To date to print one day or several" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
             <Steps items={[
-              { k: 1, text: <>Navigate Day View to the date you need, then click <b className="text-slate-900">Trip Sheet</b> to preview that day's trips.</> },
+              { k: 1, text: <>Click <b className="text-slate-900">Trip Sheet</b> and set the <b className="text-slate-900">From</b> and <b className="text-slate-900">To</b> dates (it starts on the day you're viewing). The preview lists each day's trips.</> },
               { k: 2, text: <>Click <b className="text-slate-900">Print Sheet</b> to open a print-formatted page with resident, pickup, provider, driver, and mileage columns, plus driver and supervisor signature lines.</> },
             ]} />
           </SectionBlock>
 
           <SectionBlock id="requests" num="06" title="Ride Requests"
             dek="Nursing staff and IL residents ask for a ride; Transportation picks the pickup time and schedules it.">
+            <Frame src={SHOT('ride-requests.png')} alt="Ride requests list" caption="Transportation sees each request with Schedule and Decline; the badge counts what's waiting" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Asking for a ride</h3>
             <Steps items={[
               { k: 1, text: <><b className="text-slate-900">Nursing staff:</b> in Transportation, click <b className="text-slate-900">Request a Ride</b>. Choose the resident, the appointment date and time, the type, where it is, and any needs (wheelchair, walker, escort). Click <b className="text-slate-900">Send request</b>.</> },

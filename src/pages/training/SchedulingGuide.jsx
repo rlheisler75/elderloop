@@ -36,6 +36,8 @@ export default function SchedulingGuide() {
               { k: 2, text: <>Click any day to open its full detail. Managers get an <b className="text-slate-900">Update</b> dropdown per shift (Mark Completed, No Show, Called Off); staff viewing their own shift get a <b className="text-slate-900">Call Off</b> button instead.</> },
               { k: 3, text: <>A red "N off" badge on a day means someone called off — worth a glance before it sneaks up on you.</> },
             ]} />
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Whose shifts you see</h3>
+            <p className="text-[15px] text-slate-700 mb-6">You see your own shifts and the schedule for every department you're in. Supervisors and Managers build the schedule for their own departments. The Administrator, Org Admins, and HR see and schedule every department. Someone in two departments sees both. An Org Admin can widen this with a Job Role that includes Scheduling Approve.</p>
           </SectionBlock>
 
           <SectionBlock id="creating" num="02" title="Scheduling a Shift"
