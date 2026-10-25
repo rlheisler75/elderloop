@@ -8,6 +8,9 @@ import {
   fmt, fmtDate, getLeadStatus,
 } from '../constants'
 
+// datetime-local wants local wall-clock time; toISOString() alone is UTC.
+const localNow = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+
 // ── Lead Form ─────────────────────────────────────────────────
 
 export function LeadForm({ lead, sources, staff, units = [], onSave, onClose }) {
@@ -194,7 +197,7 @@ export function ActivityModal({ lead, onClose }) {
   const [activities, setActivities] = useState([])
   const [form, setForm] = useState({
     activity_type: 'call', subject: '', body: '', outcome: '',
-    mode: 'completed', when: new Date().toISOString().slice(0,16),
+    mode: 'completed', when: localNow(),
   })
   const [saving, setSaving] = useState(false)
 
@@ -215,11 +218,11 @@ export function ActivityModal({ lead, onClose }) {
       lead_id: lead.id,
       organization_id: lead.organization_id,
       performed_by: profile?.id,
-      completed_at: mode === 'completed' ? (when || null) : null,
-      scheduled_at: mode === 'scheduled' ? (when || null) : null,
+      completed_at: mode === 'completed' && when ? new Date(when).toISOString() : null,
+      scheduled_at: mode === 'scheduled' && when ? new Date(when).toISOString() : null,
     })
     await refetch()
-    setForm({ activity_type: 'call', subject: '', body: '', outcome: '', mode: 'completed', when: new Date().toISOString().slice(0,16) })
+    setForm({ activity_type: 'call', subject: '', body: '', outcome: '', mode: 'completed', when: localNow() })
     setSaving(false)
   }
 

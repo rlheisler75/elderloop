@@ -642,7 +642,8 @@ function WalkthroughForm({ units, leases, tenants, orgId, onSave, onClose }) {
 
   const [form, setForm] = useState({
     unit_id:'', lease_id:'', walkthrough_type:'move_in',
-    completed_date: new Date().toISOString().slice(0,16),
+    // datetime-local wants local wall-clock time; toISOString() alone is UTC.
+    completed_date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0,16),
     tenant_present:true, overall_condition:'good', notes:'', damage_charges:0, damage_notes:'',
   })
   const [items, setItems] = useState(
@@ -664,7 +665,7 @@ function WalkthroughForm({ units, leases, tenants, orgId, onSave, onClose }) {
     if (!form.unit_id) return
     setSaving(true)
     const wPayload = { ...form, organization_id: orgId, conducted_by: profile?.id,
-      lease_id: form.lease_id || null, completed_date: form.completed_date || null,
+      lease_id: form.lease_id || null, completed_date: form.completed_date ? new Date(form.completed_date).toISOString() : null,
       damage_charges: form.damage_charges || 0,
     }
     const { data: wt, error } = await supabase.from('il_walkthroughs').insert(wPayload).select().single()
@@ -1329,7 +1330,7 @@ export default function PropertyManagement() {
                 <div key={wt.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-brand-600 uppercase tracking-wide">{fmt(wt.walkthrough_type)}</span>
-                    <span className="text-xs text-slate-400">{fmtDate(wt.completed_date?.slice(0,10))}</span>
+                    <span className="text-xs text-slate-400">{fmtDate(wt.completed_date && new Date(wt.completed_date).toLocaleDateString('en-CA'))}</span>
                   </div>
                   <h3 className="font-semibold text-slate-800 dark:text-slate-100">Unit {wt.unit?.unit_number}</h3>
                   <div className="flex items-center gap-2 mt-2">
