@@ -34,7 +34,7 @@ export const SOURCE_CATEGORIES = ['hospital','physician','home_health','hospice'
 
 export const fmt = (s) => s?.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()) || '—'
 export const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—'
-export const fmtMoney = (n) => n != null ? `$${Number(n).toLocaleString()}` : '—'
+export const fmtMoney = (n) => n != null ? `$${Number(n).toLocaleString(undefined, { maximumFractionDigits: 2 })}` : '—'
 
 export const getLeadStatus = (key) => LEAD_STATUSES.find(s => s.key === key)     || LEAD_STATUSES[0]
 export const getCampStatus = (key) => CAMPAIGN_STATUSES.find(s => s.key === key) || CAMPAIGN_STATUSES[0]
