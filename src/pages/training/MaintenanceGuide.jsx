@@ -8,6 +8,7 @@ const NAV = [
   { id: 'pm',         num: '03', label: 'Preventive Maintenance' },
   { id: 'lifesafety', num: '04', label: 'Life Safety' },
   { id: 'reports',    num: '05', label: 'Reports' },
+  { id: 'costs',    num: '05b', label: 'Costs' },
   { id: 'settings',   num: '06', label: 'Settings' },
   { id: 'ai',         num: '07', label: 'AI Assist' },
 ]
@@ -39,6 +40,9 @@ export default function MaintenanceGuide() {
               { k: 4, text: <>Open any ticket to use the <b className="text-slate-900">Quick Actions</b> strip — Start Working, Put On Hold, Awaiting Vendor, Mark Complete, Cancel Ticket — instead of manually editing status.</> },
             ]} />
             <Frame src={SHOT('wo-detail.png')} alt="Work order detail view" caption="An existing ticket, showing linked asset, activity timeline, and comments" />
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Closing out a job</h3>
+            <Frame narrow src={SHOT('close-out.png')} alt="Close this job form" caption="Mark Complete asks for the work type, labor hours, parts bought, and vendor cost" />
+            <p className="text-[15px] text-slate-700 mb-6"><b className="text-slate-900">Mark Complete</b> opens <b className="text-slate-900">Close this job</b>. Pick Planned, Routine repair, or Emergency, enter labor hours, parts bought for this job, and any vendor cost, then click <b className="text-slate-900">Close job</b>. Parts taken from Central Supply stock are already counted when issued, so leave them out. These numbers feed the Costs tab.</p>
             <Tip>Every ticket's priority carries an SLA response/completion target (set in Settings). A ticket that breaches its target shows a red SLA-breach warning right in the detail view — no need to calculate it yourself.</Tip>
           </SectionBlock>
 
@@ -98,6 +102,16 @@ export default function MaintenanceGuide() {
               { k: 3, text: <>Click <b className="text-slate-900">Export CSV</b> for the full underlying ticket list (not just the summary), or <b className="text-slate-900">Print Report</b> for a formatted one-page summary of all three views — same print-to-PDF flow as the Life Safety surveyor report.</> },
             ]} />
             <Tip>Response and completion times are only as accurate as the timestamps behind them — a ticket only counts toward "Avg Response" once someone's actually assigned to it, and toward "Avg Completion" once it's marked Closed. An assigned-but-idle ticket won't show a response time until you act on it.</Tip>
+          </SectionBlock>
+
+          <SectionBlock id="costs" num="05b" title="Costs" roleNote="Maintenance Manager+"
+            dek="Parts and vendor spend from closed jobs against the Maintenance budget, plus how much of the work was planned.">
+            <Frame src={SHOT('costs.png')} alt="Maintenance Costs tab" caption="Budget status, emergency vendor spend, reactive share, and PM completion by month" />
+            <Steps items={[
+              { k: 1, text: <>Pick the month with the arrows. The card on the left shows spend against the Maintenance budget and per resident day.</> },
+              { k: 2, text: <><b className="text-slate-900">Reactive share</b> is routine and emergency cost compared with planned work; it should fall as preventive maintenance takes hold. <b className="text-slate-900">PM completion</b> is planned jobs due that month that were closed.</> },
+              { k: 3, text: <><b className="text-slate-900">Repair or replace</b> flags assets whose lifetime repairs have reached half their replacement cost. Set purchase and replacement cost on the asset for it to work.</> },
+            ]} />
           </SectionBlock>
 
           <SectionBlock id="settings" num="06" title="Settings"
