@@ -572,7 +572,7 @@ export default function SocialDashboard({ onNavigate }) {
                     </td>
                     <td className="px-4 py-3">
                       <span className="text-xs px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg capitalize">
-                        {row.role?.replace(/_/g, ' ')}
+                        {({ ceo: 'Administrator', org_admin: 'Org Admin', super_admin: 'Super Admin' })[row.role] || row.role?.replace(/_/g, ' ')}
                       </span>
                     </td>
                     <td className="px-4 py-3">
