@@ -355,6 +355,10 @@ export default function SocialProfile({ canWrite }) {
     skilled_nursing: 'bg-orange-100 text-orange-700 dark:bg-orange-950/50 dark:text-orange-400',
     rehab:           'bg-teal-100 text-teal-700 dark:bg-teal-950/50 dark:text-teal-400',
   }
+  const CARE_LABELS = {
+    independent: 'Independent', assisted: 'Assisted Living', memory_care: 'Memory Care',
+    skilled_nursing: 'Skilled Nursing', rehab: 'Rehab',
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -422,7 +426,7 @@ export default function SocialProfile({ canWrite }) {
                   <span className="text-xs text-slate-400">Room {selected.room}</span>
                   {selected.care_level && (
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${CARE_COLORS[selected.care_level] || 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>
-                      {selected.care_level.replace(/_/g, ' ')}
+                      {CARE_LABELS[selected.care_level] || selected.care_level.replace(/_/g, ' ')}
                     </span>
                   )}
                   {ssProfile ? (
