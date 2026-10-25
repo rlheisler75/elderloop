@@ -140,6 +140,19 @@ function AddCategoryModal({ orgId, onClose, onSaved }) {
   )
 }
 
+// Default next due date from the category's frequency, so an inspection saved
+// without one still comes due (a blank date never shows as overdue).
+const FREQ_MONTHS = { monthly: 1, quarterly: 3, biannual: 6, annual: 12 }
+function nextDueFrom(dateStr, frequency) {
+  if (!dateStr) return ''
+  const d = new Date(dateStr + 'T12:00:00')
+  if (frequency === 'daily') d.setDate(d.getDate() + 1)
+  else if (frequency === 'weekly') d.setDate(d.getDate() + 7)
+  else if (FREQ_MONTHS[frequency]) d.setMonth(d.getMonth() + FREQ_MONTHS[frequency])
+  else return ''
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 // ── Conduct Inspection Modal ───────────────────────────────────
 function InspectionModal({ category, orgId, profile, onClose, onSaved }) {
   const fileRef = useRef()
@@ -148,7 +161,7 @@ function InspectionModal({ category, orgId, profile, onClose, onSaved }) {
   const [form, setForm]         = useState({
     inspection_date: todayStr(),
     inspector_name:  `${profile.first_name} ${profile.last_name}`,
-    next_due_date:   '',
+    next_due_date:   nextDueFrom(todayStr(), category.frequency),
     status:          'pass',
     overall_notes:   '',
   })
@@ -206,7 +219,7 @@ function InspectionModal({ category, orgId, profile, onClose, onSaved }) {
       category_id:     category.id,
       conducted_by:    profile.id,
       inspection_date: form.inspection_date,
-      next_due_date:   form.next_due_date || null,
+      next_due_date:   form.next_due_date || nextDueFrom(form.inspection_date, category.frequency) || null,
       inspector_name:  form.inspector_name,
       status,
       overall_notes:   form.overall_notes || null,
@@ -536,26 +549,22 @@ export default function CompliancePanel({ orgId, profile }) {
 
   const stateRef = STATE_REFS[stateCode] || STATE_REFS.OTHER
 
-  // Stats
-  const totalCats     = categories.length
-  const compliantCats = categories.filter(c => {
+  // Stats: each category lands in exactly one tile, so the four always add up
+  // to the total. A failed inspection counts as overdue (it needs action now).
+  const bucketOf = (c) => {
     const last = lastInspections[c.id]
-    if (!last || last.status === 'fail') return false
-    if (!last.next_due_date) return true
-    return daysUntil(last.next_due_date) > 0
-  }).length
-  const overdueCats = categories.filter(c => {
-    const last = lastInspections[c.id]
-    if (!last) return true
-    if (!last.next_due_date) return false
-    return daysUntil(last.next_due_date) < 0
-  }).length
-  const dueSoonCats = categories.filter(c => {
-    const last = lastInspections[c.id]
-    if (!last || !last.next_due_date) return false
-    const d = daysUntil(last.next_due_date)
-    return d >= 0 && d <= 30
-  }).length
+    if (!last) return 'not_started'
+    const d = last.next_due_date ? daysUntil(last.next_due_date) : null
+    if (last.status === 'fail' || (d != null && d < 0)) return 'overdue'
+    if (d != null && d <= 30) return 'due_soon'
+    return 'compliant'
+  }
+  const totalCats   = categories.length
+  const countBucket = (b) => categories.filter(c => bucketOf(c) === b).length
+  const compliantCats  = countBucket('compliant')
+  const overdueCats    = countBucket('overdue')
+  const dueSoonCats    = countBucket('due_soon')
+  const notStartedCats = countBucket('not_started')
 
   if (loading) return <div className="text-center py-16 text-slate-400">Loading compliance data...</div>
 
@@ -567,7 +576,7 @@ export default function CompliancePanel({ orgId, profile }) {
           { label: 'Compliant',   value: compliantCats,                               color: 'text-green-600',  bg: 'bg-green-50' },
           { label: 'Due Soon',    value: dueSoonCats,   color: dueSoonCats > 0   ? 'text-amber-600' : 'text-slate-400', bg: dueSoonCats > 0   ? 'bg-amber-50'  : 'bg-slate-100' },
           { label: 'Overdue',     value: overdueCats,   color: overdueCats > 0   ? 'text-red-600'   : 'text-slate-400', bg: overdueCats > 0   ? 'bg-red-50'    : 'bg-slate-100', alert: overdueCats > 0 },
-          { label: 'Not Started', value: totalCats - compliantCats - dueSoonCats - overdueCats, color: 'text-slate-400', bg: 'bg-slate-100' },
+          { label: 'Not Started', value: notStartedCats, color: 'text-slate-400', bg: 'bg-slate-100' },
         ].map(s => (
           <div key={s.label} className={`${s.bg} dark:bg-slate-900 rounded-2xl p-4 border border-white dark:border-slate-800 ${s.alert ? 'ring-2 ring-red-300 dark:ring-red-800' : ''}`}>
             <div className={`text-3xl font-display font-bold ${s.color}`}>{s.value}</div>
