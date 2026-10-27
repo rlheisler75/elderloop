@@ -10,6 +10,7 @@ import {
   Calendar, Building2, Eye, XCircle
 } from 'lucide-react'
 import { FALLBACK_DEPARTMENTS, STAFF_LEVELS, getOrgDepartments } from '../../lib/departments'
+import StaffImport from './StaffImport'
 
 export { FALLBACK_DEPARTMENTS, STAFF_LEVELS, getOrgDepartments }
 
@@ -722,6 +723,7 @@ export default function StaffManagement() {
   const [certAlerts, setCertAlerts] = useState([])
   const [showAddStaff, setShowAddStaff] = useState(false)
   const [limitHit, setLimitHit]           = useState(false)
+  const [showImport, setShowImport]       = useState(false)
 
   useEffect(() => { if (organization) fetchAll() }, [organization])
 
@@ -792,6 +794,11 @@ export default function StaffManagement() {
           <p className="text-slate-500 text-sm mt-0.5">Staff profiles, certifications, and compliance tracking</p>
         </div>
         {canCreateStaff && (
+          <div className="flex gap-2">
+          <button onClick={() => setShowImport(true)}
+            className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl text-sm font-medium transition-colors">
+            <Upload size={15} /> Import CSV
+          </button>
           <button onClick={() => {
               // Starter/Essential staff limit (trg_enforce_staff_limit / create-user enforce it server-side);
               // counts active non-resident/family profiles, same as the database
@@ -803,6 +810,7 @@ export default function StaffManagement() {
             className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
             <Plus size={15} /> Add Staff Member
           </button>
+          </div>
         )}
       </div>
 
@@ -964,6 +972,15 @@ export default function StaffManagement() {
             </div>
           </div>
         </div>
+      )}
+
+      {showImport && (
+        <StaffImport
+          orgId={organization.id}
+          departments={departments}
+          existingEmails={new Set(staff.map(s => (s.email || '').toLowerCase()).filter(Boolean))}
+          onClose={() => setShowImport(false)}
+          onImported={fetchAll} />
       )}
 
       {showAddStaff && (
