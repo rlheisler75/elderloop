@@ -269,6 +269,13 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
     parts_cost: wo.parts_cost ?? '', vendor_cost: wo.vendor_cost ?? '',
   } : { ...EMPTY_FORM })
   const [closing, setClosing]     = useState(false) // Mark Complete opens the close-out form first
+  // The assigned tech can pass the job to another Maintenance staff member
+  // (handoff_work_order: reassigns, logs the note, bells the new tech + supervisors)
+  const [handingOff, setHandingOff]         = useState(false)
+  const [handoffTargets, setHandoffTargets] = useState(null)
+  const [handoffTo, setHandoffTo]           = useState('')
+  const [handoffNote, setHandoffNote]       = useState('')
+  const canHandOff = !!wo && wo.assigned_to === profile?.id && !['closed', 'cancelled'].includes(wo.status)
   const [note, setNote]           = useState('')
   const [notePhoto, setNotePhoto]   = useState(null)
   const [activity, setActivity]     = useState([])
@@ -378,6 +385,25 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
       fetchPhotos(); fetchActivity()
     }
     setUploading(false)
+  }
+
+  async function openHandoff() {
+    setClosing(false); setHandingOff(true)
+    if (handoffTargets === null) {
+      const { data, error: err } = await supabase.rpc('wo_handoff_targets')
+      if (err) setError(err.message)
+      setHandoffTargets(data || [])
+    }
+  }
+
+  async function handOff() {
+    setSaving(true); setError('')
+    const { error: err } = await supabase.rpc('handoff_work_order', {
+      p_work_order: wo.id, p_to: handoffTo, p_note: handoffNote,
+    })
+    setSaving(false)
+    if (err) { setError(err.message); return }
+    onSave()
   }
 
   async function handleSave() {
@@ -983,7 +1009,7 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
                       key={action.status}
                       type="button"
                       onClick={async () => {
-                        if (action.status === 'closed') { setClosing(true); return }
+                        if (action.status === 'closed') { setHandingOff(false); setClosing(true); return }
                         const updatePayload = {
                           status: action.status,
                           updated_at: new Date().toISOString(),
@@ -1001,7 +1027,45 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
                       {action.label}
                     </button>
                   ))}
+                  {canHandOff && (
+                    <button type="button" onClick={openHandoff}
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-medium transition-colors bg-indigo-100 hover:bg-indigo-200 text-indigo-700 dark:bg-indigo-950/50 dark:hover:bg-indigo-900/50 dark:text-indigo-400">
+                      <ArrowUpDown size={12} /> Hand Off
+                    </button>
+                  )}
                 </div>
+                {handingOff && (
+                  <div className="mt-3 p-4 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-900 rounded-xl">
+                    <div className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-2">Hand off this job</div>
+                    {handoffTargets === null ? (
+                      <p className="text-xs text-slate-500">Loading Maintenance staff...</p>
+                    ) : handoffTargets.length === 0 ? (
+                      <p className="text-xs text-slate-500 dark:text-slate-400">There's no one else in Maintenance to hand this to. Ask a Maintenance Supervisor.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        <select value={handoffTo} onChange={e => setHandoffTo(e.target.value)}
+                          className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100">
+                          <option value="">Choose who takes it...</option>
+                          {handoffTargets.map(t => (
+                            <option key={t.id} value={t.id}>{t.first_name} {t.last_name}{t.is_supervisor ? ' (Supervisor)' : ''}</option>
+                          ))}
+                        </select>
+                        <textarea value={handoffNote} onChange={e => setHandoffNote(e.target.value)} rows={2}
+                          className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100 resize-none"
+                          placeholder="Why you're handing it off and where you left it..." />
+                        <p className="text-[11px] text-slate-400">They and the Maintenance Supervisors get a notification. The note goes on the activity timeline.</p>
+                      </div>
+                    )}
+                    <div className="flex justify-end gap-2 mt-3">
+                      <button type="button" onClick={() => setHandingOff(false)} className="px-3 py-1.5 text-xs text-slate-500">Cancel</button>
+                      <button type="button" onClick={handOff}
+                        disabled={saving || !handoffTo || handoffNote.trim().length < 3}
+                        className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-semibold rounded-lg">
+                        {saving ? 'Handing off...' : 'Hand off'}
+                      </button>
+                    </div>
+                  </div>
+                )}
                 {closing && (
                   <div className="mt-3 p-4 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900 rounded-xl">
                     <div className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-2">Close this job</div>
@@ -1117,7 +1181,7 @@ export default function WorkOrders() {
   // own jobs plus the unassigned queue, and can't change priority/category/due/vendor.
   const tieredEmployee = accessModel === 'tiered' && tierFor('work_orders') === 'employee'
     && hasDepartmentAccess('maintenance', 'employee')
-  const [jobView, setJobView]         = useState('mine') // tiered employees: 'mine' | 'queue'
+  const [jobView, setJobView]         = useState('mine') // tiered employees: 'mine' | 'queue' | 'all'
   const [workOrders, setWorkOrders]   = useState([])
   const [staffList, setStaffList]     = useState([])
   const [residentList, setResidentList] = useState([])
@@ -1191,7 +1255,7 @@ export default function WorkOrders() {
     const matchStatus   = filterStatus === 'all' || wo.status === filterStatus
     const matchCat      = filterCat === 'all' || wo.category === filterCat
     const matchPriority = filterPriority === 'all' || wo.priority === filterPriority
-    const matchJobView  = !tieredEmployee
+    const matchJobView  = !tieredEmployee || jobView === 'all'
       || (jobView === 'mine' ? (wo.assigned_to === profile.id || wo.submitted_by === profile.id) : !wo.assigned_to)
     return matchSearch && matchStatus && matchCat && matchPriority && matchJobView
   })
@@ -1306,12 +1370,13 @@ export default function WorkOrders() {
         ))}
       </div>
 
-      {/* Tiered Maintenance employees: my jobs vs. the unassigned queue they can claim */}
+      {/* Tiered Maintenance employees: my jobs, the unassigned queue they can claim, or every job */}
       {tieredEmployee && mainView === 'work_orders' && (
         <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl mb-4 w-fit" role="group" aria-label="Which jobs">
           {[
             { key: 'mine',  label: 'My jobs',    count: workOrders.filter(w => (w.assigned_to === profile.id || w.submitted_by === profile.id) && !['closed','cancelled'].includes(w.status)).length },
             { key: 'queue', label: 'Open queue', count: workOrders.filter(w => !w.assigned_to).length },
+            { key: 'all',   label: 'All jobs',   count: workOrders.filter(w => !['closed','cancelled'].includes(w.status)).length },
           ].map(v => (
             <button key={v.key} onClick={() => setJobView(v.key)} aria-pressed={jobView === v.key}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${jobView === v.key
