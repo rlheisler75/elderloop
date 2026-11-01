@@ -329,17 +329,36 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
   // Emergency contact helpers
   const addEmergencyContact = async () => {
     if (!resident?.id) { await handleSaveInfo(); return }
-    await supabase.from('resident_emergency_contacts').insert({
+    const { error: err } = await supabase.from('resident_emergency_contacts').insert({
       resident_id: resident.id, name: 'New Contact',
       is_primary: emergencyContacts.length === 0, sort_order: emergencyContacts.length
     })
+    if (err) setError(err.message)
     fetchContacts()
   }
 
-  const updateEC = async (id, field, val) => {
-    await supabase.from('resident_emergency_contacts').update({ [field]: val }).eq('id', id)
-    fetchContacts()
+  // Contact fields update on screen as you type and save once when the field
+  // loses focus. Saving every keystroke queued one UPDATE per character on the
+  // same row (plus an ePHI audit row each); they piled up behind the row lock,
+  // hit the statement timeout, and the typed text was lost.
+  const dirtyFields = useRef(new Set())
+  const editContact = (setList) => (id, field, val) => {
+    dirtyFields.current.add(`${id}:${field}`)
+    setList(list => list.map(c => c.id === id ? { ...c, [field]: val } : c))
   }
+  const pendingSaves = useRef([])
+  const saveContact = (table) => (id, field, val) => {
+    if (!dirtyFields.current.delete(`${id}:${field}`)) return
+    const save = supabase.from(table).update({ [field]: val }).eq('id', id)
+      .then(({ error: err }) => { if (err) setError(err.message) })
+    pendingSaves.current.push(save)
+  }
+  // Clicking Done/X blurs the field first, so wait for that save before the
+  // directory reloads
+  const close = async () => { await Promise.all(pendingSaves.current); onClose() }
+
+  const updateEC = editContact(setEmergencyContacts)
+  const saveEC   = saveContact('resident_emergency_contacts')
 
   const deleteEC = async (id) => {
     await supabase.from('resident_emergency_contacts').delete().eq('id', id)
@@ -355,17 +374,16 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
   // Medical contact helpers
   const addMedicalContact = async () => {
     if (!resident?.id) return
-    await supabase.from('resident_medical_contacts').insert({
+    const { error: err } = await supabase.from('resident_medical_contacts').insert({
       resident_id: resident.id, name: 'New Contact',
       contact_type: 'physician', sort_order: medicalContacts.length
     })
+    if (err) setError(err.message)
     fetchContacts()
   }
 
-  const updateMC = async (id, field, val) => {
-    await supabase.from('resident_medical_contacts').update({ [field]: val }).eq('id', id)
-    fetchContacts()
-  }
+  const updateMC = editContact(setMedicalContacts)
+  const saveMC   = saveContact('resident_medical_contacts')
 
   const deleteMC = async (id) => {
     await supabase.from('resident_medical_contacts').delete().eq('id', id)
@@ -401,7 +419,7 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
                 <Printer size={16} />
               </button>
             )}
-            <button onClick={onClose} className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"><X size={20} /></button>
+            <button onClick={close} className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"><X size={20} /></button>
           </div>
         </div>
 
@@ -724,19 +742,19 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <input value={c.name} onChange={e => updateEC(c.id, 'name', e.target.value)}
+                    <input value={c.name} onChange={e => updateEC(c.id, 'name', e.target.value)} onBlur={e => saveEC(c.id, 'name', e.target.value)}
                       className="px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                       placeholder="Full name" />
-                    <input value={c.relationship || ''} onChange={e => updateEC(c.id, 'relationship', e.target.value)}
+                    <input value={c.relationship || ''} onChange={e => updateEC(c.id, 'relationship', e.target.value)} onBlur={e => saveEC(c.id, 'relationship', e.target.value)}
                       className="px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                       placeholder="Relationship (e.g. Son, Daughter)" />
-                    <input value={c.phone || ''} onChange={e => updateEC(c.id, 'phone', e.target.value)}
+                    <input value={c.phone || ''} onChange={e => updateEC(c.id, 'phone', e.target.value)} onBlur={e => saveEC(c.id, 'phone', e.target.value)}
                       className="px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                       placeholder="Primary phone" />
-                    <input value={c.alt_phone || ''} onChange={e => updateEC(c.id, 'alt_phone', e.target.value)}
+                    <input value={c.alt_phone || ''} onChange={e => updateEC(c.id, 'alt_phone', e.target.value)} onBlur={e => saveEC(c.id, 'alt_phone', e.target.value)}
                       className="px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                       placeholder="Alt phone" />
-                    <input value={c.email || ''} onChange={e => updateEC(c.id, 'email', e.target.value)}
+                    <input value={c.email || ''} onChange={e => updateEC(c.id, 'email', e.target.value)} onBlur={e => saveEC(c.id, 'email', e.target.value)}
                       className="col-span-2 px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                       placeholder="Email address" />
                   </div>
@@ -766,23 +784,23 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
                     <button onClick={() => deleteMC(c.id)} className="p-1.5 text-slate-300 hover:text-red-500 rounded-lg transition-colors"><Trash2 size={13} /></button>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <select value={c.contact_type} onChange={e => updateMC(c.id, 'contact_type', e.target.value)}
+                    <select value={c.contact_type} onChange={e => { updateMC(c.id, 'contact_type', e.target.value); saveMC(c.id, 'contact_type', e.target.value) }}
                       className="px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                       {MEDICAL_TYPES.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
                     </select>
-                    <input value={c.name} onChange={e => updateMC(c.id, 'name', e.target.value)}
+                    <input value={c.name} onChange={e => updateMC(c.id, 'name', e.target.value)} onBlur={e => saveMC(c.id, 'name', e.target.value)}
                       className="px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                       placeholder="Doctor / provider name" />
-                    <input value={c.practice || ''} onChange={e => updateMC(c.id, 'practice', e.target.value)}
+                    <input value={c.practice || ''} onChange={e => updateMC(c.id, 'practice', e.target.value)} onBlur={e => saveMC(c.id, 'practice', e.target.value)}
                       className="px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                       placeholder="Practice / clinic name" />
-                    <input value={c.phone || ''} onChange={e => updateMC(c.id, 'phone', e.target.value)}
+                    <input value={c.phone || ''} onChange={e => updateMC(c.id, 'phone', e.target.value)} onBlur={e => saveMC(c.id, 'phone', e.target.value)}
                       className="px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                       placeholder="Phone" />
-                    <input value={c.address || ''} onChange={e => updateMC(c.id, 'address', e.target.value)}
+                    <input value={c.address || ''} onChange={e => updateMC(c.id, 'address', e.target.value)} onBlur={e => saveMC(c.id, 'address', e.target.value)}
                       className="col-span-2 px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                       placeholder="Address" />
-                    <input value={c.notes || ''} onChange={e => updateMC(c.id, 'notes', e.target.value)}
+                    <input value={c.notes || ''} onChange={e => updateMC(c.id, 'notes', e.target.value)} onBlur={e => saveMC(c.id, 'notes', e.target.value)}
                       className="col-span-2 px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                       placeholder="Notes" />
                   </div>
@@ -818,7 +836,7 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
         )}
         {(tab !== 'info' || readOnly) && (
           <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end flex-shrink-0">
-            <button onClick={onClose} className="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg transition-colors">
+            <button onClick={close} className="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg transition-colors">
               {readOnly && tab === 'info' ? 'Close' : 'Done'}
             </button>
           </div>
@@ -1062,7 +1080,7 @@ export default function ResidentDirectory() {
         <ResidentDetail
           resident={selected}
           canEdit={canEditDirectory}
-          onClose={() => { setShowDetail(false); setSelected(null) }}
+          onClose={() => { setShowDetail(false); setSelected(null); fetchResidents() }}
           onSave={handleSave}
           onDelete={handleDelete} />
       )}
