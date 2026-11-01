@@ -39,7 +39,8 @@ export function Tip({ children, warn }) {
 export function SectionBlock({ id, num, title, dek, roleNote, children }) {
   return (
     <section id={id} className="scroll-mt-6 py-10 border-b border-slate-100 last:border-0">
-      <div className="flex items-baseline gap-3 mb-2 flex-wrap">
+      {/* break-after-avoid: when printed, the heading and dek stay with the first card */}
+      <div className="flex items-baseline gap-3 mb-2 flex-wrap break-after-avoid">
         {num && (
           <span className="font-display font-semibold text-sm text-brand-600 bg-brand-50 w-7 h-7 rounded-lg inline-flex items-center justify-center flex-shrink-0">{num}</span>
         )}
@@ -48,7 +49,7 @@ export function SectionBlock({ id, num, title, dek, roleNote, children }) {
           <span className="ml-auto text-xs font-bold uppercase tracking-wide text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full whitespace-nowrap">{roleNote}</span>
         )}
       </div>
-      <p className="text-slate-500 text-[16.5px] max-w-2xl mb-6">{dek}</p>
+      <p className="text-slate-500 text-[16.5px] max-w-2xl mb-6 break-after-avoid">{dek}</p>
       {children}
     </section>
   )
@@ -145,5 +146,5 @@ export function QuickRefTable({ rows }) {
 }
 
 export function GuideFooter({ label }) {
-  return <footer className="text-center text-slate-400 text-xs py-10">ElderLoop Staff Training · {label}</footer>
+  return <footer className="text-center text-slate-400 text-xs py-10 print:hidden">ElderLoop Staff Training · {label}</footer>
 }
