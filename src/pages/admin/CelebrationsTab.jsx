@@ -66,7 +66,7 @@ function CelebrationForm({ initial, onSave, onCancel, saving }) {
           <input value={f.name} onChange={e => set('name')(e.target.value)} maxLength={80} placeholder="e.g. Maranatha Founders Day"
             className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm" />
         </label>
-        <p className="sm:col-span-2 -mt-1 text-[11px] text-slate-400">To pick a new emoji, click the Emoji box and press Windows key + ; (semicolon).</p>
+        <p className="sm:col-span-2 -mt-1 text-[11px] text-slate-400">To pick a new emoji, click the Emoji box and press Windows key + ; (semicolon), or Control + Command + Space on a Mac.</p>
       </div>
 
       <p className="text-xs font-semibold text-slate-500 mb-2">Color</p>
