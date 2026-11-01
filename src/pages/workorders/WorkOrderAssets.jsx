@@ -204,7 +204,7 @@ function AssetModal({ asset, orgId, profile, onClose, onSaved }) {
           {/* Photo */}
           {form.photo_url ? (
             <div className="relative rounded-xl overflow-hidden">
-              <img src={form.photo_url} alt="" className="w-full max-h-40 object-cover" />
+              <img src={form.photo_url} alt="" className="w-full max-h-64 object-contain bg-slate-50 dark:bg-slate-800" />
               <button onClick={() => set('photo_url', '')}
                 className="absolute top-2 right-2 p-1 bg-black/50 text-white rounded-full"><X size={14} /></button>
             </div>
@@ -324,7 +324,7 @@ export default function WorkOrderAssets({ orgId, profile }) {
                 className={`bg-white dark:bg-slate-900 rounded-2xl border shadow-sm p-4 hover:shadow-md transition-all ${overdue ? 'border-red-200 dark:border-red-900' : isDueSoon ? 'border-amber-200 dark:border-amber-900' : 'border-slate-100 dark:border-slate-800'}`}>
                 {/* Asset photo */}
                 {asset.photo_url && (
-                  <img src={asset.photo_url} alt="" className="w-full h-28 object-cover rounded-xl mb-3" />
+                  <img src={asset.photo_url} alt="" className="w-full h-40 object-contain bg-slate-50 dark:bg-slate-800 rounded-xl mb-3" />
                 )}
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div className="flex-1 min-w-0">
