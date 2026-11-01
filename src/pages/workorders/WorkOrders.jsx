@@ -271,7 +271,7 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
   const [closing, setClosing]     = useState(false) // Mark Complete opens the close-out form first
   // The assigned tech can pass the job to another Maintenance staff member
   // (handoff_work_order: reassigns, logs the note, bells the new tech + supervisors)
-  const [handingOff, setHandingOff]         = useState(false)
+  const [handingOff, setHandingOff]         = useState(false) // false | 'actions' | 'field' (where it was opened)
   const [handoffTargets, setHandoffTargets] = useState(null)
   const [handoffTo, setHandoffTo]           = useState('')
   const [handoffNote, setHandoffNote]       = useState('')
@@ -387,8 +387,8 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
     setUploading(false)
   }
 
-  async function openHandoff() {
-    setClosing(false); setHandingOff(true)
+  async function openHandoff(where) {
+    setClosing(false); setHandingOff(where)
     if (handoffTargets === null) {
       const { data, error: err } = await supabase.rpc('wo_handoff_targets')
       if (err) setError(err.message)
@@ -515,6 +515,43 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
   }
 
   const isNew = !wo
+
+  // Opened from Quick Actions or from the Assigned To field
+  const handoffPanel = (
+    <div className="mt-3 p-4 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-900 rounded-xl">
+      <div className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-2">Hand off this job</div>
+      {handoffTargets === null ? (
+        <p className="text-xs text-slate-500">Loading Maintenance staff...</p>
+      ) : handoffTargets.length === 0 ? (
+        <p className="text-xs text-slate-500 dark:text-slate-400">There's no one else in Maintenance to hand this to. Ask a Maintenance Supervisor.</p>
+      ) : (
+        <div className="space-y-2">
+          <select value={handoffTo} onChange={e => setHandoffTo(e.target.value)}
+            className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100">
+            <option value="">Choose who takes it...</option>
+            {handoffTargets.map(t => (
+              <option key={t.id} value={t.id}>{t.first_name} {t.last_name}{t.is_supervisor ? ' (Supervisor)' : ''}</option>
+            ))}
+          </select>
+          <textarea value={handoffNote} onChange={e => setHandoffNote(e.target.value)} rows={2}
+            className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100 resize-none"
+            placeholder="Why you're handing it off and where you left it..." />
+          <p className="text-[11px] text-slate-400">They and the Maintenance Supervisors get a notification. The note goes on the activity timeline.</p>
+        </div>
+      )}
+      {editing && (
+        <p className="mt-2 text-[11px] text-amber-600 dark:text-amber-400">Handing off closes this ticket without saving your other edits. Save them first if you need them.</p>
+      )}
+      <div className="flex justify-end gap-2 mt-3">
+        <button type="button" onClick={() => setHandingOff(false)} className="px-3 py-1.5 text-xs text-slate-500">Cancel</button>
+        <button type="button" onClick={handOff}
+          disabled={saving || !handoffTo || handoffNote.trim().length < 3}
+          className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-semibold rounded-lg">
+          {saving ? 'Handing off...' : 'Hand off'}
+        </button>
+      </div>
+    </div>
+  )
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -758,8 +795,15 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
                       <option value="">Unassigned</option>
                       {staffList.map(s => <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>)}
                     </select>
-                  : <p className="text-sm text-slate-700 dark:text-slate-300">
+                  : <p className="text-sm text-slate-700 dark:text-slate-300 flex items-center gap-2 flex-wrap">
                       {wo?.assigned_profiles ? `${wo.assigned_profiles.first_name} ${wo.assigned_profiles.last_name}` : '—'}
+                      {/* Technicians can't pick an assignee, but can pass their own job on */}
+                      {canHandOff && !canAssign && handingOff !== 'field' && (
+                        <button type="button" onClick={() => openHandoff('field')}
+                          className="flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400">
+                          <ArrowUpDown size={11} /> Hand off
+                        </button>
+                      )}
                     </p>}
               </div>
               <div>
@@ -770,6 +814,8 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
                   : <p className="text-sm text-slate-700 dark:text-slate-300">{wo.due_date ? parseDay(wo.due_date).toLocaleDateString() : '—'}</p>}
               </div>
             </div>
+
+            {handingOff === 'field' && handoffPanel}
 
             {/* Description */}
             <div>
@@ -1028,44 +1074,13 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
                     </button>
                   ))}
                   {canHandOff && (
-                    <button type="button" onClick={openHandoff}
+                    <button type="button" onClick={() => openHandoff('actions')}
                       className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-medium transition-colors bg-indigo-100 hover:bg-indigo-200 text-indigo-700 dark:bg-indigo-950/50 dark:hover:bg-indigo-900/50 dark:text-indigo-400">
                       <ArrowUpDown size={12} /> Hand Off
                     </button>
                   )}
                 </div>
-                {handingOff && (
-                  <div className="mt-3 p-4 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-900 rounded-xl">
-                    <div className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-2">Hand off this job</div>
-                    {handoffTargets === null ? (
-                      <p className="text-xs text-slate-500">Loading Maintenance staff...</p>
-                    ) : handoffTargets.length === 0 ? (
-                      <p className="text-xs text-slate-500 dark:text-slate-400">There's no one else in Maintenance to hand this to. Ask a Maintenance Supervisor.</p>
-                    ) : (
-                      <div className="space-y-2">
-                        <select value={handoffTo} onChange={e => setHandoffTo(e.target.value)}
-                          className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100">
-                          <option value="">Choose who takes it...</option>
-                          {handoffTargets.map(t => (
-                            <option key={t.id} value={t.id}>{t.first_name} {t.last_name}{t.is_supervisor ? ' (Supervisor)' : ''}</option>
-                          ))}
-                        </select>
-                        <textarea value={handoffNote} onChange={e => setHandoffNote(e.target.value)} rows={2}
-                          className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100 resize-none"
-                          placeholder="Why you're handing it off and where you left it..." />
-                        <p className="text-[11px] text-slate-400">They and the Maintenance Supervisors get a notification. The note goes on the activity timeline.</p>
-                      </div>
-                    )}
-                    <div className="flex justify-end gap-2 mt-3">
-                      <button type="button" onClick={() => setHandingOff(false)} className="px-3 py-1.5 text-xs text-slate-500">Cancel</button>
-                      <button type="button" onClick={handOff}
-                        disabled={saving || !handoffTo || handoffNote.trim().length < 3}
-                        className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-semibold rounded-lg">
-                        {saving ? 'Handing off...' : 'Hand off'}
-                      </button>
-                    </div>
-                  </div>
-                )}
+                {handingOff === 'actions' && handoffPanel}
                 {closing && (
                   <div className="mt-3 p-4 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900 rounded-xl">
                     <div className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-2">Close this job</div>
