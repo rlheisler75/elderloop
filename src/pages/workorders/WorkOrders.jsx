@@ -1192,8 +1192,8 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
 // ── Main Page ─────────────────────────────────────────────────
 export default function WorkOrders() {
   const { profile, organization, hasDepartmentAccess, accessModel, tierFor } = useAuth()
-  // Tiered communities (src/lib/accessTiers.js): a Maintenance employee sees their
-  // own jobs plus the unassigned queue, and can't change priority/category/due/vendor.
+  // Tiered communities (src/lib/accessTiers.js): a Maintenance employee sees every job,
+  // works their own or unassigned ones, and can't change priority/category/due/vendor.
   const tieredEmployee = accessModel === 'tiered' && tierFor('work_orders') === 'employee'
     && hasDepartmentAccess('maintenance', 'employee')
   const [jobView, setJobView]         = useState('mine') // tiered employees: 'mine' | 'queue' | 'all'

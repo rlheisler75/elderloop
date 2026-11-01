@@ -221,7 +221,7 @@ export function ManagerQuickCards() {
       </SectionBlock>
       <SectionBlock id="cards" num="02" title="Department cards" dek="Your daily, weekly, and monthly checks.">
         <Card title="Maintenance">
-          <p><B>Daily:</B> the work order queue; assign and triage new jobs. Employees see their jobs plus the open queue and can claim jobs.</p>
+          <p><B>Daily:</B> the work order queue; assign and triage new jobs. Employees see every job, claim open ones, and can hand off their own job to another tech with a note (you get a notification).</p>
           <p><B>Closing a job:</B> labor hours, parts bought, and vendor cost on the close-out form.</p>
           <p><B>Only Managers:</B> PM schedules, settings, deletes. <B>Monthly:</B> Maintenance → Costs (reactive share, PM completion, repair or replace).</p>
           <p><GuideLink to="/training/maintenance">Maintenance guide</GuideLink></p>
