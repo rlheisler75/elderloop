@@ -30,6 +30,8 @@ const FALLBACK_DEPARTMENTS = [
 // part. The extension characters count twice.
 const GSM7 = /^[@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ !"#¤%&'()*+,\-./0-9:;<=>?¡A-ZÄÖÑÜ§¿a-zäöñüà^{}\\[~\]|€]*$/
 const GSM7_EXTENDED = /[\^{}\\[~\]|€]/g
+// Subject + message together, when Text is one of the channels. send-broadcast checks the same.
+const SMS_MAX_CHARS = 400
 
 const DEPT_ICONS ={ nursing: Stethoscope, maintenance: Wrench, dietary: UtensilsCrossed, housekeeping: SprayCan }
 const getDeptIcon = (key) => DEPT_ICONS[key] || Building2
@@ -208,6 +210,8 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
   const smsSegments = smsUnicode
     ? (smsLength <= 70 ? 1 : Math.ceil(smsLength / 67))
     : (smsLength <= 160 ? 1 : Math.ceil(smsLength / 153))
+  const isSms   = form.channels.includes('sms')
+  const smsLeft = SMS_MAX_CHARS - form.subject.length - form.body.length
 
   function audienceSummary() {
     if (form.audience_type === 'all')           return `Everyone (${audienceCounts.all})`
@@ -222,6 +226,7 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
     if (!form.subject.trim())  { setError('Subject is required'); return }
     if (!form.body.trim())     { setError('Message body is required'); return }
     if (!form.channels.length) { setError('Select at least one channel'); return }
+    if (isSms && smsLeft < 0)  { setError(`Texts are limited to ${SMS_MAX_CHARS} characters for the subject and message. Shorten it by ${-smsLeft}.`); return }
     if (form.audience_type === 'department' && !form.audience_dept) { setError('Select a department'); return }
     if (form.audience_type === 'individual' && !selectedPeople.length) { setError('Select at least one recipient'); return }
 
@@ -504,6 +509,7 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
             <input
               value={form.subject}
               onChange={e => setField('subject', e.target.value)}
+              maxLength={isSms ? Math.max(form.subject.length, SMS_MAX_CHARS - form.body.length) : undefined}
               placeholder="Message subject..."
               className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-800 dark:text-slate-100"
             />
@@ -515,14 +521,17 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
             <textarea
               value={form.body}
               onChange={e => setField('body', e.target.value)}
+              maxLength={isSms ? Math.max(form.body.length, SMS_MAX_CHARS - form.subject.length) : undefined}
               rows={4}
               placeholder="Write your message here..."
               className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none text-slate-800 dark:text-slate-100"
             />
-            {form.channels.includes('sms') && (
-              <p className="text-xs text-slate-400 mt-1">
-                Text: about {smsLength} characters with the subject and sign-off
-                {smsSegments > 1 ? ` (sent as ${smsSegments} texts, each billed)` : ' (1 text)'}
+            {isSms && (
+              <p className={`text-xs mt-1 ${smsLeft < 0 ? 'text-red-600 dark:text-red-400 font-semibold' : smsLeft <= 40 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400'}`}>
+                {smsLeft >= 0
+                  ? `${smsLeft} of ${SMS_MAX_CHARS} characters left for the subject and message`
+                  : `${-smsLeft} characters over the ${SMS_MAX_CHARS}-character text limit`}
+                {` · billed as ${smsSegments} ${smsSegments === 1 ? 'text' : 'texts'} per person`}
                 {smsUnicode && '. Emoji, curly quotes, or other special characters cut each text to 70 characters.'}
               </p>
             )}
@@ -548,7 +557,7 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
             </button>
             <button
               onClick={handleSend}
-              disabled={sending || !form.subject.trim() || !form.body.trim()}
+              disabled={sending || !form.subject.trim() || !form.body.trim() || (isSms && smsLeft < 0)}
               className="flex items-center gap-2 px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-semibold rounded-xl transition-colors"
             >
               {sending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}

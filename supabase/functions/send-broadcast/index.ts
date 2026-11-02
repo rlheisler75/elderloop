@@ -51,6 +51,12 @@ serve(async (req) => {
       return json({ error: 'Not allowed' }, 403)
     }
 
+    // Texts: subject + message capped at 400 characters (SMS_MAX_CHARS in ComposeModal.jsx)
+    const SMS_MAX_CHARS = 400
+    if ((msg.channels || []).includes('sms') && `${msg.subject ?? ''}${msg.body ?? ''}`.length > SMS_MAX_CHARS) {
+      return json({ error: `Texts are limited to ${SMS_MAX_CHARS} characters for the subject and message` }, 400)
+    }
+
     // Claim the message so a repeat call can't send it twice.
     const { data: claimed } = await supabase.from('broadcast_messages')
       .update({ status: 'processing' })
