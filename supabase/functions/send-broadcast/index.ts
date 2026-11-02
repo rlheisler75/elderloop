@@ -238,7 +238,9 @@ serve(async (req) => {
               From: TWILIO_FROM, To: r.to!,
               // Must match the sample on the Twilio toll-free verification and elderloop.xyz/sms:
               // the community up front, the registered business (Loopware Solutions LLC) at the end.
-              Body: `${orgName}: ${msg.subject}\n\n${msg.body}\n\n— ${senderName}, ${orgName}.\nSent by Loopware Solutions LLC.\nReply STOP to opt out.`
+              // Plain "-", not a long dash: one character outside the GSM-7 alphabet makes the
+              // whole text Unicode, 70 characters per billed segment instead of 160.
+              Body: `${orgName}: ${msg.subject}\n\n${msg.body}\n\n- ${senderName}, ${orgName}.\nSent by Loopware Solutions LLC.\nReply STOP to opt out.`
             })
             const res = await fetch(
               `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_SID}/Messages.json`,

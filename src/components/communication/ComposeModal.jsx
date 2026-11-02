@@ -25,7 +25,13 @@ const FALLBACK_DEPARTMENTS = [
   { key: 'dietary',     label: 'Dietary' },
   { key: 'housekeeping',label: 'Housekeeping' },
 ]
-const DEPT_ICONS = { nursing: Stethoscope, maintenance: Wrench, dietary: UtensilsCrossed, housekeeping: SprayCan }
+// Texts use the GSM-7 alphabet: 160 characters, or 153 per part when split. One character
+// outside it (emoji, curly quotes, long dashes) makes the whole text Unicode: 70, or 67 per
+// part. The extension characters count twice.
+const GSM7 = /^[@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ !"#¤%&'()*+,\-./0-9:;<=>?¡A-ZÄÖÑÜ§¿a-zäöñüà^{}\\[~\]|€]*$/
+const GSM7_EXTENDED = /[\^{}\\[~\]|€]/g
+
+const DEPT_ICONS ={ nursing: Stethoscope, maintenance: Wrench, dietary: UtensilsCrossed, housekeeping: SprayCan }
 const getDeptIcon = (key) => DEPT_ICONS[key] || Building2
 
 // Templates for department-restricted composers (see restrictToDepartment below).
@@ -195,9 +201,13 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
 
   // send-broadcast puts "Community: " before the subject and the signature after the message
   const orgName = organization?.name || ''
-  const smsLength = `${orgName}: `.length + form.subject.length + form.body.length + 4 +
-    `— ${profile?.first_name || ''} ${profile?.last_name || ''}, ${orgName}.\nSent by Loopware Solutions LLC.\nReply STOP to opt out.`.length
-  const smsSegments = smsLength <= 160 ? 1 : Math.ceil(smsLength / 153)
+  const smsText = `${orgName}: ${form.subject}\n\n${form.body}\n\n` +
+    `- ${profile?.first_name || ''} ${profile?.last_name || ''}, ${orgName}.\nSent by Loopware Solutions LLC.\nReply STOP to opt out.`
+  const smsUnicode = !GSM7.test(smsText)
+  const smsLength = smsUnicode ? smsText.length : smsText.length + (smsText.match(GSM7_EXTENDED)?.length ?? 0)
+  const smsSegments = smsUnicode
+    ? (smsLength <= 70 ? 1 : Math.ceil(smsLength / 67))
+    : (smsLength <= 160 ? 1 : Math.ceil(smsLength / 153))
 
   function audienceSummary() {
     if (form.audience_type === 'all')           return `Everyone (${audienceCounts.all})`
@@ -513,6 +523,7 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
               <p className="text-xs text-slate-400 mt-1">
                 Text: about {smsLength} characters with the subject and sign-off
                 {smsSegments > 1 ? ` (sent as ${smsSegments} texts, each billed)` : ' (1 text)'}
+                {smsUnicode && '. Emoji, curly quotes, or other special characters cut each text to 70 characters.'}
               </p>
             )}
             {/* No health information outside ElderLoop (decided 2026-10-06: no BAA with Resend; Twilio not used for it) */}

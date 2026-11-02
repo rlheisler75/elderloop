@@ -69,7 +69,7 @@ export default function SmsProgram() {
           <p>Each text starts with the community's name, names the staff member who sent it, and ends with "Sent by Loopware Solutions LLC. Reply STOP to opt out." Texts are <strong>never marketing</strong> and <strong>never include health information</strong>.</p>
           <p className="bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 whitespace-pre-line">
             <span className="text-slate-400 text-xs block mb-1">Example</span>
-            {'Sunrise Gardens: Holiday Lunch\n\nThe dining room opens at 11:30 today for the holiday lunch. All residents and families welcome!\n\n— Jane Smith, Sunrise Gardens.\nSent by Loopware Solutions LLC.\nReply STOP to opt out.'}
+            {'Sunrise Gardens: Holiday Lunch\n\nThe dining room opens at 11:30 today for the holiday lunch. All residents and families welcome!\n\n- Jane Smith, Sunrise Gardens.\nSent by Loopware Solutions LLC.\nReply STOP to opt out.'}
           </p>
         </Block>
 
