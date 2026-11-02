@@ -8,11 +8,12 @@ import RepAccountsTab from './RepAccountsTab'
 import CorporationsTab from './CorporationsTab'
 import RepCommissionsTab from './RepCommissionsTab'
 import PlatformActivityTab from './PlatformActivityTab'
+import FeedbackTab from './FeedbackTab'
 import { useAuth } from '../../context/AuthContext'
 import { PLAN_LIMITS } from '../../lib/planModules'
 import {
   Building2, Users, Shield, Plus, Settings, CheckCircle2,
-  Activity, Globe, BarChart3, Eye, LogOut, Zap, X,
+  Activity, Globe, BarChart3, Eye, LogOut, Zap, X, LifeBuoy,
   Edit2, Check, ChevronRight, TrendingUp, AlertCircle,
   ClipboardList, Link, Copy, Star, Image as ImageIcon,
   Trash2, Upload, AlertTriangle, RefreshCw, FileText, UserPlus, DollarSign, Landmark
@@ -456,8 +457,13 @@ export default function SuperAdminDashboard() {
   const [activeTab, setActiveTab]   = useState('overview')
   const [logoModal, setLogoModal]   = useState(null)   // kept for compatibility
   const [wipeModal, setWipeModal]   = useState(null)   // org object
+  const [newFeedback, setNewFeedback] = useState(0)
 
   useEffect(() => { fetchAll() }, [])
+  useEffect(() => {
+    supabase.from('platform_feedback').select('id', { count: 'exact', head: true }).eq('status', 'new')
+      .then(({ count }) => setNewFeedback(count ?? 0))
+  }, [])
 
   async function fetchAll() {
     setLoading(true)
@@ -548,6 +554,7 @@ export default function SuperAdminDashboard() {
             { key: 'reps',           icon: TrendingUp,    label: 'Rep Tracking' },
             { key: 'commissions',    icon: DollarSign,    label: 'Rep Commissions' },
             { key: 'rep_resources',  icon: FileText,      label: 'Rep Promo Materials' },
+            { key: 'feedback',       icon: LifeBuoy,      label: 'Help & Feedback', badge: newFeedback },
             { key: 'activity',       icon: Activity,      label: 'Platform Activity' },
           ].map(item => {
             const Icon = item.icon
@@ -555,6 +562,7 @@ export default function SuperAdminDashboard() {
               <button key={item.key} onClick={() => setActiveTab(item.key)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-left ${activeTab === item.key ? 'bg-brand-700 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}>
                 <Icon size={16} />{item.label}
+                {item.badge > 0 && <span className="ml-auto text-xs font-bold bg-red-600 text-white rounded-full px-1.5 min-w-[20px] text-center">{item.badge}</span>}
               </button>
             )
           })}
@@ -605,7 +613,7 @@ export default function SuperAdminDashboard() {
         <div className="px-8 py-6 border-b border-slate-800 flex items-center justify-between">
           <div>
             <h1 style={{ fontFamily: '"Playfair Display", serif' }} className="text-2xl font-bold text-white">
-              {activeTab === 'overview' ? 'Platform Overview' : activeTab === 'organizations' ? 'Organizations' : activeTab === 'corporations' ? 'Corporations' : activeTab === 'rep_accounts' ? 'Rep Accounts' : activeTab === 'reps' ? 'Rep Tracking' : activeTab === 'commissions' ? 'Rep Commissions' : activeTab === 'rep_resources' ? 'Rep Promo Materials' : 'Platform Activity'}
+              {activeTab === 'overview' ? 'Platform Overview' : activeTab === 'organizations' ? 'Organizations' : activeTab === 'corporations' ? 'Corporations' : activeTab === 'rep_accounts' ? 'Rep Accounts' : activeTab === 'reps' ? 'Rep Tracking' : activeTab === 'commissions' ? 'Rep Commissions' : activeTab === 'rep_resources' ? 'Rep Promo Materials' : activeTab === 'feedback' ? 'Help & Feedback' : 'Platform Activity'}
             </h1>
             <p className="text-slate-500 text-sm mt-0.5">
               {new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' })}
@@ -895,6 +903,8 @@ export default function SuperAdminDashboard() {
 
               {/* ── REP COMMISSIONS TAB ── */}
             {activeTab === 'commissions' && <RepCommissionsTab />}
+
+            {activeTab === 'feedback' && <FeedbackTab onCountChange={setNewFeedback} />}
 
               {/* ── REP PROMO MATERIALS TAB ── */}
             {activeTab === 'rep_resources' && <RepResourcesTab />}

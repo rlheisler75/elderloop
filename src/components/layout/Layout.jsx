@@ -5,7 +5,7 @@ import {
   Settings, LogOut, Menu, X, ChevronRight, Megaphone, Home, Church,
   CalendarDays, BookUser, Car, Gauge, Shield, UserCheck, CalendarCheck,
   Stethoscope, HeartHandshake, ClipboardList, AlertTriangle, Clock,
-  Monitor, TrendingUp, Heart, Users, UserCog, Wallet
+  Monitor, TrendingUp, Heart, Users, UserCog, Wallet, LifeBuoy
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { Bell } from 'lucide-react'
@@ -14,6 +14,7 @@ import { Eye } from 'lucide-react'
 import { getOrgDepartments, STAFF_LEVELS, LEVEL_RANK } from '../../lib/departments'
 import EmergencyEditBar from './EmergencyEditBar'
 import ErrorBoundary from '../ErrorBoundary'
+import FeedbackModal from '../FeedbackModal'
 import { MODULE_DEPARTMENTS } from '../../lib/accessTiers'
 import { BUDGET_DEPARTMENT_KEYS } from '../../lib/budgets'
 
@@ -94,6 +95,7 @@ export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [notifs, setNotifs]       = useState([])
   const [showNotifs, setShowNotifs] = useState(false)
+  const [showFeedback, setShowFeedback] = useState(false)
   const notifRef = useRef(null)
 
   const unread = notifs.filter(n => !n.is_read).length
@@ -217,6 +219,11 @@ export default function Layout() {
               `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${isActive ? 'bg-brand-700 text-white' : 'text-brand-300 hover:bg-brand-800 hover:text-white'}`}>
             <UserCog size={18} /><span>My Settings</span>
           </NavLink>
+
+          <button onClick={() => { setShowFeedback(true); setSidebarOpen(false) }}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-brand-300 hover:bg-brand-800 hover:text-white text-left">
+            <LifeBuoy size={18} /><span>Help &amp; Feedback</span>
+          </button>
 
           {profile?.role === 'ceo' && (
             <NavLink to="/app/ceo"
@@ -359,6 +366,7 @@ export default function Layout() {
         )}
         <main className="flex-1 overflow-y-auto p-6"><ErrorBoundary key={location.pathname}><Outlet /></ErrorBoundary></main>
       </div>
+      {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}
     </div>
 
   )

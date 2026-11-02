@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import UserProfileModal from '../../components/UserProfileModal'
+import FeedbackModal from '../../components/FeedbackModal'
 import MealOrderModal, { MEAL_TYPES, MEAL_STATUS } from '../../components/MealOrderModal'
 import RSVPButton from '../../components/RSVPButton'
 import {
   Heart, Bell, MessageSquare, CalendarDays, ChevronRight,
-  Plus, X, Send, Star, Activity, ArrowLeft, LogOut,
+  Plus, X, Send, Star, Activity, ArrowLeft, LogOut, LifeBuoy,
   Wrench, Camera, Phone, User, Home, ChevronDown,
   CheckCircle2, Clock, AlertCircle, Image, Users,
   Cake, MapPin, HeartHandshake, Shield, ClipboardList,
@@ -759,6 +760,7 @@ export default function FamilyPortal() {
   const [showOrderModal, setShowOrderModal] = useState(false)
   const [loading, setLoading]               = useState(true)
   const [showProfile, setShowProfile]       = useState(false)
+  const [showFeedback, setShowFeedback] = useState(false)
   const [notifs, setNotifs]         = useState([])
   const [showNotifs, setShowNotifs] = useState(false)
   const notifRef = useRef(null)
@@ -1044,6 +1046,10 @@ export default function FamilyPortal() {
               className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" title="My Account">
               <User size={16} />
             </button>
+            <button onClick={() => setShowFeedback(true)}
+              className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" title="Help & Feedback">
+              <LifeBuoy size={16} />
+            </button>
             <button onClick={handleSignOut}
               className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
               <LogOut size={13} /> Sign Out
@@ -1053,6 +1059,7 @@ export default function FamilyPortal() {
       </div>
 
       {showProfile && <UserProfileModal onClose={() => setShowProfile(false)} />}
+      {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}
 
       <div className="max-w-lg mx-auto px-4 pb-8">
         {/* Resident switcher (if multiple residents) */}

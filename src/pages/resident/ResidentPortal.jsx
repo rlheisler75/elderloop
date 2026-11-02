@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import UserProfileModal from '../../components/UserProfileModal'
+import FeedbackModal from '../../components/FeedbackModal'
 import MealOrderModal, { MEAL_TYPES, MEAL_STATUS } from '../../components/MealOrderModal'
 import RSVPButton from '../../components/RSVPButton'
 import {
   Bell, Wrench, UtensilsCrossed, Calendar, Church,
-  Play, Plus, X, LogOut, ChevronRight, Clock,
+  Play, Plus, X, LogOut, LifeBuoy, ChevronRight, Clock,
   CheckCircle2, AlertCircle, Activity, Send,
   ThumbsUp, ThumbsDown, Save, Home, Radio,
   Maximize, Star, Sun, Coffee, Soup, Cookie,
@@ -345,6 +346,7 @@ export default function ResidentPortal() {
   const [tab, setTab]                   = useState('home')
   const [showWOModal, setShowWOModal]   = useState(false)
   const [showProfile, setShowProfile]   = useState(false)
+  const [showFeedback, setShowFeedback] = useState(false)
   const [openWOs, setOpenWOs]           = useState(0)
   // Rides: the resident's own trips and ride requests only (RLS portal_scope on
   // trips / trip_requests, 20261022_trip_requests.sql)
@@ -479,6 +481,10 @@ export default function ResidentPortal() {
               className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" title="My Account">
               <User size={16} />
             </button>
+            <button onClick={() => setShowFeedback(true)}
+              className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" title="Help & Feedback">
+              <LifeBuoy size={16} />
+            </button>
             <button onClick={handleSignOut}
               className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
               <LogOut size={13} /> Sign Out
@@ -488,6 +494,7 @@ export default function ResidentPortal() {
       </div>
 
       {showProfile && <UserProfileModal onClose={() => setShowProfile(false)} />}
+      {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}
 
       <div className="max-w-2xl mx-auto px-4 pb-8">
         {/* Welcome bar */}
