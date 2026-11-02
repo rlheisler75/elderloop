@@ -421,15 +421,19 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
 
   const handleLogoUpload = async (e) => {
     const file = e.target.files?.[0]; if (!file) return
-    setUploading(true)
+    setUploading(true); setError('')
     const ext  = file.name.split('.').pop()
-    const path = `logos/${org.id}/logo.${ext}`
-    const { error } = await supabase.storage.from('announcement-images').upload(path, file, { upsert: true })
-    if (!error) {
+    // A new name each time: replacing logo.png kept the same URL, so browsers and the
+    // storage CDN went on showing the old picture
+    const path = `logos/${org.id}/logo-${Date.now()}.${ext}`
+    const { error } = await supabase.storage.from('announcement-images').upload(path, file)
+    if (error) setError(`Couldn't upload the logo: ${error.message}`)
+    else {
       const { data } = supabase.storage.from('announcement-images').getPublicUrl(path)
       setLogoUrl(data.publicUrl)
     }
     setUploading(false)
+    e.target.value = ''
   }
 
   const toggleModule = (key) => setEnabledModules(m =>
