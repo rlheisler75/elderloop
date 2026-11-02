@@ -3,8 +3,14 @@ import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { Eye, EyeOff, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
 
+// Setup and reset emails link here with ?token_hash=...&type=recovery. The one-time
+// code is only used when the person presses Set New Password: email security scanners
+// (Microsoft Defender Safe Links and the like) open every link in a message, and a
+// link that signs in on open would be used up before the person ever saw it.
+
 export default function ResetPassword() {
   const navigate = useNavigate()
+  const [tokenHash] = useState(() => new URLSearchParams(window.location.search).get('token_hash'))
   const [password,    setPassword]    = useState('')
   const [confirm,     setConfirm]     = useState('')
   const [showPw,      setShowPw]      = useState(false)
@@ -15,7 +21,9 @@ export default function ResetPassword() {
   const [checking,    setChecking]    = useState(true)
 
   useEffect(() => {
-    // Supabase automatically handles the recovery token in the URL hash
+    if (tokenHash) { setValidSession(true); setChecking(false); return }
+
+    // Older links: Supabase automatically handles the recovery token in the URL hash
     // and fires a PASSWORD_RECOVERY auth state change event
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY') {
@@ -53,6 +61,10 @@ export default function ResetPassword() {
     }
 
     setLoading(true)
+    if (tokenHash) {
+      const { error: otpErr } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'recovery' })
+      if (otpErr) { setLoading(false); setValidSession(false); return }
+    }
     const { error: err } = await supabase.auth.updateUser({ password })
     setLoading(false)
 

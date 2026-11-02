@@ -242,6 +242,7 @@ export default function App() {
     return (
       <Routes>
         <Route path="/family-portal" element={<FamilyPortal />} />
+        <Route path="/reset-password" element={<Lazy><ResetPassword /></Lazy>} />
         <Route path="*" element={<Navigate to="/family-portal" replace />} />
       </Routes>
     )
@@ -251,6 +252,7 @@ export default function App() {
     return (
       <Routes>
         <Route path="/resident" element={<ResidentPortal />} />
+        <Route path="/reset-password" element={<Lazy><ResetPassword /></Lazy>} />
         <Route path="*" element={<Navigate to="/resident" replace />} />
       </Routes>
     )
@@ -260,6 +262,7 @@ export default function App() {
     return (
       <Routes>
         <Route path="/rep" element={<Lazy><RepPortal /></Lazy>} />
+        <Route path="/reset-password" element={<Lazy><ResetPassword /></Lazy>} />
         {trainingRoutes}
         <Route path="*" element={<Navigate to="/rep" replace />} />
       </Routes>

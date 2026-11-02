@@ -125,12 +125,15 @@ Deno.serve(async (req: Request) => {
     // Email a password-setup link so the new staff member sets their own
     // password — no admin-chosen temp password to lose track of.
     const siteUrl = Deno.env.get('SITE_URL') ?? 'https://elderloop.xyz'
+    // Link to our own page with the one-time code, not Supabase's action_link: email
+    // scanners (Microsoft Safe Links) open every link and would use the code up.
+    // ResetPassword.jsx spends it only when the person presses Set New Password.
     const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
       type: 'recovery',
       email: email.trim().toLowerCase(),
-      options: { redirectTo: `${siteUrl}/reset-password` },
     })
-    const setupLink = linkData?.properties?.action_link ?? `${siteUrl}/login`
+    const tokenHash = linkData?.properties?.hashed_token
+    const setupLink = tokenHash ? `${siteUrl}/reset-password?token_hash=${tokenHash}&type=recovery` : `${siteUrl}/forgot-password`
 
     const orgName = org?.name ?? 'your community'
 
