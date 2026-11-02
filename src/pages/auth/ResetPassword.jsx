@@ -108,7 +108,7 @@ export default function ResetPassword() {
             </div>
             <h2 className="font-display text-xl font-semibold text-slate-800 mb-2">Link Expired</h2>
             <p className="text-slate-500 text-sm leading-relaxed mb-6">
-              This password reset link has expired or is invalid. Reset links expire after 1 hour.
+              This password reset link has expired or is invalid. Reset links expire after 24 hours.
             </p>
             <Link to="/forgot-password"
               className="block w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl text-sm transition-colors text-center">

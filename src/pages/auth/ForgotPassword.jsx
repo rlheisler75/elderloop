@@ -61,7 +61,7 @@ export default function ForgotPassword() {
               </p>
               <p className="font-semibold text-slate-700 text-sm mb-4">{email}</p>
               <p className="text-slate-400 text-xs leading-relaxed mb-6">
-                Click the link in the email to set a new password. The link expires in 1 hour. Check your spam folder if you don't see it.
+                Click the link in the email to set a new password. The link expires in 24 hours. Check your spam folder if you don't see it.
               </p>
               <Link to="/login"
                 className="flex items-center justify-center gap-2 text-sm text-brand-600 hover:text-brand-700 font-medium transition-colors">

@@ -267,7 +267,7 @@ export default function StaffImport({ orgId, departments, existingEmails, onClos
 
               <div className="p-3 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900 rounded-xl text-xs text-amber-700 dark:text-amber-400 flex items-start gap-2">
                 <AlertTriangle size={14} className="flex-shrink-0 mt-0.5" />
-                Each person gets a welcome email right away, and its password link expires in 1 hour. Import a department when its staff are ready to set up — anyone who misses it can use "Forgot password" on the sign-in page.
+                Each person gets a welcome email right away, and its password link expires in 24 hours. Import a department when its staff are ready to set up — anyone who misses it can use "Forgot password" on the sign-in page.
               </div>
             </div>
           )}

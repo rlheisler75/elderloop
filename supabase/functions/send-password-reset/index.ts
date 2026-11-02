@@ -56,7 +56,7 @@ Deno.serve(async (req: Request) => {
           <div style="margin:28px 0;">
             <a href="${resetLink}" style="display:inline-block;padding:12px 28px;background:#0c90e1;color:#fff;text-decoration:none;border-radius:10px;font-weight:600;font-size:15px;">Reset Password</a>
           </div>
-          <p style="color:#94a3b8;font-size:13px;">This link expires in 1 hour. If you didn't request this, you can safely ignore this email — your password will stay the same.</p>
+          <p style="color:#94a3b8;font-size:13px;">This link expires in 24 hours. If you didn't request this, you can safely ignore this email — your password will stay the same.</p>
           <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0;"/>
           <p style="color:#94a3b8;font-size:12px;">Powered by ElderLoop &middot; elderloop.xyz</p>
         </div>`,

@@ -154,7 +154,7 @@ Deno.serve(async (req: Request) => {
           <div style="margin:28px 0;">
             <a href="${setupLink}" style="display:inline-block;padding:12px 28px;background:#0c90e1;color:#fff;text-decoration:none;border-radius:10px;font-weight:600;font-size:15px;">Set Up Your Password</a>
           </div>
-          <p style="color:#94a3b8;font-size:13px;">This link expires in 1 hour. After setting your password, visit <a href="${siteUrl}/login">${siteUrl}/login</a> to sign in.</p>
+          <p style="color:#94a3b8;font-size:13px;">This link expires in 24 hours. After setting your password, visit <a href="${siteUrl}/login">${siteUrl}/login</a> to sign in.</p>
           <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0;"/>
           <p style="color:#94a3b8;font-size:12px;">Powered by ElderLoop &middot; elderloop.xyz</p>
         </div>`,
