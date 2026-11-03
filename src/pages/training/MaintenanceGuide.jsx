@@ -58,6 +58,13 @@ export default function MaintenanceGuide() {
               { k: 2, text: <>Set <b className="text-slate-900">Next Service Due</b> so the asset shows up on the stat tiles once it's overdue or due within 30 days.</> },
               { k: 3, text: 'Link a work order or PM schedule to an asset from either of those screens — the asset’s card will then reflect real service history over time.' },
             ]} />
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Asset labels</h3>
+            <Steps items={[
+              { k: 1, text: <>Click <b className="text-slate-900">Print Labels</b> to print QR labels for any or all assets, or <b className="text-slate-900">Label</b> on one asset’s card to print just that one. Pick the label size (2.5" × 1", 4" × 2", or 4" × 3") and the number of copies, then <b className="text-slate-900">Print</b>.</> },
+              { k: 2, text: <>Stick the label on the equipment. Anyone on staff can scan it with their phone camera, or with <b className="text-slate-900">Scan Asset</b> at the top of Work Orders.</> },
+              { k: 3, text: <>Scanning opens that asset: its <b className="text-slate-900">work order history</b> (tap one to open it) and a <b className="text-slate-900">New Work Order</b> button that starts a ticket with the asset already linked and its location filled in.</> },
+            ]} />
+            <Tip>Maintenance staff see every work order for the asset; other staff, such as a housekeeper reporting a broken dryer, see only the ones they filed. If they aren’t signed in yet, the label takes them to sign in first, then straight to the asset. Labels keep working after you rename or move an asset, so you only print them for new equipment.</Tip>
           </SectionBlock>
 
           <SectionBlock id="pm" num="03" title="Preventive Maintenance"
@@ -148,7 +155,9 @@ export default function MaintenanceGuide() {
             ['File a maintenance issue', 'Work Orders → New Work Order'],
             ['Let AI fill in category, priority & description', 'New Work Order → Suggest category, priority & description'],
             ['Update a ticket’s status', 'Open the ticket → Quick Actions'],
-            ['Check equipment service history', 'Assets → click a card'],
+            ['Check equipment service history', 'Assets → click a card, or scan its label'],
+            ['Print QR labels for equipment', 'Assets → Print Labels'],
+            ['Report a problem with a labeled machine', 'Scan the label → New Work Order'],
             ['Run a recurring task (filter change, generator test)', 'Preventive Maintenance → Generate WO'],
             ['Conduct a fire/life-safety inspection', 'Life Safety → Inspect'],
             ['Prepare for a state survey', 'Life Safety → Print for Surveyor'],
