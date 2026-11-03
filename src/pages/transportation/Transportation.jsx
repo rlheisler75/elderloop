@@ -195,6 +195,7 @@ function TripWeekView({ trips, absences, days, onDayClick, onTripClick }) {
                         <div className="font-semibold">{fmt12(t.pickup_time)}</div>
                         <div className="truncate">{t.resident_name}</div>
                         {t.driver_name && <div className="truncate opacity-75">{t.driver_name}</div>}
+                        {t.notes && <div className="truncate italic opacity-75" title={t.notes}>📝 {t.notes}</div>}
                       </div>
                     )
                   })}
@@ -254,7 +255,8 @@ function TripSheetPrint({ allTrips, defaultDate, orgName, onClose }) {
       <td>${t.driver_name || '—'}</td>
       <td><span class="status ${t.status}">${getStatus(t.status).label}</span></td>
       <td>${t.mileage_start || ''}${t.mileage_start && t.mileage_end ? ' → ' + t.mileage_end : ''}</td>
-    </tr>
+    </tr>${t.notes ? `
+    <tr class="note"><td></td><td colspan="10"><em>Note: ${String(t.notes).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))}</em></td></tr>` : ''}
   `).join('')
 
   const tableHtml = (dayTrips) => `
@@ -675,6 +677,14 @@ function TripModal({ trip, fromRequest, vehicles, residents, absences = [], defa
             </div>
           </div>
 
+          {/* Notes for the driver — shown on the calendar, Today's Trips, and the printed sheet */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Notes for the driver</label>
+            <textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows={2}
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+              placeholder="e.g. Sister will meet and stay with resident; needs help to the door" />
+          </div>
+
           {/* Status */}
           {!isNew && (
             <div>
@@ -720,9 +730,6 @@ function TripModal({ trip, fromRequest, vehicles, residents, absences = [], defa
                     placeholder="Odometer in" />
                 </div>
               </div>
-              <textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows={2}
-                className="w-full px-3 py-2 border border-green-200 dark:border-green-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-400 bg-white dark:bg-slate-800 dark:text-slate-100 resize-none"
-                placeholder="Trip notes..." />
             </div>
           )}
         </div>

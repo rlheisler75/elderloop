@@ -124,7 +124,8 @@ export function TripRequestModal({ residents = [], resident = null, driverOuts =
             <div><label className={labelCls}>Phone</label><input value={form.provider_phone} onChange={e => set('provider_phone', e.target.value)} className={inputCls} /></div>
           </div>
           <div><label className={labelCls}>Needs</label><input value={form.needs} onChange={e => set('needs', e.target.value)} className={inputCls} placeholder="e.g. wheelchair, walker, escort" /></div>
-          <div><label className={labelCls}>Notes</label><textarea rows={2} value={form.notes} onChange={e => set('notes', e.target.value)} className={inputCls} /></div>
+          <div><label className={labelCls}>Notes for Transportation</label><textarea rows={2} value={form.notes} onChange={e => set('notes', e.target.value)} className={inputCls}
+            placeholder="e.g. Sister will meet and stay with resident" /></div>
         </div>
         <div className="flex justify-end gap-2 px-6 py-4 border-t border-slate-100 dark:border-slate-800">
           <button onClick={onClose} className="px-4 py-2 text-sm text-slate-500">Cancel</button>
@@ -174,7 +175,7 @@ export function TripRequestList({ requests, canSchedule = false, onSchedule, onC
                   {r.provider_name && <span className="flex items-center gap-1"><MapPin size={13} className="text-slate-400" /> {r.provider_name}</span>}
                 </div>
                 {r.needs && <div className="text-xs text-slate-500 mt-1">Needs: {r.needs}</div>}
-                {r.notes && <div className="text-xs text-slate-500 mt-1">{r.notes}</div>}
+                {r.notes && <div className="text-xs mt-1.5 px-2 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 border border-amber-100 dark:border-amber-900">📝 {r.notes}</div>}
                 <div className="text-xs text-slate-400 mt-1">Requested by {r.requested_by_name || 'staff'} · {new Date(r.requested_at).toLocaleDateString()}</div>
                 {r.status === 'scheduled' && r.scheduled_date && (
                   <div className="text-sm text-blue-700 dark:text-blue-400 font-medium mt-1">Ride on {fmtDate(r.scheduled_date)}{r.scheduled_pickup && `, pickup ${fmt12(r.scheduled_pickup)}`}</div>

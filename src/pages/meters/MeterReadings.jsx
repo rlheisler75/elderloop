@@ -6,10 +6,11 @@ import {
   Plus, X, Edit2, Trash2, Search, Zap, Droplets,
   Flame, Thermometer, Gauge, ChevronRight, Settings,
   TrendingUp, TrendingDown, Minus, Calendar, Building2,
-  Check, AlertCircle, Download, ScanLine, Printer
+  Check, AlertCircle, Download, ScanLine, Printer, Camera, ImageOff
 } from 'lucide-react'
 import BarcodeScanner from '../supply/BarcodeScanner'
 import MeterBarcodeLabels from './MeterBarcodeLabels'
+import MeterBilling from './MeterBilling'
 
 // ── Helpers ───────────────────────────────────────────────────
 const ICON_MAP = {
@@ -26,6 +27,23 @@ const fmtNum = (n, decimals = 2) => n != null ? Number(n).toLocaleString('en-US'
 const fmtCost = (n) => n != null ? `$${fmtNum(n)}` : '—'
 const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
 const monthName = (d) => new Date(d + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+
+// Phone photos are several MB; a 1600px JPEG still shows the dial digits clearly
+const shrinkPhoto = (file, maxSide = 1600) => new Promise((resolve) => {
+  const img = new Image()
+  const url = URL.createObjectURL(file)
+  img.onload = () => {
+    const scale = Math.min(1, maxSide / Math.max(img.width, img.height))
+    const canvas = document.createElement('canvas')
+    canvas.width = Math.round(img.width * scale)
+    canvas.height = Math.round(img.height * scale)
+    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height)
+    URL.revokeObjectURL(url)
+    canvas.toBlob(b => resolve(b || file), 'image/jpeg', 0.85)
+  }
+  img.onerror = () => { URL.revokeObjectURL(url); resolve(file) }
+  img.src = url
+})
 
 // ── Utility Type Manager ───────────────────────────────────────
 function UtilityTypeManager({ orgId, types, onRefresh, onClose }) {
@@ -158,7 +176,17 @@ function AddReadingModal({ meter, lastReading, utilityType, onClose, onSave }) {
   })
   const [saving, setSaving]   = useState(false)
   const [error, setError]     = useState('')
+  const [photo, setPhoto]     = useState(null)   // File from the camera
+  const [preview, setPreview] = useState(null)
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+  const pickPhoto = (file) => {
+    if (!file) return
+    if (preview) URL.revokeObjectURL(preview)
+    setPhoto(file)
+    setPreview(URL.createObjectURL(file))
+  }
+  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview) }, [preview])
 
   const prevValue = lastReading?.reading_value
   const usage     = form.reading_value && prevValue != null
@@ -176,6 +204,15 @@ function AddReadingModal({ meter, lastReading, utilityType, onClose, onSave }) {
       if (!confirm(`Reading (${form.reading_value}) is lower than previous (${prevValue}). Proceed?`)) return
     }
     setSaving(true)
+    let photoUrl = null
+    if (photo) {
+      const blob = await shrinkPhoto(photo)
+      const path = `meter-photos/${meter.organization_id}/${meter.id}/${Date.now()}.jpg`
+      const { error: upErr } = await supabase.storage.from('announcement-images')
+        .upload(path, blob, { contentType: 'image/jpeg' })
+      if (upErr) { setError(`Photo didn't upload: ${upErr.message}`); setSaving(false); return }
+      photoUrl = supabase.storage.from('announcement-images').getPublicUrl(path).data.publicUrl
+    }
     const { error: err } = await supabase.from('meter_readings').insert({
       meter_id:        meter.id,
       organization_id: meter.organization_id,
@@ -186,6 +223,7 @@ function AddReadingModal({ meter, lastReading, utilityType, onClose, onSave }) {
       rate_per_unit:   utilityType?.rate_per_unit || null,
       estimated_cost:  cost,
       notes:           form.notes || null,
+      photo_url:       photoUrl,
       read_by:         profile.id,
     })
     if (err) { setError(err.message); setSaving(false); return }
@@ -228,6 +266,25 @@ function AddReadingModal({ meter, lastReading, utilityType, onClose, onSave }) {
                 placeholder="0.00" autoFocus />
               <span className="text-slate-400 text-sm font-medium">{utilityType?.unit}</span>
             </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Photo of the Meter</label>
+            {preview ? (
+              <div className="relative">
+                <img src={preview} alt="Meter reading" className="w-full max-h-56 object-contain rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
+                <label className="absolute bottom-2 right-2 flex items-center gap-1.5 px-3 py-1.5 bg-white/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-200 cursor-pointer">
+                  <Camera size={13} /> Retake
+                  <input type="file" accept="image/*" capture="environment" className="hidden" onChange={e => pickPhoto(e.target.files?.[0])} />
+                </label>
+              </div>
+            ) : (
+              <label className="flex items-center justify-center gap-2 w-full px-4 py-4 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-500 dark:text-slate-400 hover:border-brand-300 hover:text-brand-600 cursor-pointer transition-colors">
+                <Camera size={18} /> Take a photo of the dial
+                <input type="file" accept="image/*" capture="environment" className="hidden" onChange={e => pickPhoto(e.target.files?.[0])} />
+              </label>
+            )}
+            <p className="text-xs text-slate-400 mt-1">So the number can be checked if it looks wrong later.</p>
           </div>
 
           <div>
@@ -381,6 +438,7 @@ function AddMeterModal({ orgId, utilityTypes, residents, meter, onClose, onSave 
 function MeterHistoryModal({ meter, utilityType, onClose }) {
   const [readings, setReadings] = useState([])
   const [loading, setLoading]   = useState(true)
+  const [viewPhoto, setViewPhoto] = useState(null)   // reading whose photo is open
 
   useEffect(() => { fetchReadings() }, [])
 
@@ -419,11 +477,12 @@ function MeterHistoryModal({ meter, utilityType, onClose }) {
             <div className="text-center py-10 text-slate-400 text-sm">No readings yet.</div>
           ) : (
             <div className="overflow-x-auto">
-            <table className="w-full min-w-[540px]">
+            <table className="w-full min-w-[600px]">
               <thead className="sticky top-0 bg-white dark:bg-slate-900">
                 <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Date</th>
                   <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">Reading</th>
+                  <th className="px-2 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wide">Photo</th>
                   <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">Usage</th>
                   <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">Est. Cost</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Read By</th>
@@ -439,6 +498,15 @@ function MeterHistoryModal({ meter, utilityType, onClose }) {
                         {r.notes && <div className="text-xs text-slate-400 italic">{r.notes}</div>}
                       </td>
                       <td className="px-4 py-3 text-sm text-right font-mono text-slate-800 dark:text-slate-100">{fmtNum(r.reading_value, 2)}</td>
+                      <td className="px-2 py-2 text-center">
+                        {r.photo_url ? (
+                          <button onClick={() => setViewPhoto(r)} title="View photo">
+                            <img src={r.photo_url} alt="Meter" className="w-10 h-10 object-cover rounded-lg border border-slate-200 dark:border-slate-700 inline-block" />
+                          </button>
+                        ) : (
+                          <span title="No photo" className="inline-flex text-slate-300 dark:text-slate-600"><ImageOff size={16} /></span>
+                        )}
+                      </td>
                       <td className="px-4 py-3 text-sm text-right">
                         {r.usage != null ? (
                           <span className="font-mono text-slate-700 dark:text-slate-300">{fmtNum(r.usage, 2)} <span className="text-slate-400 text-xs">{utilityType?.unit}</span></span>
@@ -462,17 +530,36 @@ function MeterHistoryModal({ meter, utilityType, onClose }) {
           <button onClick={onClose} className="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg transition-colors">Close</button>
         </div>
       </div>
+
+      {viewPhoto && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-4" onClick={() => setViewPhoto(null)}>
+          <div className="max-w-3xl w-full" onClick={e => e.stopPropagation()}>
+            <img src={viewPhoto.photo_url} alt="Meter reading" className="w-full max-h-[75vh] object-contain rounded-xl bg-black" />
+            <div className="flex items-center justify-between mt-3 text-white text-sm">
+              <span>
+                Entered <span className="font-mono font-semibold">{fmtNum(viewPhoto.reading_value, 2)}</span> {utilityType?.unit}
+                {' · '}{new Date(viewPhoto.reading_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                {viewPhoto.profiles && ` · ${viewPhoto.profiles.first_name} ${viewPhoto.profiles.last_name}`}
+              </span>
+              <button onClick={() => setViewPhoto(null)} className="px-3 py-1.5 bg-white/15 hover:bg-white/25 rounded-lg">Close</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
 // ── Main Meter Readings Page ───────────────────────────────────
 export default function MeterReadings() {
-  const { profile, organization } = useAuth()
+  const { profile, organization, can } = useAuth()
   // Tiered communities: Maintenance staff record readings; meters and utility
   // rates are the Maintenance Manager's
   const tierAccess = useTierAccess('meters')
   const canSetUp = tierAccess.atLeast('manager')
+  // Billing Export: mirrors meter_can_bill() (Org Admins + Meters "costs")
+  const canBill = ['org_admin', 'super_admin'].includes(profile?.role) || can('meters', 'costs')
+  const [showBilling, setShowBilling] = useState(false)
   const [utilityTypes, setUtilityTypes] = useState([])
   const [meters, setMeters]             = useState([])
   const [residents, setResidents]       = useState([])
@@ -568,6 +655,12 @@ export default function MeterReadings() {
           <p className="text-slate-500 text-sm mt-0.5">Utility tracking and usage calculation</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          {canBill && (
+            <button onClick={() => setShowBilling(true)}
+              className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
+              <Download size={15} /> Billing Export
+            </button>
+          )}
           {canSetUp && (
             <button onClick={() => setShowUtilityManager(true)}
               className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
@@ -787,6 +880,9 @@ export default function MeterReadings() {
       )}
       {showBarcodeLabels && (
         <MeterBarcodeLabels onClose={() => setShowBarcodeLabels(false)} />
+      )}
+      {showBilling && (
+        <MeterBilling meters={meters} utilityTypes={utilityTypes} onClose={() => setShowBilling(false)} />
       )}
     </div>
   )
