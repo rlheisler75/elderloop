@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
-import { X, Car, Clock, MapPin, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
+import { X, Car, Clock, MapPin, CheckCircle2, XCircle, Loader2, UserX } from 'lucide-react'
 
 // Trip requests (20261022_trip_requests.sql): Nursing staff and IL residents ask for
 // a ride; only the Transportation department schedules it. Shared by the
@@ -36,7 +36,8 @@ const inputCls = 'w-full px-3 py-2 border border-slate-200 dark:border-slate-700
 const labelCls = 'block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1'
 
 // residents: list to pick from (staff). resident: the one resident (portal).
-export function TripRequestModal({ residents = [], resident = null, onClose, onSaved }) {
+// driverOuts: Driver Out notices (driver_absences), staff only; shown at the top.
+export function TripRequestModal({ residents = [], resident = null, driverOuts = [], onClose, onSaved }) {
   const { profile } = useAuth()
   const [form, setForm] = useState({
     resident_id: resident?.id || '', appointment_date: '', appointment_time: '', appointment_type: 'medical',
@@ -45,6 +46,7 @@ export function TripRequestModal({ residents = [], resident = null, onClose, onS
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+  const upcomingOuts = driverOuts.filter(a => a.end_date >= localToday()).sort((a, b) => a.start_date.localeCompare(b.start_date))
 
   const submit = async () => {
     const r = resident || residents.find(x => x.id === form.resident_id)
@@ -82,6 +84,21 @@ export function TripRequestModal({ residents = [], resident = null, onClose, onS
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
           {error && <div className="px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+          {upcomingOuts.length > 0 && (
+            <div className="px-3 py-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 text-sm text-amber-800 dark:text-amber-300">
+              <div className="flex items-center gap-1.5 font-semibold"><UserX size={14} /> Drivers out</div>
+              <ul className="mt-1 space-y-0.5">
+                {upcomingOuts.map(a => {
+                  const hit = form.appointment_date && a.start_date <= form.appointment_date && a.end_date >= form.appointment_date
+                  return (
+                    <li key={a.id} className={hit ? 'font-semibold text-red-700 dark:text-red-400' : ''}>
+                      {a.driver_name} · {a.start_date === a.end_date ? fmtDate(a.start_date) : `${fmtDate(a.start_date)} – ${fmtDate(a.end_date)}`}{a.note ? ` · ${a.note}` : ''}{hit ? ' (your date)' : ''}
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+          )}
           <p className="text-sm text-slate-500">Transportation will schedule the ride and set the pickup time.</p>
           {!resident && (
             <div><label className={labelCls}>Resident *</label>

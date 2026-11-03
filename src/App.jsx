@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { Suspense, lazy } from 'react'
 import { useAuth } from './context/AuthContext'
 import Layout from './components/layout/Layout'
@@ -150,8 +150,19 @@ function Lazy({ children }) {
 
 // ── Route Guards ──────────────────────────────────────────────
 
+// A scanned label (e.g. an asset QR code) can open /app/... before anyone has signed
+// in; remember where they were going so the sign-in lands them there.
+const RETURN_KEY = 'elderloop_return_to'
+function rememberReturn(path) { try { sessionStorage.setItem(RETURN_KEY, path) } catch { /* storage blocked */ } }
+function AfterSignIn({ fallback }) {
+  let to = null
+  try { to = sessionStorage.getItem(RETURN_KEY); sessionStorage.removeItem(RETURN_KEY) } catch { /* storage blocked */ }
+  return <Navigate to={to && to.startsWith('/app/') ? to : fallback} replace />
+}
+
 function ProtectedRoute({ children, requireModule }) {
   const { user, loading, hasModule } = useAuth()
+  const location = useLocation()
 
   if (loading) return (
     <div className="flex h-screen items-center justify-center bg-slate-50">
@@ -159,7 +170,10 @@ function ProtectedRoute({ children, requireModule }) {
     </div>
   )
 
-  if (!user) return <Navigate to="/login" replace />
+  if (!user) {
+    if (location.search) rememberReturn(location.pathname + location.search)
+    return <Navigate to="/login" replace />
+  }
 
   if (requireModule && !hasModule(requireModule)) {
     return <Navigate to="/app/dashboard" replace />
@@ -304,7 +318,7 @@ export default function App() {
         <Route path="/superadmin"     element={<SuperAdminRoute><Lazy><SuperAdmin /></Lazy></SuperAdminRoute>} />
 
         {/* ── Auth ── */}
-        <Route path="/login"           element={user ? <Navigate to={defaultAppRoute} replace /> : <Login />} />
+        <Route path="/login"           element={user ? <AfterSignIn fallback={defaultAppRoute} /> : <Login />} />
         <Route path="/signup"          element={user ? <Navigate to={defaultAppRoute} replace /> : <Signup />} />
         <Route path="/forgot-password" element={<Lazy><ForgotPassword /></Lazy>} />
         <Route path="/reset-password"  element={<Lazy><ResetPassword /></Lazy>} />

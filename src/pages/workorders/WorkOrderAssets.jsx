@@ -5,8 +5,9 @@ import { useTierAccess } from '../../hooks/useTierAccess'
 import {
   Plus, X, Edit2, Trash2, Search, AlertTriangle,
   Wrench, Calendar, ChevronRight, CheckCircle2,
-  Clock, Package, Settings, Upload, Eye
+  Clock, Package, Settings, Upload, Eye, QrCode
 } from 'lucide-react'
+import AssetBarcodeLabels from './AssetBarcodeLabels'
 
 const ASSET_CATEGORIES = [
   { key: 'hvac',       label: 'HVAC',             color: 'bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-400' },
@@ -235,6 +236,7 @@ export default function WorkOrderAssets({ orgId, profile }) {
   const [filterCat, setFilterCat] = useState('all')
   const [editAsset, setEditAsset] = useState(null)
   const [showModal, setShowModal] = useState(false)
+  const [labelIds, setLabelIds]   = useState(null) // null = closed, [] = all assets, [id] = one
 
   useEffect(() => { if (orgId) fetchAssets() }, [orgId])
 
@@ -269,10 +271,16 @@ export default function WorkOrderAssets({ orgId, profile }) {
           <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Asset Registry</h2>
           <p className="text-slate-400 text-xs mt-0.5">Track equipment, HVAC, lifts, and facility assets</p>
         </div>
-        <button onClick={() => { setEditAsset(null); setShowModal(true) }}
-          className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
-          <Plus size={14} /> Add Asset
-        </button>
+        <div className="flex gap-2">
+          <button onClick={() => setLabelIds([])} disabled={!assets.length}
+            className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 disabled:opacity-50 rounded-xl text-sm font-medium transition-colors">
+            <QrCode size={14} /> Print Labels
+          </button>
+          <button onClick={() => { setEditAsset(null); setShowModal(true) }}
+            className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
+            <Plus size={14} /> Add Asset
+          </button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -353,6 +361,10 @@ export default function WorkOrderAssets({ orgId, profile }) {
                     className="flex-1 flex items-center justify-center gap-1.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 transition-colors">
                     <Edit2 size={11} /> Edit
                   </button>
+                  <button onClick={() => setLabelIds([asset.id])} title="Print this asset's label"
+                    className="flex items-center justify-center gap-1.5 px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 transition-colors">
+                    <QrCode size={11} /> Label
+                  </button>
                   <button onClick={async () => {
                     if (!confirm('Remove this asset?')) return
                     await supabase.from('maintenance_assets').update({ is_active: false }).eq('id', asset.id)
@@ -367,6 +379,7 @@ export default function WorkOrderAssets({ orgId, profile }) {
         </div>
       )}
 
+      {labelIds && <AssetBarcodeLabels initialIds={labelIds} onClose={() => setLabelIds(null)} />}
       {showModal && (
         <AssetModal asset={editAsset} orgId={orgId} profile={profile}
           onClose={() => { setShowModal(false); setEditAsset(null) }}

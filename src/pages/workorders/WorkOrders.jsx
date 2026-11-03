@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { useAiSection } from '../../hooks/useAiSection'
@@ -8,8 +9,9 @@ import {
   Truck, PauseCircle, XCircle, RefreshCw, Calendar,
   ChevronRight, MessageSquare, ArrowUpDown, ShieldCheck,
   Upload, Image, Package, Settings, BarChart3,
-  Camera, FileText, ChevronUp, Play, Pause, Ban, Check, Sparkles
+  Camera, FileText, ChevronUp, Play, Pause, Ban, Check, Sparkles, ScanLine
 } from 'lucide-react'
+import BarcodeScanner from '../supply/BarcodeScanner'
 
 // ── Work Order Templates ──────────────────────────────────────
 const TEMPLATES = [
@@ -239,7 +241,7 @@ function CloseOutFields({ form, set }) {
   )
 }
 
-function WOModal({ wo, onClose, onSave, staffList, residentList, categories, canEdit, canClose, canAssign, canTriage = true }) {
+function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, residentList, categories, canEdit, canClose, canAssign, canTriage = true }) {
   const { profile, organization } = useAuth()
   const aiEnabled = useAiSection('maintenance')
   const fileRef = useRef()
@@ -267,7 +269,12 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
     // Close-out (budget layer): labor hours, parts bought for the job, vendor cost, type
     work_type: wo.work_type || 'routine', actual_hours: wo.actual_hours ?? '',
     parts_cost: wo.parts_cost ?? '', vendor_cost: wo.vendor_cost ?? '',
-  } : { ...EMPTY_FORM })
+  } : { ...EMPTY_FORM, ...(initialAsset ? {
+    // Started from a scanned asset label: link the asset and start from its location
+    asset_id: initialAsset.id,
+    building: initialAsset.building || '',
+    location_detail: initialAsset.location || '',
+  } : {}) })
   const [closing, setClosing]     = useState(false) // Mark Complete opens the close-out form first
   // The assigned tech can pass the job to another Maintenance staff member
   // (handoff_work_order: reassigns, logs the note, bells the new tech + supervisors)
@@ -1189,6 +1196,62 @@ function WOModal({ wo, onClose, onSave, staffList, residentList, categories, can
   )
 }
 
+// ── Scanned asset label (AssetBarcodeLabels → /app/maintenance?asset=<id>) ──
+// Shows the asset's work order history (Maintenance staff: every job; others: the
+// ones they submitted) and starts a new work order with the asset already linked.
+function AssetScanPanel({ asset, workOrders, isPrivileged, canCreate, onOpen, onNew, onClose }) {
+  const history = workOrders.filter(w => w.asset_id === asset.id)
+  const openJobs = history.filter(w => !['closed', 'cancelled'].includes(w.status))
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4" onClick={onClose}>
+      <div className="bg-white dark:bg-slate-900 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="flex items-start justify-between gap-3 px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2"><Package size={18} className="text-brand-600 flex-shrink-0" /><h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 truncate">{asset.name}</h2></div>
+            <div className="text-xs text-slate-400 mt-1">{[asset.asset_number && `#${asset.asset_number}`, asset.location, asset.building].filter(Boolean).join(' · ') || 'Asset'}</div>
+            {asset.status === 'out_of_service' && <div className="text-xs font-semibold text-red-600 mt-1">Out of service</div>}
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
+            {isPrivileged ? 'Work order history' : 'Your work orders for this asset'} · {history.length}{openJobs.length ? ` (${openJobs.length} open)` : ''}
+          </div>
+          {history.length === 0 ? (
+            <p className="text-sm text-slate-400 py-6 text-center">No work orders for this asset yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {history.map(w => (
+                <button key={w.id} onClick={() => onOpen(w)}
+                  className="w-full text-left p-3 rounded-xl border border-slate-100 dark:border-slate-800 hover:border-brand-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-sm font-medium text-slate-800 dark:text-slate-100">{w.title}</span>
+                    <StatusBadge status={w.status} />
+                  </div>
+                  <div className="text-xs text-slate-400 mt-1">
+                    Opened {new Date(w.created_at).toLocaleDateString()}
+                    {w.completed_at && ` · Closed ${new Date(w.completed_at).toLocaleDateString()}`}
+                    {w.assigned_profiles && ` · ${w.assigned_profiles.first_name} ${w.assigned_profiles.last_name}`}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Close</button>
+          {canCreate && (
+            <button onClick={onNew}
+              className="flex items-center gap-2 px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl">
+              <Plus size={15} /> New Work Order
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Main Page ─────────────────────────────────────────────────
 export default function WorkOrders() {
   const { profile, organization, hasDepartmentAccess, accessModel, tierFor } = useAuth()
@@ -1210,6 +1273,12 @@ export default function WorkOrders() {
   const [selected, setSelected]       = useState(null)
   const [sortBy, setSortBy]           = useState('created_at')
   const [mainView, setMainView]       = useState('work_orders') // 'work_orders' | 'compliance'
+  // Asset labels: ?asset=<id> from a scanned QR code, or the in-app scanner
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [scanAsset, setScanAsset]     = useState(null)
+  const [newForAsset, setNewForAsset] = useState(null)
+  const [showScanner, setShowScanner] = useState(false)
+  const [scanError, setScanError]     = useState('')
   // Costs tab: only when maintenance_cost_report returns rows (Budgets add-on + may see the Maintenance budget)
   const [canSeeCosts, setCanSeeCosts] = useState(false)
   useEffect(() => {
@@ -1258,8 +1327,36 @@ export default function WorkOrders() {
     setLoading(false)
   }
 
-  const handleOpen = (wo) => { setSelected(wo); setShowModal(true) }
-  const handleNew  = () => { setSelected(null); setShowModal(true) }
+  const handleOpen = (wo) => { setSelected(wo); setNewForAsset(null); setShowModal(true) }
+  const handleNew  = () => { setSelected(null); setNewForAsset(null); setShowModal(true) }
+
+  // Open the asset named in ?asset=<id> (a scanned label), then drop it from the URL
+  const assetParam = searchParams.get('asset')
+  useEffect(() => {
+    if (!assetParam || !organization) return
+    openAsset(assetParam)
+    setSearchParams(p => { p.delete('asset'); return p }, { replace: true })
+  }, [assetParam, organization])
+
+  async function openAsset(id) {
+    setScanError('')
+    setMainView('work_orders')
+    const { data } = await supabase.from('maintenance_assets')
+      .select('id, name, asset_number, location, building, status')
+      .eq('organization_id', organization.id).eq('id', id).maybeSingle()
+    if (data) setScanAsset(data)
+    else setScanError('That label isn’t an asset in this community.')
+  }
+
+  // In-app scanner: the label holds a link; take the asset id from it
+  const handleScan = (text) => {
+    setShowScanner(false)
+    let id = null
+    try { id = new URL(text).searchParams.get('asset') } catch { /* not a link */ }
+    if (!id && /^[0-9a-f-]{36}$/i.test(text)) id = text
+    if (id) openAsset(id)
+    else setScanError('That code isn’t an ElderLoop asset label.')
+  }
   const handleSave = () => { setShowModal(false); fetchAll() }
 
   // Filter + search
@@ -1291,13 +1388,28 @@ export default function WorkOrders() {
           <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Maintenance</h1>
           <p className="text-slate-500 text-sm mt-0.5">Work orders, inspections, and Life Safety compliance</p>
         </div>
-        {mainView === 'work_orders' && canCreate && (
-          <button onClick={handleNew}
-            className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
-            <Plus size={16} /> New Work Order
-          </button>
+        {mainView === 'work_orders' && (
+          <div className="flex gap-2">
+            <button onClick={() => setShowScanner(true)}
+              className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
+              <ScanLine size={16} /> Scan Asset
+            </button>
+            {canCreate && (
+              <button onClick={handleNew}
+                className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
+                <Plus size={16} /> New Work Order
+              </button>
+            )}
+          </div>
         )}
       </div>
+
+      {scanError && (
+        <div className="mb-4 px-4 py-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-xl text-sm text-amber-800 dark:text-amber-300 flex items-center justify-between gap-3">
+          {scanError}
+          <button onClick={() => setScanError('')} className="text-amber-500 hover:text-amber-700"><X size={14} /></button>
+        </div>
+      )}
 
       {/* Main view tabs — Assets/PM/Life Safety/Reports/Communication/Settings need
           Maintenance department access (any level, or org_admin/ceo/super_admin);
@@ -1465,6 +1577,7 @@ export default function WorkOrders() {
       {showModal && (
         <WOModal
           wo={selected}
+          initialAsset={selected ? null : newForAsset}
           onClose={() => setShowModal(false)}
           onSave={handleSave}
           staffList={staffList}
@@ -1477,6 +1590,16 @@ export default function WorkOrders() {
         />
       )}
       </>)}
+
+      {scanAsset && (
+        <AssetScanPanel asset={scanAsset} workOrders={workOrders} isPrivileged={isPrivileged} canCreate={canCreate}
+          onOpen={(wo) => { setScanAsset(null); handleOpen(wo) }}
+          onNew={() => { setSelected(null); setNewForAsset(scanAsset); setScanAsset(null); setShowModal(true) }}
+          onClose={() => setScanAsset(null)} />
+      )}
+      {showScanner && (
+        <BarcodeScanner title="Scan Asset Label" onScan={handleScan} onClose={() => setShowScanner(false)} />
+      )}
     </div>
   )
 }

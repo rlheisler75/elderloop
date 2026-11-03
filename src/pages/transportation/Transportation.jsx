@@ -6,7 +6,7 @@ import {
   Plus, X, Edit2, Trash2, Search, Printer,
   Car, Calendar, Clock, MapPin, Phone, User,
   ChevronLeft, ChevronRight, CheckCircle2,
-  AlertCircle, XCircle, Navigation, FileText, Grid3x3
+  AlertCircle, XCircle, Navigation, FileText, Grid3x3, UserX, Columns3
 } from 'lucide-react'
 import { TRANSPORTATION_STATE_REFS } from '../../lib/transportationStateRefs'
 import RegRefBanner from '../../components/ui/RegRefBanner'
@@ -42,6 +42,172 @@ const fmt12 = (t) => {
 
 const toDateStr = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
 const today = () => toDateStr(new Date())
+const addDays = (dateStr, n) => { const d = new Date(dateStr + 'T12:00:00'); d.setDate(d.getDate() + n); return toDateStr(d) }
+const fmtShort = (dateStr) => new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+
+// Driver Out notices (driver_absences): who is out on a given day
+const outsOn =(absences, dateStr) => (absences || []).filter(a => a.start_date <= dateStr && a.end_date >= dateStr)
+const absenceRange = (a) => a.start_date === a.end_date ? fmtShort(a.start_date) : `${fmtShort(a.start_date)} – ${fmtShort(a.end_date)}`
+
+// Week (Sun–Sat) or Work Week (Mon–Fri) containing dateStr
+function weekDays(dateStr, workWeek) {
+  const dow = new Date(dateStr + 'T12:00:00').getDay()
+  const start = addDays(dateStr, workWeek ? (dow === 0 ? 1 : 1 - dow) : -dow)
+  return Array.from({ length: workWeek ? 5 : 7 }, (_, i) => addDays(start, i))
+}
+
+// ── Driver Out banner (top of the page, every view) ───────────
+function DriverOutBanner({ absences, canManage, onAdd, onDelete }) {
+  const upcoming = absences.filter(a => a.end_date >= today()).sort((a, b) => a.start_date.localeCompare(b.start_date))
+  if (!upcoming.length && !canManage) return null
+  return (
+    <div className="mb-5 p-4 rounded-2xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 text-sm font-semibold text-amber-800 dark:text-amber-300">
+          <UserX size={16} /> Drivers Out
+        </div>
+        {canManage && (
+          <button onClick={onAdd}
+            className="flex items-center gap-1 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg">
+            <Plus size={13} /> Driver Out
+          </button>
+        )}
+      </div>
+      {upcoming.length === 0 ? (
+        <p className="text-xs text-amber-700/80 dark:text-amber-400/80 mt-2">No drivers marked out. Add a day off ahead of time so requests and scheduling plan around it.</p>
+      ) : (
+        <ul className="mt-2 space-y-1">
+          {upcoming.map(a => (
+            <li key={a.id} className="flex items-start gap-2 text-sm text-amber-900 dark:text-amber-200">
+              <span className="font-semibold">{a.driver_name}</span>
+              <span>out {absenceRange(a)}{a.start_date <= today() ? ' (today)' : ''}</span>
+              {a.note && <span className="text-amber-700 dark:text-amber-400">· {a.note}</span>}
+              {canManage && (
+                <button onClick={() => onDelete(a)} title="Remove"
+                  className="ml-auto text-amber-500 hover:text-red-600"><X size={14} /></button>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+// ── Driver Out form (Transportation Manager) ──────────────────
+function DriverOutModal({ driverNames, defaultDate, onClose, onSaved }) {
+  const { profile } = useAuth()
+  const [form, setForm] = useState({ driver_name: '', start_date: defaultDate || today(), end_date: defaultDate || today(), note: '' })
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+  const save = async () => {
+    if (!form.driver_name.trim()) return setError('Enter the driver.')
+    if (form.end_date < form.start_date) return setError('The last day can’t be before the first day.')
+    setSaving(true); setError('')
+    const { error: err } = await supabase.from('driver_absences').insert({
+      organization_id: profile.organization_id,
+      driver_name: form.driver_name.trim(),
+      start_date: form.start_date,
+      end_date: form.end_date,
+      note: form.note.trim() || null,
+      created_by: profile.id,
+      created_by_name: `${profile.first_name} ${profile.last_name}`,
+    })
+    setSaving(false)
+    if (err) return setError(err.message)
+    onSaved()
+  }
+
+  const inputCls = 'w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500'
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+          <div className="flex items-center gap-2"><UserX size={18} className="text-amber-600" /><h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Driver Out</h2></div>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+        </div>
+        <div className="px-6 py-5 space-y-3">
+          {error && <div className="px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1">Driver *</label>
+            <input list="driver-names" value={form.driver_name} onChange={e => set('driver_name', e.target.value)} className={inputCls} placeholder="Driver name" />
+            <datalist id="driver-names">{driverNames.map(n => <option key={n} value={n} />)}</datalist>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-slate-500 mb-1">First day out *</label>
+              <input type="date" value={form.start_date} onChange={e => { set('start_date', e.target.value); if (form.end_date < e.target.value) set('end_date', e.target.value) }} className={inputCls} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-500 mb-1">Last day out *</label>
+              <input type="date" value={form.end_date} min={form.start_date} onChange={e => set('end_date', e.target.value)} className={inputCls} />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1">Note</label>
+            <input value={form.note} onChange={e => set('note', e.target.value)} className={inputCls} placeholder="e.g. Van 2 only, back at noon" />
+          </div>
+          <p className="text-xs text-slate-400">Staff see this at the top of Transportation, on the calendars, and when they request a ride. Don’t include medical or personal reasons.</p>
+        </div>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
+          <button onClick={save} disabled={saving}
+            className="px-5 py-2 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg">
+            {saving ? 'Saving...' : 'Save'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Week / Work Week View ─────────────────────────────────────
+function TripWeekView({ trips, absences, days, onDayClick, onTripClick }) {
+  const todayStr = today()
+  return (
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
+      <div className="overflow-x-auto">
+        <div className={`grid ${days.length === 5 ? 'grid-cols-5 min-w-[600px]' : 'grid-cols-7 min-w-[760px]'}`}>
+          {days.map(ds => {
+            const d = new Date(ds + 'T12:00:00')
+            const isToday = ds === todayStr
+            const dayTrips = trips.filter(t => t.trip_date === ds).sort((a, b) => (a.pickup_time || '').localeCompare(b.pickup_time || ''))
+            const outs = outsOn(absences, ds)
+            return (
+              <div key={ds} className="border-r border-slate-100 dark:border-slate-800 last:border-r-0 flex flex-col">
+                <div className={`px-2 py-2 text-center border-b border-slate-100 dark:border-slate-800 ${isToday ? 'bg-brand-50 dark:bg-brand-950/30' : 'bg-slate-50 dark:bg-slate-800'}`}>
+                  <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide">{d.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                  <div className={`text-sm font-semibold ${isToday ? 'text-brand-600' : 'text-slate-700 dark:text-slate-200'}`}>{d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
+                </div>
+                <div onClick={() => onDayClick(ds)} className="flex-1 min-h-[220px] p-1.5 space-y-1 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
+                  {outs.map(a => (
+                    <div key={a.id} className="text-xs px-1.5 py-1 rounded bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-900 truncate" title={a.note || ''}>
+                      <UserX size={11} className="inline -mt-0.5 mr-1" />{a.driver_name} out
+                    </div>
+                  ))}
+                  {dayTrips.map(t => {
+                    const s = getStatus(t.status)
+                    return (
+                      <div key={t.id} onClick={e => { e.stopPropagation(); onTripClick(t) }}
+                        className={`text-xs px-1.5 py-1 rounded border cursor-pointer hover:opacity-80 ${s.color}`}>
+                        <div className="font-semibold">{fmt12(t.pickup_time)}</div>
+                        <div className="truncate">{t.resident_name}</div>
+                        {t.driver_name && <div className="truncate opacity-75">{t.driver_name}</div>}
+                      </div>
+                    )
+                  })}
+                  {dayTrips.length === 0 && outs.length === 0 && <div className="text-xs text-slate-300 dark:text-slate-600 text-center pt-4">No trips</div>}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 // ── Status Badge ───────────────────────────────────────────────
 function StatusBadge({ status }) {
@@ -263,7 +429,7 @@ function ResidentLookup({ residents, value, onChange }) {
 const MONTH_DAYS  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
-function TripMonthCalendar({ trips, year, month, onDayClick, onTripClick }) {
+function TripMonthCalendar({ trips, absences, year, month, onDayClick, onTripClick }) {
   const today       = new Date()
   const todayStr    = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`
   const firstDay    = new Date(year, month, 1).getDay()
@@ -304,6 +470,11 @@ function TripMonthCalendar({ trips, year, month, onDayClick, onTripClick }) {
                     {d}
                   </div>
                   <div className="space-y-0.5">
+                    {outsOn(absences, ds).map(a => (
+                      <div key={a.id} className="text-xs px-1.5 py-0.5 rounded truncate bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-900" title={a.note || ''}>
+                        <UserX size={10} className="inline -mt-0.5 mr-0.5" />{a.driver_name} out
+                      </div>
+                    ))}
                     {dayTrips.slice(0, 3).map((t, idx) => {
                       const s = TRIP_STATUSES.find(s => s.key === t.status) || TRIP_STATUSES[0]
                       return (
@@ -330,7 +501,7 @@ function TripMonthCalendar({ trips, year, month, onDayClick, onTripClick }) {
 
 // fromRequest: a pending trip_requests row to schedule; the form starts from it and
 // the request is marked scheduled once the trip is saved.
-function TripModal({ trip, fromRequest, vehicles, residents, defaultDate, readOnly = false, onClose, onSave }) {
+function TripModal({ trip, fromRequest, vehicles, residents, absences = [], defaultDate, readOnly = false, onClose, onSave }) {
   const { profile } = useAuth()
   const isNew = !trip
   const src = trip || fromRequest
@@ -395,6 +566,8 @@ function TripModal({ trip, fromRequest, vehicles, residents, defaultDate, readOn
   }
 
   const showActuals = ['in_progress','completed'].includes(form.status)
+  const outs = outsOn(absences, form.trip_date)
+  const driverIsOut = outs.some(a => form.driver_name.trim() && a.driver_name.trim().toLowerCase() === form.driver_name.trim().toLowerCase())
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -412,6 +585,12 @@ function TripModal({ trip, fromRequest, vehicles, residents, defaultDate, readOn
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
           {error && <div className="px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
+          {outs.length > 0 && (
+            <div className={`px-4 py-2 rounded-lg text-sm border flex items-start gap-2 ${driverIsOut ? 'bg-red-50 dark:bg-red-950/50 border-red-200 dark:border-red-900 text-red-700 dark:text-red-400' : 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900 text-amber-800 dark:text-amber-300'}`}>
+              <UserX size={15} className="mt-0.5 flex-shrink-0" />
+              <span>{driverIsOut ? `${form.driver_name.trim()} is out this day. ` : ''}Out {fmtShort(form.trip_date)}: {outs.map(a => a.driver_name + (a.note ? ` (${a.note})` : '')).join(', ')}</span>
+            </div>
+          )}
 
           {/* Resident lookup */}
           <div>
@@ -574,6 +753,10 @@ export default function Transportation() {
     && (profile?.role !== 'ceo' || canEdit('transportation'))
   const canEditTrip = () => canWrite
   const canDeleteTrips = tierAccess.atLeast('manager')
+  // Driver Out notices: the Transportation Manager adds them (driver_absences RLS)
+  const canManageOuts = canWrite && tierAccess.atLeast('manager')
+  const [absences, setAbsences]   = useState([])
+  const [showOut, setShowOut]     = useState(false)
   // Trip requests: Nursing staff ask for a ride, Transportation schedules it
   // (trip_can_request() / trip_can_schedule() in 20261022_trip_requests.sql)
   const nursingAccess = useTierAccess('nursing')
@@ -588,7 +771,7 @@ export default function Transportation() {
   const [selectedDate, setSelectedDate] = useState(today())
   const [search, setSearch]       = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
-  const [view, setView]           = useState('day') // 'day' | 'month' | 'list'
+  const [view, setView]           = useState('day') // 'day' | 'week' | 'workweek' | 'month' | 'list' | 'requests'
   const [calMonth, setCalMonth]   = useState(new Date().getMonth())
   const [calYear, setCalYear]     = useState(new Date().getFullYear())
   const [showModal, setShowModal] = useState(false)
@@ -599,7 +782,7 @@ export default function Transportation() {
 
   async function fetchAll() {
     setLoading(true)
-    const [tripsRes, vehiclesRes, resRes, reqRes] = await Promise.all([
+    const [tripsRes, vehiclesRes, resRes, reqRes, outRes] = await Promise.all([
       supabase.from('trips').select('*')
         .eq('organization_id', organization.id)
         .order('trip_date', { ascending: true })
@@ -614,8 +797,13 @@ export default function Transportation() {
       supabase.from('trip_requests').select('*')
         .eq('organization_id', organization.id)
         .order('appointment_date', { ascending: true }).limit(200),
+      supabase.from('driver_absences').select('*')
+        .eq('organization_id', organization.id)
+        .gte('end_date', addDays(today(), -120))
+        .order('start_date', { ascending: true }),
     ])
     setRequests(reqRes.data || [])
+    setAbsences(outRes.data || [])
     setTrips(tripsRes.data || [])
     setResidents(resRes.data || [])
     setVehicles(vehiclesRes.data || [])
@@ -634,6 +822,16 @@ export default function Transportation() {
     await supabase.from('trips').delete().eq('id', id)
     fetchAll()
   }
+
+  const handleDeleteOut = async (a) => {
+    if (!confirm(`Remove ${a.driver_name} out ${absenceRange(a)}?`)) return
+    await supabase.from('driver_absences').delete().eq('id', a.id)
+    fetchAll()
+  }
+  const driverNames = [...new Set([...trips.map(t => t.driver_name), ...absences.map(a => a.driver_name)]
+    .filter(Boolean).map(n => n.trim()))].sort()
+  const isWeekView = view === 'week' || view === 'workweek'
+  const shownWeek = weekDays(selectedDate, view === 'workweek')
 
   const shiftDate = (days) => {
     const d = new Date(selectedDate + 'T12:00:00')
@@ -692,6 +890,9 @@ export default function Transportation() {
         </div>
       </div>
 
+      <DriverOutBanner absences={absences} canManage={canManageOuts}
+        onAdd={() => setShowOut(true)} onDelete={handleDeleteOut} />
+
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         {[
@@ -730,11 +931,19 @@ export default function Transportation() {
       />
 
       {/* View toggle */}
-      <div className="flex items-center gap-2 mb-5">
+      <div className="flex items-center gap-2 mb-5 overflow-x-auto">
         <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
           <button onClick={() => setView('day')}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${view === 'day' ? 'bg-white dark:bg-slate-900 text-brand-700 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}>
+            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${view === 'day' ? 'bg-white dark:bg-slate-900 text-brand-700 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}>
             Day View
+          </button>
+          <button onClick={() => setView('workweek')}
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${view === 'workweek' ? 'bg-white dark:bg-slate-900 text-brand-700 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}>
+            <Columns3 size={13} /> Work Week
+          </button>
+          <button onClick={() => setView('week')}
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${view === 'week' ? 'bg-white dark:bg-slate-900 text-brand-700 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}>
+            <Calendar size={13} /> Week
           </button>
           <button onClick={() => setView('month')}
             className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${view === 'month' ? 'bg-white dark:bg-slate-900 text-brand-700 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}>
@@ -782,10 +991,42 @@ export default function Transportation() {
           </div>
           <TripMonthCalendar
             trips={trips}
+            absences={absences}
             year={calYear}
             month={calMonth}
             onDayClick={(date) => { if (!canWrite) return; setSelectedDate(date); setEditTrip(null); setShowModal(true) }}
             onTripClick={(trip) => { setEditTrip(trip); setShowModal(true) }}
+          />
+        </>
+      )}
+
+      {/* WEEK / WORK WEEK VIEW */}
+      {isWeekView && (
+        <>
+          <div className="flex items-center gap-3 mb-4">
+            <button onClick={() => shiftDate(-7)}
+              className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+              <ChevronLeft size={18} />
+            </button>
+            <div className="flex-1 text-center">
+              <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 text-lg">
+                {fmtShort(shownWeek[0])} – {fmtShort(shownWeek[shownWeek.length - 1])}
+              </h2>
+              {!shownWeek.includes(today()) && (
+                <button onClick={() => setSelectedDate(today())} className="text-xs text-brand-500 font-medium mt-0.5 hover:underline">This week</button>
+              )}
+            </div>
+            <button onClick={() => shiftDate(7)}
+              className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+              <ChevronRight size={18} />
+            </button>
+          </div>
+          <TripWeekView
+            trips={trips}
+            absences={absences}
+            days={shownWeek}
+            onDayClick={(date) => { if (!canWrite) return; setSelectedDate(date); setEditTrip(null); setFromRequest(null); setShowModal(true) }}
+            onTripClick={(trip) => { setEditTrip(trip); setFromRequest(null); setShowModal(true) }}
           />
         </>
       )}
@@ -816,6 +1057,12 @@ export default function Transportation() {
             <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)}
               className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
+
+          {outsOn(absences, selectedDate).length > 0 && (
+            <div className="mb-4 px-4 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 text-sm text-amber-800 dark:text-amber-300 flex items-center gap-2">
+              <UserX size={15} /> Drivers out: {outsOn(absences, selectedDate).map(a => a.driver_name + (a.note ? ` (${a.note})` : '')).join(', ')}
+            </div>
+          )}
 
           {loading ? (
             <div className="text-center py-16 text-slate-400">Loading...</div>
@@ -967,13 +1214,18 @@ export default function Transportation() {
       {/* Modals */}
       {showModal && (
         <TripModal trip={editTrip} fromRequest={fromRequest} vehicles={vehicles} residents={residents}
+          absences={absences}
           defaultDate={!editTrip ? selectedDate : undefined}
           readOnly={!canEditTrip(editTrip)}
           onClose={() => { setShowModal(false); setFromRequest(null) }} onSave={handleSave} />
       )}
       {showRequest && (
-        <TripRequestModal residents={residents} onClose={() => setShowRequest(false)}
+        <TripRequestModal residents={residents} driverOuts={absences} onClose={() => setShowRequest(false)}
           onSaved={() => { setShowRequest(false); setView('requests'); fetchAll() }} />
+      )}
+      {showOut && (
+        <DriverOutModal driverNames={driverNames} defaultDate={selectedDate >= today() ? selectedDate : today()}
+          onClose={() => setShowOut(false)} onSaved={() => { setShowOut(false); fetchAll() }} />
       )}
       {showPrint && (
         <TripSheetPrint allTrips={trips} defaultDate={selectedDate}
