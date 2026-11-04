@@ -45,6 +45,9 @@ import BroadcastPanel from '../communication/BroadcastPanel'
 import { fetchWOCategories, topLevelCategories, subcategoriesOf } from '../../lib/workOrderCategories'
 import { daysUntil, parseDay } from '../../lib/dates'
 
+// Closed/cancelled work orders loaded with the list; older ones are found by search
+const RECENT_CLOSED = 500
+
 const STATUSES = [
   { key: 'open',             label: 'Open',             color: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-900',     dot: 'bg-blue-500' },
   { key: 'pending_approval', label: 'Pending Approval', color: 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950/50 dark:text-yellow-400 dark:border-yellow-900', dot: 'bg-yellow-500' },
@@ -241,7 +244,48 @@ function CloseOutFields({ form, set }) {
   )
 }
 
-function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, residentList, categories, canEdit, canClose, canAssign, canTriage = true }) {
+const residentLabel = (r) => `${r.first_name} ${r.last_name}${r.room ? ` — ${r.room}` : r.unit ? ` — Unit ${r.unit}` : ''}`
+
+// Type-to-search resident field (name, room or unit)
+function ResidentPicker({ residents, value, onChange }) {
+  const selected = residents.find(r => r.id === value)
+  const [query, setQuery] = useState('')
+  const [open, setOpen]   = useState(false)
+  const q = query.toLowerCase().trim()
+  const matches = q
+    ? residents.filter(r => [`${r.first_name} ${r.last_name}`, `${r.last_name} ${r.first_name}`, r.room, r.unit]
+        .some(v => (v || '').toLowerCase().includes(q))).slice(0, 8)
+    : []
+  if (selected) {
+    return (
+      <div className="flex items-center justify-between gap-2 px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded-lg text-sm">
+        <span className="text-slate-700 dark:text-slate-200 truncate">{residentLabel(selected)}</span>
+        <button type="button" onClick={() => onChange(null)} className="text-slate-400 hover:text-slate-600" title="Clear resident"><X size={14} /></button>
+      </div>
+    )
+  }
+  return (
+    <div className="relative">
+      <input value={query} onChange={e => { setQuery(e.target.value); setOpen(true) }}
+        onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 150)}
+        placeholder="Start typing a resident's name or room…"
+        className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+      {open && matches.length > 0 && (
+        <div className="absolute z-20 mt-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg overflow-hidden">
+          {matches.map(r => (
+            <button key={r.id} type="button" onMouseDown={e => e.preventDefault()}
+              onClick={() => { onChange(r); setQuery(''); setOpen(false) }}
+              className="block w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-brand-50 dark:hover:bg-slate-800">
+              {residentLabel(r)}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, residentList, locationPaths = {}, categories, canEdit, canClose, canAssign, canTriage = true }) {
   const { profile, organization } = useAuth()
   const aiEnabled = useAiSection('maintenance')
   const fileRef = useRef()
@@ -299,6 +343,24 @@ function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, resident
   const [descBeforeAI, setDescBeforeAI] = useState(null) // original text, kept so "Use this description" can be undone
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+  // Residents <-> locations (residents.location_id): picking a resident fills in their
+  // location; picking a location fills in the resident who lives there (or offers a choice).
+  const residentsAt = (locationId) => locationId ? residentList.filter(r => r.location_id === locationId) : []
+  const pickResident = (r) => setForm(f => {
+    const next = { ...f, resident_id: r?.id || '' }
+    if (r?.location_id && locationPaths[r.location_id] && (!f.location_id || f.location_auto)) {
+      Object.assign(next, { location_id: r.location_id, location_path: locationPaths[r.location_id], location_auto: true })
+    }
+    return next
+  })
+  const pickLocation = (loc) => setForm(f => {
+    const next = { ...f, location_id: loc?.id || null, location_path: loc?.path || '', location_auto: false }
+    const here = residentsAt(loc?.id)
+    if (here.length === 1 && !f.resident_id) next.resident_id = here[0].id
+    return next
+  })
+  const residentsHere = residentsAt(form.location_id).filter(r => r.id !== form.resident_id)
 
   // AI Assist: suggest category / subcategory / priority from title + description.
   // Fills the form; the person still reviews and can change anything before saving.
@@ -740,11 +802,7 @@ function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, resident
               {editing ? (
                 <LocationPickerButton
                   value={form.location_id ? { id: form.location_id, path: form.location_path } : null}
-                  onChange={loc => setForm(f => ({
-                    ...f,
-                    location_id:   loc?.id   || null,
-                    location_path: loc?.path || '',
-                  }))}
+                  onChange={pickLocation}
                 />
               ) : (
                 <p className="text-sm text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
@@ -782,11 +840,20 @@ function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, resident
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Resident</label>
               {editing
-                ? <select value={form.resident_id} onChange={e => set('resident_id', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-                    <option value="">No specific resident</option>
-                    {residentList.map(r => <option key={r.id} value={r.id}>{r.first_name} {r.last_name} — Unit {r.unit}</option>)}
-                  </select>
+                ? <>
+                    <ResidentPicker residents={residentList} value={form.resident_id} onChange={pickResident} />
+                    {residentsHere.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1.5 mt-1.5 text-xs text-slate-500">
+                        {form.resident_id ? 'Also lives here:' : 'Lives here:'}
+                        {residentsHere.map(r => (
+                          <button key={r.id} type="button" onClick={() => set('resident_id', r.id)}
+                            className="px-2 py-0.5 rounded-full border border-brand-200 dark:border-brand-900 text-brand-700 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-slate-800">
+                            {r.first_name} {r.last_name}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </>
                 : <p className="text-sm text-slate-700 dark:text-slate-300">
                     {wo.residents ? `${wo.residents.first_name} ${wo.residents.last_name} — Unit ${wo.residents.unit}` : '—'}
                   </p>}
@@ -1263,6 +1330,7 @@ export default function WorkOrders() {
   const [workOrders, setWorkOrders]   = useState([])
   const [staffList, setStaffList]     = useState([])
   const [residentList, setResidentList] = useState([])
+  const [locationPaths, setLocationPaths] = useState({})
   const [categories, setCategories]   = useState([])
   const [loading, setLoading]         = useState(true)
   const [search, setSearch]           = useState('')
@@ -1301,25 +1369,55 @@ export default function WorkOrders() {
 
   useEffect(() => { if (organization) { fetchAll() } }, [organization])
 
-  async function fetchAll() {
-    setLoading(true)
-    let woQuery = supabase.from('work_orders')
+  function woBaseQuery() {
+    let q = supabase.from('work_orders')
       .select('*, residents(first_name,last_name,unit), assigned_profiles:profiles!work_orders_assigned_to_fkey(first_name,last_name)')
       .eq('organization_id', organization.id)
       .order('created_at', { ascending: false })
-
     // Non-privileged staff only see WOs they submitted
-    if (!isPrivileged) woQuery = woQuery.eq('submitted_by', profile.id)
+    if (!isPrivileged) q = q.eq('submitted_by', profile.id)
+    return q
+  }
 
-    const [woRes, staffRes, resRes, cats] = await Promise.all([
-      woQuery,
+  // Search reaches the whole history, not just what's loaded
+  const [historyHits, setHistoryHits] = useState([])
+  useEffect(() => {
+    const term = search.trim().replace(/[,()*%\\]/g, ' ').trim()
+    if (!organization || term.length < 3) { setHistoryHits([]); return }
+    const t = setTimeout(async () => {
+      const like = `%${term}%`
+      const ors = [`title.ilike.${like}`, `description.ilike.${like}`, `location_path.ilike.${like}`, `submitted_by_name.ilike.${like}`]
+      if (/^\d+$/.test(term)) ors.push(`wo_number.eq.${term}`)
+      const { data } = await woBaseQuery().or(ors.join(',')).limit(200)
+      setHistoryHits(data || [])
+    }, 400)
+    return () => clearTimeout(t)
+  }, [search, organization?.id])
+
+  async function fetchAll() {
+    setLoading(true)
+    // Every open job, plus the most recent closed/cancelled ones; older history
+    // (imported Work Hub records go back years) comes from the search box.
+    const [openRes, doneRes, staffRes, resRes, cats, locRes] = await Promise.all([
+      woBaseQuery().not('status', 'in', '(closed,cancelled)').range(0, 4999),
+      woBaseQuery().in('status', ['closed', 'cancelled']).limit(RECENT_CLOSED),
       // Everyone with Work Orders edit permission (techs are role 'staff' under Job Roles)
       supabase.rpc('wo_assign_targets'),
-      supabase.from('residents').select('id,first_name,last_name,unit,building')
-        .eq('organization_id', organization.id).eq('is_active', true),
+      supabase.from('residents').select('id,first_name,last_name,unit,building,room,location_id')
+        .eq('organization_id', organization.id).eq('is_active', true).order('last_name'),
       fetchWOCategories(organization.id),
+      // For filling in a resident's location path (residents.location_id)
+      supabase.from('locations').select('id,parent_id,name').eq('organization_id', organization.id).range(0, 4999),
     ])
-    setWorkOrders(woRes.data || [])
+    const locById = Object.fromEntries((locRes.data || []).map(l => [l.id, l]))
+    const paths = {}
+    ;(locRes.data || []).forEach(l => {
+      const parts = []
+      for (let cur = l; cur; cur = cur.parent_id ? locById[cur.parent_id] : null) parts.unshift(cur.name)
+      paths[l.id] = parts.join(' > ')
+    })
+    setLocationPaths(paths)
+    setWorkOrders([...(openRes.data || []), ...(doneRes.data || [])])
     setStaffList(staffRes.data || [])
     setResidentList(resRes.data || [])
     setCategories(cats)
@@ -1359,8 +1457,11 @@ export default function WorkOrders() {
   const handleSave = () => { setShowModal(false); fetchAll() }
 
   // Filter + search
-  const filtered = workOrders.filter(wo => {
-    const matchSearch = !search || [wo.title, wo.unit, wo.building, wo.location_detail,
+  const loadedIds = new Set(workOrders.map(w => w.id))
+  const searchPool = search ? [...workOrders, ...historyHits.filter(w => !loadedIds.has(w.id))] : workOrders
+  const filtered = searchPool.filter(wo => {
+    const matchSearch = !search || [wo.title, wo.unit, wo.building, wo.location_detail, wo.location_path,
+      wo.submitted_by_name, wo.wo_number != null ? String(wo.wo_number) : null,
       wo.residents?.first_name, wo.residents?.last_name, wo.description]
       .filter(Boolean).some(f => f.toLowerCase().includes(search.toLowerCase()))
     const matchStatus   = filterStatus === 'all' || wo.status === filterStatus
@@ -1581,6 +1682,7 @@ export default function WorkOrders() {
           onSave={handleSave}
           staffList={staffList}
           residentList={residentList}
+          locationPaths={locationPaths}
           categories={categories}
           canEdit={canEdit}
           canClose={canClose}

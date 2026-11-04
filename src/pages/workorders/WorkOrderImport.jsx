@@ -63,6 +63,19 @@ const toDate = (value) => {
   return m ? `${m[3]}-${m[1].padStart(2, '0')}-${m[2].padStart(2, '0')}` : null
 }
 
+// Work Hub labor time: "hh:mm:ss" or "d.hh:mm:ss" -> hours
+const toHours = (value) => {
+  const m = (value || '').match(/^(?:(\d+)\.)?(\d+):(\d{2})(?::(\d{2}))?$/)
+  if (!m) return null
+  const h = Number(m[1] || 0) * 24 + Number(m[2]) + Number(m[3]) / 60 + Number(m[4] || 0) / 3600
+  return h > 0 ? Math.round(h * 100) / 100 : null
+}
+
+const listSome = (set, n = 25) => {
+  const all = [...set]
+  return all.length > n ? `${all.slice(0, n).join(', ')} and ${all.length - n} more` : all.join(', ')
+}
+
 const PRIORITY = { '1': 'urgent', '2': 'urgent', '3': 'high', '4': 'normal', '5': 'low', '6': 'low' }
 const PLANNED_SOURCES = ['inspections', 'pm', 'projects', 'refurbishments']
 const CATEGORY_ALIASES = { paint: 'painting', 'pest control': 'pest_control' }
@@ -280,6 +293,7 @@ export default function WorkOrderImport({ orgId, timeZone = 'America/Chicago' })
           due_date: toDate(r['Due Date']),
           completed_at: completedAt,
           parts_cost: cost > 0 ? cost : null,
+          actual_hours: toHours(r['Labor Time']),
           notes: notes.join('\n'),
           created_at: createdAt,
           updated_at: completedAt || createdAt,
@@ -366,13 +380,13 @@ export default function WorkOrderImport({ orgId, timeZone = 'America/Chicago' })
           </div>
           <div>Locations: {s.locExact.toLocaleString()} matched exactly, {s.locPartial.toLocaleString()} matched to a parent location, {s.locNone.toLocaleString()} not found (the Work Hub location is kept as text)</div>
           <div>Assigned to a staff member: {s.assigned.toLocaleString()}
-            {s.unmatchedPeople.size > 0 && <div className="text-xs text-amber-700 dark:text-amber-400">No ElderLoop account (kept in notes): {[...s.unmatchedPeople].join(', ')}</div>}
-            {s.vendors.size > 0 && <div className="text-xs text-slate-400">Vendors: {[...s.vendors].join(', ')}</div>}
+            {s.unmatchedPeople.size > 0 && <div className="text-xs text-amber-700 dark:text-amber-400">No ElderLoop account (kept in notes): {listSome(s.unmatchedPeople)}</div>}
+            {s.vendors.size > 0 && <div className="text-xs text-slate-400">Vendors: {listSome(s.vendors)}</div>}
           </div>
           <div>Residents linked: {s.residents.toLocaleString()}{s.residentsUnmatched > 0 && ` · ${s.residentsUnmatched.toLocaleString()} not found (moved out or a family name; kept in notes)`}</div>
           {plan.newCats.length > 0 && (
             <div>New categories: {plan.newCats.filter(c => !c.parentKey).length} categories and {plan.newCats.filter(c => c.parentKey).length} subcategories
-              <div className="text-xs text-slate-400">{plan.newCats.filter(c => !c.parentKey).map(c => c.label).join(', ')}</div>
+              <div className="text-xs text-slate-400">{listSome(new Set(plan.newCats.filter(c => !c.parentKey).map(c => c.label)), 40)}</div>
             </div>
           )}
           <button onClick={runImport} disabled={!!progress || !plan.rows.length}
