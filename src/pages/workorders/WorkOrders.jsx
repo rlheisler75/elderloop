@@ -40,7 +40,7 @@ import PMSchedules from './PMSchedules'
 import Reports from './Reports'
 import MaintenanceCosts from './MaintenanceCosts'
 import MaintenanceSettings from './MaintenanceSettings'
-import LocationPicker from '../../components/ui/LocationPicker'
+import LocationPickerButton from '../../components/ui/LocationPickerButton'
 import BroadcastPanel from '../communication/BroadcastPanel'
 import { fetchWOCategories, topLevelCategories, subcategoriesOf } from '../../lib/workOrderCategories'
 import { daysUntil, parseDay } from '../../lib/dates'
@@ -160,37 +160,6 @@ function WORow({ wo, categories, onClick }) {
         {new Date(wo.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
       </td>
     </tr>
-  )
-}
-
-// ── Location Picker Button ────────────────────────────────────
-function LocationPickerButton({ value, onChange }) {
-  const [open, setOpen] = useState(false)
-  return (
-    <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className={`w-full flex items-center gap-2 px-3 py-2.5 border rounded-lg text-sm transition-all text-left
-          ${value ? 'border-brand-300 bg-brand-50 text-brand-800' : 'border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-slate-400 hover:border-brand-400 hover:text-slate-600 dark:hover:text-slate-300'}`}>
-        <MapPin size={14} className={value ? 'text-brand-500 flex-shrink-0' : 'text-slate-400 flex-shrink-0'} />
-        <span className="flex-1 truncate">{value?.path || 'Select location...'}</span>
-        {value && (
-          <button type="button"
-            onClick={e => { e.stopPropagation(); onChange(null) }}
-            className="text-slate-400 hover:text-red-500 flex-shrink-0 ml-1">
-            <X size={13} />
-          </button>
-        )}
-      </button>
-      {open && (
-        <LocationPicker
-          value={value}
-          onChange={onChange}
-          onClose={() => setOpen(false)}
-        />
-      )}
-    </>
   )
 }
 

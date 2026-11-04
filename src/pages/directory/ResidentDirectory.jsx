@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { CAPPED_PLANS } from '../../lib/planModules'
+import LocationPickerButton, { fetchLocationPath } from '../../components/ui/LocationPickerButton'
 import {
   Plus, X, Edit2, Trash2, Search, Printer, Phone,
   Mail, MapPin, User, Heart, Stethoscope, Calendar,
@@ -261,6 +262,8 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
     room:               resident?.room               || '',
     unit:               resident?.unit               || '',
     building:           resident?.building           || '',
+    // Place in the Locations tree; new work orders fill it in when this resident is picked
+    location_id:        resident?.location_id        || null,
     admission_date:     resident?.admission_date     || '',
     care_level:         resident?.care_level         || 'independent',
     photo_url:          resident?.photo_url          || '',
@@ -268,6 +271,23 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
     // Text consent; the database stamps who recorded it and when (residents_sms_opt_in_stamp)
     sms_opt_in:         resident?.sms_opt_in         ?? false,
   })
+  const [locationPath, setLocationPath] = useState('')
+  useEffect(() => {
+    if (resident?.location_id) fetchLocationPath(resident.location_id).then(setLocationPath)
+  }, [resident?.location_id])
+  const pickLocation = (loc) => {
+    setLocationPath(loc?.path || '')
+    setForm(f => {
+      const parts = (loc?.path || '').split(' > ')
+      return {
+        ...f,
+        location_id: loc?.id || null,
+        // Fill in room / building only when they're empty
+        room:     f.room     || (loc ? parts.at(-1) : ''),
+        building: f.building || (loc && parts.length > 1 ? parts[0] : ''),
+      }
+    })
+  }
   const [emergencyContacts, setEmergencyContacts] = useState([])
   const [medicalContacts, setMedicalContacts]     = useState([])
   const [tab, setTab]         = useState('info')
@@ -519,6 +539,13 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
               </label>
 
               {/* Location */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Location</label>
+                <LocationPickerButton
+                  value={form.location_id ? { id: form.location_id, path: locationPath } : null}
+                  onChange={pickLocation} />
+                <p className="text-xs text-slate-400 mt-1">Where this resident lives in the Locations list. New work orders fill it in when this resident is chosen.</p>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Room</label>
