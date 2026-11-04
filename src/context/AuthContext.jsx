@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useSessionTimeout } from '../hooks/useSessionTimeout'
@@ -34,6 +34,7 @@ export function AuthProvider({ children }) {
   const [thresholds, setThresholds]   = useState({})         // module_access_thresholds by module
   const [superAdmin, setSuperAdmin]   = useState(false)
    const [loading, setLoading]         = useState(true)
+  const loadedUserRef = useRef(null) // whose profile is loaded; token refreshes for them skip the reload
   const [suspended, setSuspended]     = useState(false)
   const [impersonating, setImpersonating] = useState(false)
   const [emergencyUntil, setEmergencyUntil] = useState(null) // NHA Emergency Edit expiry (ISO)
@@ -65,8 +66,15 @@ export function AuthProvider({ children }) {
       if (session?.user) checkMfaThenLoad(session.user.id)
       else setLoading(false)
     })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null)
+      // Coming back to the tab refreshes the token (TOKEN_REFRESHED, and supabase-js also
+      // re-emits SIGNED_IN on focus). For the person already loaded, don't reload: the
+      // loading screen unmounts the page and wipes any form in progress.
+      if (session?.user && session.user.id === loadedUserRef.current
+          && ['TOKEN_REFRESHED', 'SIGNED_IN', 'USER_UPDATED', 'INITIAL_SESSION'].includes(event)) {
+        return
+      }
       // Deferred: calling other auth methods inside this callback can deadlock supabase-js.
       // Mark loading now, not inside the deferred call: otherwise /login sees a user with
       // no profile yet and redirects a super admin to /app/dashboard instead of /superadmin.
@@ -75,6 +83,7 @@ export function AuthProvider({ children }) {
         setTimeout(() => checkMfaThenLoad(session.user.id), 0)
       }
       else {
+        loadedUserRef.current = null
         setProfile(null); setOrg(null); setOrgModules([]); setMfaStep(null); setMfaStatus(null)
         setUserPerms([]); setRoleVisibility([]); setRoleViewOnly([]); setSuperAdmin(false); setLoading(false)
       }
@@ -147,6 +156,7 @@ export function AuthProvider({ children }) {
       const { data: prof } = await supabase
         .from('profiles').select('*').eq('id', userId).single()
       setProfile(prof)
+      if (prof) loadedUserRef.current = userId
 
       // Source of truth is profiles.role — the legacy super_admins table is unused/empty
       const isSA = prof?.role === 'super_admin'
