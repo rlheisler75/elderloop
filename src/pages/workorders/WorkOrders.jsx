@@ -1313,9 +1313,8 @@ export default function WorkOrders() {
 
     const [woRes, staffRes, resRes, cats] = await Promise.all([
       woQuery,
-      supabase.from('profiles').select('id,first_name,last_name,role')
-        .eq('organization_id', organization.id)
-        .in('role', ['maintenance','supervisor','manager','org_admin','super_admin']),
+      // Everyone with Work Orders edit permission (techs are role 'staff' under Job Roles)
+      supabase.rpc('wo_assign_targets'),
       supabase.from('residents').select('id,first_name,last_name,unit,building')
         .eq('organization_id', organization.id).eq('is_active', true),
       fetchWOCategories(organization.id),
