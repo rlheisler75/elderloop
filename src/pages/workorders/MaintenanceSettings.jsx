@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
-import { Save, Check, AlertTriangle, Users, Clock, MapPin, Tag } from 'lucide-react'
+import { Save, Check, AlertTriangle, Users, Clock, MapPin, Tag, Upload } from 'lucide-react'
+import { useAuth } from '../../context/AuthContext'
 import LocationManager from '../../components/ui/LocationManager'
 import CategoryManager from '../../components/ui/CategoryManager'
+import WorkOrderImport from './WorkOrderImport'
 import { fetchWOCategories, topLevelCategories } from '../../lib/workOrderCategories'
 
 const PRIORITIES = [
@@ -21,6 +23,9 @@ export default function MaintenanceSettings({ orgId, profile }) {
   const [saved, setSaved]             = useState(false)
   const [loading, setLoading]         = useState(true)
   const [settingsTab, setSettingsTab] = useState('sla')
+  const { can } = useAuth()
+  // Importing history keeps old WO numbers, which set_wo_number allows only with Work Orders settings permission
+  const canImport = ['org_admin', 'super_admin'].includes(profile?.role) || can('work_orders', 'settings')
 
   useEffect(() => { if (orgId) fetchAll() }, [orgId])
 
@@ -101,6 +106,7 @@ export default function MaintenanceSettings({ orgId, profile }) {
           { key: 'assign',     label: 'Auto-Assignment',  icon: Users },
           { key: 'categories', label: 'Categories',       icon: Tag },
           { key: 'locations',  label: 'Locations',        icon: MapPin },
+          ...(canImport ? [{ key: 'import', label: 'Import', icon: Upload }] : []),
         ].map(t => {
           const Icon = t.icon
           return (
@@ -122,8 +128,13 @@ export default function MaintenanceSettings({ orgId, profile }) {
         <CategoryManager orgId={orgId} />
       )}
 
+      {/* Import tab */}
+      {settingsTab === 'import' && canImport && (
+        <WorkOrderImport orgId={orgId} />
+      )}
+
       {/* SLA + Auto-assign tabs */}
-      {settingsTab !== 'locations' && settingsTab !== 'categories' && (
+      {['sla', 'assign'].includes(settingsTab) && (
       <div className="space-y-8">
 
       {/* SLA Rules */}
