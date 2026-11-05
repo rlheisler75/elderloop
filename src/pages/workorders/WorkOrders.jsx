@@ -9,7 +9,7 @@ import {
   Truck, PauseCircle, XCircle, RefreshCw, Calendar,
   ChevronRight, MessageSquare, ArrowUpDown, ShieldCheck,
   Upload, Image, Package, Settings, BarChart3,
-  Camera, FileText, ChevronUp, Play, Pause, Ban, Check, Sparkles, ScanLine
+  Camera, FileText, ChevronUp, Play, Pause, Ban, Check, Sparkles, ScanLine, Printer
 } from 'lucide-react'
 import BarcodeScanner from '../supply/BarcodeScanner'
 
@@ -92,6 +92,64 @@ function StatusBadge({ status }) {
 }
 
 // ── Work Order Row ────────────────────────────────────────────
+// ── Print list ────────────────────────────────────────────────
+// Summary sheet of the work orders on screen (current filters + search), like
+// Work Hub's printed list: one line per job with the essentials. Full detail
+// stays on the work order itself.
+const escHtml = (v) => String(v ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
+
+function printWorkOrderList({ rows, categories, orgName, subtitle, showCompleted }) {
+  const shortDate = (d) => d ? new Date(d).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit' }) : ''
+  const clip = (s, n) => { const t = String(s ?? '').replace(/\s+/g, ' ').trim(); return t.length > n ? t.slice(0, n - 1) + '…' : t }
+  const body = rows.map(wo => {
+    const cat = categories.find(c => c.key === wo.category)
+    const place = wo.location_path || [wo.building, wo.unit].filter(Boolean).join(' · ')
+    const resident = wo.residents ? `${wo.residents.first_name} ${wo.residents.last_name}` : ''
+    const assigned = wo.assigned_profiles ? `${wo.assigned_profiles.first_name} ${wo.assigned_profiles.last_name}` : (wo.vendor_name || '')
+    const desc = wo.description && wo.description.trim() !== wo.title?.trim() ? clip(wo.description, 220) : ''
+    return `<tr>
+      <td class="num">${escHtml(wo.wo_number ?? '')}</td>
+      <td><b>${escHtml(clip(wo.title, 90))}</b>${desc ? `<div class="desc">${escHtml(desc)}</div>` : ''}${cat ? `<div class="sub">${escHtml(cat.label)}</div>` : ''}</td>
+      <td>${escHtml(place)}${wo.location_detail ? `<div class="sub">${escHtml(wo.location_detail)}</div>` : ''}${resident ? `<div class="sub">${escHtml(resident)}</div>` : ''}</td>
+      <td>${escHtml(getStatus(wo.status).label)}</td>
+      <td>${escHtml(getPriority(wo.priority).label)}</td>
+      <td>${escHtml(assigned)}</td>
+      <td>${escHtml(wo.due_date ? parseDay(wo.due_date).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit' }) : '')}</td>
+      <td>${escHtml(shortDate(showCompleted ? wo.completed_at : wo.created_at))}</td>
+      <td class="check"></td>
+    </tr>`
+  }).join('')
+  const win = window.open('', '_blank')
+  if (!win) return false
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Work Orders</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { font-family: Arial, sans-serif; font-size: 10px; color: #111; margin: 0; }
+      @page { size: landscape; margin: 0.4in; }
+      h1 { font-size: 15px; margin: 0; }
+      .meta { color: #555; margin: 2px 0 8px; }
+      table { width: 100%; border-collapse: collapse; }
+      th { text-align: left; font-size: 9px; text-transform: uppercase; border-bottom: 1.5px solid #111; padding: 3px 4px; }
+      td { border-bottom: 1px solid #ccc; padding: 3px 4px; vertical-align: top; }
+      tr { page-break-inside: avoid; break-inside: avoid; }
+      thead { display: table-header-group; }
+      .num { font-family: monospace; white-space: nowrap; }
+      .desc { color: #333; margin-top: 1px; }
+      .sub { color: #666; font-size: 9px; }
+      .check { width: 22px; }
+    </style></head><body>
+    <h1>${escHtml(orgName)} — Work Orders</h1>
+    <div class="meta">${escHtml(subtitle)} · ${rows.length} work order${rows.length === 1 ? '' : 's'} · Printed ${escHtml(new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }))}</div>
+    <table>
+      <thead><tr><th>WO #</th><th>Description</th><th>Location</th><th>Status</th><th>Priority</th><th>Assigned</th><th>Due</th><th>${showCompleted ? 'Completed' : 'Created'}</th><th>✓</th></tr></thead>
+      <tbody>${body}</tbody>
+    </table>
+    <script>window.onload = () => { window.print(); window.onafterprint = () => window.close(); }<\/script>
+    </body></html>`)
+  win.document.close()
+  return true
+}
+
 function WORow({ wo, categories, onClick, showCompleted }) {
   const pri = getPriority(wo.priority)
   const cat = categories.find(c => c.key === wo.category)
@@ -1615,6 +1673,20 @@ export default function WorkOrders() {
           <option value="all">All Priorities</option>
           {PRIORITIES.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
         </select>
+        <button type="button" disabled={!filtered.length}
+          onClick={() => printWorkOrderList({
+            rows: filtered, categories, orgName: organization?.name || '',
+            showCompleted: completedView,
+            subtitle: [
+              filterStatus === 'all' ? 'All statuses' : getStatus(filterStatus).label,
+              filterCat !== 'all' && (categories.find(c => c.key === filterCat)?.label || filterCat),
+              filterPriority !== 'all' && `${getPriority(filterPriority).label} priority`,
+              search && `Search: "${search}"`,
+            ].filter(Boolean).join(' · '),
+          })}
+          className="flex items-center gap-2 px-3 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors disabled:opacity-40">
+          <Printer size={15} /> Print List
+        </button>
       </div>
 
       {/* Table */}
