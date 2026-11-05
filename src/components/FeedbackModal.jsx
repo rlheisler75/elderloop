@@ -2,9 +2,60 @@
 // "Help & Feedback": staff, family, and residents send a help request or an
 // improvement suggestion to the ElderLoop team (Super Admin → Help & Feedback).
 // Sender, community, and role are stamped server-side by platform_feedback_stamp.
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import { X, LifeBuoy, Lightbulb, CheckCircle2, AlertCircle, Loader2, Send } from 'lucide-react'
+import { X, LifeBuoy, Lightbulb, CheckCircle2, AlertCircle, Loader2, Send, MessageSquare } from 'lucide-react'
+
+const fmtWhen = (d) => new Date(d).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+const STATUS_LABEL = { new: 'Sent', in_progress: 'In progress', done: 'Done' }
+
+// The person's own earlier messages and the ElderLoop team's replies
+// (platform_feedback_replies, written by the reply-feedback Edge Function).
+function MyRequests() {
+  const [items, setItems] = useState(null)
+  useEffect(() => {
+    let live = true
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return
+      supabase.from('platform_feedback')
+        .select('id, kind, subject, status, created_at, platform_feedback_replies(id, message, created_at)')
+        .eq('user_id', user.id).order('created_at', { ascending: false }).limit(20)
+        .then(({ data }) => { if (live) setItems(data ?? []) })
+    })
+    return () => { live = false }
+  }, [])
+  if (!items?.length) return null
+  return (
+    <div className="px-5 pb-5">
+      <h3 className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+        <MessageSquare size={13} /> Your requests
+      </h3>
+      <div className="space-y-2">
+        {items.map(f => {
+          const replies = [...(f.platform_feedback_replies ?? [])].sort((a, b) => a.created_at.localeCompare(b.created_at))
+          return (
+            <details key={f.id} open={replies.length > 0 && f.status !== 'done'}
+              className="rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2">
+              <summary className="cursor-pointer text-sm text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                <span className="flex-1 truncate">{f.subject}</span>
+                {replies.length > 0 && <span className="text-[11px] font-semibold text-brand-600 dark:text-brand-400">{replies.length} repl{replies.length === 1 ? 'y' : 'ies'}</span>}
+                <span className="text-[11px] text-slate-400">{STATUS_LABEL[f.status] ?? f.status} · {fmtWhen(f.created_at)}</span>
+              </summary>
+              {replies.length === 0
+                ? <p className="text-xs text-slate-400 mt-2">No reply yet.</p>
+                : replies.map(r => (
+                    <div key={r.id} className="mt-2 border-l-2 border-brand-400 pl-3">
+                      <p className="text-sm text-slate-700 dark:text-slate-200 whitespace-pre-wrap">{r.message}</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">ElderLoop Support · {fmtWhen(r.created_at)}</p>
+                    </div>
+                  ))}
+            </details>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
 
 const KINDS = [
   { key: 'help',       label: 'I need help',         icon: LifeBuoy,  hint: 'Something isn\'t working or you can\'t find how to do something.' },
@@ -103,6 +154,7 @@ export default function FeedbackModal({ onClose }) {
             </div>
           </div>
         )}
+        <MyRequests />
       </div>
     </div>
   )

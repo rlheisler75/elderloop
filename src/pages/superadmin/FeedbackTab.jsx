@@ -2,7 +2,7 @@
 // "Help & Feedback" button (staff sidebar, family portal, resident portal).
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
-import { LifeBuoy, Lightbulb, Loader2, Mail, Trash2 } from 'lucide-react'
+import { LifeBuoy, Lightbulb, Loader2, Mail, Send, Trash2 } from 'lucide-react'
 
 const STATUS_TABS = [
   { key: 'new',         label: 'New' },
@@ -19,9 +19,38 @@ const ROLE_LABEL = { family: 'Family', resident: 'Resident', ceo: 'Administrator
 const roleLabel = (r) => ROLE_LABEL[r] ?? (r ? r.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : '—')
 const fmtDateTime = (d) => new Date(d).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })
 
-function FeedbackCard({ item, onChange, onDelete }) {
+const PORTAL_ROLES = ['family', 'resident']
+
+function FeedbackCard({ item, onChange, onDelete, onReplied }) {
   const [note, setNote] = useState(item.admin_note ?? '')
+  const [replyOpen, setReplyOpen] = useState(false)
+  const [reply, setReply]         = useState('')
+  const [sending, setSending]     = useState(false)
+  const [replyMsg, setReplyMsg]   = useState(null) // { ok, text }
   const sender = item.profiles
+  const replies = [...(item.platform_feedback_replies ?? [])].sort((a, b) => a.created_at.localeCompare(b.created_at))
+  const portalSender = PORTAL_ROLES.includes(item.role)
+
+  async function sendReply() {
+    if (!reply.trim() || sending) return
+    setSending(true); setReplyMsg(null)
+    const { data, error } = await supabase.functions.invoke('reply-feedback', {
+      body: { feedback_id: item.id, message: reply.trim() },
+    })
+    setSending(false)
+    if (error || !data?.success) {
+      let detail = error?.message
+      try { detail = (await error?.context?.json())?.error || detail } catch (_) { /* keep generic */ }
+      setReplyMsg({ ok: false, text: `Reply not sent: ${detail || 'unknown error'}` })
+      return
+    }
+    setReply(''); setReplyOpen(false)
+    setReplyMsg({ ok: true, text: [
+      data.emailed ? 'Emailed' : `Not emailed (${data.emailError || 'no email'})`,
+      data.pushed ? 'bell notification sent' : 'no bell notification',
+    ].join(' · ') })
+    onReplied?.()
+  }
   const Icon = item.kind === 'help' ? LifeBuoy : Lightbulb
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
@@ -52,16 +81,52 @@ function FeedbackCard({ item, onChange, onDelete }) {
       <p className="text-sm text-slate-300 whitespace-pre-wrap mt-3 ml-12">{item.message}</p>
       {item.page && <p className="text-xs text-slate-600 mt-2 ml-12">Sent from {item.page}</p>}
 
+      {replies.length > 0 && (
+        <div className="mt-3 ml-12 space-y-2">
+          {replies.map(r => (
+            <div key={r.id} className="border-l-2 border-brand-700 pl-3">
+              <p className="text-sm text-slate-200 whitespace-pre-wrap">{r.message}</p>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                You replied {fmtDateTime(r.created_at)}
+                {' · '}{r.emailed_at ? 'emailed' : <span className="text-amber-400" title={r.email_error || ''}>not emailed</span>}
+                {r.pushed ? ' · bell sent' : ''}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {replyOpen && (
+        <div className="mt-3 ml-12">
+          <textarea value={reply} onChange={e => setReply(e.target.value)} rows={4} maxLength={5000} autoFocus
+            placeholder={`Reply to ${sender?.first_name || 'them'}…`}
+            className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-brand-600 resize-y" />
+          <p className="text-[11px] text-slate-500 mt-1">
+            {portalSender
+              ? 'Goes to their ElderLoop bell. The email only says a reply is waiting (family/resident senders), so the text stays in ElderLoop.'
+              : 'Goes by email (from info@elderloop.xyz, replies come back to you) and to their ElderLoop bell. Don\'t include health information.'}
+          </p>
+          <div className="flex justify-end gap-2 mt-2">
+            <button onClick={() => { setReplyOpen(false); setReply('') }} className="px-3 py-1.5 text-xs text-slate-400 hover:text-white rounded-lg">Cancel</button>
+            <button onClick={sendReply} disabled={!reply.trim() || sending}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-brand-700 hover:bg-brand-600 disabled:opacity-50 text-white rounded-lg">
+              {sending ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />} Send reply
+            </button>
+          </div>
+        </div>
+      )}
+      {replyMsg && <p className={`text-xs mt-2 ml-12 ${replyMsg.ok ? 'text-green-400' : 'text-red-400'}`}>{replyMsg.text}</p>}
+
       <div className="flex items-center gap-2 mt-4 ml-12">
         <input value={note} onChange={e => setNote(e.target.value)}
           onBlur={() => { if (note !== (item.admin_note ?? '')) onChange(item.id, { admin_note: note || null }) }}
           placeholder="Private note (only you see this)"
           className="flex-1 min-w-0 bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-300 placeholder-slate-600 focus:outline-none focus:border-brand-600" />
-        {sender?.email && (
-          <a href={`mailto:${sender.email}?subject=${encodeURIComponent('Re: ' + item.subject)}`}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-brand-300 hover:text-white hover:bg-slate-800 rounded-lg" title={sender.email}>
+        {sender && !replyOpen && (
+          <button onClick={() => { setReplyOpen(true); setReplyMsg(null) }}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-brand-300 hover:text-white hover:bg-slate-800 rounded-lg" title={sender.email || ''}>
             <Mail size={13} /> Reply
-          </a>
+          </button>
         )}
         <button onClick={() => onDelete(item.id)} className="p-1.5 text-slate-600 hover:text-red-400 hover:bg-slate-800 rounded-lg" title="Delete">
           <Trash2 size={13} />
@@ -81,7 +146,7 @@ export default function FeedbackTab({ onCountChange }) {
   const load = useCallback(async () => {
     setLoading(true); setError(null)
     const { data, error } = await supabase.from('platform_feedback')
-      .select('*, profiles(first_name, last_name, email), organizations(name)')
+      .select('*, profiles(first_name, last_name, email), organizations(name), platform_feedback_replies(id, message, created_at, emailed_at, email_error, pushed)')
       .order('created_at', { ascending: false })
       .limit(500)
     if (error) setError(error.message)
@@ -138,7 +203,7 @@ export default function FeedbackTab({ onCountChange }) {
         <div className="text-center text-slate-500 py-16 border border-dashed border-slate-800 rounded-xl">Nothing here.</div>
       ) : (
         <div className="space-y-3">
-          {shown.map(item => <FeedbackCard key={item.id} item={item} onChange={update} onDelete={remove} />)}
+          {shown.map(item => <FeedbackCard key={item.id} item={item} onChange={update} onDelete={remove} onReplied={load} />)}
         </div>
       )}
     </div>
