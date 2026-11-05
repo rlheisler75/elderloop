@@ -100,7 +100,11 @@ export default function BroadcastPanel({ isStarter = false, restrictToDepartment
       .from('broadcast_messages')
       .select('*, sender:profiles!sender_id(first_name, last_name)')
       .eq('org_id', organization.id)
-    if (restrictToDepartment) query = query.eq('department_scope', restrictToDepartment)
+    // Department messages stay in their department's log (e.g. Maintenance →
+    // Communication); the main Communication page shows only its own sends.
+    query = restrictToDepartment
+      ? query.eq('department_scope', restrictToDepartment)
+      : query.is('department_scope', null)
 
     const { data, error } = await query
       .order('sent_at', { ascending: false })

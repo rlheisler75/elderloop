@@ -352,7 +352,10 @@ export function AuthProvider({ children }) {
     // Otherwise a super admin who signs out mid-impersonation (instead of using
     // "Exit to Super Admin") would silently land back in that org on next login.
     localStorage.removeItem('elderloop_super_admin_org')
-    await supabase.auth.signOut()
+    // 'local' ends only this device's session. The default ('global') also ended
+    // the same login on every other device, and their still-unexpired tokens then
+    // failed server checks (a broadcast stuck in "sending", 2026-11-04).
+    await supabase.auth.signOut({ scope: 'local' })
   }
 
   const refreshModules = async () => {

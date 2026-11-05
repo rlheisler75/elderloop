@@ -199,44 +199,17 @@ export default function PMSchedules({ orgId: orgIdProp, profile: profileProp }) 
     setLoading(false)
   }
 
-  // Generate a work order from a PM schedule
+  // Generate a work order from a PM schedule now. Same server function the
+  // daily pm-auto-generate job uses: it steps next_due by the schedule's own
+  // interval (calendar months/years) and skips missed cycles.
   const generateWO = async (schedule) => {
     setGenerating(schedule.id)
     setGenerateError('')
-    const { data: wo, error } = await supabase.from('work_orders').insert({
-      organization_id: orgId,
-      title:           `[PM] ${schedule.title}`,
-      description:     schedule.description || `Preventive maintenance task: ${schedule.title}`,
-      category:        schedule.category || 'other',
-      priority:        'normal',
-      status:          'open',
-      asset_id:        schedule.asset_id || null,
-      assigned_to:     schedule.assign_to || null,
-      due_date:        schedule.next_due,
-      estimated_hours: schedule.estimated_hours || null,
-      submitted_by:    profile.id,
-    }).select().single()
-
-    if (error || !wo) {
-      setGenerateError(`Failed to generate work order: ${error?.message || 'Unknown error'}`)
-      setGenerating(null)
-      return
-    }
-
-    await supabase.from('wo_activity').insert({
-      work_order_id: wo.id,
-      user_id: profile.id,
-      action: `Work order generated from PM schedule: ${schedule.title}`,
-      action_type: 'created',
+    const { error } = await supabase.rpc('generate_pm_work_order', {
+      p_schedule_id: schedule.id,
+      p_user:        profile.id,
     })
-    // Advance next_due from today (not the old due date) so overdue schedules don't stay overdue
-    const freqDays = schedule.frequency_days || 30
-    const nextDue  = new Date()
-    nextDue.setDate(nextDue.getDate() + freqDays)
-    await supabase.from('pm_schedules').update({
-      last_generated: todayDateStr(),
-      next_due: toDateStr(nextDue),
-    }).eq('id', schedule.id)
+    if (error) setGenerateError(`Failed to generate work order: ${error.message || 'Unknown error'}`)
     fetchAll()
     setGenerating(null)
   }
@@ -253,7 +226,7 @@ export default function PMSchedules({ orgId: orgIdProp, profile: profileProp }) 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
         <div>
           <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Preventive Maintenance</h2>
-          <p className="text-slate-400 text-xs mt-0.5">Recurring maintenance schedules with automatic work order generation</p>
+          <p className="text-slate-400 text-xs mt-0.5">Work orders are created automatically each morning, the schedule's advance days before they're due</p>
         </div>
         <button onClick={() => { setEditSchedule(null); setShowModal(true) }}
           className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">

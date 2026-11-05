@@ -256,10 +256,17 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
 
       if (insertErr) throw insertErr
 
-      try {
-        await supabase.functions.invoke('send-broadcast', { body: { message_id: msg.id } })
-      } catch {
-        await supabase.from('broadcast_messages').update({ status: 'sent' }).eq('id', msg.id)
+      // functions.invoke reports HTTP errors in `error` rather than throwing.
+      const { error: sendErr } = await supabase.functions.invoke('send-broadcast', { body: { message_id: msg.id } })
+      if (sendErr) {
+        await supabase.from('broadcast_messages').update({ status: 'failed' }).eq('id', msg.id)
+        const expired = sendErr.context?.status === 401
+        onSent?.()
+        setError(expired
+          ? 'Your sign-in has ended, so the message was not sent. Sign out, sign back in, and send it again.'
+          : `The message was not sent: ${sendErr.message || 'unknown error'}. Please try again.`)
+        setSending(false)
+        return
       }
 
       onSent?.()

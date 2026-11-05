@@ -92,7 +92,7 @@ function StatusBadge({ status }) {
 }
 
 // ── Work Order Row ────────────────────────────────────────────
-function WORow({ wo, categories, onClick }) {
+function WORow({ wo, categories, onClick, showCompleted }) {
   const pri = getPriority(wo.priority)
   const cat = categories.find(c => c.key === wo.category)
   const isOverdue = wo.due_date && daysUntil(wo.due_date) < 0 && wo.status !== 'closed' && wo.status !== 'cancelled'
@@ -156,8 +156,12 @@ function WORow({ wo, categories, onClick }) {
           : <span className="text-slate-300">—</span>}
         {isOverdue && <span className="ml-1">⚠</span>}
       </td>
-      <td className="px-4 py-3 text-xs text-slate-400">
-        {new Date(wo.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+      <td className="px-4 py-3 text-xs text-slate-400 whitespace-nowrap">
+        {showCompleted
+          ? (wo.completed_at
+              ? new Date(wo.completed_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })
+              : '—')
+          : new Date(wo.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
       </td>
     </tr>
   )
@@ -1338,11 +1342,11 @@ export default function WorkOrders() {
 
   useEffect(() => { if (organization) { fetchAll() } }, [organization])
 
-  function woBaseQuery() {
+  function woBaseQuery(orderBy = 'created_at') {
     let q = supabase.from('work_orders')
       .select('*, residents(first_name,last_name,unit), assigned_profiles:profiles!work_orders_assigned_to_fkey(first_name,last_name)')
       .eq('organization_id', organization.id)
-      .order('created_at', { ascending: false })
+      .order(orderBy, { ascending: false, nullsFirst: false })
     // Non-privileged staff only see WOs they submitted
     if (!isPrivileged) q = q.eq('submitted_by', profile.id)
     return q
@@ -1369,7 +1373,8 @@ export default function WorkOrders() {
     // (imported Work Hub records go back years) comes from the search box.
     const [openRes, doneRes, staffRes, resRes, cats, locRes] = await Promise.all([
       woBaseQuery().not('status', 'in', '(closed,cancelled)').range(0, 4999),
-      woBaseQuery().in('status', ['closed', 'cancelled']).limit(RECENT_CLOSED),
+      // Most recently completed first, so the Closed view works like Work Hub's Pulse tab
+      woBaseQuery('completed_at').in('status', ['closed', 'cancelled']).limit(RECENT_CLOSED),
       // Everyone with Work Orders edit permission (techs are role 'staff' under Job Roles)
       supabase.rpc('wo_assign_targets'),
       supabase.from('residents').select('id,first_name,last_name,unit,building,room,location_id')
@@ -1440,6 +1445,9 @@ export default function WorkOrders() {
       || (jobView === 'mine' ? (wo.assigned_to === profile.id || wo.submitted_by === profile.id) : !wo.assigned_to)
     return matchSearch && matchStatus && matchCat && matchPriority && matchJobView
   })
+  // Closed = completed-jobs feed (Work Hub "Pulse"): newest completion first
+  const completedView = filterStatus === 'closed'
+  if (completedView) filtered.sort((a, b) => (b.completed_at || '').localeCompare(a.completed_at || ''))
 
   // Stats
   const stats = {
@@ -1595,7 +1603,7 @@ export default function WorkOrders() {
         <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
           className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100">
           <option value="all">All Statuses</option>
-          {STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
+          {STATUSES.map(s => <option key={s.key} value={s.key}>{s.key === 'closed' ? 'Closed (newest completed first)' : s.label}</option>)}
         </select>
         <select value={filterCat} onChange={e => setFilterCat(e.target.value)}
           className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100">
@@ -1630,11 +1638,11 @@ export default function WorkOrders() {
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Priority</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Assigned</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Due</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Created</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">{completedView ? 'Completed' : 'Created'}</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map(wo => <WORow key={wo.id} wo={wo} categories={categories} onClick={() => handleOpen(wo)} />)}
+                {filtered.map(wo => <WORow key={wo.id} wo={wo} categories={categories} showCompleted={completedView} onClick={() => handleOpen(wo)} />)}
               </tbody>
             </table>
           </div>
