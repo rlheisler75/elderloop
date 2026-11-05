@@ -92,6 +92,14 @@ function StatusBadge({ status }) {
 }
 
 // ── Work Order Row ────────────────────────────────────────────
+// Open job past its due date or its SLA completion time (the red banner's counts;
+// the banner's "View all" and the Overdue status filter use this too)
+const todayLocalStr = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
+const isOverdueWO = (w) => !['closed','cancelled'].includes(w.status) && (
+  (w.due_date && w.due_date < todayLocalStr()) ||
+  (w.sla_completion_due && new Date(w.sla_completion_due) < new Date())
+)
+
 // ── Print list ────────────────────────────────────────────────
 // Summary sheet of the work orders on screen (current filters + search), like
 // Work Hub's printed list: one line per job with the essentials. Full detail
@@ -1496,7 +1504,8 @@ export default function WorkOrders() {
       wo.submitted_by_name, wo.wo_number != null ? String(wo.wo_number) : null,
       wo.residents?.first_name, wo.residents?.last_name, wo.description]
       .filter(Boolean).some(f => f.toLowerCase().includes(search.toLowerCase()))
-    const matchStatus   = filterStatus === 'all' || wo.status === filterStatus
+    const matchStatus   = filterStatus === 'all'
+      || (filterStatus === 'overdue' ? isOverdueWO(wo) : wo.status === filterStatus)
     const matchCat      = filterCat === 'all' || wo.category === filterCat
     const matchPriority = filterPriority === 'all' || wo.priority === filterPriority
     const matchJobView  = !tieredEmployee || jobView === 'all'
@@ -1506,6 +1515,8 @@ export default function WorkOrders() {
   // Closed = completed-jobs feed (Work Hub "Pulse"): newest completion first
   const completedView = filterStatus === 'closed'
   if (completedView) filtered.sort((a, b) => (b.completed_at || '').localeCompare(a.completed_at || ''))
+  // Overdue view: most overdue first
+  if (filterStatus === 'overdue') filtered.sort((a, b) => (a.due_date || a.sla_completion_due || '').localeCompare(b.due_date || b.sla_completion_due || ''))
 
   // Stats
   const stats = {
@@ -1612,7 +1623,7 @@ export default function WorkOrders() {
               {overdue.length > 0 && slaBreached.length > 0 && <span className="mx-2">·</span>}
               {slaBreached.length > 0 && <span className="font-medium">{slaBreached.length} SLA breach{slaBreached.length > 1 ? 'es' : ''}</span>}
             </div>
-            <button onClick={() => setFilterStatus('open')} className="text-xs text-red-600 hover:text-red-800 font-medium">View all →</button>
+            <button onClick={() => { setFilterStatus('overdue'); setSearch('') }} className="text-xs text-red-600 hover:text-red-800 font-medium">View all →</button>
           </div>
         )
       })()}
@@ -1661,6 +1672,7 @@ export default function WorkOrders() {
         <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
           className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100">
           <option value="all">All Statuses</option>
+          <option value="overdue">Overdue (past due or SLA)</option>
           {STATUSES.map(s => <option key={s.key} value={s.key}>{s.key === 'closed' ? 'Closed (newest completed first)' : s.label}</option>)}
         </select>
         <select value={filterCat} onChange={e => setFilterCat(e.target.value)}
