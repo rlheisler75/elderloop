@@ -1365,7 +1365,10 @@ export default function WorkOrders() {
   // works their own or unassigned ones, and can't change priority/category/due/vendor.
   const tieredEmployee = accessModel === 'tiered' && tierFor('work_orders') === 'employee'
     && hasDepartmentAccess('maintenance', 'employee')
-  const [jobView, setJobView]         = useState('mine') // tiered employees: 'mine' | 'queue' | 'all'
+  // 'mine' | 'queue' | 'all'. Every Maintenance member gets the tabs; employees
+  // start on their own jobs, supervisors and managers on all jobs.
+  const showJobTabs = hasDepartmentAccess('maintenance', 'employee')
+  const [jobView, setJobView]         = useState(tieredEmployee ? 'mine' : 'all')
   const [workOrders, setWorkOrders]   = useState([])
   const [staffList, setStaffList]     = useState([])
   const [residentList, setResidentList] = useState([])
@@ -1514,7 +1517,7 @@ export default function WorkOrders() {
     const matchCat      = filterCat === 'all' || wo.category === filterCat
     const matchPriority = filterPriority === 'all' || wo.priority === filterPriority
     // Picking someone in "Assigned to" looks across all jobs, whatever the tab
-    const matchJobView  = !tieredEmployee || jobView === 'all' || filterAssignee !== 'all'
+    const matchJobView  = !showJobTabs || jobView === 'all' || filterAssignee !== 'all'
       || (jobView === 'mine' ? (wo.assigned_to === profile.id || wo.submitted_by === profile.id) : !wo.assigned_to)
     return matchSearch && matchStatus && matchCat && matchPriority && matchAssignee && matchJobView
   })
@@ -1661,7 +1664,7 @@ export default function WorkOrders() {
       </div>
 
       {/* Tiered Maintenance employees: my jobs, the unassigned queue they can claim, or every job */}
-      {tieredEmployee && mainView === 'work_orders' && (
+      {showJobTabs && mainView === 'work_orders' && (
         <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl mb-4 w-fit" role="group" aria-label="Which jobs">
           {[
             { key: 'mine',  label: 'My jobs',    count: workOrders.filter(w => (w.assigned_to === profile.id || w.submitted_by === profile.id) && !['closed','cancelled'].includes(w.status)).length },
