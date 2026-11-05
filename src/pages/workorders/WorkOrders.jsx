@@ -1376,6 +1376,7 @@ export default function WorkOrders() {
   const [filterStatus, setFilterStatus] = useState('all')
   const [filterCat, setFilterCat]     = useState('all')
   const [filterPriority, setFilterPriority] = useState('all')
+  const [filterAssignee, setFilterAssignee] = useState('all') // 'all' | 'unassigned' | profile id
   const [showModal, setShowModal]     = useState(false)
   const [selected, setSelected]       = useState(null)
   const [sortBy, setSortBy]           = useState('created_at')
@@ -1505,13 +1506,29 @@ export default function WorkOrders() {
       wo.residents?.first_name, wo.residents?.last_name, wo.description]
       .filter(Boolean).some(f => f.toLowerCase().includes(search.toLowerCase()))
     const matchStatus   = filterStatus === 'all'
-      || (filterStatus === 'overdue' ? isOverdueWO(wo) : wo.status === filterStatus)
+      || (filterStatus === 'overdue'    ? isOverdueWO(wo)
+        : filterStatus === 'incomplete' ? !['closed','cancelled'].includes(wo.status)
+        : wo.status === filterStatus)
+    const matchAssignee = filterAssignee === 'all'
+      || (filterAssignee === 'unassigned' ? !wo.assigned_to : wo.assigned_to === filterAssignee)
     const matchCat      = filterCat === 'all' || wo.category === filterCat
     const matchPriority = filterPriority === 'all' || wo.priority === filterPriority
-    const matchJobView  = !tieredEmployee || jobView === 'all'
+    // Picking someone in "Assigned to" looks across all jobs, whatever the tab
+    const matchJobView  = !tieredEmployee || jobView === 'all' || filterAssignee !== 'all'
       || (jobView === 'mine' ? (wo.assigned_to === profile.id || wo.submitted_by === profile.id) : !wo.assigned_to)
-    return matchSearch && matchStatus && matchCat && matchPriority && matchJobView
+    return matchSearch && matchStatus && matchCat && matchPriority && matchAssignee && matchJobView
   })
+
+  // Assigned-to filter: current techs plus anyone (e.g. former staff) who still holds jobs
+  const assigneeOptions = (() => {
+    const m = new Map(staffList.map(s => [s.id, `${s.first_name} ${s.last_name}`]))
+    workOrders.forEach(w => {
+      if (w.assigned_to && w.assigned_profiles && !m.has(w.assigned_to))
+        m.set(w.assigned_to, `${w.assigned_profiles.first_name} ${w.assigned_profiles.last_name}`)
+    })
+    const lastName = (n) => n.split(' ').slice(-1)[0]
+    return [...m.entries()].sort((a, b) => lastName(a[1]).localeCompare(lastName(b[1])) || a[1].localeCompare(b[1]))
+  })()
   // Closed = completed-jobs feed (Work Hub "Pulse"): newest completion first
   const completedView = filterStatus === 'closed'
   if (completedView) filtered.sort((a, b) => (b.completed_at || '').localeCompare(a.completed_at || ''))
@@ -1672,6 +1689,7 @@ export default function WorkOrders() {
         <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
           className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100">
           <option value="all">All Statuses</option>
+          <option value="incomplete">Incomplete (not closed)</option>
           <option value="overdue">Overdue (past due or SLA)</option>
           {STATUSES.map(s => <option key={s.key} value={s.key}>{s.key === 'closed' ? 'Closed (newest completed first)' : s.label}</option>)}
         </select>
@@ -1685,12 +1703,23 @@ export default function WorkOrders() {
           <option value="all">All Priorities</option>
           {PRIORITIES.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
         </select>
+        <select value={filterAssignee} onChange={e => setFilterAssignee(e.target.value)}
+          className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100">
+          <option value="all">Anyone assigned</option>
+          <option value="unassigned">Unassigned</option>
+          {assigneeOptions.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
+        </select>
         <button type="button" disabled={!filtered.length}
           onClick={() => printWorkOrderList({
             rows: filtered, categories, orgName: organization?.name || '',
             showCompleted: completedView,
             subtitle: [
-              filterStatus === 'all' ? 'All statuses' : getStatus(filterStatus).label,
+              filterAssignee === 'unassigned' ? 'Unassigned'
+                : filterAssignee !== 'all' && `Assigned to ${assigneeOptions.find(([id]) => id === filterAssignee)?.[1] || ''}`,
+              filterStatus === 'all' ? 'All statuses'
+                : filterStatus === 'incomplete' ? 'Incomplete'
+                : filterStatus === 'overdue' ? 'Overdue'
+                : getStatus(filterStatus).label,
               filterCat !== 'all' && (categories.find(c => c.key === filterCat)?.label || filterCat),
               filterPriority !== 'all' && `${getPriority(filterPriority).label} priority`,
               search && `Search: "${search}"`,
