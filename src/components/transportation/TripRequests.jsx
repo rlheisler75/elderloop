@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { X, Car, Clock, MapPin, CheckCircle2, XCircle, Loader2, UserX } from 'lucide-react'
+import ResidentPicker from '../ui/ResidentPicker'
 
 // Trip requests (20261022_trip_requests.sql): Nursing staff and IL residents ask for
 // a ride; only the Transportation department schedules it. Shared by the
@@ -102,10 +103,7 @@ export function TripRequestModal({ residents = [], resident = null, driverOuts =
           <p className="text-sm text-slate-500">Transportation will schedule the ride and set the pickup time.</p>
           {!resident && (
             <div><label className={labelCls}>Resident *</label>
-              <select value={form.resident_id} onChange={e => set('resident_id', e.target.value)} className={inputCls}>
-                <option value="">Choose a resident…</option>
-                {residents.map(r => <option key={r.id} value={r.id}>{r.last_name}, {r.first_name}{r.room ? ` · ${r.room}` : ''}</option>)}
-              </select></div>
+              <ResidentPicker residents={residents} value={form.resident_id} onChange={id => set('resident_id', id)} /></div>
           )}
           <div className="grid grid-cols-2 gap-3">
             <div><label className={labelCls}>Appointment date *</label><input type="date" min={localToday()} value={form.appointment_date} onChange={e => set('appointment_date', e.target.value)} className={inputCls} /></div>

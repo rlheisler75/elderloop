@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { residentPlace } from '../../lib/residentPlace'
 import useListNav from '../../hooks/useListNav'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
@@ -29,7 +30,7 @@ export default function SupplyIssue() {
     setLoading(true)
     const [itemsRes, residentsRes] = await Promise.all([
       supabase.from('supply_items').select('id, name, category, barcode, sku, unit, quantity_on_hand, is_resident_chargeable, cost_per_unit, sale_price').eq('organization_id', organization.id).eq('is_active', true).order('name'),
-      supabase.from('residents').select('id, first_name, last_name, room, barcode').eq('organization_id', organization.id).eq('is_active', true).order('last_name'),
+      supabase.from('residents').select('id, first_name, last_name, room, care_level, unit, barcode').eq('organization_id', organization.id).eq('is_active', true).order('last_name'),
     ])
     setItems(itemsRes.data || [])
     setResidents(residentsRes.data || [])
@@ -164,7 +165,7 @@ export default function SupplyIssue() {
               </div>
               <div className="flex-1">
                 <div className="font-medium text-slate-800 dark:text-slate-100">{selectedResident.first_name} {selectedResident.last_name}</div>
-                {selectedResident.room && <div className="text-xs text-slate-500 dark:text-slate-400">Room {selectedResident.room}</div>}
+                {selectedResident.room && <div className="text-xs text-slate-500 dark:text-slate-400">{residentPlace(selectedResident)}</div>}
               </div>
               <button onClick={() => setSelectedResident(null)} className="text-slate-400 hover:text-red-500 transition-colors"><X size={16} /></button>
             </div>
@@ -185,7 +186,7 @@ export default function SupplyIssue() {
                 <button key={r.id} onClick={() => { setSelectedResident(r); setResSearch('') }} {...resNav.rowProps(i)}
                   className={`w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 border-b border-slate-100 dark:border-slate-800 last:border-0 text-left ${resNav.isActive(i) ? 'bg-brand-50 dark:bg-slate-800' : ''}`}>
                   <div className="text-sm font-medium text-slate-800 dark:text-slate-100">{r.first_name} {r.last_name}</div>
-                  {r.room && <span className="text-xs text-slate-400">Room {r.room}</span>}
+                  {r.room && <span className="text-xs text-slate-400">{residentPlace(r)}</span>}
                 </button>
               ))}
               {filteredResidents.length === 0 && <div className="px-4 py-3 text-sm text-slate-400">No residents found</div>}

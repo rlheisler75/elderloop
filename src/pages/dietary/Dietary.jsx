@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { residentPlace } from '../../lib/residentPlace'
 import useListNav from '../../hooks/useListNav'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
@@ -141,7 +142,7 @@ function ResidentPicker({ orgId, value, onSelect }) {
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{value.first_name} {value.last_name}</p>
           <p className="text-xs text-slate-500">
-            Room {value.room}{value.care_level ? ` · ${CARE_LABELS[value.care_level] || value.care_level}` : ''}
+            {residentPlace(value)}{value.care_level ? ` · ${CARE_LABELS[value.care_level] || value.care_level}` : ''}
           </p>
         </div>
         <div className="flex items-center gap-1 text-brand-600 text-xs font-medium flex-shrink-0">
@@ -189,7 +190,7 @@ function ResidentPicker({ orgId, value, onSelect }) {
               <div>
                 <p className="text-sm font-medium text-slate-800 dark:text-slate-100">{r.first_name} {r.last_name}</p>
                 <p className="text-xs text-slate-500">
-                  Room {r.room}{r.care_level ? ` · ${CARE_LABELS[r.care_level] || r.care_level}` : ''}
+                  {residentPlace(r)}{r.care_level ? ` · ${CARE_LABELS[r.care_level] || r.care_level}` : ''}
                 </p>
               </div>
             </button>
@@ -249,7 +250,7 @@ function ResidentCard({ resident, onEdit, onPrint, canEdit, weightAlert }) {
             </div>
             <p className="text-slate-400 text-xs mt-0.5">
               {[
-                resident.room && `Room ${resident.room}`,
+                resident.room && residentPlace(resident),
                 resident.dining_location,
                 dir?.care_level && (CARE_LABELS[dir.care_level] || dir.care_level),
               ].filter(Boolean).join(' · ')}
@@ -741,7 +742,7 @@ function PrintTicket({ resident, menus, onClose }) {
           <div ref={printRef}>
             <h2>{resident.first_name} {resident.last_name}</h2>
             <div className="sub">
-              {[resident.room && `Room ${resident.room}`, resident.dining_location].filter(Boolean).join(' · ')}
+              {[resident.room && residentPlace(resident), resident.dining_location].filter(Boolean).join(' · ')}
               {' · '}{dateLabel}{' · '}{MEAL_PERIODS.find(m => m.key === period)?.label}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '8px' }}>
@@ -902,7 +903,7 @@ function BulkPrintModal({ residents, menus, onClose }) {
                   <div key={resident.id} className={`ticket ${idx > 0 ? 'pt-4 mt-4 border-t border-slate-100 dark:border-slate-800' : ''}`}>
                     <h2 className="text-slate-800 dark:text-slate-100">{resident.first_name} {resident.last_name}</h2>
                     <div className="sub">
-                      {[resident.room && `Room ${resident.room}`, resident.dining_location].filter(Boolean).join(' · ')}
+                      {[resident.room && residentPlace(resident), resident.dining_location].filter(Boolean).join(' · ')}
                       {' · '}{dateLabel}{' · '}{MEAL_PERIODS.find(m => m.key === period)?.label}
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '8px' }}>

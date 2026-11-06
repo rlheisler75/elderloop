@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { CAPPED_PLANS } from '../../lib/planModules'
 import LocationPickerButton, { fetchLocationPath } from '../../components/ui/LocationPickerButton'
+import { residentPlace, splitRoomBed, joinRoomBed } from '../../lib/residentPlace'
 import {
   Plus, X, Edit2, Trash2, Search, Printer, Phone,
   Mail, MapPin, User, Heart, Stethoscope, Calendar,
@@ -57,7 +58,7 @@ function PrintResidentCard({ resident, emergencyContacts, medicalContacts, orgNa
       </style></head>
       <body>
         <h2>${resident.first_name} ${resident.last_name}</h2>
-        <div class="sub">${orgName} · ${getCareLevel(resident.care_level).label}${resident.room ? ` · Room ${resident.room}` : ''}${resident.unit ? ` · Unit ${resident.unit}` : ''}</div>
+        <div class="sub">${orgName} · ${getCareLevel(resident.care_level).label}${resident.room || resident.unit ? ` · ${residentPlace(resident, { withUnit: true })}` : ''}</div>
         <div class="grid">
           <div>
             <div class="section">
@@ -114,7 +115,7 @@ function PrintResidentCard({ resident, emergencyContacts, medicalContacts, orgNa
             </div>
             <div>
               <div className="font-semibold text-slate-800 dark:text-slate-100">{resident.first_name} {resident.last_name}</div>
-              <div className="text-xs text-slate-400">{getCareLevel(resident.care_level).label}{resident.room ? ` · Room ${resident.room}` : ''}</div>
+              <div className="text-xs text-slate-400">{getCareLevel(resident.care_level).label}{resident.room ? ` · ${residentPlace(resident)}` : ''}</div>
             </div>
           </div>
           <div className="text-xs text-slate-500 space-y-1">
@@ -259,7 +260,8 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
     last_name:          resident?.last_name          || '',
     date_of_birth:      resident?.date_of_birth      || '',
     phone:              resident?.phone              || '',
-    room:               resident?.room               || '',
+    // Room and bed are saved together as "103-1", PointClickCare's room-bed
+    ...splitRoomBed(resident?.room || '', resident?.care_level || 'independent'),
     unit:               resident?.unit               || '',
     building:           resident?.building           || '',
     // Place in the Locations tree; new work orders fill it in when this resident is picked
@@ -328,8 +330,10 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
   const handleSaveInfo = async () => {
     if (!form.first_name.trim() || !form.last_name.trim()) { setError('First and last name required'); return }
     setSaving(true)
+    const { bed, ...fields } = form
     const payload = {
-      ...form,
+      ...fields,
+      room: joinRoomBed(form.room, bed, form.care_level),
       organization_id: profile.organization_id,
       date_of_birth:  form.date_of_birth  || null,
       admission_date: form.admission_date || null,
@@ -547,13 +551,32 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
                 <p className="text-xs text-slate-400 mt-1">Where this resident lives in the Locations list. New work orders fill it in when this resident is chosen.</p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {form.care_level === 'independent' ? (
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">House / Apt #</label>
+                    <input value={form.room} onChange={e => set('room', e.target.value)} placeholder="e.g. 36"
+                      className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-[1fr_5rem] gap-2">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Room</label>
+                      <input value={form.room} onChange={e => set('room', e.target.value)} placeholder="e.g. 103"
+                        className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Bed</label>
+                      <select value={form.bed} onChange={e => set('bed', e.target.value)} title="Saved as room-bed, e.g. 103-1, to match PCC"
+                        className="w-full px-2 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="">—</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Room</label>
-                  <input value={form.room} onChange={e => set('room', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Unit</label>
+                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">{form.care_level === 'independent' ? 'Street / Building' : 'Unit'}</label>
                   <input value={form.unit} onChange={e => set('unit', e.target.value)}
                     className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
                 </div>
@@ -1033,7 +1056,7 @@ export default function ResidentDirectory() {
                               )}
                             </div>
                             <div className="text-xs text-slate-400 mt-0.5">
-                              {[r.room && `Room ${r.room}`, r.unit && `Unit ${r.unit}`, age && `Age ${age}`].filter(Boolean).join(' · ')}
+                              {[residentPlace(r, { withUnit: true }), age && `Age ${age}`].filter(Boolean).join(' · ')}
                             </div>
                           </div>
                           <ChevronRight size={15} className="text-slate-300 group-hover:text-brand-400 flex-shrink-0 mt-1 transition-colors" />

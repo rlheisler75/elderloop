@@ -3,6 +3,8 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { useAiSection } from '../../hooks/useAiSection'
 import { Plus, X, Users, Loader2, AlertCircle, Check, ChevronDown, Calendar, Sparkles } from 'lucide-react'
+import { residentPlace } from '../../lib/residentPlace'
+import ResidentPicker from '../../components/ui/ResidentPicker'
 
 // Sections the AI organizer fills, in display order
 const AI_SECTIONS = [
@@ -114,11 +116,7 @@ function ConferenceModal({ residents, staff, orgId, conference, canWrite, onClos
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Resident *</label>
-              <select value={form.resident_id} onChange={e => set('resident_id', e.target.value)} disabled={readOnly}
-                className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100 disabled:bg-slate-50 dark:disabled:bg-slate-800">
-                <option value="">Select resident...</option>
-                {residents.map(r => <option key={r.id} value={r.id}>{r.first_name} {r.last_name} (Rm {r.room})</option>)}
-              </select>
+              <ResidentPicker residents={residents} value={form.resident_id} onChange={id => set('resident_id', id)} disabled={readOnly} />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Scheduled Date *</label>
@@ -276,10 +274,10 @@ export default function CareConferences({ canWrite }) {
     setLoading(true)
     const [{ data: conf }, { data: res }, { data: st }] = await Promise.all([
       supabase.from('ss_care_conferences')
-        .select('*, residents(first_name, last_name, room), facilitator:facilitated_by(first_name, last_name)')
+        .select('*, residents(first_name, last_name, room, care_level, unit), facilitator:facilitated_by(first_name, last_name)')
         .eq('organization_id', organization.id)
         .order('scheduled_date', { ascending: false }),
-      supabase.from('residents').select('id, first_name, last_name, room')
+      supabase.from('residents').select('id, first_name, last_name, room, care_level, unit')
         .eq('organization_id', organization.id).eq('is_active', true).order('last_name'),
       supabase.from('profiles').select('id, first_name, last_name')
         .eq('organization_id', organization.id).eq('is_active', true)
@@ -368,7 +366,7 @@ export default function CareConferences({ canWrite }) {
                       <span>Scheduled: {formatDate(conf.scheduled_date)}</span>
                       {conf.completed_date && <span>Completed: {formatDate(conf.completed_date)}</span>}
                       {conf.facilitator && <span>Facilitated by: {conf.facilitator.first_name} {conf.facilitator.last_name}</span>}
-                      {conf.residents?.room && <span>Room {conf.residents.room}</span>}
+                      {conf.residents?.room && <span>{residentPlace(conf.residents)}</span>}
                     </div>
                     {conf.summary && (
                       <p className="text-xs text-slate-400 mt-1 line-clamp-1">{conf.summary}</p>

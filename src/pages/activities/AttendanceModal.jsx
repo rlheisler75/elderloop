@@ -17,7 +17,7 @@ export default function AttendanceModal({ activity, orgId, onClose }) {
   async function fetchAll() {
     setLoading(true)
     const [residentsRes, attendanceRes, rsvpRes] = await Promise.all([
-      supabase.from('residents').select('id, first_name, last_name, room').eq('organization_id', orgId).eq('is_active', true).order('last_name'),
+      supabase.from('residents').select('id, first_name, last_name, room, care_level, unit').eq('organization_id', orgId).eq('is_active', true).order('last_name'),
       supabase.from('activity_attendance').select('resident_id').eq('activity_id', activity.id).eq('occurrence_date', activity._date),
       supabase.from('activity_rsvps').select('resident_id').eq('activity_id', activity.id).eq('occurrence_date', activity._date),
     ])

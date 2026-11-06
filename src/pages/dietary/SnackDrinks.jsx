@@ -4,6 +4,7 @@
 // Cook's Count and the meal tickets so counts never drift from what a
 // resident actually receives.
 import { useState, useEffect, useRef } from 'react'
+import { residentPlace } from '../../lib/residentPlace'
 import { calcCycleDay, fetchMealCourses, resolveMealItem } from './mealResolution'
 import { Printer, Coffee } from 'lucide-react'
 
@@ -180,7 +181,7 @@ export default function SnackDrinks({ residents, menus, ALLERGENS, getDiet, getC
               return (
                 <div key={resident.id} className="label border border-slate-100 dark:border-slate-800 rounded-xl p-3">
                   <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">{resident.first_name} {resident.last_name}</h3>
-                  <div className="sub text-xs text-slate-400 mb-1.5">Room {resident.room || '—'}</div>
+                  <div className="sub text-xs text-slate-400 mb-1.5">{residentPlace(resident) || '—'}</div>
                   <div className="flex flex-wrap gap-1 mb-2">
                     <span className="badge diet inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-sky-100 text-sky-700 dark:bg-sky-950/50 dark:text-sky-400">{getDiet(resident.diet_type)}</span>
                     <span className="badge cons inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">{getCons(resident.consistency)}</span>

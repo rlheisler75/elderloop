@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
+import { residentPlace } from '../../lib/residentPlace'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import ResidentPicker from '../../components/ui/ResidentPicker'
 import { Plus, X, Users, MapPin, CalendarClock, Check, Loader2, AlertCircle,
          Utensils, Heart, PartyPopper, MoreHorizontal, Ban, ChevronDown } from 'lucide-react'
 
@@ -116,10 +118,7 @@ export function ServiceRequestModal({ orgId, residents = [], onClose, onSaved })
           {residents.length > 0 && (
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Resident (optional)</label>
-              <select value={form.resident_id} onChange={e => set('resident_id', e.target.value)} className={inputCls}>
-                <option value="">Not tied to a specific resident</option>
-                {residents.map(r => <option key={r.id} value={r.id}>{r.first_name} {r.last_name} — Room {r.room}</option>)}
-              </select>
+              <ResidentPicker residents={residents} value={form.resident_id} onChange={id => set('resident_id', id)} noneLabel="Not tied to a specific resident" />
             </div>
           )}
 
@@ -186,7 +185,7 @@ export default function ServiceRequests({ orgId, canManage }) {
         .select('*, requester:requested_by(first_name,last_name), resident:resident_id(first_name,last_name,room)')
         .eq('organization_id', orgId)
         .order('needed_date', { ascending: true }),
-      supabase.from('residents').select('id, first_name, last_name, room')
+      supabase.from('residents').select('id, first_name, last_name, room, care_level, unit')
         .eq('organization_id', orgId).eq('is_active', true).order('last_name'),
     ])
     setRequests(reqs || [])

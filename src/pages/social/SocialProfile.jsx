@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { residentPlace } from '../../lib/residentPlace'
 import CareLevelFilter, { matchesCareLevel } from '../../components/ui/CareLevelFilter'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
@@ -307,7 +308,7 @@ export default function SocialProfile({ canWrite }) {
     setLoading(true)
     const [{ data }, { data: staffData }, { data: profilesData }] = await Promise.all([
       supabase.from('residents')
-        .select('id, first_name, last_name, room, care_level')
+        .select('id, first_name, last_name, room, unit, care_level')
         .eq('organization_id', organization.id)
         .eq('is_active', true)
         .order('last_name'),
@@ -392,7 +393,7 @@ export default function SocialProfile({ canWrite }) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-medium text-slate-800 dark:text-slate-100 text-sm truncate">{r.first_name} {r.last_name}</div>
-                  <div className="text-xs text-slate-400">Room {r.room}</div>
+                  <div className="text-xs text-slate-400">{residentPlace(r)}</div>
                 </div>
                 {badge && (
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${badge.color}`}>{badge.label}</span>
@@ -427,7 +428,7 @@ export default function SocialProfile({ canWrite }) {
               <div>
                 <h2 className="font-display font-bold text-slate-800 dark:text-slate-100 text-lg">{selected.first_name} {selected.last_name}</h2>
                 <div className="flex items-center gap-2 mt-0.5">
-                  <span className="text-xs text-slate-400">Room {selected.room}</span>
+                  <span className="text-xs text-slate-400">{residentPlace(selected)}</span>
                   {selected.care_level && (
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${CARE_COLORS[selected.care_level] || 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>
                       {CARE_LABELS[selected.care_level] || selected.care_level.replace(/_/g, ' ')}

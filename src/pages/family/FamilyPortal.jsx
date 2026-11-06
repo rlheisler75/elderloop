@@ -6,6 +6,7 @@ import UserProfileModal from '../../components/UserProfileModal'
 import FeedbackModal from '../../components/FeedbackModal'
 import MealOrderModal, { MEAL_TYPES, MEAL_STATUS } from '../../components/MealOrderModal'
 import RSVPButton from '../../components/RSVPButton'
+import { residentPlace } from '../../lib/residentPlace'
 import {
   Heart, Bell, MessageSquare, CalendarDays, ChevronRight,
   Plus, X, Send, Star, Activity, ArrowLeft, LogOut, LifeBuoy,
@@ -157,7 +158,7 @@ function MaintenanceModal({ resident, orgId, profile, onClose, onSubmitted }) {
           <div>
             <h2 className="font-semibold text-slate-800 dark:text-slate-100 text-base">Maintenance Request</h2>
             <p className="text-xs text-slate-400 mt-0.5">
-              For {resident.first_name} {resident.last_name} · Room {resident.room || resident.unit || 'N/A'}
+              For {resident.first_name} {resident.last_name} · {residentPlace(resident, { withUnit: true }) || 'N/A'}
             </p>
           </div>
           <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
@@ -445,7 +446,7 @@ function ProfileTab({ resident, emergencyContacts, medicalContacts, link }) {
             {resident.room && (
               <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
                 <Home size={13} className="text-slate-400 flex-shrink-0" />
-                <span>Room {resident.room}{resident.building ? ` · ${resident.building}` : ''}</span>
+                <span>{residentPlace(resident)}{resident.building ? ` · ${resident.building}` : ''}</span>
               </div>
             )}
             {resident.date_of_birth && (
@@ -1095,7 +1096,7 @@ export default function FamilyPortal() {
                 {selectedResident.first_name} {selectedResident.last_name}
               </div>
               <div className="text-xs text-slate-400 mt-0.5 flex items-center gap-1.5 flex-wrap">
-                {selectedResident.room && <span>Room {selectedResident.room}</span>}
+                {selectedResident.room && <span>{residentPlace(selectedResident)}</span>}
                 {selectedResident.care_level && (
                   <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${CARE_LEVEL_COLORS[selectedResident.care_level] || 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'}`}>
                     {CARE_LEVEL_LABELS[selectedResident.care_level] || selectedResident.care_level}

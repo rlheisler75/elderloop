@@ -7,6 +7,7 @@ import { X, Mail, MessageSquare, Bell, ChevronDown, ChevronUp, Send, Loader2,
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import AiMessageWriter from './AiMessageWriter'
+import { residentPlace } from '../../lib/residentPlace'
 
 const CATEGORIES = [
   { key: 'general',   label: 'General',   icon: Megaphone,       color: 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700' },
@@ -124,7 +125,7 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
     // Residents are in a separate table
     const { data: resData } = await supabase
       .from('residents')
-      .select('id, first_name, last_name, phone, unit, room, sms_opt_in')
+      .select('id, first_name, last_name, phone, unit, room, care_level, sms_opt_in')
       .eq('organization_id', organization.id)
       .eq('is_active', true)
       .order('last_name')
@@ -167,7 +168,7 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
 
   function getFilteredPeople() {
     const allPeople = [
-      ...residentList.map(r => ({ ...r, _typeLabel: `Resident${r.unit ? ` · Rm ${r.unit}` : r.room ? ` · Rm ${r.room}` : ''}` })),
+      ...residentList.map(r => ({ ...r, _typeLabel: `Resident${r.room || r.unit ? ` · ${residentPlace(r, { withUnit: true })}` : ''}` })),
       ...familyList.map(p  => ({ ...p, _typeLabel: ROLE_LABELS[p.role] || p.role })),
       ...staffList.map(p   => ({ ...p, _typeLabel: ROLE_LABELS[p.role] || p.role })),
     ]

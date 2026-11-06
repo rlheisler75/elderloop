@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { residentPlace } from '../../lib/residentPlace'
 import useListNav from '../../hooks/useListNav'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
@@ -332,7 +333,7 @@ function ResidentLookup({ residents, value, onChange, disabled, inputCls }) {
             <button key={r.id} type="button" onMouseDown={() => handleSelect(r)} {...nav.rowProps(i)}
               className={`w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 border-b border-slate-50 dark:border-slate-800 last:border-0 text-left ${nav.isActive(i) ? 'bg-brand-50 dark:bg-slate-800' : ''}`}>
               <span className="text-sm font-medium text-slate-800 dark:text-slate-100">{r.first_name} {r.last_name}</span>
-              {r.room && <span className="text-xs text-slate-400">Room {r.room}</span>}
+              {r.room && <span className="text-xs text-slate-400">{residentPlace(r)}</span>}
             </button>
           ))}
           {filtered.length === 0 && (
@@ -692,7 +693,7 @@ export default function IncidentReports() {
         .eq('organization_id', organization.id)
         .eq('is_active', true)
         .order('created_at', { ascending: false }),
-      supabase.from('residents').select('id,first_name,last_name,room')
+      supabase.from('residents').select('id,first_name,last_name,room,care_level,unit')
         .eq('organization_id', organization.id).eq('is_active', true).order('last_name'),
     ])
     setReports(repsRes.data || [])

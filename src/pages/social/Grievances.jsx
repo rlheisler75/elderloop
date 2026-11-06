@@ -6,6 +6,7 @@ import { Plus, X, AlertTriangle, Search, Loader2, AlertCircle,
          ChevronDown, Check, Flag } from 'lucide-react'
 import { SOCIAL_STATE_REFS } from '../../lib/socialStateRefs'
 import RegRefBanner from '../../components/ui/RegRefBanner'
+import ResidentPicker from '../../components/ui/ResidentPicker'
 
 const CATEGORIES = [
   { key: 'care_quality',  label: 'Care Quality'   },
@@ -141,11 +142,7 @@ function GrievanceModal({ residents, staff, orgId, grievance, canWrite, onClose,
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Resident (if applicable)</label>
-              <select value={form.resident_id} onChange={e => set('resident_id', e.target.value)} disabled={readOnly}
-                className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100 disabled:bg-slate-50 dark:disabled:bg-slate-800">
-                <option value="">— Not resident-specific —</option>
-                {residents.map(r => <option key={r.id} value={r.id}>{r.first_name} {r.last_name} (Rm {r.room})</option>)}
-              </select>
+              <ResidentPicker residents={residents} value={form.resident_id} onChange={id => set('resident_id', id)} disabled={readOnly} noneLabel="— Not resident-specific —" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Priority *</label>
@@ -328,10 +325,10 @@ export default function Grievances({ canWrite }) {
     setLoading(true)
     const [{ data: g }, { data: res }, { data: st }] = await Promise.all([
       supabase.from('ss_grievances')
-        .select('*, residents(first_name, last_name, room), filed:filed_by(first_name, last_name), assigned:assigned_to(first_name, last_name)')
+        .select('*, residents(first_name, last_name, room, care_level, unit), filed:filed_by(first_name, last_name), assigned:assigned_to(first_name, last_name)')
         .eq('organization_id', organization.id).eq('is_active', true)
         .order('filed_at', { ascending: false }),
-      supabase.from('residents').select('id, first_name, last_name, room')
+      supabase.from('residents').select('id, first_name, last_name, room, care_level, unit')
         .eq('organization_id', organization.id).eq('is_active', true).order('last_name'),
       supabase.from('profiles').select('id, first_name, last_name')
         .eq('organization_id', organization.id).eq('is_active', true)

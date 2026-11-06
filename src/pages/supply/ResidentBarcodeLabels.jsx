@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import QRCode from 'qrcode'
 import { X, Printer, User, Search, CheckSquare, Square, AlertCircle } from 'lucide-react'
+import { residentPlace } from '../../lib/residentPlace'
 
 const LABEL_SIZES = [
   { key: 'badge',  label: 'ID Badge  3.5" × 2.25"', cols: 2, w: '3.5in', h: '2.25in', qr: 110, fontSize: 11 },
@@ -46,7 +47,7 @@ function ResidentLabel({ resident, qrDataUrl, orgName, size }) {
       {/* Room */}
       {resident.room && (
         <div style={{ fontSize: s.fontSize - 1, color: '#555' }}>
-          Room {resident.room}
+          {residentPlace(resident)}
         </div>
       )}
       {/* Barcode value small text */}
@@ -75,7 +76,7 @@ export default function ResidentBarcodeLabels({ onClose }) {
 
   async function fetchResidents() {
     const { data } = await supabase.from('residents')
-      .select('id, first_name, last_name, room, barcode')
+      .select('id, first_name, last_name, room, care_level, unit, barcode')
       .eq('organization_id', organization.id)
       .eq('is_active', true)
       .order('last_name')
@@ -154,7 +155,7 @@ export default function ResidentBarcodeLabels({ onClose }) {
           <div style="font-size:${s.fontSize - 3}px;color:#1e3a5f;font-weight:600;letter-spacing:1px;text-transform:uppercase;">${organization.name}</div>
           ${qr ? `<img src="${qr}" style="width:${s.qr}px;height:${s.qr}px;display:block;" />` : `<div style="width:${s.qr}px;height:${s.qr}px;background:#f0f0f0;border-radius:4px;"></div>`}
           <div style="font-weight:700;font-size:${s.fontSize + 1}px;line-height:1.2;color:#111;">${name}</div>
-          ${r.room ? `<div style="font-size:${s.fontSize - 1}px;color:#555;">Room ${r.room}</div>` : ''}
+          ${r.room ? `<div style="font-size:${s.fontSize - 1}px;color:#555;">${residentPlace(r)}</div>` : ''}
           ${r.barcode ? `<div style="font-size:${s.fontSize - 3}px;color:#aaa;font-family:monospace;">${r.barcode}</div>` : ''}
         </div>
       `
@@ -228,7 +229,7 @@ export default function ResidentBarcodeLabels({ onClose }) {
                     <div className="min-w-0">
                       <div className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">{r.first_name} {r.last_name}</div>
                       <div className="flex items-center gap-1">
-                        {r.room && <span className="text-xs text-slate-400">Room {r.room}</span>}
+                        {r.room && <span className="text-xs text-slate-400">{residentPlace(r)}</span>}
                         {!r.barcode && <span className="text-xs text-amber-500">No barcode</span>}
                       </div>
                     </div>

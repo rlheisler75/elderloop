@@ -4,6 +4,7 @@
 // Multiple dining rooms are supported (e.g. Main Dining Room, Memory Care).
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
+import { residentPlace } from '../../lib/residentPlace'
 import {
   Armchair, Plus, X, Edit2, Trash2, Printer, ChevronDown, ChevronUp, Home, Coffee, Utensils, StickyNote
 } from 'lucide-react'
@@ -172,7 +173,7 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
       supabase.from('dining_rooms').select('*').eq('organization_id', orgId).eq('is_active', true).order('name'),
       supabase.from('dining_tables').select('*').eq('organization_id', orgId).order('sort_order'),
       supabase.from('dining_seat_assignments').select('*').eq('organization_id', orgId),
-      supabase.from('residents').select('id, first_name, last_name, room').eq('organization_id', orgId).eq('is_active', true).order('last_name'),
+      supabase.from('residents').select('id, first_name, last_name, room, care_level, unit').eq('organization_id', orgId).eq('is_active', true).order('last_name'),
       supabase.from('resident_meal_preferences').select('*').eq('organization_id', orgId),
     ])
     setRooms(roomsRes.data || [])
@@ -465,7 +466,7 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
                             <select value={assignment?.resident_id || ''} onChange={e => handleAssignSeat(table.id, seatNum, e.target.value)}
                               className="flex-1 px-2 py-1 border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
                               <option value="">— empty —</option>
-                              {allResidents.map(r => <option key={r.id} value={r.id}>{r.first_name} {r.last_name} {r.room ? `(Rm ${r.room})` : ''}</option>)}
+                              {allResidents.map(r => <option key={r.id} value={r.id}>{r.first_name} {r.last_name} {r.room ? `(${residentPlace(r)})` : ''}</option>)}
                             </select>
                           )}
                           {/* Plain-text resident name: hidden on-page when the select

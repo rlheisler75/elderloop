@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { MEAL_TYPES, MEAL_STATUS } from '../../components/MealOrderModal'
 import { UtensilsCrossed, Clock, ChevronRight } from 'lucide-react'
+import { residentPlace } from '../../lib/residentPlace'
 
 const STATUS_FLOW = { pending: 'preparing', preparing: 'delivered' }
 const STATUS_ORDER = ['pending', 'preparing', 'delivered', 'cancelled']
@@ -31,7 +32,7 @@ export default function MealOrders({ orgId, canManage }) {
     // submitter isn't looked up the same way).
     const residentIds = [...new Set(list.map(o => o.resident_id).filter(Boolean))]
     const residentsRes = residentIds.length > 0
-      ? await supabase.from('residents').select('id, first_name, last_name, room').in('id', residentIds)
+      ? await supabase.from('residents').select('id, first_name, last_name, room, care_level, unit').in('id', residentIds)
       : { data: [] }
     setResidentNames(new Map((residentsRes.data || []).map(r => [r.id, r])))
     setLoading(false)
@@ -107,7 +108,7 @@ export default function MealOrders({ orgId, canManage }) {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                        {resident ? `${resident.first_name} ${resident.last_name}` : 'Unknown resident'}{resident?.room ? ` — Room ${resident.room}` : ''}
+                        {resident ? `${resident.first_name} ${resident.last_name}` : 'Unknown resident'}{resident?.room ? ` — ${residentPlace(resident)}` : ''}
                       </span>
                       <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${st.bg} ${st.color}`}>{st.label}</span>
                     </div>

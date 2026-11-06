@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { useAiSection } from '../../hooks/useAiSection'
+import ResidentPicker from '../../components/ui/ResidentPicker'
 import { Plus, X, Target, Search, Loader2, AlertCircle, Check,
          Heart, Users, Home, Brain, Sparkles, MoreHorizontal, ChevronDown, CalendarClock } from 'lucide-react'
 
@@ -124,10 +125,7 @@ function GoalModal({ goal, residents, orgId, canWrite, onClose, onSaved }) {
 
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Resident *</label>
-            <select value={form.resident_id} onChange={e => set('resident_id', e.target.value)} disabled={readOnly} className={inputCls}>
-              <option value="">Select resident...</option>
-              {residents.map(r => <option key={r.id} value={r.id}>{r.first_name} {r.last_name} (Rm {r.room})</option>)}
-            </select>
+            <ResidentPicker residents={residents} value={form.resident_id} onChange={id => set('resident_id', id)} disabled={readOnly} />
 
             {isNew && aiEnabled && !readOnly && (
               <div className="mt-2">
@@ -256,11 +254,11 @@ export default function Goals({ canWrite }) {
     setLoading(true)
     const [{ data: g }, { data: res }] = await Promise.all([
       supabase.from('ss_goals')
-        .select('*, residents(first_name, last_name, room), author:created_by(first_name, last_name)')
+        .select('*, residents(first_name, last_name, room, care_level, unit), author:created_by(first_name, last_name)')
         .eq('organization_id', organization.id)
         .order('target_date', { ascending: true, nullsFirst: false })
         .limit(300),
-      supabase.from('residents').select('id, first_name, last_name, room')
+      supabase.from('residents').select('id, first_name, last_name, room, care_level, unit')
         .eq('organization_id', organization.id).eq('is_active', true).order('last_name'),
     ])
     setGoals(g || [])
@@ -310,11 +308,7 @@ export default function Goals({ canWrite }) {
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search goals..."
             className="pl-9 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500 w-48" />
         </div>
-        <select value={residentFilter} onChange={e => setResidentFilter(e.target.value)}
-          className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500">
-          <option value="">All Residents</option>
-          {residents.map(r => <option key={r.id} value={r.id}>{r.first_name} {r.last_name}</option>)}
-        </select>
+        <div className="w-64"><ResidentPicker residents={residents} value={residentFilter} onChange={id => setResidentFilter(id)} placeholder="Filter by resident (all)…" /></div>
         <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
           className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500">
           <option value="active">Active (not started / in progress)</option>

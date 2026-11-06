@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useSocialServicesAccess } from '../../hooks/useSocialServicesAccess'
 import { useAiSection } from '../../hooks/useAiSection'
 import { daysUntil } from '../../lib/dates'
+import ResidentPicker from '../../components/ui/ResidentPicker'
 import { Plus, X, ClipboardList, Search, Loader2, AlertCircle, Check,
          Phone, Users, Mail, MessageSquare, ChevronDown, ShieldCheck, Sparkles } from 'lucide-react'
 
@@ -112,10 +113,7 @@ function CaseNoteModal({ note, residents, orgId, canWrite, onClose, onSaved }) {
 
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Resident *</label>
-            <select value={form.resident_id} onChange={e => set('resident_id', e.target.value)} disabled={readOnly} className={inputCls}>
-              <option value="">Select resident...</option>
-              {residents.map(r => <option key={r.id} value={r.id}>{r.first_name} {r.last_name} (Rm {r.room})</option>)}
-            </select>
+            <ResidentPicker residents={residents} value={form.resident_id} onChange={id => set('resident_id', id)} disabled={readOnly} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -250,11 +248,11 @@ export default function CaseNotes({ canWrite }) {
     setLoading(true)
     const [{ data: n }, { data: res }] = await Promise.all([
       supabase.from('ss_case_notes')
-        .select('*, residents(first_name, last_name, room), author:created_by(first_name, last_name)')
+        .select('*, residents(first_name, last_name, room, care_level, unit), author:created_by(first_name, last_name)')
         .eq('organization_id', organization.id)
         .order('contact_date', { ascending: false })
         .limit(200),
-      supabase.from('residents').select('id, first_name, last_name, room')
+      supabase.from('residents').select('id, first_name, last_name, room, care_level, unit')
         .eq('organization_id', organization.id).eq('is_active', true).order('last_name'),
     ])
     setNotes(n || [])
@@ -302,11 +300,7 @@ export default function CaseNotes({ canWrite }) {
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search notes..."
             className="pl-9 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500 w-48" />
         </div>
-        <select value={residentFilter} onChange={e => setResidentFilter(e.target.value)}
-          className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500">
-          <option value="">All Residents</option>
-          {residents.map(r => <option key={r.id} value={r.id}>{r.first_name} {r.last_name}</option>)}
-        </select>
+        <div className="w-64"><ResidentPicker residents={residents} value={residentFilter} onChange={id => setResidentFilter(id)} placeholder="Filter by resident (all)…" /></div>
         <button onClick={() => setFollowUpOnly(f => !f)}
           className={`px-3 py-2 rounded-xl text-sm font-medium border transition-all ${followUpOnly ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900' : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-300 border-slate-200 dark:border-slate-700'}`}>
           Follow-ups only

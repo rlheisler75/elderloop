@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { residentPlace } from '../../lib/residentPlace'
 import CareLevelFilter, { matchesCareLevel } from '../../components/ui/CareLevelFilter'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
@@ -656,7 +657,7 @@ function ResidentPanel({ resident, orgId, profile, canEdit, canEditAll = true, c
           </div>
           <div>
             <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">{resident.first_name} {resident.last_name}</h2>
-            <p className="text-xs text-slate-400 capitalize">{resident.care_level?.replace('_',' ')} · Room {resident.room || '—'}</p>
+            <p className="text-xs text-slate-400 capitalize">{resident.care_level?.replace('_',' ')} · {residentPlace(resident) || '—'}</p>
           </div>
         </div>
 
@@ -999,7 +1000,7 @@ export default function NursingNotes() {
     const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
     const endOfDay   = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999).toISOString()
     const [resRes, statsRes] = await Promise.all([
-      supabase.from('residents').select('id,first_name,last_name,room,care_level,is_active')
+      supabase.from('residents').select('id,first_name,last_name,room,unit,care_level,is_active')
         .eq('organization_id', organization.id).eq('is_active', true)
         .order('last_name').order('first_name'),
       Promise.all([
@@ -1072,7 +1073,7 @@ export default function NursingNotes() {
                   {r.first_name} {r.last_name}
                 </div>
                 <div className={`text-xs truncate capitalize ${selected?.id === r.id ? 'text-brand-200' : 'text-slate-400'}`}>
-                  {r.room ? `Room ${r.room} · ` : ''}{r.care_level?.replace('_',' ')}
+                  {r.room ? `${residentPlace(r)} · ` : ''}{r.care_level?.replace('_',' ')}
                 </div>
               </div>
             </button>

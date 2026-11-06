@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { TripRequestModal, TripRequestList } from '../../components/transportation/TripRequests'
 import { daysUntil } from '../../lib/dates'
+import { residentPlace } from '../../lib/residentPlace'
 
 // ── Helpers ───────────────────────────────────────────────────
 const relativeTime = (iso) => {
@@ -99,7 +100,7 @@ function MaintenanceModal({ resident, profile, orgId, onClose, onSaved }) {
           resident_id: resident.id,
           unit: resident.unit || resident.room,
           building: resident.building || null,
-          location_detail: `Room ${resident.room || resident.unit}`,
+          location_detail: residentPlace(resident, { withUnit: true }),
           submitted_by: profile.id,
           submitted_by_name: `${profile.first_name} ${profile.last_name} (Resident)`,
           source: 'resident',
@@ -114,7 +115,7 @@ function MaintenanceModal({ resident, profile, orgId, onClose, onSaved }) {
         <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div>
             <h2 className="font-semibold text-slate-800 dark:text-slate-100">Maintenance Request</h2>
-            <p className="text-xs text-slate-400 mt-0.5">Room {resident?.room || resident?.unit || 'N/A'}</p>
+            <p className="text-xs text-slate-400 mt-0.5">{residentPlace(resident, { withUnit: true }) || 'N/A'}</p>
           </div>
           <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"><X size={18} /></button>
         </div>
@@ -505,7 +506,7 @@ export default function ResidentPortal() {
           {resident && (
             <div className="flex items-center gap-2 mt-1 text-sm text-slate-500 dark:text-slate-400">
               <MapPin size={13} className="text-slate-400" />
-              <span>Room {resident.room || resident.unit}</span>
+              <span>{residentPlace(resident, { withUnit: true })}</span>
               {liveService && (
                 <>
                   <span className="text-slate-300 dark:text-slate-600">·</span>

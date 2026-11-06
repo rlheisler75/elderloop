@@ -6,6 +6,7 @@ import { Plus, X, LogOut, Search, Loader2, AlertCircle, Check,
 import { SOCIAL_STATE_REFS } from '../../lib/socialStateRefs'
 import RegRefBanner from '../../components/ui/RegRefBanner'
 import { daysUntil } from '../../lib/dates'
+import ResidentPicker from '../../components/ui/ResidentPicker'
 
 const STATUSES = [
   { key: 'planning',  label: 'Planning',  light: 'bg-slate-100 text-slate-600',       dark: 'dark:bg-slate-800 dark:text-slate-300' },
@@ -113,10 +114,7 @@ function DischargeModal({ plan, residents, orgId, canWrite, onClose, onSaved }) 
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Resident *</label>
-              <select value={form.resident_id} onChange={e => set('resident_id', e.target.value)} disabled={readOnly} className={inputCls}>
-                <option value="">Select resident...</option>
-                {residents.map(r => <option key={r.id} value={r.id}>{r.first_name} {r.last_name} (Rm {r.room})</option>)}
-              </select>
+              <ResidentPicker residents={residents} value={form.resident_id} onChange={id => set('resident_id', id)} disabled={readOnly} />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Status</label>
@@ -234,10 +232,10 @@ export default function DischargePlanning({ canWrite }) {
     setLoading(true)
     const [{ data: p }, { data: res }] = await Promise.all([
       supabase.from('ss_discharge_plans')
-        .select('*, residents(first_name, last_name, room)')
+        .select('*, residents(first_name, last_name, room, care_level, unit)')
         .eq('organization_id', organization.id)
         .order('anticipated_discharge_date', { ascending: true, nullsFirst: false }),
-      supabase.from('residents').select('id, first_name, last_name, room')
+      supabase.from('residents').select('id, first_name, last_name, room, care_level, unit')
         .eq('organization_id', organization.id).eq('is_active', true).order('last_name'),
     ])
     setPlans(p || [])

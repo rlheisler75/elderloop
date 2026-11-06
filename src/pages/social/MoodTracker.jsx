@@ -3,6 +3,7 @@ import CareLevelFilter, { matchesCareLevel } from '../../components/ui/CareLevel
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { Plus, Search, Filter, Loader2, AlertCircle, ChevronDown, X, Check } from 'lucide-react'
+import { residentPlace } from '../../lib/residentPlace'
 
 const MOODS = [
   { key: 'happy',     label: 'Happy',     emoji: '😊', color: 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900'  },
@@ -100,7 +101,7 @@ function QuickLogModal({ residents, orgId, onClose, onSaved }) {
                     </div>
                     <div>
                       <div className="font-medium text-slate-800 dark:text-slate-100 text-sm">{r.first_name} {r.last_name}</div>
-                      <div className="text-xs text-slate-400">Room {r.room}</div>
+                      <div className="text-xs text-slate-400">{residentPlace(r)}</div>
                     </div>
                   </button>
                 ))}
@@ -117,7 +118,7 @@ function QuickLogModal({ residents, orgId, onClose, onSaved }) {
                 </div>
                 <div>
                   <div className="font-semibold text-slate-800 dark:text-slate-100">{selectedResident?.first_name} {selectedResident?.last_name}</div>
-                  <div className="text-xs text-slate-400">Room {selectedResident?.room}</div>
+                  <div className="text-xs text-slate-400">{residentPlace(selectedResident)}</div>
                 </div>
               </div>
 
@@ -277,10 +278,10 @@ export default function MoodTracker({ canWrite }) {
   async function fetchAll() {
     setLoading(true)
     const [{ data: res }, { data: logs }] = await Promise.all([
-      supabase.from('residents').select('id, first_name, last_name, room, care_level')
+      supabase.from('residents').select('id, first_name, last_name, room, unit, care_level')
         .eq('organization_id', organization.id).eq('is_active', true).order('last_name'),
       supabase.from('ss_mood_logs')
-        .select('*, residents(first_name, last_name, room), profiles:logged_by(first_name, last_name)')
+        .select('*, residents(first_name, last_name, room, care_level, unit), profiles:logged_by(first_name, last_name)')
         .eq('organization_id', organization.id)
         .order('logged_at', { ascending: false })
         .limit(100)
@@ -365,7 +366,7 @@ export default function MoodTracker({ canWrite }) {
                 <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
                   <td className="px-4 py-3">
                     <div className="font-medium text-slate-800 dark:text-slate-100 text-sm">{log.residents?.first_name} {log.residents?.last_name}</div>
-                    <div className="text-xs text-slate-400">Room {log.residents?.room}</div>
+                    <div className="text-xs text-slate-400">{residentPlace(log.residents)}</div>
                   </td>
                   <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400">
                     <div>{formatDate(log.logged_at)}</div>

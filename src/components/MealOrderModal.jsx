@@ -4,6 +4,7 @@
 // from ResidentPortal.jsx (the original, resident-only implementation) so
 // both portals stay in sync rather than drifting apart.
 import { useState } from 'react'
+import { residentPlace } from '../lib/residentPlace'
 import { supabase } from '../lib/supabase'
 import { X, Send, UtensilsCrossed, Coffee, Soup, Cookie } from 'lucide-react'
 
@@ -59,7 +60,7 @@ export default function MealOrderModal({ resident, profile, orgId, onClose, onSa
           <div>
             <h2 className="font-semibold text-slate-800 dark:text-slate-100">Order Meal Delivery</h2>
             <p className="text-xs text-slate-400 mt-0.5">
-              {resident?.first_name ? `${resident.first_name} ${resident.last_name} · ` : ''}Room {resident?.room || resident?.unit || 'N/A'}
+              {resident?.first_name ? `${resident.first_name} ${resident.last_name} · ` : ''}{residentPlace(resident, { withUnit: true }) || 'N/A'}
             </p>
           </div>
           <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"><X size={18} /></button>

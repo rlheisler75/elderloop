@@ -11,6 +11,8 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
 import { ClipboardCheck, Plus, X, Check, XCircle } from 'lucide-react'
+import { residentPlace } from '../../lib/residentPlace'
+import ResidentPicker from '../../components/ui/ResidentPicker'
 
 // Must match the diet_type / consistency_level Postgres enums exactly — same
 // lists duplicated (by established convention in this codebase) in
@@ -130,10 +132,7 @@ function LogOrderModal({ orgId, profile, allResidents, onClose, onSaved }) {
 
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Resident</label>
-            <select value={residentId} onChange={e => setResidentId(e.target.value)} className={inputCls}>
-              <option value="">Select a resident...</option>
-              {allResidents.map(r => <option key={r.id} value={r.id}>{r.first_name} {r.last_name}{r.room ? ` (Rm ${r.room})` : ''}</option>)}
-            </select>
+            <ResidentPicker residents={allResidents} value={residentId} onChange={id => setResidentId(id)} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -249,7 +248,7 @@ export default function PhysicianOrders({ orgId, canManage }) {
     setLoading(true)
     const [ordersRes, residentsRes] = await Promise.all([
       supabase.from('physician_diet_orders').select('*').eq('organization_id', orgId).order('created_at', { ascending: false }),
-      supabase.from('residents').select('id, first_name, last_name, room').eq('organization_id', orgId).eq('is_active', true).order('last_name'),
+      supabase.from('residents').select('id, first_name, last_name, room, care_level, unit').eq('organization_id', orgId).eq('is_active', true).order('last_name'),
     ])
     setOrders(ordersRes.data || [])
     setAllResidents(residentsRes.data || [])

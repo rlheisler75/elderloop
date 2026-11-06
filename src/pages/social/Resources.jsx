@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import ResidentPicker from '../../components/ui/ResidentPicker'
 import { Plus, X, BookOpen, Search, Loader2, AlertCircle, Check,
          Phone, Mail, Globe, MapPin, Send, ChevronDown, ExternalLink } from 'lucide-react'
 
@@ -253,10 +254,7 @@ function ReferralModal({ referral, prefillResourceId, residents, resources, orgI
 
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Resident *</label>
-            <select value={form.resident_id} onChange={e => set('resident_id', e.target.value)} disabled={readOnly} className={inputCls}>
-              <option value="">Select resident...</option>
-              {residents.map(r => <option key={r.id} value={r.id}>{r.first_name} {r.last_name} (Rm {r.room})</option>)}
-            </select>
+            <ResidentPicker residents={residents} value={form.resident_id} onChange={id => set('resident_id', id)} disabled={readOnly} />
           </div>
 
           <div>
@@ -348,9 +346,9 @@ export default function Resources({ canWrite }) {
     const [{ data: res }, { data: refs }, { data: residentsData }] = await Promise.all([
       supabase.from('ss_resources').select('*').eq('organization_id', organization.id).eq('is_active', true).order('name'),
       supabase.from('ss_referrals')
-        .select('*, residents(first_name, last_name, room), resource:ss_resources(name, category)')
+        .select('*, residents(first_name, last_name, room, care_level, unit), resource:ss_resources(name, category)')
         .eq('organization_id', organization.id).order('referred_at', { ascending: false }),
-      supabase.from('residents').select('id, first_name, last_name, room')
+      supabase.from('residents').select('id, first_name, last_name, room, care_level, unit')
         .eq('organization_id', organization.id).eq('is_active', true).order('last_name'),
     ])
     setResources(res || [])
