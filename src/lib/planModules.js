@@ -5,7 +5,7 @@
 // Only Starter is restricted — Essential, Plus, Professional, pilot, and any other plan
 // get every module (Essential, Plus, and Professional differ only in resident/staff caps).
 const PLAN_MODULE_KEYS = {
-  starter: ['directory', 'staff', 'communication', 'family'],
+  starter: ['directory', 'staff', 'communication', 'family', 'education'],
 }
 
 export function planAllowsModule(plan, moduleKey) {

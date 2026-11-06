@@ -16,13 +16,13 @@ const respond = (data: object, status = 200) =>
 // PLAN_MODULE_KEYS in api/webhook.js. Essential, Plus, and Professional all get every
 // module; they differ only in resident/staff caps (PLAN_LIMITS below).
 const ALL_MODULES = [
-  'activities','central_supply','chapel','communication','dietary','directory',
+  'activities','central_supply','chapel','communication','dietary','directory','education',
   'family','housekeeping','incidents','it','marketing','meters','nursing',
   'property_management','scheduling','security','social_services','staff',
   'surveys','timeclock','transportation','work_orders'
 ]
 const PLAN_MODULE_KEYS: Record<string, string[]> = {
-  starter:      ['directory', 'staff', 'communication', 'family'],
+  starter:      ['directory', 'staff', 'communication', 'family', 'education'],
   essential:    ALL_MODULES,
   plus:         ALL_MODULES,
   professional: ALL_MODULES,

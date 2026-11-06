@@ -100,11 +100,13 @@ export default function Dashboard() {
   // Show push permission modal if:
   // 1. Push is supported in this browser
   // 2. User hasn't granted or denied yet (permission is 'default')
-  // 3. User hasn't dismissed this session
+  // 3. User hasn't dismissed it on this device in the last 30 days (it used to
+  //    come back at every sign-in when the browser's own prompt was never answered)
   useEffect(() => {
     if (!profile?.id) return
-    const dismissed = sessionStorage.getItem('push_modal_dismissed')
-    if (dismissed) return
+    let snoozedUntil = 0
+    try { snoozedUntil = Number(localStorage.getItem('push_prompt_snoozed_until')) || 0 } catch { /* storage blocked */ }
+    if (sessionStorage.getItem('push_modal_dismissed') || snoozedUntil > Date.now()) return
     // Only show if browser supports push and hasn't been asked yet
     if ('Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window) {
       if (Notification.permission === 'default') {
@@ -540,7 +542,11 @@ export default function Dashboard() {
       {showPushModal && (
         <PushPermissionModal
           profileId={profile?.id}
-          onClose={() => { setShowPushModal(false); sessionStorage.setItem('push_modal_dismissed', '1') }}
+          onClose={() => {
+            setShowPushModal(false)
+            sessionStorage.setItem('push_modal_dismissed', '1')
+            try { localStorage.setItem('push_prompt_snoozed_until', String(Date.now() + 30 * 864e5)) } catch { /* storage blocked */ }
+          }}
         />
       )}
       {showFoodRequestModal && (

@@ -10,7 +10,7 @@ const supabase = createClient(
 export const config = { api: { bodyParser: false } }
 
 const PLAN_MODULE_KEYS = {
-  starter:      ['directory', 'staff', 'communication', 'family'],
+  starter:      ['directory', 'staff', 'communication', 'family', 'education'],
   // null = all modules. Essential, Plus, and Professional are all the full platform
   // and differ only in resident/staff caps (PLAN_LIMITS).
   essential:    null,

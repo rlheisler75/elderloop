@@ -213,6 +213,7 @@ function EditUserModal({ user, orgId, departments, orgModules, onClose, onSave }
     work_phone:  user.work_phone  || '',
     cell_phone:  user.cell_phone  || '',
     hire_date:   user.hire_date   || '',
+    employment_end_date: user.employment_end_date || '',
     notes:       user.notes       || '',
     is_active:   user.is_active   ?? true,
     is_platform_admin: !!user.is_platform_admin,
@@ -242,6 +243,7 @@ function EditUserModal({ user, orgId, departments, orgModules, onClose, onSave }
       work_phone:  form.work_phone  || null,
       cell_phone:  form.cell_phone  || null,
       hire_date:   form.hire_date   || null,
+      employment_end_date: form.employment_end_date || null,
       notes:       form.notes       || null,
       is_active:   form.is_active,
       // Only meaningful for an Administrator (NHA); cleared for every other account type
@@ -354,10 +356,16 @@ function EditUserModal({ user, orgId, departments, orgModules, onClose, onSave }
             </div>
           </div>
 
-          {/* Hire date */}
-          <div>
-            <label className={labelCls}>Hire Date</label>
-            <input type="date" value={form.hire_date} onChange={e => set('hire_date', e.target.value)} className={inputCls} />
+          {/* Hire date / last day worked (Education stops expecting them after it) */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>Hire Date</label>
+              <input type="date" value={form.hire_date} onChange={e => set('hire_date', e.target.value)} className={inputCls} />
+            </div>
+            <div>
+              <label className={labelCls}>Employment End Date</label>
+              <input type="date" value={form.employment_end_date} onChange={e => set('employment_end_date', e.target.value)} className={inputCls} />
+            </div>
           </div>
 
           {/* Notes */}

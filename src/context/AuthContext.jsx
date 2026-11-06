@@ -259,6 +259,8 @@ export function AuthProvider({ children }) {
     if (['org_admin','ceo','super_admin'].includes(profile?.role) || superAdmin) return true
     // Budgets: anyone who sees a budget department's costs (mirrors can_see_budget())
     if (key === 'budgets' && BUDGET_DEPARTMENT_KEYS.some(d => can(d === 'maintenance' ? 'work_orders' : d, 'costs'))) return true
+    // Education: every staff member sees their own in-services and checks in by QR
+    if (key === 'education') return true
     return hasAnyPermission(key)
   }
 

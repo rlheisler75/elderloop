@@ -5,7 +5,7 @@ import {
   Settings, LogOut, Menu, X, ChevronRight, Megaphone, Home, Church,
   CalendarDays, BookUser, Car, Gauge, Shield, UserCheck, CalendarCheck,
   Stethoscope, HeartHandshake, ClipboardList, AlertTriangle, Clock,
-  Monitor, TrendingUp, Heart, Users, UserCog, Wallet, LifeBuoy
+  Monitor, TrendingUp, Heart, Users, UserCog, Wallet, LifeBuoy, GraduationCap
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { Bell } from 'lucide-react'
@@ -73,6 +73,7 @@ const NAV_GROUPS = [
       { to: '/app/staff',           label: 'Staff',           icon: UserCheck,     module: 'staff' },
       { to: '/app/directory-staff', label: 'Staff Directory', icon: Users,         module: 'staff' },
       { to: '/app/scheduling',      label: 'Scheduling',      icon: CalendarCheck, module: 'staff' },
+      { to: '/app/education',       label: 'Education',       icon: GraduationCap, module: 'education' },
       { to: '/app/timeclock',       label: 'Time Clock',      icon: Clock,         module: 'timeclock' },
     ],
   },

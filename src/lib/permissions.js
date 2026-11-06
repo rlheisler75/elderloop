@@ -73,6 +73,10 @@ export const PERMISSION_MODULES = [
   { key: 'staff', label: 'Staff', actions: {
     view: 'See staff and certifications', create: 'Add certifications', edit: 'Update certifications',
     delete: 'Delete certifications' } },
+  { key: 'education', label: 'Education', actions: {
+    view: 'See everyone\'s in-service records and reports', create: 'Add sessions',
+    edit: 'Run in-services: sessions, attendance, makeups for everyone', delete: 'Delete sessions',
+    settings: 'Yearly requirements' } },
   { key: 'communication', label: 'Communication', actions: {
     view: 'Read announcements', create: 'Post announcements, send broadcasts', edit: 'Edit announcements' } },
   { key: 'directory', label: 'Residents', actions: {

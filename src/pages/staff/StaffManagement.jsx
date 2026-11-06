@@ -282,7 +282,9 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
     phone:                    staff?.phone                    || '',
     status:                   staff?.status                   || 'active',
     hire_date:                staff?.hire_date                || '',
-    emergency_contact_name:   staff?.emergency_contact_name   || '',
+    // Last day worked: they drop off later in-services but keep their history
+    employment_end_date:      staff?.employment_end_date      || '',
+    emergency_contact_name:  staff?.emergency_contact_name   || '',
     emergency_contact_phone:  staff?.emergency_contact_phone  || '',
     notes:                    staff?.notes                    || '',
   })
@@ -315,6 +317,7 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
     const payload = {
       ...form,
       hire_date: form.hire_date || null,
+      employment_end_date: form.employment_end_date || null,
       updated_at: new Date().toISOString(),
     }
     const { error: err } = await supabase.from('profiles')
@@ -433,6 +436,12 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Hire Date</label>
                   <input type="date" value={form.hire_date} onChange={e => set('hire_date', e.target.value)} disabled={!canEditBasic}
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60 disabled:cursor-not-allowed" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Employment End Date</label>
+                  <input type="date" value={form.employment_end_date} onChange={e => set('employment_end_date', e.target.value)} disabled={!canEditBasic}
+                    title="Last day worked. Leave blank while they still work here."
                     className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60 disabled:cursor-not-allowed" />
                 </div>
               </div>

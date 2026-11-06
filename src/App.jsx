@@ -40,6 +40,8 @@ const Staff          = lazy(() => import('./pages/staff/StaffManagement'))
 const StaffDirectory = lazy(() => import('./pages/staff/StaffDirectory'))
 const Scheduling     = lazy(() => import('./pages/staff/Scheduling'))
 const Surveys        = lazy(() => import('./pages/surveys/Surveys'))
+const Education      = lazy(() => import('./pages/education/Education'))
+const EducationCheckin = lazy(() => import('./pages/education/EducationCheckin'))
 const TimeClock      = lazy(() => import('./pages/timeclock/TimeClock'))
 const Transportation = lazy(() => import('./pages/transportation/Transportation'))
 const CEODashboard   = lazy(() => import('./pages/ceo/CEODashboard'))
@@ -351,6 +353,10 @@ export default function App() {
             element={<ProtectedRoute requireModule="family"><Lazy><Family /></Lazy></ProtectedRoute>} />
           <Route path="surveys"
             element={<ProtectedRoute requireModule="surveys"><Lazy><Surveys /></Lazy></ProtectedRoute>} />
+          <Route path="education"
+            element={<ProtectedRoute requireModule="education"><Lazy><Education /></Lazy></ProtectedRoute>} />
+          <Route path="education/checkin"
+            element={<ProtectedRoute requireModule="education"><Lazy><EducationCheckin /></Lazy></ProtectedRoute>} />
 
           {/* Community+ modules */}
           <Route path="nursing"
