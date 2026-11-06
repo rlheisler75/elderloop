@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import CareLevelFilter, { matchesCareLevel } from '../../components/ui/CareLevelFilter'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import {
@@ -960,6 +961,7 @@ export default function NursingNotes() {
   const [residents, setResidents]     = useState([])
   const [selected, setSelected]       = useState(null)
   const [search, setSearch]           = useState('')
+  const [careFilter, setCareFilter] = useState('all')
   const [loading, setLoading]         = useState(true)
   const [todayStats, setTodayStats]   = useState({ vitalsToday: 0, notesToday: 0, flagged: 0 })
   const detailPanelRef = useRef(null)
@@ -1020,7 +1022,8 @@ export default function NursingNotes() {
   }
 
   const filtered = residents.filter(r =>
-    !search || `${r.first_name} ${r.last_name} ${r.room}`.toLowerCase().includes(search.toLowerCase())
+    matchesCareLevel(r, careFilter) &&
+    (!search || `${r.first_name} ${r.last_name} ${r.room}`.toLowerCase().includes(search.toLowerCase()))
   )
 
   return (
@@ -1052,6 +1055,7 @@ export default function NursingNotes() {
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search residents..."
             className="w-full pl-8 pr-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
         </div>
+        <CareLevelFilter residents={residents} value={careFilter} onChange={setCareFilter} className="mb-3" />
 
         {/* Resident list */}
         <div className="max-h-[360px] lg:max-h-none lg:flex-1 overflow-y-auto space-y-1">

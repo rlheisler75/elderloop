@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import useListNav from '../../hooks/useListNav'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import {
@@ -309,22 +310,27 @@ function ResidentLookup({ residents, value, onChange, disabled, inputCls }) {
     onChange(e.target.value, '')
   }
 
+  const shown = filtered.slice(0, 8)
+  const listOpen = open && !disabled && !!search
+  const nav = useListNav({ items: shown, onPick: handleSelect, open: listOpen, onClose: () => setOpen(false), resetKey: search })
+
   return (
     <div className="relative">
       <input
         value={search}
         onChange={handleChange}
+        onKeyDown={nav.onKeyDown}
         onFocus={() => setOpen(true)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
         disabled={disabled}
         placeholder="Search resident or type N/A"
         className={inputCls}
       />
-      {open && !disabled && search && (
-        <div className="absolute z-50 mt-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg max-h-48 overflow-y-auto">
-          {filtered.slice(0, 8).map(r => (
-            <button key={r.id} onMouseDown={() => handleSelect(r)}
-              className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 border-b border-slate-50 dark:border-slate-800 last:border-0 text-left">
+      {listOpen && (
+        <div ref={nav.listRef} className="absolute z-50 mt-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+          {shown.map((r, i) => (
+            <button key={r.id} type="button" onMouseDown={() => handleSelect(r)} {...nav.rowProps(i)}
+              className={`w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 border-b border-slate-50 dark:border-slate-800 last:border-0 text-left ${nav.isActive(i) ? 'bg-brand-50 dark:bg-slate-800' : ''}`}>
               <span className="text-sm font-medium text-slate-800 dark:text-slate-100">{r.first_name} {r.last_name}</span>
               {r.room && <span className="text-xs text-slate-400">Room {r.room}</span>}
             </button>

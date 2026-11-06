@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import useListNav from '../../hooks/useListNav'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { useSupplyAccess } from '../../hooks/useSupplyAccess'
@@ -115,6 +116,10 @@ export default function SupplyReceive() {
     return i.name.toLowerCase().includes(q) || i.barcode?.toLowerCase().includes(q) || i.sku?.toLowerCase().includes(q)
   })
 
+  const shownItems = filteredItems.slice(0, 8)
+  const itemNav = useListNav({ items: shownItems, onPick: item => { addLine(item); setSearch('') },
+    open: mode === 'manual' && !!search, onClose: () => setSearch(''), resetKey: search })
+
   const inputCls = 'w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500'
 
   return (
@@ -162,7 +167,7 @@ export default function SupplyReceive() {
         <div className="mb-5 flex gap-2">
           <div className="relative flex-1">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search items to add..." className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100" />
+            <input value={search} onChange={e => setSearch(e.target.value)} onKeyDown={itemNav.onKeyDown} placeholder="Search items to add..." className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100" />
           </div>
           <button onClick={() => setShowScanner(true)} className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl text-sm font-medium transition-colors">
             <ScanLine size={15} /> Scan
@@ -172,10 +177,10 @@ export default function SupplyReceive() {
 
       {/* Item search results (manual mode) */}
       {mode === 'manual' && search && (
-        <div className="mb-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden max-h-48 overflow-y-auto">
-          {filteredItems.slice(0, 8).map(item => (
-            <button key={item.id} onClick={() => { addLine(item); setSearch('') }}
-              className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 border-b border-slate-100 dark:border-slate-800 last:border-0 text-left transition-colors">
+        <div ref={itemNav.listRef} className="mb-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden max-h-48 overflow-y-auto">
+          {shownItems.map((item, i) => (
+            <button key={item.id} onClick={() => { addLine(item); setSearch('') }} {...itemNav.rowProps(i)}
+              className={`w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 border-b border-slate-100 dark:border-slate-800 last:border-0 text-left transition-colors ${itemNav.isActive(i) ? 'bg-brand-50 dark:bg-slate-800' : ''}`}>
               <div>
                 <div className="text-sm font-medium text-slate-800 dark:text-slate-100">{item.name}</div>
                 <div className="text-xs text-slate-400">{item.category} · {item.unit}</div>

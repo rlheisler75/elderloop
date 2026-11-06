@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import useListNav from '../../hooks/useListNav'
 import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
@@ -295,6 +296,8 @@ function ResidentPicker({ residents, value, onChange }) {
     ? residents.filter(r => [`${r.first_name} ${r.last_name}`, `${r.last_name} ${r.first_name}`, r.room, r.unit]
         .some(v => (v || '').toLowerCase().includes(q))).slice(0, 8)
     : []
+  const pick = (r) => { onChange(r); setQuery(''); setOpen(false) }
+  const nav = useListNav({ items: matches, onPick: pick, open, onClose: () => setOpen(false), resetKey: q })
   if (selected) {
     return (
       <div className="flex items-center justify-between gap-2 px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded-lg text-sm">
@@ -306,15 +309,16 @@ function ResidentPicker({ residents, value, onChange }) {
   return (
     <div className="relative">
       <input value={query} onChange={e => { setQuery(e.target.value); setOpen(true) }}
+        onKeyDown={nav.onKeyDown}
         onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 150)}
         placeholder="Start typing a resident's name or room…"
         className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
       {open && matches.length > 0 && (
-        <div className="absolute z-20 mt-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg overflow-hidden">
-          {matches.map(r => (
-            <button key={r.id} type="button" onMouseDown={e => e.preventDefault()}
-              onClick={() => { onChange(r); setQuery(''); setOpen(false) }}
-              className="block w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-brand-50 dark:hover:bg-slate-800">
+        <div ref={nav.listRef} className="absolute z-20 mt-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg overflow-hidden">
+          {matches.map((r, i) => (
+            <button key={r.id} type="button" onMouseDown={e => e.preventDefault()} {...nav.rowProps(i)}
+              onClick={() => pick(r)}
+              className={`block w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-brand-50 dark:hover:bg-slate-800 ${nav.isActive(i) ? 'bg-brand-50 dark:bg-slate-800' : ''}`}>
               {residentLabel(r)}
             </button>
           ))}
@@ -1500,6 +1504,9 @@ export default function WorkOrders() {
   }
   const handleSave = () => { setShowModal(false); fetchAll() }
 
+  // "My incomplete work": jobs assigned to me that aren't closed or cancelled
+  const isMyIncompleteWO = (w) => w.assigned_to === profile.id && !['closed','cancelled'].includes(w.status)
+
   // Filter + search
   const loadedIds = new Set(workOrders.map(w => w.id))
   const searchPool = search ? [...workOrders, ...historyHits.filter(w => !loadedIds.has(w.id))] : workOrders
@@ -1518,7 +1525,9 @@ export default function WorkOrders() {
     const matchPriority = filterPriority === 'all' || wo.priority === filterPriority
     // Picking someone in "Assigned to" looks across all jobs, whatever the tab
     const matchJobView  = !showJobTabs || jobView === 'all' || filterAssignee !== 'all'
-      || (jobView === 'mine' ? (wo.assigned_to === profile.id || wo.submitted_by === profile.id) : !wo.assigned_to)
+      || (jobView === 'mine' ? (wo.assigned_to === profile.id || wo.submitted_by === profile.id)
+        : jobView === 'mine_open' ? isMyIncompleteWO(wo)
+        : !wo.assigned_to)
     return matchSearch && matchStatus && matchCat && matchPriority && matchAssignee && matchJobView
   })
 
@@ -1668,6 +1677,7 @@ export default function WorkOrders() {
         <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl mb-4 w-fit" role="group" aria-label="Which jobs">
           {[
             { key: 'mine',  label: 'My jobs',    count: workOrders.filter(w => (w.assigned_to === profile.id || w.submitted_by === profile.id) && !['closed','cancelled'].includes(w.status)).length },
+            { key: 'mine_open', label: 'My incomplete work', count: workOrders.filter(isMyIncompleteWO).length },
             { key: 'queue', label: 'Open queue', count: workOrders.filter(w => !w.assigned_to).length },
             { key: 'all',   label: 'All jobs',   count: workOrders.filter(w => !['closed','cancelled'].includes(w.status)).length },
           ].map(v => (

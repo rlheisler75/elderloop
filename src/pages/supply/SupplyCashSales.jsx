@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import useListNav from '../../hooks/useListNav'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { DollarSign, Search, ScanLine, X, CheckCircle2, User, Printer } from 'lucide-react'
@@ -116,6 +117,13 @@ export default function SupplyCashSales() {
     return `${s.first_name} ${s.last_name}`.toLowerCase().includes(q)
   })
 
+  const shownStaff = filteredStaff.slice(0, 6)
+  const shownItems = filteredItems.slice(0, 8)
+  const staffNav = useListNav({ items: shownStaff, onPick: s => { setSelectedStaff(s); setStaffSearch('') },
+    open: !!staffSearch, onClose: () => setStaffSearch(''), resetKey: staffSearch })
+  const itemNav = useListNav({ items: shownItems, onPick: item => addLine(item),
+    open: !!itemSearch, onClose: () => setItemSearch(''), resetKey: itemSearch })
+
   const inputCls = 'w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500'
 
   return (
@@ -178,12 +186,12 @@ export default function SupplyCashSales() {
               <>
                 <div className="relative">
                   <User size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input value={staffSearch} onChange={e => setStaffSearch(e.target.value)} placeholder="Search staff member..." className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100" />
+                  <input value={staffSearch} onChange={e => setStaffSearch(e.target.value)} onKeyDown={staffNav.onKeyDown} placeholder="Search staff member..." className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100" />
                 </div>
                 {staffSearch && (
-                  <div className="mt-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden max-h-36 overflow-y-auto">
-                    {filteredStaff.slice(0, 6).map(s => (
-                      <button key={s.id} onClick={() => { setSelectedStaff(s); setStaffSearch('') }} className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 border-b border-slate-100 dark:border-slate-800 last:border-0 text-left">
+                  <div ref={staffNav.listRef} className="mt-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden max-h-36 overflow-y-auto">
+                    {shownStaff.map((s, i) => (
+                      <button key={s.id} onClick={() => { setSelectedStaff(s); setStaffSearch('') }} {...staffNav.rowProps(i)} className={`w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 border-b border-slate-100 dark:border-slate-800 last:border-0 text-left ${staffNav.isActive(i) ? 'bg-brand-50 dark:bg-slate-800' : ''}`}>
                         <span className="text-sm font-medium text-slate-800 dark:text-slate-100">{s.first_name} {s.last_name}</span>
                         <span className="text-xs text-slate-400 capitalize">{roleLabel(s.role)}</span>
                       </button>
@@ -199,17 +207,17 @@ export default function SupplyCashSales() {
           <div className="mb-4 flex gap-2">
             <div className="relative flex-1">
               <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input value={itemSearch} onChange={e => setItemSearch(e.target.value)} placeholder="Search items for sale..." className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100" />
+              <input value={itemSearch} onChange={e => setItemSearch(e.target.value)} onKeyDown={itemNav.onKeyDown} placeholder="Search items for sale..." className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100" />
             </div>
             <button onClick={() => setShowScanner(true)} className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl text-sm font-medium transition-colors">
               <ScanLine size={15} /> Scan
             </button>
           </div>
           {itemSearch && (
-            <div className="mb-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden max-h-48 overflow-y-auto">
-              {filteredItems.slice(0, 8).map(item => (
-                <button key={item.id} onClick={() => addLine(item)}
-                  className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 border-b border-slate-100 dark:border-slate-800 last:border-0 text-left">
+            <div ref={itemNav.listRef} className="mb-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden max-h-48 overflow-y-auto">
+              {shownItems.map((item, i) => (
+                <button key={item.id} onClick={() => addLine(item)} {...itemNav.rowProps(i)}
+                  className={`w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 border-b border-slate-100 dark:border-slate-800 last:border-0 text-left ${itemNav.isActive(i) ? 'bg-brand-50 dark:bg-slate-800' : ''}`}>
                   <div>
                     <div className="text-sm font-medium text-slate-800 dark:text-slate-100">{item.name}</div>
                     <div className="text-xs text-slate-400">{item.unit}</div>

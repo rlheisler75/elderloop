@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import useListNav from '../../hooks/useListNav'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { useTierAccess } from '../../hooks/useTierAccess'
@@ -230,7 +231,7 @@ function TripSheetPrint({ allTrips, defaultDate, orgName, onClose }) {
   const [dateFrom, setDateFrom] = useState(defaultDate)
   const [dateTo, setDateTo]     = useState(defaultDate)
 
-  const rangeTrips = allTrips.filter(t => t.trip_date >= dateFrom && t.trip_date <= dateTo)
+  const rangeTrips = allTrips.filter(t => t.trip_date >= dateFrom && t.trip_date <= dateTo && t.status !== 'cancelled')
   const isSingleDay = dateFrom === dateTo
 
   // Group by date so a multi-day range prints as one section per day,
@@ -242,34 +243,29 @@ function TripSheetPrint({ allTrips, defaultDate, orgName, onClose }) {
   })
   const sortedDates = Array.from(byDate.keys()).sort()
 
+  // Nursing uses this sheet to get residents ready, so it shows only who,
+  // where, and when (no driver, status, or mileage) and leaves out cancelled trips
   const rowsHtml = (dayTrips) => dayTrips.map((t, i) => `
     <tr>
       <td>${i + 1}</td>
       <td><strong>${t.resident_name}</strong>${t.phone ? `<br><small>${t.phone}</small>` : ''}</td>
       <td>${t.unit || '—'}</td>
       <td>${fmt12(t.pickup_time)}</td>
-      <td>${getApptType(t.appointment_type)}</td>
       <td>${t.provider_name || '—'}${t.provider_address ? `<br><small>${t.provider_address}</small>` : ''}</td>
       <td>${t.appointment_time ? fmt12(t.appointment_time) : '—'}</td>
-      <td>${t.return_time ? fmt12(t.return_time) : '—'}</td>
-      <td>${t.driver_name || '—'}</td>
-      <td><span class="status ${t.status}">${getStatus(t.status).label}</span></td>
-      <td>${t.mileage_start || ''}${t.mileage_start && t.mileage_end ? ' → ' + t.mileage_end : ''}</td>
     </tr>${t.notes ? `
-    <tr class="note"><td></td><td colspan="10"><em>Note: ${String(t.notes).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))}</em></td></tr>` : ''}
+    <tr class="note"><td></td><td colspan="5"><em>Note: ${String(t.notes).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))}</em></td></tr>` : ''}
   `).join('')
 
   const tableHtml = (dayTrips) => `
     <table>
       <colgroup>
-        <col style="width:3%"><col style="width:14%"><col style="width:6%"><col style="width:7%">
-        <col style="width:8%"><col style="width:22%"><col style="width:7%"><col style="width:7%">
-        <col style="width:9%"><col style="width:8%"><col style="width:9%">
+        <col style="width:5%"><col style="width:24%"><col style="width:9%"><col style="width:11%">
+        <col style="width:39%"><col style="width:12%">
       </colgroup>
       <thead>
         <tr>
-          <th>#</th><th>Resident</th><th>Unit</th><th>Pickup</th><th>Appt Type</th>
-          <th>Provider</th><th>Appt Time</th><th>Est. Return</th><th>Driver</th><th>Status</th><th>Mileage</th>
+          <th>#</th><th>Resident</th><th>Unit</th><th>Pickup</th><th>Provider</th><th>Appt Time</th>
         </tr>
       </thead>
       <tbody>${rowsHtml(dayTrips)}</tbody>
@@ -280,7 +276,7 @@ function TripSheetPrint({ allTrips, defaultDate, orgName, onClose }) {
     win.document.write(`
       <html><head><title>Trip Sheet - ${dateFrom}${isSingleDay ? '' : ' to ' + dateTo}</title>
       <style>
-        @page { size: landscape; margin: 0.4in; }
+        @page { size: portrait; margin: 0.5in; }
         body { font-family: Arial, sans-serif; padding: 24px; font-size: 12px; }
         h2 { margin: 0; font-size: 18px; }
         .sub { color: #666; margin-bottom: 16px; }
@@ -290,13 +286,6 @@ function TripSheetPrint({ allTrips, defaultDate, orgName, onClose }) {
         th { background: #f1f5f9; padding: 6px 8px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0; word-wrap: break-word; }
         td { padding: 6px 8px; border-bottom: 1px solid #e2e8f0; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word; }
         td small { color: #888; }
-        .status { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: bold; white-space: nowrap; }
-        .scheduled { background: #dbeafe; color: #1d4ed8; }
-        .completed { background: #dcfce7; color: #16a34a; }
-        .cancelled { background: #f1f5f9; color: #64748b; }
-        .no_show { background: #fee2e2; color: #dc2626; }
-        .in_progress { background: #dbeafe; color: #0072bf; }
-        .sig-line { margin-top: 40px; border-top: 1px solid #000; width: 200px; display: inline-block; padding-top: 4px; font-size: 11px; color: #666; }
         @media print { button { display: none; } body { padding: 0; } }
       </style></head>
       <body>
@@ -306,12 +295,7 @@ function TripSheetPrint({ allTrips, defaultDate, orgName, onClose }) {
           ${isSingleDay ? '' : `<div class="day-header">${fmtLongDate(d)}</div>`}
           ${tableHtml(byDate.get(d))}
         `).join('')}
-        <div style="margin-top:32px">
-          <div class="sig-line">Driver Signature</div>
-          &nbsp;&nbsp;&nbsp;
-          <div class="sig-line">Supervisor Signature</div>
-        </div>
-        <div style="margin-top:16px; font-size:11px; color:#999;">Printed ${new Date().toLocaleString()} &middot; ElderLoop Transportation</div>
+        <div style="margin-top:24px; font-size:11px; color:#999;">Printed ${new Date().toLocaleString()} &middot; ElderLoop Transportation</div>
       </body></html>`)
     win.document.close()
     win.print()
@@ -396,6 +380,9 @@ function ResidentLookup({ residents, value, onChange }) {
     onChange(name, r.room || '', r.phone || '', r.id)
   }
 
+  const shown = filtered.slice(0, 8)
+  const nav = useListNav({ items: shown, onPick: handleSelect, open: open && !!search, onClose: () => setOpen(false), resetKey: search })
+
   return (
     <div className="relative">
       <div className="relative">
@@ -403,6 +390,7 @@ function ResidentLookup({ residents, value, onChange }) {
         <input
           value={search}
           onChange={e => { setSearch(e.target.value); setOpen(true); onChange(e.target.value, '', '', null) }}
+          onKeyDown={nav.onKeyDown}
           onFocus={() => setOpen(true)}
           onBlur={() => setTimeout(() => setOpen(false), 150)}
           placeholder="Search resident by name or room *"
@@ -410,10 +398,10 @@ function ResidentLookup({ residents, value, onChange }) {
         />
       </div>
       {open && search && (
-        <div className="absolute z-50 mt-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg max-h-48 overflow-y-auto">
-          {filtered.slice(0, 8).map(r => (
-            <button key={r.id} onMouseDown={() => handleSelect(r)}
-              className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 border-b border-slate-50 dark:border-slate-800 last:border-0 text-left">
+        <div ref={nav.listRef} className="absolute z-50 mt-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+          {shown.map((r, i) => (
+            <button key={r.id} type="button" onMouseDown={() => handleSelect(r)} {...nav.rowProps(i)}
+              className={`w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 border-b border-slate-50 dark:border-slate-800 last:border-0 text-left ${nav.isActive(i) ? 'bg-brand-50 dark:bg-slate-800' : ''}`}>
               <span className="text-sm font-medium text-slate-800 dark:text-slate-100">{r.first_name} {r.last_name}</span>
               {r.room && <span className="text-xs text-slate-400">Room {r.room}</span>}
             </button>

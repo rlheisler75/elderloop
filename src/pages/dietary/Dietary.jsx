@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import useListNav from '../../hooks/useListNav'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import CycleMenuBuilder from './CycleMenuBuilder'
@@ -127,6 +128,9 @@ function ResidentPicker({ orgId, value, onSelect }) {
       })
   }, [search, orgId])
 
+  const pick = (r) => { onSelect(r); setSearch(''); setOpen(false) }
+  const nav = useListNav({ items: options, onPick: pick, open, onClose: () => setOpen(false), resetKey: search })
+
   // Linked state — show the chosen resident
   if (value) {
     return (
@@ -160,6 +164,7 @@ function ResidentPicker({ orgId, value, onSelect }) {
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
+          onKeyDown={nav.onKeyDown}
           placeholder="Search by name or room number..."
           className="w-full pl-8 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
         />
@@ -169,12 +174,14 @@ function ResidentPicker({ orgId, value, onSelect }) {
       </div>
 
       {open && (
-        <div className="absolute z-30 w-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg overflow-hidden">
-          {options.length > 0 ? options.map(r => (
+        <div ref={nav.listRef} className="absolute z-30 w-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg overflow-hidden">
+          {options.length > 0 ? options.map((r, i) => (
             <button
               key={r.id}
-              onClick={() => { onSelect(r); setSearch(''); setOpen(false) }}
-              className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-brand-50 dark:hover:bg-slate-800 text-left transition-colors border-b border-slate-50 dark:border-slate-800 last:border-0"
+              type="button"
+              onClick={() => pick(r)}
+              {...nav.rowProps(i)}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 hover:bg-brand-50 dark:hover:bg-slate-800 text-left transition-colors border-b border-slate-50 dark:border-slate-800 last:border-0 ${nav.isActive(i) ? 'bg-brand-50 dark:bg-slate-800' : ''}`}
             >
               <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 font-semibold text-xs flex-shrink-0">
                 {r.first_name?.[0]}{r.last_name?.[0]}

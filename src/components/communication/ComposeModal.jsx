@@ -1,5 +1,6 @@
 // src/components/communication/ComposeModal.jsx
 import { useState, useEffect } from 'react'
+import useListNav from '../../hooks/useListNav'
 import { X, Mail, MessageSquare, Bell, ChevronDown, ChevronUp, Send, Loader2,
          Users, User, Building2, Heart, Stethoscope, Wrench, UtensilsCrossed,
          SprayCan, AlertTriangle, Calendar, Megaphone, Activity, Clock, Search } from 'lucide-react'
@@ -295,6 +296,10 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
         { key: 'individual',    label: 'Individuals',   icon: User,      desc: 'Pick specific people' },
       ]
 
+  const filteredPeople = getFilteredPeople()
+  const peopleNav = useListNav({ items: filteredPeople, onPick: togglePerson,
+    open: form.audience_type === 'individual', onClose: () => setSearchTerm(''), resetKey: searchTerm })
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
@@ -438,6 +443,7 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
                   <input
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
+                    onKeyDown={peopleNav.onKeyDown}
                     placeholder="Search by name, room, or email..."
                     className="flex-1 bg-transparent text-sm outline-none text-slate-700 dark:text-slate-200 placeholder-slate-400"
                     autoFocus
@@ -450,8 +456,8 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
                 </div>
 
                 {/* Results */}
-                <div className="max-h-52 overflow-y-auto divide-y divide-slate-50 dark:divide-slate-800">
-                  {getFilteredPeople().length === 0 ? (
+                <div ref={peopleNav.listRef} className="max-h-52 overflow-y-auto divide-y divide-slate-50 dark:divide-slate-800">
+                  {filteredPeople.length === 0 ? (
                     <div className="px-3 py-8 text-center">
                       <User size={24} className="mx-auto text-slate-200 mb-2" />
                       <p className="text-sm text-slate-400">
@@ -459,7 +465,7 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
                       </p>
                     </div>
                   ) : (
-                    getFilteredPeople().map(p => {
+                    filteredPeople.map((p, i) => {
                       const name     = `${p.first_name} ${p.last_name}`
                       const selected = isSelected(p)
                       const isRes    = p._table === 'residents'
@@ -468,9 +474,9 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
                                         : isFam ? 'bg-pink-100 dark:bg-pink-950/50 text-pink-700 dark:text-pink-400'
                                         : 'bg-brand-100 text-brand-700'
                       return (
-                        <label key={personKey(p)}
+                        <label key={personKey(p)} {...peopleNav.rowProps(i)}
                           className={`flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-slate-800
-                            ${selected ? 'bg-brand-50 dark:bg-brand-950/30' : ''}`}>
+                            ${selected ? 'bg-brand-50 dark:bg-brand-950/30' : ''} ${peopleNav.isActive(i) ? 'ring-2 ring-inset ring-brand-400' : ''}`}>
                           <input
                             type="checkbox"
                             checked={selected}

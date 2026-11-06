@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import CareLevelFilter, { matchesCareLevel } from '../../components/ui/CareLevelFilter'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { useSocialServicesAccess } from '../../hooks/useSocialServicesAccess'
@@ -279,6 +280,7 @@ export default function SocialProfile({ canWrite }) {
   const [profilesByResident, setProfilesByResident] = useState(new Map())
   const [staff,      setStaff]      = useState([])
   const [search,     setSearch]     = useState('')
+  const [careFilter, setCareFilter] = useState('all')
   const [selected,   setSelected]   = useState(null)
   const [ssProfile,  setSsProfile]  = useState(null)
   const [loading,    setLoading]    = useState(true)
@@ -345,6 +347,7 @@ export default function SocialProfile({ canWrite }) {
   }
 
   const filtered = residents.filter(r =>
+    matchesCareLevel(r, careFilter) &&
     `${r.first_name} ${r.last_name} ${r.room}`.toLowerCase().includes(search.toLowerCase())
   )
 
@@ -371,6 +374,7 @@ export default function SocialProfile({ canWrite }) {
               placeholder="Search residents..."
               className="w-full pl-9 pr-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
+          <CareLevelFilter residents={residents} value={careFilter} onChange={setCareFilter} className="mt-3" />
         </div>
         <div className="overflow-y-auto" style={{ maxHeight: 600 }}>
           {loading ? (

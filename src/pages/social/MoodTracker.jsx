@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import CareLevelFilter, { matchesCareLevel } from '../../components/ui/CareLevelFilter'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { Plus, Search, Filter, Loader2, AlertCircle, ChevronDown, X, Check } from 'lucide-react'
@@ -28,6 +29,7 @@ function QuickLogModal({ residents, orgId, onClose, onSaved }) {
   const { profile } = useAuth()
   const [step,    setStep]    = useState(1) // 1=resident, 2=mood, 3=details
   const [search,  setSearch]  = useState('')
+  const [careFilter, setCareFilter] = useState('all')
   const [form,    setForm]    = useState({
     resident_id: '', shift: 'day', mood: '', mood_score: null,
     behavioral_concerns: false, triggers: '', interventions: '',
@@ -40,6 +42,7 @@ function QuickLogModal({ residents, orgId, onClose, onSaved }) {
 
   const selectedResident = residents.find(r => r.id === form.resident_id)
   const filtered = residents.filter(r =>
+    matchesCareLevel(r, careFilter) &&
     `${r.first_name} ${r.last_name} ${r.room}`.toLowerCase().includes(search.toLowerCase())
   )
 
@@ -87,6 +90,7 @@ function QuickLogModal({ residents, orgId, onClose, onSaved }) {
                   placeholder="Search by name or room..."
                   className="w-full pl-9 pr-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:text-slate-100" />
               </div>
+              <CareLevelFilter residents={residents} value={careFilter} onChange={setCareFilter} />
               <div className="space-y-1 max-h-64 overflow-y-auto">
                 {filtered.map(r => (
                   <button key={r.id} onClick={() => { set('resident_id', r.id); setStep(2); setSearch('') }}
@@ -273,7 +277,7 @@ export default function MoodTracker({ canWrite }) {
   async function fetchAll() {
     setLoading(true)
     const [{ data: res }, { data: logs }] = await Promise.all([
-      supabase.from('residents').select('id, first_name, last_name, room')
+      supabase.from('residents').select('id, first_name, last_name, room, care_level')
         .eq('organization_id', organization.id).eq('is_active', true).order('last_name'),
       supabase.from('ss_mood_logs')
         .select('*, residents(first_name, last_name, room), profiles:logged_by(first_name, last_name)')
