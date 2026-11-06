@@ -306,7 +306,8 @@ function AnnouncementSlide({ slide, orgName, orgLogo, visible, accent }) {
 }
 
 // ── Main Signage ───────────────────────────────────────────────
-export default function Signage() {
+// orgSlug: set when opened from a screen address (/<facility number>-<name>)
+export default function Signage({ orgSlug }) {
   const [org, setOrg]                   = useState(null)
   const [announcements, setAnnouncements] = useState([])
   const [activities, setActivities]     = useState([])
@@ -335,7 +336,7 @@ export default function Signage() {
 
   // Fetch org by slug
   useEffect(() => {
-    const slug = new URLSearchParams(window.location.search).get('org') || 'sunrise-gardens'
+    const slug = orgSlug || new URLSearchParams(window.location.search).get('org') || 'sunrise-gardens'
     supabase.from('organizations').select('id,name,slug,logo_url')
       .eq('slug', slug).single()
       .then(({ data }) => { if (data) setOrg(data) })
@@ -345,12 +346,14 @@ export default function Signage() {
   useEffect(() => {
     if (!org) return
     fetchAll()
-    // Realtime subscription
-    const ch = supabase.channel('signage-live')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, fetchAll)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'activities' }, fetchAll)
+    // Live updates (tables are in the supabase_realtime publication since
+    // 20261107_signage_realtime), plus a 1-minute refresh in case the
+    // connection drops; screens run for days without a reload
+    const ch = supabase.channel(`signage-live-${org.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements', filter: `organization_id=eq.${org.id}` }, fetchAll)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'activities', filter: `organization_id=eq.${org.id}` }, fetchAll)
       .subscribe()
-    const interval = setInterval(fetchAll, 5 * 60 * 1000)
+    const interval = setInterval(fetchAll, 60 * 1000)
     return () => { supabase.removeChannel(ch); clearInterval(interval) }
   }, [org])
 

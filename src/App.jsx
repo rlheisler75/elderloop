@@ -126,6 +126,7 @@ const trainingRoutes = [
 // Public TV & role-specific portals (outside the staff Layout)
 import TV            from './pages/tv/TV'
 import Signage       from './pages/signage/Signage'
+import SignageScreen from './pages/signage/SignageScreen'
 import FamilyPortal  from './pages/family/FamilyPortal'
 import ResidentPortal from './pages/resident/ResidentPortal'
 import EarlyAccess   from './pages/landing/EarlyAccess'
@@ -306,6 +307,9 @@ export default function App() {
         <Route path="/"         element={<LandingPage />} />
           <Route path="/tv/:slug"       element={<TV />} />
         <Route path="/signage"        element={<Signage />} />
+        {/* Screen addresses: /<facility number>-<name>, e.g. /1002-lobby */}
+        <Route path="/s/:code"        element={<SignageScreen />} />
+        <Route path="/:code"          element={<SignageScreen />} />
         <Route path="/early-access"   element={<EarlyAccess />} />
         <Route path="/survey/:token"  element={<SurveyPublic />} />
         <Route path="/lp/:slug"       element={<CampaignLandingPage />} />

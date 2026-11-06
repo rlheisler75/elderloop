@@ -867,7 +867,7 @@ export default function SuperAdminDashboard() {
                   const Icon = Globe
                   return (
                     <button key={org.id}
-                      onClick={() => window.open(`/signage?org=${org.slug}`, '_blank')}
+                      onClick={() => window.open(`/${org.facility_number}`, "_blank")}
                       className="bg-slate-900 border border-slate-800 rounded-2xl p-5 text-left hover:border-slate-700 hover:bg-slate-800/50 transition-all group">
                       <Icon size={20} className="text-green-400 mb-3 group-hover:scale-110 transition-transform" />
                       <div className="text-white font-medium text-sm mb-1">{org.name}</div>

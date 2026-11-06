@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useTierAccess } from '../../hooks/useTierAccess'
 import BroadcastPanel from './BroadcastPanel'
 import AiMessageWriter from '../../components/communication/AiMessageWriter'
+import SignageScreens from '../../components/communication/SignageScreens'
 import {
   Plus, Pin, Cake, Star, Calendar, CloudSun,
   Church, UtensilsCrossed, Bell, Megaphone,
@@ -332,6 +333,7 @@ export default function Communication() {
   const [showScheduled, setShowScheduled] = useState(false)
   const [showModal, setShowModal]         = useState(false)
   const [editItem, setEditItem]           = useState(null)
+  const [showScreens, setShowScreens]     = useState(false)
 
   // ── Tab state ──────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState('announcements')
@@ -399,10 +401,10 @@ export default function Communication() {
         </div>
         {activeTab === 'announcements' && (
           <div className="flex items-center gap-2 flex-wrap">
-            <a href="/signage?org=sunrise-gardens" target="_blank"
+            <button onClick={() => setShowScreens(true)}
               className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-brand-600 hover:border-brand-300 rounded-xl text-xs sm:text-sm font-medium transition-colors">
               <Monitor size={16} /> Digital Signage
-            </a>
+            </button>
             {canPost && (
               <button onClick={handleNew}
                 className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs sm:text-sm font-medium transition-colors">
@@ -533,6 +535,7 @@ export default function Communication() {
           {showModal && <AnnouncementModal item={editItem} onClose={() => setShowModal(false)} onSave={handleSave} />}
         </>
       )}
+      {showScreens && <SignageScreens onClose={() => setShowScreens(false)} />}
     </div>
   )
 }

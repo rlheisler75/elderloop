@@ -197,8 +197,11 @@ function getTag(type, category) {
 }
 
 // ── component ───────────────────────────────────────────────────────────────
-export default function TV() {
-  const { slug } = useParams()
+// slugOverride / screenUrl: set when opened from a screen address (/<facility number>-<name>)
+export default function TV({ slugOverride, screenUrl }) {
+  const params = useParams()
+  const slug = slugOverride || params.slug
+  const shownUrl = screenUrl || `elderloop.xyz/tv/${slug}`
   const [org, setOrg] = useState(null)
   const [slides, setSlides] = useState([])
   const [menu, setMenu] = useState(null)
@@ -227,7 +230,8 @@ export default function TV() {
   }, [slug])
 
   async function loadData() {
-    setLoading(true)
+    // Only the first load shows the loading screen; refreshes swap content in place
+    if (!slidesRef.current.length) setLoading(true)
     setError(null)
     try {
       // Resolve org by slug
@@ -315,11 +319,18 @@ export default function TV() {
     return () => cancelAnimationFrame(rafRef.current)
   }, [slides.length])
 
-  // Refresh data every 5 minutes
+  // Live updates (supabase_realtime publication, 20261107_signage_realtime)
+  // plus a 1-minute refresh in case the connection drops
   useEffect(() => {
-    const id = setInterval(loadData, 5 * 60 * 1000)
-    return () => clearInterval(id)
-  }, [slug])
+    const id = setInterval(loadData, 60 * 1000)
+    if (!org?.id) return () => clearInterval(id)
+    const ch = supabase.channel(`tv-live-${org.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements', filter: `organization_id=eq.${org.id}` }, loadData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'activities', filter: `organization_id=eq.${org.id}` }, loadData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'chapel_services', filter: `organization_id=eq.${org.id}` }, loadData)
+      .subscribe()
+    return () => { clearInterval(id); supabase.removeChannel(ch) }
+  }, [slug, org?.id])
 
   const orgColor = org?.primary_color || '#0c90e1'
   const initials = org ? org.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '??'
@@ -338,7 +349,7 @@ export default function TV() {
     <div style={styles.fullscreen}>
       <div style={{ textAlign: 'center' }}>
         <p style={{ color: '#f57070', fontSize: 18 }}>{error}</p>
-        <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginTop: 8 }}>elderloop.xyz/tv/{slug}</p>
+        <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginTop: 8 }}>{shownUrl}</p>
       </div>
     </div>
   )
@@ -356,7 +367,7 @@ export default function TV() {
           }
           <div>
             <div style={styles.orgName}>{org?.name}</div>
-            <div style={styles.orgUrl}>elderloop.xyz/tv/{slug}</div>
+            <div style={styles.orgUrl}>{shownUrl}</div>
           </div>
         </div>
         <div style={{ textAlign: 'right' }}>
