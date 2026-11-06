@@ -19,10 +19,10 @@ export const SOCIAL_STATE_REFS = {
   MO: {
     label: 'Missouri',
     grievance: {
-      summary: 'No fixed response-day requirement in state rule. Facility must designate a staff person to receive grievances and allow residents to complain to staff, the ombudsman, or any outside party.',
-      statute: '19 CSR 30-88.010(20)',
-      confidence: 'medium',
-      source: 'https://www.law.cornell.edu/regulations/missouri/19-CSR-30-88-010',
+      summary: 'One full-time staff member is the designee who receives every grievance. A resident raises it within 14 days of the occurrence; within 3 days the designee gives a written explanation of findings and proposed remedies, plus an oral explanation when the resident\'s condition calls for it. Keep a complete record. Residents may go straight to DHSS, the ombudsman, or anyone outside the facility.',
+      statute: 'RSMo § 198.088.3; 19 CSR 30-88.010(20)',
+      confidence: 'high',
+      source: 'https://revisor.mo.gov/main/OneSection.aspx?section=198.088',
     },
     involuntaryDischarge: {
       noticeDays: 30,
