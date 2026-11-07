@@ -14,7 +14,7 @@ import { printQrPoster, printSignInSheet, printCompliance, fmtDay, fmtTime } fro
 const SESSION_TYPES = [
   { key: 'mandatory',   label: 'Mandatory' },
   { key: 'department',  label: 'Department' },
-  { key: 'educational', label: 'Educational activity' },
+  { key: 'educational', label: 'Educational activity (optional, no makeups)' },
   { key: 'orientation', label: 'New-hire orientation' },
   { key: 'makeup',      label: 'Makeup session' },
 ]
@@ -490,11 +490,12 @@ export default function Education() {
   const markMap = useMemo(() => new Map(attendance.map(a => [`${a.session_id}|${a.profile_id}`, a])), [attendance])
   const makeupMap = useMemo(() => new Map(makeups.map(m => [`${m.session_id}|${m.profile_id}`, m])), [makeups])
 
-  // Absent or Excused on a session they were required at, with no makeup yet
+  // Absent or Excused on a session they were required at, with no makeup yet.
+  // Educational activities are optional: they earn hours but never owe a makeup.
   const owed = useMemo(() => {
     const out = []
     for (const s of sessions) {
-      if (s.session_type === 'makeup') continue
+      if (s.session_type === 'makeup' || s.session_type === 'educational') continue
       for (const a of attendance) {
         if (a.session_id !== s.id || a.status === 'present') continue
         const person = peopleById.get(a.profile_id)
