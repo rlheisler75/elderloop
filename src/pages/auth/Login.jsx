@@ -92,7 +92,10 @@ export default function Login() {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
       await logLoginFailed(email)
-      setError(error.message)
+      // Inactive accounts are blocked at sign-in (20261107_inactive_blocks_sign_in.sql)
+      setError(/banned/i.test(error.message)
+        ? 'This account is turned off. If you still work here, ask your administrator to turn it back on.'
+        : error.message)
       setLoading(false)
     } else {
       await logLoginSuccess()

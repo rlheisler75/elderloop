@@ -101,6 +101,29 @@ const isOverdueWO = (w) => !['closed','cancelled'].includes(w.status) && (
   (w.sla_completion_due && new Date(w.sla_completion_due) < new Date())
 )
 
+// Short place for lists, address first. Location paths end with the house or
+// apartment number ("Independent Living > Circle Lane > Duplex6 > 3190"), which
+// a cut-off list cell used to hide: show "3190 Circle Lane" (or "101-B Northwoods
+// B-Building"), else the last two levels ("400 Hall · 407"). Full path stays on hover.
+const STREET_RE = /\b(lane|ln|drive|dr|avenue|ave|terrace|ridge|road|rd|street|st|circle|court|ct|way|blvd|place|pl|building)\b/i
+const GENERIC_RE = /^(independent living|assisted living|skilled nursing|duplex\s*\d*|\d+(st|nd|rd|th) floor|apartments?|units?)$/i
+function woPlace(wo) {
+  if (!wo.location_path) return [wo.building, wo.unit].filter(Boolean).join(' · ')
+  const parts = wo.location_path.split(' > ').map(s => s.trim()).filter(Boolean)
+  const last = parts[parts.length - 1]
+  if (/^\d/.test(last)) {
+    const street = [...parts].slice(0, -1).reverse().find(p => STREET_RE.test(p))
+    if (street) {
+      // "Northwoods > B-Building": keep the complex name with its building
+      const i = parts.indexOf(street)
+      const complex = /building/i.test(street) && i > 0 && !GENERIC_RE.test(parts[i - 1]) ? `${parts[i - 1]} ` : ''
+      return `${last} ${complex}${street}`
+    }
+  }
+  const meaningful = parts.filter(p => !GENERIC_RE.test(p))
+  return (meaningful.length ? meaningful : parts).slice(-2).join(' · ')
+}
+
 // ── Print list ────────────────────────────────────────────────
 // Summary sheet of the work orders on screen (current filters + search), like
 // Work Hub's printed list: one line per job with the essentials. Full detail
@@ -112,7 +135,7 @@ function printWorkOrderList({ rows, categories, orgName, subtitle, showCompleted
   const clip = (s, n) => { const t = String(s ?? '').replace(/\s+/g, ' ').trim(); return t.length > n ? t.slice(0, n - 1) + '…' : t }
   const body = rows.map(wo => {
     const cat = categories.find(c => c.key === wo.category)
-    const place = wo.location_path || [wo.building, wo.unit].filter(Boolean).join(' · ')
+    const place = woPlace(wo)
     const resident = wo.residents ? `${wo.residents.first_name} ${wo.residents.last_name}` : ''
     const assigned = wo.assigned_profiles ? `${wo.assigned_profiles.first_name} ${wo.assigned_profiles.last_name}` : (wo.vendor_name || '')
     const desc = wo.description && wo.description.trim() !== wo.title?.trim() ? clip(wo.description, 220) : ''
@@ -195,10 +218,10 @@ function WORow({ wo, categories, onClick, showCompleted }) {
       </td>
       <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">
         {(wo.location_path || wo.unit || wo.building) ? (
-          <div className="flex items-center gap-1 text-xs">
-            <MapPin size={12} className="text-slate-400 flex-shrink-0" />
-            <span className="truncate max-w-[160px]">
-              {wo.location_path || [wo.building, wo.unit].filter(Boolean).join(' · ')}
+          <div className="flex items-start gap-1 text-xs" title={wo.location_path || ''}>
+            <MapPin size={12} className="text-slate-400 flex-shrink-0 mt-0.5" />
+            <span className="max-w-[200px] break-words">
+              <span className="font-medium text-slate-700 dark:text-slate-200">{woPlace(wo)}</span>
             </span>
           </div>
         ) : <span className="text-slate-300">—</span>}
