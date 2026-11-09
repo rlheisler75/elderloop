@@ -314,8 +314,18 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
   const handleSaveInfo = async () => {
     if (!form.first_name.trim()) { setError('First name required'); return }
     setSaving(true)
+    // The email is their login: change-user-email moves the login and profile together
+    // (saving profiles.email alone left people unable to sign in with the new address)
+    const newEmail = form.email.trim().toLowerCase()
+    if (newEmail && newEmail !== (staff.email || '').trim().toLowerCase()) {
+      const { data, error: fnErr } = await supabase.functions.invoke('change-user-email', {
+        body: { target_user_id: staff.id, new_email: newEmail },
+      })
+      if (fnErr || data?.success === false) { setError(data?.error || fnErr.message); setSaving(false); return }
+    }
+    const { email: _email, ...rest } = form
     const payload = {
-      ...form,
+      ...rest,
       hire_date: form.hire_date || null,
       employment_end_date: form.employment_end_date || null,
       updated_at: new Date().toISOString(),
@@ -432,6 +442,7 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
                   <input type="email" value={form.email} onChange={e => set('email', e.target.value)} disabled={!canEditBasic}
                     className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60 disabled:cursor-not-allowed"
                     placeholder="staff@email.com" />
+                  {!isNew && <p className="text-[11px] text-slate-400 mt-1">This is their sign-in. Changing it moves their login; the password stays the same.</p>}
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Hire Date</label>

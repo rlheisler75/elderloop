@@ -135,6 +135,50 @@ function PrintResidentCard({ resident, emergencyContacts, medicalContacts, orgNa
   )
 }
 
+// Change a portal login's sign-in email (change-user-email; Org Admin / Administrator).
+// The new address is their login right away and the password stays the same.
+function PortalEmailChange({ profileId, email, onChanged }) {
+  const [value, setValue] = useState(null) // null = closed
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState('')
+  const [err, setErr] = useState('')
+
+  async function save() {
+    setBusy(true); setErr(''); setMsg('')
+    const { data, error } = await supabase.functions.invoke('change-user-email', {
+      body: { target_user_id: profileId, new_email: value },
+    })
+    setBusy(false)
+    if (error || data?.success === false) { setErr(data?.error || error.message); return }
+    setValue(null)
+    setMsg('Changed. Same password; the old and new addresses were notified.')
+    onChanged(data.email)
+  }
+
+  if (value === null) return (
+    <>
+      <button onClick={() => { setValue(email || ''); setMsg('') }}
+        className="ml-2 text-xs text-brand-600 hover:text-brand-800 font-medium">Change</button>
+      {msg && <span className="block text-xs text-green-600 mt-0.5">{msg}</span>}
+    </>
+  )
+  return (
+    <div className="mt-1.5 space-y-1.5">
+      <input type="email" value={value} onChange={e => setValue(e.target.value)} autoFocus
+        className="w-full px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500" />
+      <p className="text-[11px] text-slate-400">Becomes their login right away. Password stays the same; no new setup needed.</p>
+      {err && <p className="text-xs text-red-500">{err}</p>}
+      <div className="flex gap-2 justify-end">
+        <button onClick={() => { setValue(null); setErr('') }} disabled={busy} className="text-xs text-slate-500 px-2 py-1">Cancel</button>
+        <button onClick={save} disabled={busy || !value.trim() || value.trim().toLowerCase() === (email || '').toLowerCase()}
+          className="text-xs px-3 py-1 rounded-lg bg-brand-600 text-white font-medium disabled:opacity-50">
+          {busy ? 'Changing…' : 'Change Email'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ── Resident Detail / Edit ─────────────────────────────────────
 function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
   const { profile } = useAuth()
@@ -149,6 +193,8 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
   const [portalSuccess,  setPortalSuccess]  = useState('')
   // Linked profile email — resolved from resident.profile_id
   const [linkedEmail,    setLinkedEmail]    = useState(resident?.profiles?.email || '')
+  // Same people enable-resident-portal / enable-family-portal / change-user-email allow
+  const canChangePortalEmail = ['org_admin', 'ceo', 'super_admin'].includes(profile?.role)
 
   // Re-resolve if resident changes
   useEffect(() => {
@@ -629,7 +675,12 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
                   </div>
 
                   {linkedEmail ? (
-                    <p className="text-xs text-green-700 dark:text-green-400">Active · <span className="font-mono">{linkedEmail}</span></p>
+                    <div className="text-xs text-green-700 dark:text-green-400">
+                      Active · <span className="font-mono break-all">{linkedEmail}</span>
+                      {canChangePortalEmail && resident?.profile_id && (
+                        <PortalEmailChange profileId={resident.profile_id} email={linkedEmail} onChanged={setLinkedEmail} />
+                      )}
+                    </div>
                   ) : (
                     <p className="text-xs text-slate-400">No portal account — resident cannot log in yet.</p>
                   )}
@@ -680,13 +731,18 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
                       {familyLinks.map(link => {
                         const p = link.profiles
                         return (
-                          <div key={link.id} className="flex items-center justify-between py-1.5 px-2 bg-white dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-800">
-                            <div>
+                          <div key={link.id} className="flex items-start justify-between py-1.5 px-2 bg-white dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-800">
+                            <div className="min-w-0 flex-1">
                               <div className="text-xs font-medium text-slate-700 dark:text-slate-300">
                                 {p?.first_name} {p?.last_name}
                                 {link.is_primary && <span className="ml-1.5 text-[10px] text-brand-600 font-semibold">PRIMARY</span>}
                               </div>
-                              <div className="text-xs text-slate-400">{p?.email}{link.relationship ? ` · ${link.relationship}` : ''}</div>
+                              <div className="text-xs text-slate-400 break-all">
+                                {p?.email}{link.relationship ? ` · ${link.relationship}` : ''}
+                                {canChangePortalEmail && p?.id && (
+                                  <PortalEmailChange profileId={p.id} email={p.email} onChanged={() => fetchFamilyLinks()} />
+                                )}
+                              </div>
                             </div>
                             {canEdit && (
                               <button onClick={() => handleRemoveFamily(link.id)}

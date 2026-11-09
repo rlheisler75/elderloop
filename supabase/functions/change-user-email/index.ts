@@ -1,9 +1,11 @@
 // Changes a staff member's sign-in email (Admin Panel → Users → Edit User →
-// Change). The new address is their login right away and their password stays
+// Change) or a resident / family portal login's (Residents → resident → Portal
+// Access → Change). The new address is their login right away and their password stays
 // the same, so no new setup is needed. Both the old and new addresses get a
 // notice, so a change someone didn't expect doesn't go unnoticed. Same
-// permission rule as create-user / resend-welcome: Org Admins and HR/Payroll
-// Managers for their own community, super admins for anyone.
+// permission rules as the functions that create the logins: staff = create-user
+// (Org Admins and HR/Payroll Managers), portal logins = enable-resident-portal /
+// enable-family-portal (Org Admins and the Administrator); super admins for anyone.
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
 const corsHeaders = {
@@ -41,25 +43,26 @@ Deno.serve(async (req: Request) => {
       supabaseAdmin.from('profiles').select('email, role, organization_id').eq('id', callingUser.id).single(),
       supabaseAdmin.from('profiles').select('email, first_name, role, organization_id').eq('id', target_user_id).single(),
     ])
-    if (!target?.organization_id) return respond({ success: false, error: 'Staff member not found' })
-    if (['resident', 'family'].includes(target.role)) {
-      return respond({ success: false, error: "Portal logins' email is changed from the resident record" })
-    }
+    if (!target?.organization_id) return respond({ success: false, error: 'Account not found' })
+    const isPortal = ['resident', 'family'].includes(target.role)
 
-    // Same rule as create-user
-    let isPrivileged = !!callerProfile && ['org_admin', 'super_admin'].includes(callerProfile.role)
-    if (!isPrivileged && callerProfile) {
+    // Same rules as the functions that create these logins
+    let isPrivileged = !!callerProfile &&
+      (isPortal ? ['org_admin', 'ceo', 'super_admin'] : ['org_admin', 'super_admin']).includes(callerProfile.role)
+    if (!isPrivileged && callerProfile && !isPortal) {
       const { data: deptRoles } = await supabaseAdmin
         .from('staff_department_roles').select('department')
         .eq('profile_id', callingUser.id).in('department', ['hr', 'payroll']).eq('level', 'manager')
       isPrivileged = !!deptRoles && deptRoles.length > 0
     }
     if (!callerProfile || !isPrivileged) {
-      return respond({ success: false, error: 'Insufficient permissions — must be org_admin, super_admin, or an HR/Payroll Manager' })
+      return respond({ success: false, error: isPortal
+        ? 'Only an Org Admin or the Administrator can change a portal login'
+        : 'Insufficient permissions — must be org_admin, super_admin, or an HR/Payroll Manager' })
     }
     if (callerProfile.role !== 'super_admin') {
       if (callerProfile.organization_id !== target.organization_id) {
-        return respond({ success: false, error: 'Cannot change staff of other organizations' })
+        return respond({ success: false, error: 'Cannot change accounts of other organizations' })
       }
       if (['super_admin', 'sales_rep'].includes(target.role)) {
         return respond({ success: false, error: 'Only ElderLoop can change this account' })
@@ -71,8 +74,13 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    const oldEmail = (target.email ?? '').trim().toLowerCase()
-    if (email === oldEmail) return respond({ success: false, error: 'That is already their email' })
+    // The login is what counts: before this function, the Staff screen could change
+    // profiles.email alone, so the two can disagree (and this repairs that)
+    const { data: authData } = await supabaseAdmin.auth.admin.getUserById(target_user_id)
+    const loginEmail = (authData?.user?.email ?? '').trim().toLowerCase()
+    const oldEmail = loginEmail || (target.email ?? '').trim().toLowerCase()
+    const profileEmail = (target.email ?? '').trim().toLowerCase()
+    if (email === oldEmail && email === profileEmail) return respond({ success: false, error: 'That is already their email' })
 
     const { data: taken } = await supabaseAdmin.from('profiles').select('id').ilike('email', email).neq('id', target_user_id).limit(1)
     if (taken?.length) return respond({ success: false, error: 'Another ElderLoop account already uses that email' })
@@ -110,17 +118,17 @@ Deno.serve(async (req: Request) => {
             <td style="padding-left:10px;"><span style="font-size:18px;font-weight:700;color:#0c2340;">ElderLoop</span></td>
           </tr></table>
           <h2 style="color:#1e3a5f;margin:0 0 12px;">Hi ${firstName},</h2>
-          <p style="color:#475569;font-size:15px;line-height:1.6;">An administrator at <strong>${orgName}</strong> changed your ElderLoop sign-in email${isNew ? ' to this address' : ''}.</p>
+          <p style="color:#475569;font-size:15px;line-height:1.6;">Staff at <strong>${orgName}</strong> changed your ElderLoop sign-in email${isNew ? ' to this address' : ''}.</p>
           <p style="color:#475569;font-size:15px;line-height:1.6;">From now on, sign in with <strong>${email}</strong>. Your password has not changed.</p>
           <p style="color:#475569;font-size:15px;line-height:1.6;">Sign in at <a href="${siteUrl}/login">${siteUrl}/login</a>.</p>
-          <p style="color:#94a3b8;font-size:13px;">If you didn't expect this, contact your community's administrator.</p>
+          <p style="color:#94a3b8;font-size:13px;">If you didn't expect this, contact ${orgName}.</p>
           <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0;"/>
           <p style="color:#94a3b8;font-size:12px;">Powered by ElderLoop &middot; elderloop.xyz</p>
         </div>`,
       }),
     }).then(async r => { if (!r.ok) console.error('change-user-email Resend error:', r.status, await r.text()) })
       .catch(e => console.error('change-user-email Resend failed:', e))
-    await Promise.all([notice(email, true), ...(oldEmail ? [notice(oldEmail, false)] : [])])
+    await Promise.all([notice(email, true), ...(oldEmail && oldEmail !== email ? [notice(oldEmail, false)] : [])])
 
     const { error: auditErr } = await supabaseAdmin.from('audit_log').insert({
       organization_id: target.organization_id,
@@ -132,7 +140,7 @@ Deno.serve(async (req: Request) => {
       record_id: target_user_id,
       old_values: { email: oldEmail },
       new_values: { email },
-      notes: 'Sign-in email changed by an administrator',
+      notes: isPortal ? `Portal (${target.role}) sign-in email changed` : 'Sign-in email changed by an administrator',
     })
     if (auditErr) console.error('change-user-email audit insert failed:', auditErr.message)
 
