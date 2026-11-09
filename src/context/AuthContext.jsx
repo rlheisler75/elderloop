@@ -261,6 +261,8 @@ export function AuthProvider({ children }) {
     if (key === 'budgets' && BUDGET_DEPARTMENT_KEYS.some(d => can(d === 'maintenance' ? 'work_orders' : d, 'costs'))) return true
     // Education: every staff member sees their own in-services and checks in by QR
     if (key === 'education') return true
+    // Property: Maintenance (Work Orders edit) sees units and does walkthroughs (il_maintenance_access())
+    if (key === 'property_management' && can('work_orders', 'edit')) return true
     return hasAnyPermission(key)
   }
 

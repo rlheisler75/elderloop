@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { useTierAccess } from '../../hooks/useTierAccess'
 import { residentPlace } from '../../lib/residentPlace'
+import { fetchLocationPath } from '../../components/ui/LocationPickerButton'
 import {
   Plus, X, Edit2, Trash2, Search, Home, FileText, Key,
   DollarSign, AlertTriangle, ClipboardCheck, ChevronDown,
@@ -988,15 +989,87 @@ function KeysTab({ orgId, units, leases, tenants, staff }) {
 
 // ── Main Component ────────────────────────────────────────────
 
+// ── Work order from a walkthrough ─────────────────────────────
+// Opens a Maintenance work order for what a walkthrough found: the items marked
+// fair or poor (or charged) become the description, and the unit's maintenance
+// location carries over. Linked back through il_walkthroughs.work_order_id.
+
+function WalkthroughWorkOrder({ walkthrough: wt, orgId, onSave, onClose }) {
+  const { profile } = useAuth()
+  const unitName = `Unit ${wt.unit?.unit_number || ''}${wt.unit?.building ? `, ${wt.unit.building}` : ''}`
+  const [title, setTitle] = useState(`${unitName}: repairs from ${fmt(wt.walkthrough_type).toLowerCase()} walkthrough`)
+  const [description, setDescription] = useState('')
+  const [priority, setPriority] = useState('normal')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    supabase.from('il_walkthrough_items').select('room,item,condition,notes,charge_amount,sort_order')
+      .eq('walkthrough_id', wt.id).order('sort_order')
+      .then(({ data }) => {
+        const found = (data || []).filter(i => ['fair', 'poor'].includes(i.condition) || Number(i.charge_amount) > 0)
+        const lines = found.map(i => `- ${[i.room, i.item].filter(Boolean).join(': ')} (${fmt(i.condition)})${i.notes ? ` - ${i.notes}` : ''}`)
+        const extra = [wt.damage_notes, wt.notes].filter(Boolean)
+        setDescription([...lines, ...extra].join('\n') || 'See the walkthrough in Property Management.')
+      })
+  }, [wt.id])
+
+  const save = async () => {
+    if (!title.trim()) return
+    setSaving(true); setError('')
+    const locationId = wt.unit?.location_id || null
+    const { data: wo, error: woErr } = await supabase.from('work_orders').insert({
+      organization_id: orgId,
+      title: title.trim(),
+      description: description.trim() || null,
+      priority,
+      category: 'other',
+      location_id: locationId,
+      location_path: locationId ? (await fetchLocationPath(locationId)) || null : null,
+      unit: wt.unit?.unit_number || null,
+      building: wt.unit?.building || null,
+      submitted_by: profile?.id,
+      submitted_by_name: [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || null,
+      source: 'staff',
+    }).select('id').single()
+    if (woErr) { setSaving(false); setError(woErr.message); return }
+    await supabase.from('il_walkthroughs').update({ work_order_id: wo.id }).eq('id', wt.id)
+    setSaving(false)
+    onSave()
+  }
+
+  return (
+    <>
+      {error && <div className="mb-4 px-3 py-2 rounded-xl bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400 text-sm">{error}</div>}
+      <div className="space-y-4">
+        <Field label="Title" required><input className={inputCls} value={title} onChange={e => setTitle(e.target.value)} /></Field>
+        <Field label="What needs doing">
+          <textarea className={inputCls} rows={7} value={description} onChange={e => setDescription(e.target.value)} />
+        </Field>
+        <Field label="Priority">
+          <select className={selectCls} value={priority} onChange={e => setPriority(e.target.value)}>
+            {['low', 'normal', 'high', 'urgent'].map(p => <option key={p} value={p}>{fmt(p)}</option>)}
+          </select>
+        </Field>
+        <p className="text-xs text-slate-400">Goes to Maintenance's open queue{wt.unit?.location_id ? ', at this unit\'s location' : ''}. Maintenance assigns it and sets the category.</p>
+      </div>
+      <SaveCancel onSave={save} onClose={onClose} saving={saving} label="Create Work Order" />
+    </>
+  )
+}
+
 export default function PropertyManagement() {
-  const { profile, organization } = useAuth()
+  const { profile, organization, can } = useAuth()
   // Tiered communities: Property staff handle units, keys, and walkthroughs;
   // tenants, leases, rent, deposits, and notices are the Property Manager's, who
-  // also adds and removes units
+  // also adds and removes units. Maintenance (Work Orders edit, outside Property)
+  // sees units and does walkthroughs only (il_maintenance_access()).
   const tierAccess = useTierAccess('property_management')
   const isPropertyManager = tierAccess.atLeast('manager')
+  const maintenanceOnly = !tierAccess.member && can('work_orders', 'edit')
+  const canCreateWO = can('work_orders', 'create')
   const orgId = organization?.id || profile?.organization_id
-  const [tab, setTab] = useState('units')
+  const [tab, setTab] = useState(maintenanceOnly ? 'walkthroughs' : 'units')
 
   // Data
   const [units, setUnits]     = useState([])
@@ -1035,16 +1108,20 @@ export default function PropertyManagement() {
   // Walkthrough tab state
   const [walkthroughs, setWalkthroughs]     = useState([])
   const [showWTForm, setShowWTForm]         = useState(false)
+  const [woFromWT, setWoFromWT]             = useState(null) // walkthrough to open a work order from
 
   const fetchAll = useCallback(async () => {
     if (!orgId) { setLoading(false); return }
     setLoading(true)
     const [uR, tR, lR, nR, wR, sR, ilR, rR] = await Promise.all([
-      supabase.from('il_units').select('*').eq('organization_id', orgId).eq('is_active', true).order('building').order('unit_number'),
+      // Maintenance can't read il_units (rent): il_unit_list() is number, building and location only
+      maintenanceOnly
+        ? supabase.rpc('il_unit_list')
+        : supabase.from('il_units').select('*').eq('organization_id', orgId).eq('is_active', true).order('building').order('unit_number'),
       supabase.from('il_tenants').select('*, resident:residents(id,is_active,care_level)').eq('organization_id', orgId).eq('is_active', true).order('last_name'),
       supabase.from('il_leases').select('*, unit:il_units(unit_number,building), tenant:il_tenants!il_leases_primary_tenant_id_fkey(first_name,last_name,resident_id,resident:residents(is_active,care_level))').eq('organization_id', orgId).order('created_at', { ascending: false }),
       supabase.from('il_notices').select('*, unit:il_units(unit_number), tenant:il_tenants(first_name,last_name)').eq('organization_id', orgId).order('issued_date', { ascending: false }),
-      supabase.from('il_walkthroughs').select('*, unit:il_units(unit_number)').eq('organization_id', orgId).order('created_at', { ascending: false }),
+      supabase.from('il_walkthroughs').select('*, unit:il_units(unit_number,building,location_id), work_order:work_orders(id,wo_number,status)').eq('organization_id', orgId).order('created_at', { ascending: false }),
       supabase.from('profiles').select('id,first_name,last_name').eq('organization_id', orgId).order('first_name'),
       // Marketing leads that named a specific unit as their interest — read-only here,
       // Marketing owns editing it. Excludes leads that already converted, were lost, or
@@ -1059,12 +1136,14 @@ export default function PropertyManagement() {
     setTenants(tR.data || [])
     setLeases(lR.data || [])
     setNotices(nR.data || [])
-    setWalkthroughs(wR.data || [])
+    // The unit join comes back empty for Maintenance; fill it from the unit list
+    const unitById = Object.fromEntries((uR.data || []).map(u => [u.id, u]))
+    setWalkthroughs((wR.data || []).map(w => w.unit ? w : { ...w, unit: unitById[w.unit_id] || null }))
     setStaff(sR.data || [])
     setInterestedLeads(ilR.data || [])
     setIlResidents(rR.data || [])
     setLoading(false)
-  }, [orgId])
+  }, [orgId, maintenanceOnly])
 
   // Units from where IL residents live (and the empty homes beside them), and a
   // tenant record for each IL resident: il_import_units() / il_import_tenants()
@@ -1131,7 +1210,7 @@ export default function PropertyManagement() {
     { key:'keys',        label:'Keys',         icon: Key },
     { key:'walkthroughs',label:'Walkthroughs', icon: ClipboardCheck },
     { key:'notices',     label:'Notices',      icon: Bell, managerOnly: true },
-  ].filter(t => !t.managerOnly || isPropertyManager)
+  ].filter(t => (!t.managerOnly || isPropertyManager) && (!maintenanceOnly || t.key === 'walkthroughs'))
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -1139,12 +1218,14 @@ export default function PropertyManagement() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="font-display text-2xl font-semibold text-slate-800 dark:text-slate-100">Property Management</h1>
-          <p className="text-slate-500 text-sm mt-0.5">Independent living units, leases, rent, and notices</p>
+          <p className="text-slate-500 text-sm mt-0.5">
+            {maintenanceOnly ? 'Independent living walkthroughs' : 'Independent living units, leases, rent, and notices'}
+          </p>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      {/* Stats (not for Maintenance, who only do walkthroughs) */}
+      <div className={`grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 ${maintenanceOnly ? 'hidden' : ''}`}>
         <StatCard icon={Building2}   label="Total Units"   value={stats.total}    sub={`${occupancyPct}% occupied`} />
         <StatCard icon={CheckCircle} label="Occupied"      value={stats.occupied} sub="Active leases" color="text-green-600" />
         <StatCard icon={Home}        label="Available"     value={stats.available} sub="Ready to lease" color="text-blue-600" />
@@ -1238,10 +1319,12 @@ export default function PropertyManagement() {
                         <Badge color={st.color}>{st.label}</Badge>
                       </div>
                       <div className="flex gap-1">
-                        <button onClick={()=>{setEditUnit(unit);setShowUnitForm(true)}}
-                          className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-400">
-                          <Edit2 size={14} />
-                        </button>
+                        {!maintenanceOnly && (
+                          <button onClick={()=>{setEditUnit(unit);setShowUnitForm(true)}}
+                            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-400">
+                            <Edit2 size={14} />
+                          </button>
+                        )}
                         {isPropertyManager && (
                           <button onClick={()=>deleteUnit(unit.id)}
                             className="p-1.5 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-500 rounded-lg transition-colors text-slate-400">
@@ -1503,6 +1586,17 @@ export default function PropertyManagement() {
                     <p className="text-xs text-red-600 font-medium mt-2">Damage charges: {fmtMoney(wt.damage_charges)}</p>
                   )}
                   {wt.notes && <p className="text-xs text-slate-500 mt-2 line-clamp-2">{wt.notes}</p>}
+                  {wt.work_order_id ? (
+                    <a href={`/app/maintenance?wo=${wt.work_order_id}`}
+                      className="mt-3 flex items-center gap-1.5 text-xs font-medium text-brand-600 hover:text-brand-800">
+                      <ClipboardCheck size={12} /> Work order{wt.work_order?.wo_number ? ` #${wt.work_order.wo_number}` : ' opened'}{wt.work_order ? ` · ${fmt(wt.work_order.status)}` : ''}
+                    </a>
+                  ) : canCreateWO && (
+                    <button onClick={() => setWoFromWT(wt)}
+                      className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
+                      <Plus size={12} /> Create work order
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
@@ -1598,6 +1692,12 @@ export default function PropertyManagement() {
         <Modal title={editNotice?'Edit Notice':'Issue Notice'} onClose={()=>setShowNoticeForm(false)} wide>
           <NoticeForm leases={leases} tenants={tenants} units={units} orgId={orgId} notice={editNotice}
             onSave={()=>{setShowNoticeForm(false);fetchAll()}} onClose={()=>setShowNoticeForm(false)} />
+        </Modal>
+      )}
+      {woFromWT && (
+        <Modal title={`Work Order · Unit ${woFromWT.unit?.unit_number || ''}`} onClose={() => setWoFromWT(null)}>
+          <WalkthroughWorkOrder walkthrough={woFromWT} orgId={orgId}
+            onSave={() => { setWoFromWT(null); fetchAll() }} onClose={() => setWoFromWT(null)} />
         </Modal>
       )}
       {showWTForm && (

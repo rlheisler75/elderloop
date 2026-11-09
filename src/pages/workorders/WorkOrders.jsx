@@ -1565,6 +1565,15 @@ export default function WorkOrders() {
     setSearchParams(p => { p.delete('asset'); return p }, { replace: true })
   }, [assetParam, organization])
 
+  // Open the work order named in ?wo=<id> (e.g. from a Property walkthrough), then drop it from the URL
+  const woParam = searchParams.get('wo')
+  useEffect(() => {
+    if (!woParam || !organization) return
+    setMainView('work_orders')
+    woBaseQuery().eq('id', woParam).maybeSingle().then(({ data }) => { if (data) handleOpen(data) })
+    setSearchParams(p => { p.delete('wo'); return p }, { replace: true })
+  }, [woParam, organization])
+
   async function openAsset(id) {
     setScanError('')
     setMainView('work_orders')

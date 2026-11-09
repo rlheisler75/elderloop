@@ -156,8 +156,10 @@ export default function Layout() {
   const navigate = useNavigate()
   const handleSignOut = async () => { await signOut(); navigate('/login') }
 
+  // Maintenance (Work Orders edit) also uses Property for units and walkthroughs (il_maintenance_access())
   const hiddenByTier = (mod) => accessModel === 'tiered' && DEPARTMENT_ONLY_MODULES.includes(mod)
     && !ABOVE_EMPLOYEE.includes(tierFor(mod)) && !hasDepartmentAccess(MODULE_DEPARTMENTS[mod], 'employee')
+    && !(mod === 'property_management' && can('work_orders', 'edit'))
   // Budgets: only people who can see a budget (department Managers of the budget
   // departments, the NHA, Org Admins), matching can_see_budget() in the database
   const seesBudgets = isOrgAdmin || isSuperAdmin
