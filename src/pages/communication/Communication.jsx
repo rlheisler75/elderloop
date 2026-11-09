@@ -6,6 +6,7 @@ import { useTierAccess } from '../../hooks/useTierAccess'
 import BroadcastPanel from './BroadcastPanel'
 import AiMessageWriter from '../../components/communication/AiMessageWriter'
 import SignageScreens from '../../components/communication/SignageScreens'
+import ScreenPicker from '../../components/communication/ScreenPicker'
 import {
   Plus, Pin, Cake, Star, Calendar, CloudSun,
   Church, UtensilsCrossed, Bell, Megaphone,
@@ -108,6 +109,7 @@ function AnnouncementModal({ item, onClose, onSave }) {
     expires_at: item?.expires_at ? toDateInput(item.expires_at) : '',
     bg_custom:  item?.bg_custom  || '',
     image_url:  item?.image_url  || '',
+    signage_screen_ids: item?.signage_screen_ids || [],
   })
   const [bgMode, setBgMode]             = useState(item?.bg_custom ? (BG_PRESETS.find(p => p.value === item.bg_custom) ? item.bg_custom : 'custom') : '')
   const [customHex, setCustomHex]       = useState(item?.bg_custom || '#0a406b')
@@ -161,6 +163,7 @@ function AnnouncementModal({ item, onClose, onSave }) {
       expires_at:      form.expires_at || null,
       bg_custom:       form.bg_custom  || null,
       image_url:       form.image_url  || null,
+      signage_screen_ids: form.signage_screen_ids,
       organization_id: organization.id,
       updated_at:      new Date().toISOString(),
     }
@@ -309,6 +312,8 @@ function AnnouncementModal({ item, onClose, onSave }) {
               className="w-4 h-4 rounded text-brand-600" />
             <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Pin to top of board</span>
           </label>
+
+          <ScreenPicker value={form.signage_screen_ids} onChange={v => setField('signage_screen_ids', v)} />
         </div>
 
         <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 sticky bottom-0 bg-white dark:bg-slate-900 rounded-b-2xl">

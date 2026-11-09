@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { createClient } from '@supabase/supabase-js'
 import useSignageLive from '../../hooks/useSignageLive'
+import { onScreen } from '../../components/communication/ScreenPicker'
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
@@ -199,7 +200,7 @@ function getTag(type, category) {
 
 // ── component ───────────────────────────────────────────────────────────────
 // slugOverride / screenUrl: set when opened from a screen address (/<facility number>-<name>)
-export default function TV({ slugOverride, screenUrl }) {
+export default function TV({ slugOverride, screenUrl, screenId }) {
   const params = useParams()
   const slug = slugOverride || params.slug
   const shownUrl = screenUrl || `elderloop.xyz/tv/${slug}`
@@ -253,7 +254,7 @@ export default function TV({ slugOverride, screenUrl }) {
       // Parallel fetches
       const [annRes, actRes, chapRes, menuData] = await Promise.all([
         supabase.from('announcements')
-          .select('id, title, body, category, image_url, pinned, starts_at, expires_at')
+          .select('id, title, body, category, image_url, pinned, starts_at, expires_at, signage_screen_ids')
           .eq('organization_id', orgData.id)
           .eq('is_active', true)
           .order('pinned', { ascending: false })
@@ -261,7 +262,7 @@ export default function TV({ slugOverride, screenUrl }) {
           .limit(10),
 
         supabase.from('activities')
-          .select('id, title, description, category, start_date, start_time, end_time, location')
+          .select('id, title, description, category, start_date, start_time, end_time, location, signage_screen_ids')
           .eq('organization_id', orgData.id)
           .eq('is_active', true)
           .eq('show_on_signage', true)
@@ -284,10 +285,11 @@ export default function TV({ slugOverride, screenUrl }) {
       setMenu(menuData)
 
       // Next 3 activities for sidebar
-      const allActs = actRes.data || []
+      // Items limited to certain screens show only there
+      const allActs = (actRes.data || []).filter(a => onScreen(a, screenId))
       setUpcomingActivities(allActs.slice(0, 3))
 
-      const built = buildSlides(annRes.data || [], allActs, chapRes.data || [], today)
+      const built = buildSlides((annRes.data || []).filter(a => onScreen(a, screenId)), allActs, chapRes.data || [], today)
       slidesRef.current = built
       setSlides(built)
     } catch (e) {

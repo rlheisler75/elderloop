@@ -1,6 +1,7 @@
 // Communication → Digital Signage: the community's screens. Each screen gets the
 // address elderloop.xyz/<facility number>-<name> (signage_screens + the
-// signage_resolve() lookup), and picks a layout: Signage or TV slideshow.
+// signage_resolve() lookup), and picks a layout: Signage (the board, TV.jsx) or
+// TV slideshow (Signage.jsx); SignageScreen.jsx maps them.
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'

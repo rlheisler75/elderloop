@@ -1,6 +1,10 @@
 // Screen addresses: elderloop.xyz/<facility number>-<screen name> (also /s/...),
 // e.g. /1002-lobby. signage_resolve() (public, no sign-in on a TV) returns the
-// community and the screen's layout; the bare number opens the Signage layout.
+// community, the screen's layout and its id (announcements/activities can be
+// limited to certain screens); the bare number opens the Signage layout.
+// Layouts: 'signage' = the board (TV.jsx: slide + menu and Coming Up beside it),
+// 'tv' = the full-screen slideshow (Signage.jsx). Until 2026-11-09 these were
+// wired the other way round from the labels in SignageScreens.jsx.
 import { useEffect, useState } from 'react'
 import { useParams, Navigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
@@ -30,6 +34,6 @@ export default function SignageScreen() {
     </div>
   )
   return screen.display === 'tv'
-    ? <TV slugOverride={screen.org_slug} screenUrl={`elderloop.xyz/${code.toLowerCase()}`} />
-    : <Signage orgSlug={screen.org_slug} />
+    ? <Signage orgSlug={screen.org_slug} screenId={screen.screen_id} />
+    : <TV slugOverride={screen.org_slug} screenId={screen.screen_id} screenUrl={`elderloop.xyz/${code.toLowerCase()}`} />
 }

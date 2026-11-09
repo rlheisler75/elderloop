@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import AttendanceModal from './AttendanceModal'
 import { useTierAccess } from '../../hooks/useTierAccess'
 import ParticipationReport from './ParticipationReport'
+import ScreenPicker from '../../components/communication/ScreenPicker'
 import {
   Plus, X, Edit2, Trash2, ChevronLeft, ChevronRight,
   Calendar, Clock, MapPin, Printer, List, Grid3x3,
@@ -105,7 +106,8 @@ function ActivityModal({ activity, canEdit, canDelete = true, onClose, onSave, o
     color:          activity?.color          || getCat(activity?.category || 'other').color,
     show_on_signage: activity?.show_on_signage ?? true,
     show_on_portal:  activity?.show_on_portal  ?? true,
-    department:     activity?.department     || '',
+    signage_screen_ids: activity?.signage_screen_ids || [],
+    department:    activity?.department     || '',
   })
   const [saving, setSaving] = useState(false)
   const [error, setError]   = useState('')
@@ -272,6 +274,9 @@ function ActivityModal({ activity, canEdit, canDelete = true, onClose, onSave, o
               </div>
             </label>
           </div>
+          {form.show_on_signage && (
+            <ScreenPicker value={form.signage_screen_ids} onChange={v => set('signage_screen_ids', v)} disabled={readOnly} />
+          )}
         </fieldset>
         </div>
 

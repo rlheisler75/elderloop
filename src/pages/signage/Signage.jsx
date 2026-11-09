@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import useSignageLive from '../../hooks/useSignageLive'
+import { onScreen } from '../../components/communication/ScreenPicker'
 import {
   Cake, Star, Calendar, CloudSun, Church,
   UtensilsCrossed, Bell, Megaphone, Wifi, WifiOff,
@@ -308,7 +309,7 @@ function AnnouncementSlide({ slide, orgName, orgLogo, visible, accent }) {
 
 // ── Main Signage ───────────────────────────────────────────────
 // orgSlug: set when opened from a screen address (/<facility number>-<name>)
-export default function Signage({ orgSlug }) {
+export default function Signage({ orgSlug, screenId }) {
   const [org, setOrg]                   = useState(null)
   const [announcements, setAnnouncements] = useState([])
   const [activities, setActivities]     = useState([])
@@ -371,8 +372,9 @@ export default function Signage({ orgSlug }) {
       `).eq('organization_id', org.id).eq('is_active', true).single()
     ])
 
-    setAnnouncements(annRes.data || [])
-    setActivities(actRes.data || [])
+    // Items limited to certain screens show only there
+    setAnnouncements((annRes.data || []).filter(a => onScreen(a, screenId)))
+    setActivities((actRes.data || []).filter(a => onScreen(a, screenId)))
 
     // Calculate which day of the cycle to show — after dinner service ends,
     // switch to previewing tomorrow's menu instead of today's, so residents
