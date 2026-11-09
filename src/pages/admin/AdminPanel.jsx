@@ -18,7 +18,7 @@ import BillingTab from './BillingTab'
 import AiSettingsTab from './AiSettingsTab'
 import CelebrationsTab from './CelebrationsTab'
 import PccAuthorizationLetter from './PccAuthorizationLetter'
-import { CreditCard, Sparkles, Lock, ShieldCheck, ShieldAlert, RotateCcw, PartyPopper } from 'lucide-react'
+import { CreditCard, Sparkles, Lock, ShieldCheck, ShieldAlert, RotateCcw, PartyPopper, MailPlus } from 'lucide-react'
 import { planAllowsModule, PHI_MODULES } from '../../lib/planModules'
 import { ALL_STATES } from '../../lib/complianceStates'
 import { DepartmentLevelEditor, getOrgDepartments } from '../staff/StaffManagement'
@@ -809,6 +809,14 @@ export default function AdminPanel() {
     fetchUsers()
   }
 
+  // First setup link expired (24 hours): send the welcome email again with a new one
+  const handleResendWelcome = async (u) => {
+    if (!confirm(`Send ${u.first_name} ${u.last_name} the welcome email again? It has a new password-setup link that works for 24 hours.`)) return
+    const { data, error } = await supabase.functions.invoke('resend-welcome', { body: { target_user_id: u.id } })
+    if (error || data?.success === false) { alert(data?.error || error.message); return }
+    alert(`Welcome email sent to ${data.email}.`)
+  }
+
   const handleDeactivate = async (userId) => {
     if (!confirm('Deactivate this user? They will no longer be able to log in.')) return
     await supabase.from('profiles').update({ is_active: false }).eq('id', userId)
@@ -945,6 +953,10 @@ export default function AdminPanel() {
                         {u.id !== profile?.id && mfaByUser[u.id]?.enrolled && (
                           <button onClick={() => handleResetMfa(u)} title="Reset two-factor (lost phone)"
                             className="p-1.5 text-slate-400 hover:text-amber-600 rounded-lg hover:bg-amber-50 transition-colors"><RotateCcw size={14} /></button>
+                        )}
+                        {u.id !== profile?.id && u.is_active !== false && !['resident', 'family'].includes(u.role) && (
+                          <button onClick={() => handleResendWelcome(u)} title="Resend welcome email (new password-setup link)"
+                            className="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 transition-colors"><MailPlus size={14} /></button>
                         )}
                         {u.id !== profile?.id && u.is_active !== false && (
                           <button onClick={() => handleDeactivate(u.id)}
