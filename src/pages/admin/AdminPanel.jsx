@@ -857,12 +857,12 @@ export default function AdminPanel() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit">
+      <div className="flex gap-1 mb-6 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit max-w-full overflow-x-auto">
         {tabs.map(t => {
           const Icon = t.icon
           return (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === t.key ? 'bg-white dark:bg-slate-900 text-brand-700 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap flex-shrink-0 text-sm font-medium transition-all ${tab === t.key ? 'bg-white dark:bg-slate-900 text-brand-700 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
               <Icon size={15} />{t.label}
             </button>
           )
@@ -899,16 +899,16 @@ export default function AdminPanel() {
             </button>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Name</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Role</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Phone</th>
+                  <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Phone</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Status</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">2FA</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Joined</th>
+                  <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">2FA</th>
+                  <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Joined</th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
@@ -930,20 +930,20 @@ export default function AdminPanel() {
                         {u.role?.replace('_', ' ')}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-xs text-slate-500">{u.phone || '—'}</td>
+                    <td className="hidden md:table-cell px-4 py-3 text-xs text-slate-500">{u.phone || '—'}</td>
                     <td className="px-4 py-3">
                       {u.is_active !== false
                         ? <span className="flex items-center gap-1 text-xs text-green-600 font-medium"><CheckCircle2 size={13} /> Active</span>
                         : <span className="flex items-center gap-1 text-xs text-slate-400 font-medium"><Ban size={13} /> Inactive</span>}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="hidden md:table-cell px-4 py-3">
                       {mfaByUser[u.id]?.enrolled
                         ? <span className="flex items-center gap-1 text-xs text-green-600 font-medium"><ShieldCheck size={13} /> On</span>
                         : mfaByUser[u.id]?.required
                           ? <span className="flex items-center gap-1 text-xs text-amber-600 font-medium" title="Required for this role; they'll be asked to set it up at their next sign-in"><ShieldAlert size={13} /> Setup due</span>
                           : <span className="text-xs text-slate-300">—</span>}
                     </td>
-                    <td className="px-4 py-3 text-xs text-slate-400">
+                    <td className="hidden md:table-cell px-4 py-3 text-xs text-slate-400">
                       {new Date(u.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </td>
                     <td className="px-4 py-3">
