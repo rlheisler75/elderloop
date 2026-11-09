@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { useTierAccess } from '../../hooks/useTierAccess'
+import { residentPlace } from '../../lib/residentPlace'
 import {
   Plus, X, Edit2, Trash2, Search, Home, FileText, Key,
   DollarSign, AlertTriangle, ClipboardCheck, ChevronDown,
@@ -78,7 +79,10 @@ const fmt = (s) => s?.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()) || '
 const fmtDate = (d) => d ? new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—'
 const fmtMoney = (n) => n != null && n !== '' ? `$${Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—'
 
-const getUnitStatus   = (key) => UNIT_STATUSES.find(s=>s.key===key)  || UNIT_STATUSES[0]
+// "Bldg A" for a short building code; a street or building name as is ("Bethany Drive")
+const buildingLabel = (b) => /^[a-z0-9]{1,3}$/i.test(b || '') ? `Bldg ${b}` : (b || '')
+
+const getUnitStatus   =(key) => UNIT_STATUSES.find(s=>s.key===key)  || UNIT_STATUSES[0]
 const getLeaseStatus  = (key) => LEASE_STATUSES.find(s=>s.key===key) || LEASE_STATUSES[0]
 const getNoticeStatus = (key) => NOTICE_STATUSES.find(s=>s.key===key)|| NOTICE_STATUSES[0]
 const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
@@ -235,32 +239,89 @@ function UnitForm({ unit, orgId, onSave, onClose }) {
 
 // ── Tenant Form ───────────────────────────────────────────────
 
-function TenantForm({ tenant, orgId, onSave, onClose }) {
+// Tenants are normally Independent Living residents: pick one and the name,
+// birth date and phone come from the resident record (il_tenants.resident_id).
+// Typing one in is for leaseholders who aren't residents (an applicant, a POA).
+function TenantForm({ tenant, orgId, ilResidents = [], tenants = [], onSave, onClose }) {
+  const { resident: _embedded, ...initial } = tenant || {}
   const [form, setForm] = useState({
     first_name:'', last_name:'', email:'', phone:'', date_of_birth:'',
     emergency_contact_name:'', emergency_contact_phone:'', emergency_contact_relationship:'',
-    background_check_status:'', notes:'',
-    ...tenant,
+    background_check_status:'', notes:'', resident_id: null,
+    ...initial,
   })
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const [pick, setPick] = useState('')
   const set = (k,v) => setForm(f=>({...f,[k]:v}))
+
+  const taken = new Set(tenants.filter(t => t.resident_id && t.id !== tenant?.id).map(t => t.resident_id))
+  const linked = ilResidents.find(r => r.id === form.resident_id)
+  const choices = ilResidents.filter(r => !taken.has(r.id) &&
+    (!pick || `${r.first_name} ${r.last_name} ${r.room || ''} ${r.unit || ''}`.toLowerCase().includes(pick.toLowerCase())))
+
+  const useResident = (r) => setForm(f => ({ ...f, resident_id: r.id,
+    first_name: r.first_name || '', last_name: r.last_name || '',
+    date_of_birth: r.date_of_birth || '', phone: r.phone || f.phone }))
 
   const save = async () => {
     if (!form.first_name || !form.last_name) return
-    setSaving(true)
+    setSaving(true); setError('')
     const p = { ...form, organization_id: orgId,
       date_of_birth: form.date_of_birth || null,
       background_check_status: form.background_check_status || null,
+      resident_id: form.resident_id || null,
     }
-    const { error } = tenant?.id
-      ? await supabase.from('il_tenants').update(p).eq('id', tenant.id)
-      : await supabase.from('il_tenants').insert(p)
+    let error
+    if (tenant?.id) {
+      ({ error } = await supabase.from('il_tenants').update(p).eq('id', tenant.id))
+    } else {
+      // A resident whose tenant record was deleted earlier: bring it back instead of a duplicate
+      const { data: prior } = p.resident_id
+        ? await supabase.from('il_tenants').select('id').eq('organization_id', orgId).eq('resident_id', p.resident_id).limit(1)
+        : { data: [] }
+      ;({ error } = prior?.length
+        ? await supabase.from('il_tenants').update({ ...p, is_active: true }).eq('id', prior[0].id)
+        : await supabase.from('il_tenants').insert(p))
+    }
     setSaving(false)
-    if (!error) onSave()
+    if (error) { setError(error.message); return }
+    onSave()
   }
 
   return (
     <>
+      {error && <div className="mb-4 px-3 py-2 rounded-xl bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400 text-sm">{error}</div>}
+      <div className="mb-5 p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60">
+        {form.resident_id ? (
+          <div className="flex items-center gap-2 text-sm">
+            <User size={14} className="text-brand-600 flex-shrink-0" />
+            <span className="text-slate-700 dark:text-slate-200">
+              Linked to resident <b>{linked ? `${linked.first_name} ${linked.last_name}` : `${form.first_name} ${form.last_name}`}</b>
+              {linked && residentPlace(linked) && <span className="text-slate-400"> · {residentPlace(linked)}</span>}
+              {!linked && <span className="text-amber-600"> · no longer an active IL resident</span>}
+            </span>
+            <button type="button" onClick={() => set('resident_id', null)} className="ml-auto text-xs text-slate-500 hover:text-red-500">Unlink</button>
+          </div>
+        ) : (
+          <>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Independent Living resident</label>
+            <input className={inputCls} value={pick} onChange={e => setPick(e.target.value)} placeholder="Search by name or home…" />
+            {pick && (
+              <div className="mt-1 max-h-48 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+                {choices.slice(0, 30).map(r => (
+                  <button key={r.id} type="button" onClick={() => { useResident(r); setPick('') }}
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-slate-50 dark:hover:bg-slate-800">
+                    {r.last_name}, {r.first_name} <span className="text-xs text-slate-400">{residentPlace(r)}</span>
+                  </button>
+                ))}
+                {choices.length === 0 && <p className="px-3 py-2 text-xs text-slate-400">No matching IL resident without a tenant record.</p>}
+              </div>
+            )}
+            <p className="text-xs text-slate-400 mt-1.5">Pick a resident to fill this in from their record, or type below for someone who isn't a resident.</p>
+          </>
+        )}
+      </div>
       <div className="grid grid-cols-2 gap-4">
         <Field label="First Name" required><input className={inputCls} value={form.first_name} onChange={e=>set('first_name',e.target.value)} /></Field>
         <Field label="Last Name" required><input className={inputCls} value={form.last_name} onChange={e=>set('last_name',e.target.value)} /></Field>
@@ -307,12 +368,15 @@ function LeaseForm({ lease, units, tenants, orgId, onSave, onClose }) {
     ...lease,
   })
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
   const set = (k,v) => setForm(f=>({...f,[k]:v}))
 
   const save = async () => {
     if (!form.unit_id || !form.primary_tenant_id || !form.start_date || !form.monthly_rent) return
-    setSaving(true)
-    const p = { ...form, organization_id: orgId,
+    setSaving(true); setError('')
+    // unit / tenant are display joins from the list query, not columns
+    const { unit: _u, tenant: _t, ...cols } = form
+    const p = { ...cols, organization_id: orgId,
       end_date: form.end_date || null,
       mgmt_signed_by: profile?.id,
     }
@@ -320,7 +384,8 @@ function LeaseForm({ lease, units, tenants, orgId, onSave, onClose }) {
       ? await supabase.from('il_leases').update(p).eq('id', lease.id)
       : await supabase.from('il_leases').insert(p)
     setSaving(false)
-    if (!error) onSave()
+    if (error) { setError(error.message); return }
+    onSave()
   }
 
   const utilChecks = [
@@ -332,11 +397,12 @@ function LeaseForm({ lease, units, tenants, orgId, onSave, onClose }) {
 
   return (
     <>
+      {error && <div className="mb-4 px-3 py-2 rounded-xl bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400 text-sm">{error}</div>}
       <div className="grid grid-cols-2 gap-4">
         <Field label="Unit" required>
           <select className={selectCls} value={form.unit_id} onChange={e=>set('unit_id',e.target.value)}>
             <option value="">— Select unit —</option>
-            {units.map(u=><option key={u.id} value={u.id}>{u.unit_number}{u.building?` (Bldg ${u.building})`:''}</option>)}
+            {units.map(u=><option key={u.id} value={u.id}>{u.unit_number}{u.building?` (${buildingLabel(u.building)})`:''}</option>)}
           </select>
         </Field>
         <Field label="Primary Tenant" required>
@@ -562,6 +628,7 @@ function NoticeForm({ leases, tenants, units, orgId, notice, onSave, onClose }) 
     ...notice,
   })
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
   const set = (k,v) => setForm(f=>({...f,[k]:v}))
 
   // Auto-fill unit/tenant when lease selected
@@ -573,19 +640,23 @@ function NoticeForm({ leases, tenants, units, orgId, notice, onSave, onClose }) 
 
   const save = async () => {
     if (!form.lease_id) return
-    setSaving(true)
-    const p = { ...form, organization_id: orgId, created_by: profile?.id,
+    setSaving(true); setError('')
+    // unit / tenant are display joins from the list query, not columns
+    const { unit: _u, tenant: _t, ...cols } = form
+    const p = { ...cols, organization_id: orgId, created_by: profile?.id,
       amount_owed: form.amount_owed || null, cure_deadline: form.cure_deadline || null,
     }
     const { error } = notice?.id
       ? await supabase.from('il_notices').update(p).eq('id', notice.id)
       : await supabase.from('il_notices').insert(p)
     setSaving(false)
-    if (!error) onSave()
+    if (error) { setError(error.message); return }
+    onSave()
   }
 
   return (
     <>
+      {error && <div className="mb-4 px-3 py-2 rounded-xl bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400 text-sm">{error}</div>}
       <div className="grid grid-cols-2 gap-4">
         <div className="col-span-2">
           <Field label="Lease" required>
@@ -684,7 +755,7 @@ function WalkthroughForm({ units, leases, tenants, orgId, onSave, onClose }) {
         <Field label="Unit" required>
           <select className={selectCls} value={form.unit_id} onChange={e=>set('unit_id',e.target.value)}>
             <option value="">— Select unit —</option>
-            {units.map(u=><option key={u.id} value={u.id}>{u.unit_number}{u.building?` (Bldg ${u.building})`:''}</option>)}
+            {units.map(u=><option key={u.id} value={u.id}>{u.unit_number}{u.building?` (${buildingLabel(u.building)})`:''}</option>)}
           </select>
         </Field>
         <Field label="Type">
@@ -934,6 +1005,9 @@ export default function PropertyManagement() {
   const [notices, setNotices] = useState([])
   const [staff, setStaff]     = useState([])
   const [interestedLeads, setInterestedLeads] = useState([])
+  const [ilResidents, setIlResidents] = useState([]) // active Independent Living residents
+  const [importing, setImporting] = useState(null)   // 'units' | 'tenants'
+  const [importMsg, setImportMsg] = useState('')
   const [loading, setLoading] = useState(true)
 
   // Unit tab state
@@ -965,10 +1039,10 @@ export default function PropertyManagement() {
   const fetchAll = useCallback(async () => {
     if (!orgId) { setLoading(false); return }
     setLoading(true)
-    const [uR, tR, lR, nR, wR, sR, ilR] = await Promise.all([
-      supabase.from('il_units').select('*').eq('organization_id', orgId).eq('is_active', true).order('unit_number'),
-      supabase.from('il_tenants').select('*').eq('organization_id', orgId).eq('is_active', true).order('last_name'),
-      supabase.from('il_leases').select('*, unit:il_units(unit_number,building), tenant:il_tenants!il_leases_primary_tenant_id_fkey(first_name,last_name)').eq('organization_id', orgId).order('created_at', { ascending: false }),
+    const [uR, tR, lR, nR, wR, sR, ilR, rR] = await Promise.all([
+      supabase.from('il_units').select('*').eq('organization_id', orgId).eq('is_active', true).order('building').order('unit_number'),
+      supabase.from('il_tenants').select('*, resident:residents(id,is_active,care_level)').eq('organization_id', orgId).eq('is_active', true).order('last_name'),
+      supabase.from('il_leases').select('*, unit:il_units(unit_number,building), tenant:il_tenants!il_leases_primary_tenant_id_fkey(first_name,last_name,resident_id,resident:residents(is_active,care_level))').eq('organization_id', orgId).order('created_at', { ascending: false }),
       supabase.from('il_notices').select('*, unit:il_units(unit_number), tenant:il_tenants(first_name,last_name)').eq('organization_id', orgId).order('issued_date', { ascending: false }),
       supabase.from('il_walkthroughs').select('*, unit:il_units(unit_number)').eq('organization_id', orgId).order('created_at', { ascending: false }),
       supabase.from('profiles').select('id,first_name,last_name').eq('organization_id', orgId).order('first_name'),
@@ -978,6 +1052,8 @@ export default function PropertyManagement() {
       supabase.from('leads').select('id,first_name,last_name,phone,email,status,interested_unit_id')
         .eq('organization_id', orgId).not('interested_unit_id', 'is', null)
         .not('status', 'in', '(move_in,lost,disqualified)'),
+      supabase.from('residents').select('id,first_name,last_name,date_of_birth,phone,room,unit,care_level,location_id')
+        .eq('organization_id', orgId).eq('is_active', true).eq('care_level', 'independent').order('last_name'),
     ])
     setUnits(uR.data || [])
     setTenants(tR.data || [])
@@ -986,8 +1062,31 @@ export default function PropertyManagement() {
     setWalkthroughs(wR.data || [])
     setStaff(sR.data || [])
     setInterestedLeads(ilR.data || [])
+    setIlResidents(rR.data || [])
     setLoading(false)
   }, [orgId])
+
+  // Units from where IL residents live (and the empty homes beside them), and a
+  // tenant record for each IL resident: il_import_units() / il_import_tenants()
+  const runImport = async (kind) => {
+    const ask = kind === 'units'
+      ? "Add a unit for every Independent Living home? Homes come from the residents' addresses and the maintenance locations; ones with residents are marked Occupied, the empty ones beside them Available. Units already here are skipped."
+      : 'Add a tenant record for every Independent Living resident who doesn\'t have one? Name, birth date and phone come from the resident record.'
+    if (!confirm(ask)) return
+    setImporting(kind); setImportMsg('')
+    const { data, error } = await supabase.rpc(kind === 'units' ? 'il_import_units' : 'il_import_tenants')
+    setImporting(null)
+    if (error) { setImportMsg(`Couldn't import: ${error.message}`); return }
+    setImportMsg(kind === 'units'
+      ? `Added ${data.added} unit${data.added === 1 ? '' : 's'} (${data.occupied} occupied, ${data.available} available).`
+      : `Added ${data.added} tenant${data.added === 1 ? '' : 's'} from Independent Living residents.`)
+    fetchAll()
+  }
+
+  // Leases still open for someone who has left Independent Living (inactive, or moved to another level of care)
+  const residentGone = (t) => t?.resident_id && (!t.resident || !t.resident.is_active || t.resident.care_level !== 'independent')
+  const movedOutLeases = leases.filter(l => ['active', 'pending_renewal'].includes(l.status) && residentGone(l.tenant))
+  const livesAt = (unit) => unit.location_id ? ilResidents.filter(r => r.location_id === unit.location_id) : []
 
   useEffect(() => { fetchAll() }, [fetchAll])
 
@@ -1002,7 +1101,8 @@ export default function PropertyManagement() {
 
   const filteredUnits  = units.filter(u => {
     const q = unitSearch.toLowerCase()
-    const match = !q || `${u.unit_number} ${u.building || ''} ${u.unit_type}`.toLowerCase().includes(q)
+    const people = livesAt(u).map(r => `${r.first_name} ${r.last_name}`).join(' ')
+    const match = !q || `${u.unit_number} ${u.building || ''} ${u.unit_type} ${people}`.toLowerCase().includes(q)
     const st = unitStatusFilter === 'all' || u.status === unitStatusFilter
     return match && st
   })
@@ -1051,6 +1151,25 @@ export default function PropertyManagement() {
         <StatCard icon={ShieldAlert} label="Open Notices"  value={stats.openNotices} sub="Pending resolution" color={stats.openNotices > 0 ? 'text-red-600' : 'text-slate-400'} />
       </div>
 
+      {isPropertyManager && movedOutLeases.length > 0 && (
+        <div className="mb-6 flex items-start gap-3 p-4 rounded-2xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30">
+          <AlertTriangle size={18} className="text-amber-600 flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-amber-800 dark:text-amber-300">
+            <p className="font-semibold">{movedOutLeases.length} open lease{movedOutLeases.length === 1 ? ' belongs' : 's belong'} to a resident who is no longer in Independent Living</p>
+            <p className="mt-0.5">
+              {movedOutLeases.map(l => `${l.tenant?.first_name} ${l.tenant?.last_name} (Unit ${l.unit?.unit_number})`).join(', ')}.
+              {' '}If they've moved out or moved to another level of care, end the lease and update the unit.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {importMsg && (
+        <div className={`mb-6 px-4 py-3 rounded-2xl text-sm ${importMsg.startsWith("Couldn't") ? 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400' : 'bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-400'}`}>
+          {importMsg}
+        </div>
+      )}
+
       {/* Tabs */}
       <div className="flex gap-1 mb-6 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit flex-wrap">
         {TABS.map(t => {
@@ -1086,10 +1205,17 @@ export default function PropertyManagement() {
                 {UNIT_STATUSES.map(s=><option key={s.key} value={s.key}>{s.label}</option>)}
               </select>
               {isPropertyManager && (
-                <button onClick={()=>{setEditUnit(null);setShowUnitForm(true)}}
-                  className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors ml-auto">
-                  <Plus size={15} /> Add Unit
-                </button>
+                <div className="flex flex-wrap gap-2 ml-auto">
+                  <button onClick={() => runImport('units')} disabled={!!importing}
+                    title="Create units from where Independent Living residents live and the empty homes beside them"
+                    className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl text-sm font-medium transition-colors disabled:opacity-50">
+                    <RotateCcw size={15} /> {importing === 'units' ? 'Importing…' : 'Import from residents'}
+                  </button>
+                  <button onClick={()=>{setEditUnit(null);setShowUnitForm(true)}}
+                    className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
+                    <Plus size={15} /> Add Unit
+                  </button>
+                </div>
               )}
             </div>
 
@@ -1098,6 +1224,7 @@ export default function PropertyManagement() {
                 const st = getUnitStatus(unit.status)
                 const activeLease = leases.find(l=>l.unit_id===unit.id && l.status==='active')
                 const interested = interestedLeads.filter(l => l.interested_unit_id === unit.id)
+                const occupants = livesAt(unit)
                 return (
                   <div key={unit.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5 hover:shadow-md transition-all">
                     <div className="flex items-start justify-between mb-3">
@@ -1106,7 +1233,7 @@ export default function PropertyManagement() {
                           <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-lg" style={{ fontFamily: '"Playfair Display", serif' }}>
                             Unit {unit.unit_number}
                           </h3>
-                          {unit.building && <span className="text-xs text-slate-400">Bldg {unit.building}</span>}
+                          {unit.building && <span className="text-xs text-slate-400">{buildingLabel(unit.building)}</span>}
                         </div>
                         <Badge color={st.color}>{st.label}</Badge>
                       </div>
@@ -1151,6 +1278,16 @@ export default function PropertyManagement() {
                       </div>
                     )}
 
+                    {!activeLease && occupants.length > 0 && (
+                      <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-800 rounded-xl">
+                        <User size={12} className="text-slate-400 flex-shrink-0" />
+                        <span className="text-xs text-slate-600 dark:text-slate-300 truncate">
+                          {occupants.map(r => `${r.first_name} ${r.last_name}`).join(' & ')}
+                          <span className="text-slate-400"> · no lease on file</span>
+                        </span>
+                      </div>
+                    )}
+
                     {interested.length > 0 && (
                       <div className="flex items-center gap-2 p-2 mt-2 bg-rose-50 dark:bg-rose-950/30 rounded-xl" title={interested.map(l => `${l.first_name} ${l.last_name}`).join(', ')}>
                         <Heart size={12} className="text-rose-500 flex-shrink-0" />
@@ -1181,10 +1318,17 @@ export default function PropertyManagement() {
                 <input className="pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm w-full focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
                   placeholder="Search tenants…" value={tenantSearch} onChange={e=>setTenantSearch(e.target.value)} />
               </div>
-              <button onClick={()=>{setEditTenant(null);setShowTenantForm(true)}}
-                className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors ml-auto">
-                <Plus size={15} /> Add Tenant
-              </button>
+              <div className="flex flex-wrap gap-2 ml-auto">
+                <button onClick={() => runImport('tenants')} disabled={!!importing}
+                  title="Create a tenant record for every Independent Living resident who doesn't have one"
+                  className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl text-sm font-medium transition-colors disabled:opacity-50">
+                  <RotateCcw size={15} /> {importing === 'tenants' ? 'Adding…' : 'Add IL residents'}
+                </button>
+                <button onClick={()=>{setEditTenant(null);setShowTenantForm(true)}}
+                  className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium transition-colors">
+                  <Plus size={15} /> Add Tenant
+                </button>
+              </div>
             </div>
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
               <table className="w-full text-sm">
@@ -1205,7 +1349,12 @@ export default function PropertyManagement() {
                     return (
                       <tr key={t.id} className="border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
                         <td className="px-4 py-3">
-                          <p className="font-medium text-slate-800 dark:text-slate-100">{t.first_name} {t.last_name}</p>
+                          <p className="font-medium text-slate-800 dark:text-slate-100">
+                            {t.first_name} {t.last_name}
+                            {t.resident_id && (residentGone(t)
+                              ? <span className="ml-2 text-[10px] font-semibold text-amber-600 uppercase">Left IL</span>
+                              : <span className="ml-2 text-[10px] font-semibold text-brand-600 uppercase">Resident</span>)}
+                          </p>
                           {activeLease && <p className="text-xs text-brand-600 mt-0.5">{activeLease.lease_number} · Unit {activeLease.unit?.unit_number}</p>}
                         </td>
                         <td className="px-4 py-3 hidden md:table-cell text-slate-500 text-xs">
@@ -1277,7 +1426,12 @@ export default function PropertyManagement() {
                     return (
                       <tr key={l.id} className="border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
                         <td className="px-4 py-3 font-mono text-xs font-medium text-slate-700 dark:text-slate-300">{l.lease_number}</td>
-                        <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-100">{l.tenant?.first_name} {l.tenant?.last_name}</td>
+                        <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-100">
+                          {l.tenant?.first_name} {l.tenant?.last_name}
+                          {movedOutLeases.includes(l) && (
+                            <span className="flex items-center gap-1 text-xs font-normal text-amber-600 mt-0.5"><AlertTriangle size={11} /> No longer in Independent Living</span>
+                          )}
+                        </td>
                         <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{l.unit?.unit_number}{l.unit?.building?` (${l.unit.building})`:''}</td>
                         <td className="px-4 py-3 text-slate-500 text-xs hidden lg:table-cell">{fmt(l.lease_type)}</td>
                         <td className="px-4 py-3 font-semibold text-slate-700 dark:text-slate-300">{fmtMoney(l.monthly_rent)}<span className="font-normal text-slate-400 text-xs">/mo</span></td>
@@ -1431,7 +1585,7 @@ export default function PropertyManagement() {
       )}
       {showTenantForm && (
         <Modal title={editTenant?'Edit Tenant':'Add Tenant'} onClose={()=>setShowTenantForm(false)} wide>
-          <TenantForm tenant={editTenant} orgId={orgId} onSave={()=>{setShowTenantForm(false);fetchAll()}} onClose={()=>setShowTenantForm(false)} />
+          <TenantForm tenant={editTenant} orgId={orgId} ilResidents={ilResidents} tenants={tenants} onSave={()=>{setShowTenantForm(false);fetchAll()}} onClose={()=>setShowTenantForm(false)} />
         </Modal>
       )}
       {showLeaseForm && (
