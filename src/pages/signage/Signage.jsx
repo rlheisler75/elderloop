@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
+import useSignageLive from '../../hooks/useSignageLive'
 import {
   Cake, Star, Calendar, CloudSun, Church,
   UtensilsCrossed, Bell, Megaphone, Wifi, WifiOff,
@@ -343,19 +344,7 @@ export default function Signage({ orgSlug }) {
   }, [])
 
   // Fetch all data when org loaded
-  useEffect(() => {
-    if (!org) return
-    fetchAll()
-    // Live updates (tables are in the supabase_realtime publication since
-    // 20261107_signage_realtime), plus a 1-minute refresh in case the
-    // connection drops; screens run for days without a reload
-    const ch = supabase.channel(`signage-live-${org.id}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements', filter: `organization_id=eq.${org.id}` }, fetchAll)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'activities', filter: `organization_id=eq.${org.id}` }, fetchAll)
-      .subscribe()
-    const interval = setInterval(fetchAll, 60 * 1000)
-    return () => { supabase.removeChannel(ch); clearInterval(interval) }
-  }, [org])
+  useEffect(() => { if (org) fetchAll() }, [org])
 
   const fetchAll = useCallback(async () => {
     if (!org) return
@@ -430,6 +419,8 @@ export default function Signage({ orgSlug }) {
       }
     }
   }, [org])
+
+  useSignageLive(org?.id, fetchAll)
 
   // Build slide deck: today + announcements + menu (if populated)
   useEffect(() => {

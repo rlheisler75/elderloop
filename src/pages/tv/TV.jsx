@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { createClient } from '@supabase/supabase-js'
+import useSignageLive from '../../hooks/useSignageLive'
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
@@ -319,18 +320,8 @@ export default function TV({ slugOverride, screenUrl }) {
     return () => cancelAnimationFrame(rafRef.current)
   }, [slides.length])
 
-  // Live updates (supabase_realtime publication, 20261107_signage_realtime)
-  // plus a 1-minute refresh in case the connection drops
-  useEffect(() => {
-    const id = setInterval(loadData, 60 * 1000)
-    if (!org?.id) return () => clearInterval(id)
-    const ch = supabase.channel(`tv-live-${org.id}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements', filter: `organization_id=eq.${org.id}` }, loadData)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'activities', filter: `organization_id=eq.${org.id}` }, loadData)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'chapel_services', filter: `organization_id=eq.${org.id}` }, loadData)
-      .subscribe()
-    return () => { clearInterval(id); supabase.removeChannel(ch) }
-  }, [slug, org?.id])
+  // Live updates, 1-minute fallback refresh, and reload on a new deploy
+  useSignageLive(org?.id, loadData)
 
   const orgColor = org?.primary_color || '#0c90e1'
   const initials = org ? org.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '??'
