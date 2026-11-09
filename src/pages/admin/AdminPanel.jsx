@@ -223,6 +223,24 @@ function EditUserModal({ user, orgId, departments, orgModules, onClose, onSave }
   const [error, setError] = useState('')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
+  // Sign-in email: changed right away by change-user-email (login + profile together);
+  // the password stays the same and both addresses get a notice
+  const [email, setEmail] = useState(user.email || '')
+  const [newEmail, setNewEmail] = useState(null) // null = not editing
+  const [emailBusy, setEmailBusy] = useState(false)
+  const [emailMsg, setEmailMsg] = useState('')
+
+  async function changeEmail() {
+    setEmailBusy(true); setError(''); setEmailMsg('')
+    const { data, error: fnErr } = await supabase.functions.invoke('change-user-email', {
+      body: { target_user_id: user.id, new_email: newEmail },
+    })
+    setEmailBusy(false)
+    if (fnErr || data?.success === false) { setError(data?.error || fnErr.message); return }
+    setEmail(data.email); setNewEmail(null)
+    setEmailMsg(`Sign-in email changed to ${data.email}. Their password is the same; a notice went to the old and new addresses.`)
+  }
+
   useEffect(() => { fetchDeptRoles() }, [user.id])
 
   async function fetchDeptRoles() {
@@ -273,7 +291,13 @@ function EditUserModal({ user, orgId, departments, orgModules, onClose, onSave }
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div>
             <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Edit User</h2>
-            <p className="text-xs text-slate-400 mt-0.5">{user.email}</p>
+            <p className="text-xs text-slate-400 mt-0.5 break-all">
+              {email}
+              {newEmail === null && !['resident', 'family'].includes(user.role) && (
+                <button onClick={() => { setNewEmail(email); setEmailMsg('') }}
+                  className="ml-2 text-brand-600 dark:text-brand-400 hover:underline font-semibold">Change</button>
+              )}
+            </p>
           </div>
           <button onClick={onClose} className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"><X size={20} /></button>
         </div>
@@ -281,6 +305,23 @@ function EditUserModal({ user, orgId, departments, orgModules, onClose, onSave }
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
 
           {error && <div className="px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
+
+          {newEmail !== null && (
+            <div className="p-3 rounded-xl border border-brand-200 dark:border-brand-900 bg-brand-50/50 dark:bg-brand-950/30 space-y-2">
+              <label className={labelCls}>New Sign-In Email</label>
+              <input type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} className={inputCls} autoFocus />
+              <p className="text-xs text-slate-500 dark:text-slate-400">This becomes their login as soon as you save it. Their password doesn't change and no new setup is needed. We'll email the old and new addresses to let them know.</p>
+              <div className="flex gap-2 justify-end">
+                <button onClick={() => setNewEmail(null)} disabled={emailBusy}
+                  className="px-3 py-1.5 text-sm rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">Cancel</button>
+                <button onClick={changeEmail} disabled={emailBusy || !newEmail.trim() || newEmail.trim().toLowerCase() === email.toLowerCase()}
+                  className="px-3 py-1.5 text-sm rounded-lg bg-brand-600 text-white font-semibold disabled:opacity-50">
+                  {emailBusy ? 'Changing…' : 'Change Email'}
+                </button>
+              </div>
+            </div>
+          )}
+          {emailMsg && <div className="px-4 py-2 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 rounded-lg text-emerald-700 dark:text-emerald-400 text-sm">{emailMsg}</div>}
 
           {/* Name */}
           <div className="grid grid-cols-2 gap-3">
@@ -1155,7 +1196,7 @@ export default function AdminPanel() {
           orgId={currentOrgId}
           departments={getOrgDepartments(selectedOrg || organization)}
           orgModules={orgModules.map(m => m.module_key || m).filter(Boolean)}
-          onClose={() => { setShowEditUser(false); setEditingUser(null) }}
+          onClose={() => { setShowEditUser(false); setEditingUser(null); fetchUsers() }}
           onSave={() => { setShowEditUser(false); setEditingUser(null); fetchUsers() }} />
       )}
       {showOrgSettings && editingOrg && (
