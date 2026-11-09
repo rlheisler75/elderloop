@@ -75,7 +75,7 @@ const EMPTY_FORM = {
   unit: '', building: '', location_detail: '',
   location_id: null, location_path: '',
   resident_id: '',
-  assigned_to: '', due_date: '', notes: '',
+  assigned_to: '', additional_assignees: [], due_date: '', notes: '',
   vendor_name: '', vendor_phone: '', vendor_eta: '',
   is_recurring: false, recur_type: 'interval',
   recur_interval_days: 90, recur_day: 1, recur_month: '',
@@ -137,7 +137,10 @@ function printWorkOrderList({ rows, categories, orgName, subtitle, showCompleted
     const cat = categories.find(c => c.key === wo.category)
     const place = woPlace(wo)
     const resident = wo.residents ? `${wo.residents.first_name} ${wo.residents.last_name}` : ''
-    const assigned = wo.assigned_profiles ? `${wo.assigned_profiles.first_name} ${wo.assigned_profiles.last_name}` : (wo.vendor_name || '')
+    const extra = helpersOf(wo).length
+    const assigned = wo.assigned_profiles
+      ? `${wo.assigned_profiles.first_name} ${wo.assigned_profiles.last_name}${extra ? ` +${extra}` : ''}`
+      : (wo.vendor_name || '')
     const desc = wo.description && wo.description.trim() !== wo.title?.trim() ? clip(wo.description, 220) : ''
     return `<tr>
       <td class="num">${escHtml(wo.wo_number ?? '')}</td>
@@ -181,6 +184,10 @@ function printWorkOrderList({ rows, categories, orgName, subtitle, showCompleted
   win.document.close()
   return true
 }
+
+// Additional techs on a job (work_orders.additional_assignees), never repeating the lead
+const helpersOf = (wo) => (wo?.additional_assignees || []).filter(id => id && id !== wo.assigned_to)
+const isOnJob = (wo, id) => wo.assigned_to === id || helpersOf(wo).includes(id)
 
 function WORow({ wo, categories, onClick, showCompleted }) {
   const pri = getPriority(wo.priority)
@@ -237,7 +244,8 @@ function WORow({ wo, categories, onClick, showCompleted }) {
       </td>
       <td className="px-4 py-3 text-xs text-slate-500">
         {wo.assigned_profiles
-          ? `${wo.assigned_profiles.first_name} ${wo.assigned_profiles.last_name}`
+          ? <>{wo.assigned_profiles.first_name} {wo.assigned_profiles.last_name}
+              {helpersOf(wo).length > 0 && <span className="ml-1 text-slate-400" title="Additional techs on this job">+{helpersOf(wo).length}</span>}</>
           : <span className="text-slate-300">Unassigned</span>}
       </td>
       <td className={`px-4 py-3 text-xs ${isOverdue ? 'text-red-600 font-medium' : 'text-slate-500'}`}>
@@ -368,6 +376,7 @@ function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, resident
     location_path: wo.location_path || '',
     resident_id: wo.resident_id || '',
     assigned_to: wo.assigned_to || '',
+    additional_assignees: helpersOf(wo),
     due_date: wo.due_date || '',
     notes: wo.notes || '',
     asset_id: wo.asset_id || '',
@@ -572,6 +581,7 @@ function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, resident
       location_path: form.location_path || null,
       resident_id: form.resident_id || null,
       assigned_to: assignedTo,
+      additional_assignees: (form.additional_assignees || []).filter(id => id !== assignedTo),
       due_date: form.due_date || null,
       notes: form.notes || null,
       asset_id: form.asset_id || null,
@@ -606,6 +616,19 @@ function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, resident
           action_type: 'assigned',
         })
         if (!wo.sla_responded_at) payload.sla_responded_at = new Date().toISOString()
+      }
+      const before = helpersOf(wo)
+      const after  = payload.additional_assignees
+      const added   = after.filter(id => !before.includes(id))
+      const removed = before.filter(id => !after.includes(id))
+      const firstName = (id) => staffList.find(s => s.id === id)?.first_name || 'staff'
+      if (added.length || removed.length) {
+        await supabase.from('wo_activity').insert({
+          work_order_id: wo.id, user_id: profile.id,
+          action: [added.length && `Added ${added.map(firstName).join(', ')} to the job`,
+                   removed.length && `Removed ${removed.map(firstName).join(', ')} from the job`].filter(Boolean).join('; '),
+          action_type: 'assigned',
+        })
       }
       payload.status = form.status
       Object.assign(payload, closeOutPayload(form))
@@ -954,6 +977,42 @@ function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, resident
                   : <p className="text-sm text-slate-700 dark:text-slate-300">{wo.due_date ? parseDay(wo.due_date).toLocaleDateString() : '—'}</p>}
               </div>
             </div>
+
+            {/* Additional techs — more than one person working the job */}
+            {(() => {
+              const lead = form.assigned_to || wo?.assigned_to
+              const helpers = (form.additional_assignees || []).filter(id => id !== lead)
+              const nameOf = (id) => { const s = staffList.find(x => x.id === id); return s ? `${s.first_name} ${s.last_name}` : 'Former staff' }
+              if (editing && canAssign) {
+                const options = staffList.filter(s => s.id !== lead)
+                if (!options.length) return null
+                return (
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Additional Techs</label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {options.map(s => {
+                        const on = helpers.includes(s.id)
+                        return (
+                          <button key={s.id} type="button"
+                            onClick={() => set('additional_assignees', on ? helpers.filter(id => id !== s.id) : [...helpers, s.id])}
+                            className={`flex items-center gap-1 px-2.5 py-1 rounded-full border text-xs font-medium transition-colors ${on ? 'bg-brand-600 border-brand-600 text-white' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300'}`}>
+                            {on ? <Check size={11} /> : <Plus size={11} />} {s.first_name} {s.last_name}
+                          </button>
+                        )
+                      })}
+                    </div>
+                    <p className="text-[11px] text-slate-400 mt-1">They see this job under "My jobs" and can work it. Assigned To stays the lead.</p>
+                  </div>
+                )
+              }
+              if (!helpers.length) return null
+              return (
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Additional Techs</label>
+                  <p className="text-sm text-slate-700 dark:text-slate-300">{helpers.map(nameOf).join(', ')}</p>
+                </div>
+              )
+            })()}
 
             {handingOff === 'field' && handoffPanel}
 
@@ -1528,7 +1587,7 @@ export default function WorkOrders() {
   const handleSave = () => { setShowModal(false); fetchAll() }
 
   // "My incomplete work": jobs assigned to me that aren't closed or cancelled
-  const isMyIncompleteWO = (w) => w.assigned_to === profile.id && !['closed','cancelled'].includes(w.status)
+  const isMyIncompleteWO = (w) => isOnJob(w, profile.id) && !['closed','cancelled'].includes(w.status)
 
   // Filter + search
   const loadedIds = new Set(workOrders.map(w => w.id))
@@ -1543,12 +1602,12 @@ export default function WorkOrders() {
         : filterStatus === 'incomplete' ? !['closed','cancelled'].includes(wo.status)
         : wo.status === filterStatus)
     const matchAssignee = filterAssignee === 'all'
-      || (filterAssignee === 'unassigned' ? !wo.assigned_to : wo.assigned_to === filterAssignee)
+      || (filterAssignee === 'unassigned' ? !wo.assigned_to : isOnJob(wo, filterAssignee))
     const matchCat      = filterCat === 'all' || wo.category === filterCat
     const matchPriority = filterPriority === 'all' || wo.priority === filterPriority
     // Picking someone in "Assigned to" looks across all jobs, whatever the tab
     const matchJobView  = !showJobTabs || jobView === 'all' || filterAssignee !== 'all'
-      || (jobView === 'mine' ? (wo.assigned_to === profile.id || wo.submitted_by === profile.id)
+      || (jobView === 'mine' ? (isOnJob(wo, profile.id) || wo.submitted_by === profile.id)
         : jobView === 'mine_open' ? isMyIncompleteWO(wo)
         : !wo.assigned_to)
     return matchSearch && matchStatus && matchCat && matchPriority && matchAssignee && matchJobView
@@ -1699,7 +1758,7 @@ export default function WorkOrders() {
       {showJobTabs && mainView === 'work_orders' && (
         <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl mb-4 w-fit" role="group" aria-label="Which jobs">
           {[
-            { key: 'mine',  label: 'My jobs',    count: workOrders.filter(w => (w.assigned_to === profile.id || w.submitted_by === profile.id) && !['closed','cancelled'].includes(w.status)).length },
+            { key: 'mine',  label: 'My jobs',    count: workOrders.filter(w => (isOnJob(w, profile.id) || w.submitted_by === profile.id) && !['closed','cancelled'].includes(w.status)).length },
             { key: 'mine_open', label: 'My incomplete work', count: workOrders.filter(isMyIncompleteWO).length },
             { key: 'queue', label: 'Open queue', count: workOrders.filter(w => !w.assigned_to).length },
             { key: 'all',   label: 'All jobs',   count: workOrders.filter(w => !['closed','cancelled'].includes(w.status)).length },
