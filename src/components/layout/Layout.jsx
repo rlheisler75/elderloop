@@ -72,7 +72,7 @@ const NAV_GROUPS = [
     items: [
       { to: '/app/staff',           label: 'Staff',           icon: UserCheck,     module: 'staff' },
       { to: '/app/directory-staff', label: 'Staff Directory', icon: Users,         module: 'staff' },
-      { to: '/app/scheduling',      label: 'Scheduling',      icon: CalendarCheck, module: 'staff' },
+      { to: '/app/scheduling',      label: 'Scheduling',      icon: CalendarCheck, module: 'scheduling' },
       { to: '/app/education',       label: 'Education',       icon: GraduationCap, module: 'education' },
       { to: '/app/timeclock',       label: 'Time Clock',      icon: Clock,         module: 'timeclock' },
     ],

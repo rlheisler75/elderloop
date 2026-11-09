@@ -374,7 +374,7 @@ export default function App() {
           <Route path="directory-staff"
             element={<ProtectedRoute requireModule="staff"><Lazy><StaffDirectory /></Lazy></ProtectedRoute>} />
           <Route path="scheduling"
-            element={<ProtectedRoute requireModule="staff"><Lazy><Scheduling /></Lazy></ProtectedRoute>} />
+            element={<ProtectedRoute requireModule="scheduling"><Lazy><Scheduling /></Lazy></ProtectedRoute>} />
           <Route path="timeclock"
             element={<ProtectedRoute requireModule="timeclock"><Lazy><TimeClock /></Lazy></ProtectedRoute>} />
           <Route path="transportation"
