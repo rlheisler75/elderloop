@@ -227,11 +227,13 @@ function DiningTab({ resident, orgId }) {
 
   return (
     <div className="space-y-4">
-      {/* Order button */}
-      <button onClick={() => setShowOrderModal(true)}
-        className="w-full flex items-center justify-center gap-2 py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-2xl transition-colors shadow-sm">
-        <UtensilsCrossed size={18} /> Order Meal Delivery
-      </button>
+      {/* Order button — only where the community offers meal delivery (Org Settings) */}
+      {organization?.meal_ordering_enabled !== false && (
+        <button onClick={() => setShowOrderModal(true)}
+          className="w-full flex items-center justify-center gap-2 py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-2xl transition-colors shadow-sm">
+          <UtensilsCrossed size={18} /> Order Meal Delivery
+        </button>
+      )}
 
       {/* Recent orders */}
       {orders.length > 0 && (
@@ -486,9 +488,9 @@ export default function ResidentPortal() {
               className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" title="Help & Feedback">
               <LifeBuoy size={16} />
             </button>
-            <button onClick={handleSignOut}
+            <button onClick={handleSignOut} title="Sign Out"
               className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
-              <LogOut size={13} /> Sign Out
+              <LogOut size={13} /><span className="hidden sm:inline">Sign Out</span>
             </button>
           </div>
         </div>
@@ -504,7 +506,7 @@ export default function ResidentPortal() {
             Welcome, {profile?.first_name} 👋
           </h1>
           {resident && (
-            <div className="flex items-center gap-2 mt-1 text-sm text-slate-500 dark:text-slate-400">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1 text-sm text-slate-500 dark:text-slate-400">
               <MapPin size={13} className="text-slate-400" />
               <span>{residentPlace(resident, { withUnit: true })}</span>
               {liveService && (
@@ -520,7 +522,7 @@ export default function ResidentPortal() {
         </div>
 
         {/* Tab bar */}
-        <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl mb-5 overflow-x-auto no-scrollbar">
+        <div className="flex flex-wrap gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl mb-5">
           {TABS.map(t => {
             const Icon = t.icon
             return (
@@ -560,8 +562,13 @@ export default function ResidentPortal() {
                     <div className="w-9 h-9 bg-orange-50 dark:bg-orange-950/50 rounded-xl flex items-center justify-center mb-3">
                       <UtensilsCrossed size={18} className="text-orange-600" />
                     </div>
-                    <div className="font-semibold text-slate-800 dark:text-slate-100 text-sm">Order Food</div>
-                    <div className="text-xs text-slate-400 mt-0.5">Meal delivery to your room</div>
+                    {organization?.meal_ordering_enabled !== false ? <>
+                      <div className="font-semibold text-slate-800 dark:text-slate-100 text-sm">Order Food</div>
+                      <div className="text-xs text-slate-400 mt-0.5">Meal delivery to your room</div>
+                    </> : <>
+                      <div className="font-semibold text-slate-800 dark:text-slate-100 text-sm">Dining</div>
+                      <div className="text-xs text-slate-400 mt-0.5">My food preferences</div>
+                    </>}
                   </button>
                 </div>
 

@@ -680,13 +680,15 @@ function MaintenanceTab({ myWorkOrders, onNewRequest }) {
 }
 
 // ── Dining Tab (order meal delivery for the selected resident) ─
-function DiningTab({ resident, dietProfile, mealOrders, onNewOrder }) {
+function DiningTab({ resident, dietProfile, mealOrders, onNewOrder, canOrder }) {
   return (
     <div className="space-y-4">
-      <button onClick={onNewOrder}
-        className="w-full flex items-center justify-center gap-2 py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-2xl transition-colors shadow-sm">
-        <UtensilsCrossed size={18} /> Order Meal Delivery for {resident?.first_name}
-      </button>
+      {canOrder && (
+        <button onClick={onNewOrder}
+          className="w-full flex items-center justify-center gap-2 py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-2xl transition-colors shadow-sm">
+          <UtensilsCrossed size={18} /> Order Meal Delivery for {resident?.first_name}
+        </button>
+      )}
 
       {dietProfile && (dietProfile.diet_type || dietProfile.allergens?.length > 0) && (
         <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-xs text-slate-600 dark:text-slate-300 space-y-1">
@@ -726,7 +728,7 @@ function DiningTab({ resident, dietProfile, mealOrders, onNewOrder }) {
             })}
           </div>
         </div>
-      ) : (
+      ) : canOrder && (
         <div className="text-center py-12 text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
           <UtensilsCrossed size={32} className="mx-auto mb-3 opacity-30" />
           <p className="font-medium text-slate-500 dark:text-slate-400">No orders yet</p>
@@ -1051,9 +1053,9 @@ export default function FamilyPortal() {
               className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" title="Help & Feedback">
               <LifeBuoy size={16} />
             </button>
-            <button onClick={handleSignOut}
+            <button onClick={handleSignOut} title="Sign Out"
               className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
-              <LogOut size={13} /> Sign Out
+              <LogOut size={13} /><span className="hidden sm:inline">Sign Out</span>
             </button>
           </div>
         </div>
@@ -1111,8 +1113,8 @@ export default function FamilyPortal() {
           </div>
         )}
 
-        {/* Tab bar — scrollable on mobile */}
-        <div className="mt-4 flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl overflow-x-auto no-scrollbar">
+        {/* Tab bar — wraps to a second row on phones so every tab stays visible */}
+        <div className="mt-4 flex flex-wrap gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl">
           {TAB_CONFIG.map(t => (
             <button key={t.key}
               onClick={() => { setTab(t.key); if (t.key !== 'messages') setActiveThread(null) }}
@@ -1259,6 +1261,7 @@ export default function FamilyPortal() {
                   dietProfile={dietProfile}
                   mealOrders={mealOrders}
                   onNewOrder={() => setShowOrderModal(true)}
+                  canOrder={organization?.meal_ordering_enabled !== false}
                 />
               )}
 

@@ -418,6 +418,7 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
     pcc_facility_id: org.pcc_facility_id || '',
     pcc_org_uuid: org.pcc_org_uuid || '',
     compliance_state: org.compliance_state || '',
+    meal_ordering_enabled: org.meal_ordering_enabled !== false,
   })
   const [enabledModules, setEnabledModules] = useState(
     modules.filter(m => m.is_enabled !== false).map(m => m.module_key)
@@ -457,6 +458,7 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
       pcc_facility_id: form.pcc_facility_id.trim() || null,
       pcc_org_uuid: form.pcc_org_uuid.trim() || null,
       compliance_state: form.compliance_state || null,
+      meal_ordering_enabled: form.meal_ordering_enabled,
     }).eq('id', org.id)
     if (err) { setError(err.message); setSaving(false); return }
 
@@ -563,6 +565,16 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
               {ALL_STATES.map(s => <option key={s.code} value={s.code}>{s.label}</option>)}
             </select>
             <p className="text-xs text-slate-400 mt-1">The state this community is licensed and inspected under. Drives the state-specific citations shown in Maintenance Compliance (and other regulated modules) — set once here for the whole organization.</p>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Resident &amp; Family Portal</label>
+            <button type="button" onClick={() => set('meal_ordering_enabled', !form.meal_ordering_enabled)}
+              className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition-all ${form.meal_ordering_enabled ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-brand-300'}`}>
+              {form.meal_ordering_enabled ? <Check size={14} /> : <div className="w-3.5 h-3.5 rounded-sm border border-slate-300" />}
+              <span className="flex-1 text-left">Residents &amp; families can order meal delivery</span>
+            </button>
+            <p className="text-xs text-slate-400 mt-1">Off hides "Order Food" in the portals. Food preferences and diet info still show.</p>
           </div>
 
           <div>
