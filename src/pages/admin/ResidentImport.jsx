@@ -381,9 +381,26 @@ export default function ResidentImport({ orgId, onImported, onClose }) {
                     </div>
                     {syncError && <div className="mt-2 text-xs text-red-600 dark:text-red-400">{syncError}</div>}
                     {syncResult && (
-                      <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                        Synced {syncResult.synced} resident{syncResult.synced === 1 ? '' : 's'}
-                        {syncResult.failed > 0 ? `, ${syncResult.failed} failed` : ''}.
+                      <div className="mt-2 text-xs text-slate-500 dark:text-slate-400 space-y-1">
+                        <div>
+                          {syncResult.pcc_current} current in PointClickCare: {syncResult.created} added, {syncResult.updated} updated,
+                          {' '}{syncResult.linked} matched to existing residents, {syncResult.unchanged} unchanged
+                          {syncResult.deactivated > 0 ? `, ${syncResult.deactivated} discharged (marked inactive)` : ''}
+                          {syncResult.failed > 0 ? `, ${syncResult.failed} failed` : ''}.
+                        </div>
+                        {syncResult.needs_review?.length > 0 && (
+                          <div className="text-amber-700 dark:text-amber-400">
+                            Not synced, more than one possible match. Set their PCC ID on the resident or fix the duplicate, then sync again:
+                            <ul className="list-disc ml-4 mt-0.5">
+                              {syncResult.needs_review.map(r => <li key={r.pcc_patient_id}>{r.name} (PCC {r.pcc_patient_id}): {r.reason}</li>)}
+                            </ul>
+                          </div>
+                        )}
+                        {syncResult.errors?.length > 0 && (
+                          <ul className="list-disc ml-4 text-red-600 dark:text-red-400">
+                            {syncResult.errors.map((e, i) => <li key={i}>{e}</li>)}
+                          </ul>
+                        )}
                       </div>
                     )}
                   </div>

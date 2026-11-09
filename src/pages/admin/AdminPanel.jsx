@@ -416,6 +416,7 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
     phone:   org.phone   || '',
     website: org.website || '',
     pcc_facility_id: org.pcc_facility_id || '',
+    pcc_org_uuid: org.pcc_org_uuid || '',
     compliance_state: org.compliance_state || '',
   })
   const [enabledModules, setEnabledModules] = useState(
@@ -454,6 +455,7 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
       state: form.state, zip: form.zip, phone: form.phone,
       website: form.website, logo_url: logoUrl || null,
       pcc_facility_id: form.pcc_facility_id.trim() || null,
+      pcc_org_uuid: form.pcc_org_uuid.trim() || null,
       compliance_state: form.compliance_state || null,
     }).eq('id', org.id)
     if (err) { setError(err.message); setSaving(false); return }
@@ -543,6 +545,14 @@ function OrgSettingsModal({ org, modules, allModules, onClose, onSave }) {
               className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="Leave blank if this community doesn't use PointClickCare" />
             <p className="text-xs text-slate-400 mt-1">Enables a "Sync Now" button on the Import Residents screen. Optional — communities without an EMR integration can leave this blank.</p>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">PointClickCare Org UUID</label>
+            <input value={form.pcc_org_uuid} onChange={e => set('pcc_org_uuid', e.target.value)}
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-brand-500"
+              placeholder="From PointClickCare when they enable the connection" />
+            <p className="text-xs text-slate-400 mt-1">PointClickCare identifies the customer by this ID plus the Facility ID. Sync needs both.</p>
           </div>
 
           <div>
