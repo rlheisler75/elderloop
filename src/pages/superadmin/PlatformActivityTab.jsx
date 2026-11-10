@@ -160,20 +160,20 @@ export default function PlatformActivityTab() {
 
       {/* Filters */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex gap-1 border-b border-slate-800 flex-1">
+        <div className="flex gap-1 border-b border-slate-800 flex-1 overflow-x-auto">
           {CATEGORY_TABS.map(t => (
             <button key={t.key} onClick={() => setCategory(t.key)}
-              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+              className={`px-4 py-2.5 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
                 category === t.key ? 'border-brand-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300'
               }`}>
               {t.label}
             </button>
           ))}
         </div>
-        <div className="relative">
+        <div className="relative w-full sm:w-auto">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by email…"
-            className="pl-9 pr-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500 w-56" />
+            className="pl-9 pr-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500 w-full sm:w-56" />
         </div>
       </div>
 
@@ -190,7 +190,7 @@ export default function PlatformActivityTab() {
           </div>
         ) : (
           <>
-            <table className="w-full">
+            <div className="overflow-x-auto"><table className="w-full min-w-[640px]">
               <thead className="border-b border-slate-800">
                 <tr>
                   {['', 'When', 'User', 'Action', 'Record', 'Org'].map(h => (
@@ -239,7 +239,7 @@ export default function PlatformActivityTab() {
                   )
                 })}
               </tbody>
-            </table>
+            </table></div>
             {hasMore && (
               <div className="py-4 flex justify-center border-t border-slate-800">
                 <button onClick={loadMore} disabled={loadingMore}

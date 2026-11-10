@@ -83,7 +83,7 @@ function NewRepModal({ onClose, onCreated }) {
               <AlertCircle size={14} className="flex-shrink-0" /> {error}
             </div>
           )}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">First Name *</label>
               <input value={form.first_name} onChange={e => set('first_name', e.target.value)}
@@ -215,7 +215,7 @@ function EditRepModal({ rep, onClose, onSaved }) {
               <AlertCircle size={14} className="flex-shrink-0" /> {error}
             </div>
           )}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">First Name *</label>
               <input value={form.first_name} onChange={e => set('first_name', e.target.value)}
@@ -315,7 +315,7 @@ export default function RepAccountsTab() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="font-display font-bold text-slate-800 dark:text-slate-100 text-lg">Rep Accounts</h2>
           <p className="text-xs text-slate-400 mt-0.5">Create and manage sales rep logins — each one gets its own tracked referral link</p>
@@ -345,7 +345,7 @@ export default function RepAccountsTab() {
         </div>
       ) : (
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
-          <table className="w-full">
+          <div className="overflow-x-auto"><table className="w-full min-w-[640px]">
             <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800">
               <tr>
                 {['Rep', 'Email', 'Rep Code', 'Status', 'Created', ''].map(h => (
@@ -399,7 +399,7 @@ export default function RepAccountsTab() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </div>
       )}
 

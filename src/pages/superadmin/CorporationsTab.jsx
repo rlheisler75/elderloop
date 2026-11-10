@@ -58,7 +58,7 @@ function NewUserModal({ corporation, onClose, onCreated }) {
         </div>
         {error && <div className="mb-3 px-3 py-2 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm flex items-center gap-2"><AlertCircle size={14} /> {error}</div>}
         <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div><label className={labelCls}>First Name *</label><input value={form.first_name} onChange={e => set('first_name', e.target.value)} className={inputCls} /></div>
             <div><label className={labelCls}>Last Name</label><input value={form.last_name} onChange={e => set('last_name', e.target.value)} className={inputCls} /></div>
           </div>
@@ -169,8 +169,8 @@ export default function CorporationsTab() {
           <h2 className="font-display font-bold text-slate-800 dark:text-slate-100 text-lg">Corporations</h2>
           <p className="text-xs text-slate-400 mt-0.5">Multi-community groups. Corporate logins see counts across their communities, never names. Enterprise: 15% off each community at {ENTERPRISE_MIN_COMMUNITIES}+ communities.</p>
         </div>
-        <div className="flex gap-2">
-          <input value={newName} onChange={e => setNewName(e.target.value)} placeholder="New corporation name" className={`${inputCls} w-56`} />
+        <div className="flex gap-2 w-full sm:w-auto">
+          <input value={newName} onChange={e => setNewName(e.target.value)} placeholder="New corporation name" className={`${inputCls} flex-1 min-w-0 sm:w-56 sm:flex-none`} />
           <button onClick={createCorp} disabled={busy === 'new'} className="flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white text-sm font-semibold rounded-xl">
             <Plus size={15} /> Add
           </button>

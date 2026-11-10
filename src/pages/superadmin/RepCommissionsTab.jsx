@@ -151,7 +151,7 @@ export default function RepCommissionsTab() {
             <p className="font-medium">No {tab === 'all' ? '' : tab} commission events</p>
           </div>
         ) : (
-          <table className="w-full">
+          <div className="overflow-x-auto"><table className="w-full min-w-[640px]">
             <thead className="border-b border-slate-800">
               <tr>
                 {['Rep', 'Account', 'Type', 'Period', 'Amount', 'Status', 'Notes', 'Actions'].map(h => (
@@ -199,7 +199,7 @@ export default function RepCommissionsTab() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         )}
       </div>
 

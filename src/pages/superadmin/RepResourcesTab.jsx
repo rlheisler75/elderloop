@@ -130,7 +130,7 @@ export default function RepResourcesTab() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 style={{ fontFamily: '"Playfair Display", serif' }} className="text-xl font-semibold text-white">
             Rep Promo Materials
@@ -151,7 +151,7 @@ export default function RepResourcesTab() {
             <p className="text-sm mt-1">Add business cards, videos, training, or sales sheets for reps.</p>
           </div>
         ) : (
-          <table className="w-full">
+          <div className="overflow-x-auto"><table className="w-full min-w-[640px]">
             <thead>
               <tr className="border-b border-slate-800">
                 {['Order', 'Title', 'Type', 'Status', 'Actions'].map(h => (
@@ -206,7 +206,7 @@ export default function RepResourcesTab() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         )}
       </div>
 

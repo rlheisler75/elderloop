@@ -220,7 +220,7 @@ export default function RepTracker() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="font-display font-bold text-slate-800 dark:text-slate-100 text-lg">Rep Tracking</h2>
           <p className="text-xs text-slate-400 mt-0.5">Signups and MRR attributed to sales reps by code</p>
@@ -253,7 +253,7 @@ export default function RepTracker() {
           <div className="space-y-2">
             {repCodes.map(code => (
               <div key={code} className="flex items-center gap-3 p-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl">
-                <div className="w-32 flex-shrink-0">
+                <div className="w-24 sm:w-32 flex-shrink-0">
                   <div className="font-mono font-bold text-slate-700 dark:text-slate-300 text-sm">{code}</div>
                   {repMeta[code]?.name && (
                     <div className="text-xs text-slate-400 truncate">{repMeta[code].name}</div>
@@ -279,7 +279,7 @@ export default function RepTracker() {
             <h3 className="font-semibold text-slate-700 dark:text-slate-300 text-sm">Breakdown by Rep</h3>
             <p className="text-xs text-slate-400 mt-0.5">Click a rep row to expand their orgs</p>
           </div>
-          <table className="w-full">
+          <div className="overflow-x-auto"><table className="w-full min-w-[640px]">
             <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800">
               <tr>
                 {['Rep Code', 'Orgs', 'Active', 'MRR', 'Latest Signup', 'Plans'].map(h => (
@@ -310,7 +310,7 @@ export default function RepTracker() {
                 <td colSpan={2} />
               </tr>
             </tfoot>
-          </table>
+          </table></div>
         </div>
       ) : (
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm py-12 text-center text-slate-400">
@@ -332,7 +332,7 @@ export default function RepTracker() {
         {unassigned.length === 0 ? (
           <div className="py-8 text-center text-slate-400 text-sm">All orgs are rep-attributed</div>
         ) : (
-          <table className="w-full">
+          <div className="overflow-x-auto"><table className="w-full min-w-[640px]">
             <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800">
               <tr>
                 {['Organization', 'Plan', 'MRR', 'Signed Up', 'Assign Rep'].map(h => (
@@ -367,7 +367,7 @@ export default function RepTracker() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         )}
       </div>
 

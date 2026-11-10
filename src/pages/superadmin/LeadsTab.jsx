@@ -230,7 +230,7 @@ export default function LeadsTab() {
     <>
       <div className="space-y-6">
         {/* Stats */}
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
             { label: 'Total Leads',      value: leads.length,  color: 'text-brand-400',  bg: 'bg-brand-900/30' },
             { label: 'In Pipeline',      value: inPipeline,    color: 'text-blue-400',   bg: 'bg-blue-900/30' },
@@ -248,7 +248,7 @@ export default function LeadsTab() {
         <div className="flex gap-3 items-center flex-wrap">
           <input value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Search name, email, community..."
-            className="flex-1 min-w-48 px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-brand-500 placeholder-slate-600" />
+            className="flex-1 min-w-0 sm:min-w-48 px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-brand-500 placeholder-slate-600" />
           <div className="flex gap-1.5 flex-wrap">
             <button onClick={() => setFilterStage('all')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${filterStage === 'all' ? 'bg-slate-600 text-white' : 'text-slate-500 hover:text-slate-300'}`}>
@@ -284,7 +284,7 @@ export default function LeadsTab() {
               const dueToday = lead.next_follow_up === today()
               return (
                 <button key={lead.id} onClick={() => setSelected(lead)}
-                  className="w-full bg-slate-800/50 border border-slate-700/50 hover:border-slate-600 rounded-2xl p-4 flex items-center gap-4 text-left transition-all group">
+                  className="w-full bg-slate-800/50 border border-slate-700/50 hover:border-slate-600 rounded-2xl p-4 flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 text-left transition-all group">
                   {/* Stage dot */}
                   <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${stage.color}`} />
 
@@ -305,7 +305,7 @@ export default function LeadsTab() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 flex-shrink-0">
+                  <div className="flex items-center gap-2 sm:gap-3 flex-wrap w-full sm:w-auto pl-6 sm:pl-0 sm:flex-shrink-0">
                     {/* ARR */}
                     {lead.arr > 0 && (
                       <span className="text-green-400 text-xs font-semibold">

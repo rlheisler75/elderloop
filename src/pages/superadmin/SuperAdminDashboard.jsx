@@ -16,7 +16,7 @@ import {
   Activity, Globe, BarChart3, Eye, LogOut, Zap, X, LifeBuoy,
   Edit2, Check, ChevronRight, TrendingUp, AlertCircle,
   ClipboardList, Link, Copy, Star, Image as ImageIcon,
-  Trash2, Upload, AlertTriangle, RefreshCw, FileText, UserPlus, DollarSign, Landmark
+  Trash2, Upload, AlertTriangle, RefreshCw, FileText, UserPlus, DollarSign, Landmark, Menu
 } from 'lucide-react'
 
 const BILLING_LABELS = {
@@ -67,15 +67,15 @@ function AddOrgModal({ onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-lg">
+      <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700">
           <h2 className="text-white font-semibold" style={{ fontFamily: '"Playfair Display", serif' }}>Add Organization</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-white"><X size={20} /></button>
         </div>
-        <div className="px-6 py-5 space-y-4">
+        <div className="px-6 py-5 space-y-4 overflow-y-auto">
           {error && <div className="px-4 py-2 bg-red-900/50 border border-red-700 rounded-lg text-red-400 text-sm">{error}</div>}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="col-span-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="sm:col-span-2">
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Organization Name *</label>
               <input value={form.name} onChange={e => { set('name', e.target.value); set('slug', e.target.value.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'')) }}
                 className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
@@ -458,6 +458,62 @@ export default function SuperAdminDashboard() {
   const [logoModal, setLogoModal]   = useState(null)   // kept for compatibility
   const [wipeModal, setWipeModal]   = useState(null)   // org object
   const [newFeedback, setNewFeedback] = useState(0)
+  const [navOpen, setNavOpen]       = useState(false)   // phone-width sidebar drawer
+
+  const NAV_ITEMS = [
+    { key: 'overview',       icon: BarChart3,     label: 'Overview', title: 'Platform Overview' },
+    { key: 'organizations',  icon: Building2,     label: 'Organizations' },
+    { key: 'corporations',   icon: Landmark,      label: 'Corporations' },
+    { key: 'leads',          icon: Users,         label: 'Leads' },
+    { key: 'surveys',        icon: ClipboardList, label: 'Platform Surveys' },
+    { key: 'rep_accounts',   icon: UserPlus,      label: 'Rep Accounts' },
+    { key: 'reps',           icon: TrendingUp,    label: 'Rep Tracking' },
+    { key: 'commissions',    icon: DollarSign,    label: 'Rep Commissions' },
+    { key: 'rep_resources',  icon: FileText,      label: 'Rep Promo Materials' },
+    { key: 'feedback',       icon: LifeBuoy,      label: 'Help & Feedback', badge: newFeedback },
+    { key: 'activity',       icon: Activity,      label: 'Platform Activity' },
+  ]
+  const activeItem = NAV_ITEMS.find(i => i.key === activeTab)
+
+  // Org row toggles, shared by the desktop table and the phone cards
+  const cyclePlan = async (org) => {
+    const plans = ['starter','essential','plus','professional','pilot']
+    const next  = plans[(plans.indexOf(org.plan || 'pilot') + 1) % plans.length]
+    // Caps follow the plan (pilot keeps whatever it had — it's never capped)
+    await supabase.from('organizations').update({ plan: next, ...(PLAN_LIMITS[next] || {}) }).eq('id', org.id)
+    fetchAll()
+  }
+  const cycleBilling = async (org) => {
+    const statuses = ['pilot','trial','active','past_due','cancelled']
+    const next = statuses[(statuses.indexOf(org.billing_status || 'pilot') + 1) % statuses.length]
+    await supabase.from('organizations').update({ billing_status: next }).eq('id', org.id)
+    fetchAll()
+  }
+  const toggleAccess = async (org) => {
+    const next = (org.access_model || 'legacy') === 'legacy' ? 'tiered' : 'legacy'
+    const { error } = await supabase.from('organizations').update({ access_model: next }).eq('id', org.id)
+    if (error) alert(error.message)
+    fetchAll()
+  }
+  const toggleMfa = async (org) => {
+    const next = !org.require_mfa
+    if (next && !confirm(`Require two-factor sign-in at ${org.name}? Org Admins, the Administrator, and Nursing and Social Services staff will set it up at their next sign-in.`)) return
+    const { error } = await supabase.from('organizations').update({ require_mfa: next }).eq('id', org.id)
+    if (error) alert(error.message)
+    fetchAll()
+  }
+  const togglePhi = async (org) => {
+    const next = !org.phi_allowed
+    const msg = next
+      ? `Allow health information at ${org.name}?\n\nOnly turn this on when BOTH business associate agreements are signed: with ${org.name}, and with Supabase (HIPAA add-on). It unlocks Nursing Notes, Social Services, Incident Reports and the clinical records.`
+      : `Stop health information at ${org.name}? Nursing Notes, Social Services and Incident Reports turn off, and clinical records can no longer be added or changed.`
+    if (!confirm(msg)) return
+    const { error } = await supabase.from('organizations').update({ phi_allowed: next }).eq('id', org.id)
+    if (error) alert(error.message)
+    fetchAll()
+  }
+  const pillOn  = 'text-sage-300 bg-sage-900/40 border-sage-700'
+  const pillOff = 'text-slate-400 bg-slate-800 border-slate-700'
 
   useEffect(() => { fetchAll() }, [])
   useEffect(() => {
@@ -530,12 +586,14 @@ export default function SuperAdminDashboard() {
     <div className="min-h-screen bg-slate-950 text-white flex" style={{ fontFamily: '"Source Sans 3", system-ui, sans-serif' }}>
       <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet" />
 
-      {/* ── Sidebar ── */}
-      <aside className="w-60 bg-slate-900 border-r border-slate-800 flex flex-col flex-shrink-0">
+      {/* ── Sidebar (drawer below md) ── */}
+      {navOpen && <div className="fixed inset-0 z-30 bg-black/60 md:hidden" onClick={() => setNavOpen(false)} />}
+      <aside className={`fixed inset-y-0 left-0 z-40 w-64 md:w-60 md:sticky md:top-0 md:h-screen bg-slate-900 border-r border-slate-800 flex flex-col flex-shrink-0 overflow-y-auto transition-transform ${navOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
         <div className="px-5 py-5 border-b border-slate-800">
           <div className="flex items-center gap-2 mb-2">
             <img src="/icon-96.png" alt="ElderLoop" className="w-7 h-7 rounded-lg" />
             <span className="text-white font-semibold" style={{ fontFamily: '"Playfair Display", serif' }}>ElderLoop</span>
+            <button onClick={() => setNavOpen(false)} className="ml-auto p-1 text-slate-400 hover:text-white md:hidden" aria-label="Close menu"><X size={18} /></button>
           </div>
           <div className="flex items-center gap-1.5 mt-1">
             <Shield size={11} className="text-purple-400" />
@@ -544,22 +602,10 @@ export default function SuperAdminDashboard() {
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-0.5">
-          {[
-            { key: 'overview',       icon: BarChart3,     label: 'Overview' },
-            { key: 'organizations',  icon: Building2,     label: 'Organizations' },
-            { key: 'corporations',   icon: Landmark,      label: 'Corporations' },
-            { key: 'leads',          icon: Users,         label: 'Leads' },
-            { key: 'surveys',        icon: ClipboardList, label: 'Platform Surveys' },
-            { key: 'rep_accounts',   icon: UserPlus,      label: 'Rep Accounts' },
-            { key: 'reps',           icon: TrendingUp,    label: 'Rep Tracking' },
-            { key: 'commissions',    icon: DollarSign,    label: 'Rep Commissions' },
-            { key: 'rep_resources',  icon: FileText,      label: 'Rep Promo Materials' },
-            { key: 'feedback',       icon: LifeBuoy,      label: 'Help & Feedback', badge: newFeedback },
-            { key: 'activity',       icon: Activity,      label: 'Platform Activity' },
-          ].map(item => {
+          {NAV_ITEMS.map(item => {
             const Icon = item.icon
             return (
-              <button key={item.key} onClick={() => setActiveTab(item.key)}
+              <button key={item.key} onClick={() => { setActiveTab(item.key); setNavOpen(false) }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-left ${activeTab === item.key ? 'bg-brand-700 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}>
                 <Icon size={16} />{item.label}
                 {item.badge > 0 && <span className="ml-auto text-xs font-bold bg-red-600 text-white rounded-full px-1.5 min-w-[20px] text-center">{item.badge}</span>}
@@ -609,23 +655,26 @@ export default function SuperAdminDashboard() {
       </aside>
 
       {/* ── Main ── */}
-      <main className="flex-1 overflow-y-auto">
-        <div className="px-8 py-6 border-b border-slate-800 flex items-center justify-between">
-          <div>
-            <h1 style={{ fontFamily: '"Playfair Display", serif' }} className="text-2xl font-bold text-white">
-              {activeTab === 'overview' ? 'Platform Overview' : activeTab === 'organizations' ? 'Organizations' : activeTab === 'corporations' ? 'Corporations' : activeTab === 'rep_accounts' ? 'Rep Accounts' : activeTab === 'reps' ? 'Rep Tracking' : activeTab === 'commissions' ? 'Rep Commissions' : activeTab === 'rep_resources' ? 'Rep Promo Materials' : activeTab === 'feedback' ? 'Help & Feedback' : 'Platform Activity'}
+      <main className="flex-1 min-w-0">
+        <div className="px-4 md:px-8 py-4 md:py-6 border-b border-slate-800 flex items-center justify-between gap-3">
+          <button onClick={() => setNavOpen(true)} className="p-2 -ml-2 text-slate-300 hover:text-white md:hidden" aria-label="Open menu">
+            <Menu size={22} />
+          </button>
+          <div className="flex-1 min-w-0">
+            <h1 style={{ fontFamily: '"Playfair Display", serif' }} className="text-xl md:text-2xl font-bold text-white truncate">
+              {activeItem?.title || activeItem?.label}
             </h1>
-            <p className="text-slate-500 text-sm mt-0.5">
+            <p className="text-slate-500 text-xs md:text-sm mt-0.5 truncate">
               {new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' })}
             </p>
           </div>
-          <button onClick={() => setShowAddOrg(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl transition-colors">
-            <Plus size={15} /> Add Organization
+          <button onClick={() => setShowAddOrg(true)} title="Add Organization"
+            className="flex items-center gap-2 px-3 md:px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl transition-colors flex-shrink-0">
+            <Plus size={15} /> <span className="hidden sm:inline">Add Organization</span>
           </button>
         </div>
 
-        <div className="px-8 py-6 space-y-8">
+        <div className="px-4 md:px-8 py-6 space-y-8">
           {loading ? (
             <div className="text-center py-20 text-slate-500">Loading platform data...</div>
           ) : (
@@ -633,7 +682,7 @@ export default function SuperAdminDashboard() {
               {(activeTab === 'overview' || activeTab === 'organizations') && (
               <>
               {/* Stats */}
-              <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
                 {[
                   { icon: Building2,    label: 'Total Orgs',      value: stats.total_orgs,   color: 'text-brand-400',   bg: 'bg-brand-900/30' },
                   { icon: CheckCircle2, label: 'Active Paying',   value: stats.active_orgs,  color: 'text-green-400',   bg: 'bg-green-900/30' },
@@ -643,7 +692,7 @@ export default function SuperAdminDashboard() {
                 ].map(s => {
                   const Icon = s.icon
                   return (
-                    <div key={s.label} className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                    <div key={s.label} className="bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-5">
                       <div className={`w-8 h-8 ${s.bg} rounded-xl flex items-center justify-center mb-3`}>
                         <Icon size={16} className={s.color} />
                       </div>
@@ -658,12 +707,91 @@ export default function SuperAdminDashboard() {
 
               {/* Organizations table */}
               <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
-                <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+                <div className="px-4 md:px-6 py-4 border-b border-slate-800 flex items-center justify-between">
                   <h2 style={{ fontFamily: '"Playfair Display", serif' }} className="text-white font-semibold">
                     Organizations ({orgs.length})
                   </h2>
                 </div>
-                <div className="overflow-x-auto">
+
+                {/* Phone: one card per org */}
+                <div className="md:hidden divide-y divide-slate-800">
+                  {orgs.map(org => {
+                    const billing = BILLING_LABELS[org.billing_status || 'pilot']
+                    return (
+                      <div key={org.id} className="p-4 space-y-3">
+                        <div className="flex items-center gap-3">
+                          {org.logo_url
+                            ? <img src={org.logo_url} alt="" className="w-10 h-10 rounded-xl object-contain bg-white p-1 flex-shrink-0" />
+                            : <div className="w-10 h-10 bg-brand-800/60 border border-brand-700/50 rounded-xl flex items-center justify-center text-brand-400 text-sm font-bold flex-shrink-0"
+                                style={{ fontFamily: '"Playfair Display", serif' }}>{org.name[0]}</div>
+                          }
+                          <div className="min-w-0 flex-1">
+                            <div className="text-white font-medium text-sm truncate">{org.name}</div>
+                            <div className="text-slate-500 text-xs truncate">
+                              {[org.city, org.state].filter(Boolean).join(', ') || org.slug}
+                              {' · '}{org.user_count} users ({org.staff_count} staff / {org.resident_count} res)
+                            </div>
+                          </div>
+                          <button onClick={() => setWipeModal(org)} title="Wipe All Data"
+                            className="p-2 text-slate-600 hover:text-red-400 hover:bg-red-900/30 rounded-lg transition-colors flex-shrink-0">
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <button onClick={() => cyclePlan(org)} className="text-left px-3 py-2 bg-slate-800/60 rounded-lg">
+                            <div className="text-slate-500">Plan</div>
+                            <div className="text-slate-200 font-medium truncate">{PLAN_LABELS[org.plan] || org.plan || 'Pilot'}</div>
+                          </button>
+                          <button onClick={() => cycleBilling(org)} className="text-left px-3 py-2 bg-slate-800/60 rounded-lg">
+                            <div className="text-slate-500 mb-1">Billing</div>
+                            <span className={`px-2 py-0.5 rounded-full border font-medium ${billing?.color || pillOff}`}>{billing?.label || org.billing_status || 'pilot'}</span>
+                          </button>
+                          <button onClick={() => toggleAccess(org)} className="text-left px-3 py-2 bg-slate-800/60 rounded-lg">
+                            <div className="text-slate-500 mb-1">Access</div>
+                            <span className={`px-2 py-0.5 rounded-full border font-medium ${org.access_model === 'tiered' ? pillOn : pillOff}`}>{org.access_model === 'tiered' ? 'Tiered' : 'Legacy'}</span>
+                          </button>
+                          <div className="px-3 py-2 bg-slate-800/60 rounded-lg">
+                            <div className="text-slate-500">Modules · Rep</div>
+                            <div className="text-slate-200 font-medium">{org.enabled_modules}/21{org.rep_code ? ` · ${org.rep_code}` : ''}</div>
+                          </div>
+                          {org.is_demo ? (
+                            <div className="col-span-2 px-3 py-2 bg-slate-800/60 rounded-lg text-slate-500">Demo org: 2FA and health data stay off</div>
+                          ) : (
+                            <>
+                              <button onClick={() => toggleMfa(org)} className="text-left px-3 py-2 bg-slate-800/60 rounded-lg">
+                                <div className="text-slate-500 mb-1">2FA</div>
+                                <span className={`px-2 py-0.5 rounded-full border font-medium ${org.require_mfa ? pillOn : pillOff}`}>{org.require_mfa ? 'Required' : 'Optional'}</span>
+                              </button>
+                              <button onClick={() => togglePhi(org)} className="text-left px-3 py-2 bg-slate-800/60 rounded-lg">
+                                <div className="text-slate-500 mb-1">Health data</div>
+                                <span className={`px-2 py-0.5 rounded-full border font-medium ${org.phi_allowed ? pillOn : 'text-amber-300 bg-amber-900/30 border-amber-800'}`}>{org.phi_allowed ? 'Allowed' : 'Locked'}</span>
+                              </button>
+                            </>
+                          )}
+                        </div>
+
+                        {org.contact_name && (
+                          <div className="text-xs text-slate-500 truncate">{org.contact_name}{org.contact_email ? ` · ${org.contact_email}` : ''}</div>
+                        )}
+
+                        <div className="flex gap-2">
+                          <button onClick={async () => { await impersonateOrg(org.id); navigate('/app/admin') }}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium text-slate-300 border border-slate-700 rounded-lg hover:border-brand-500 hover:text-brand-400">
+                            <Settings size={13} /> Admin
+                          </button>
+                          <button onClick={async () => { await impersonateOrg(org.id); navigate('/app/dashboard') }}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium text-slate-300 border border-slate-700 rounded-lg hover:border-green-500 hover:text-green-400">
+                            <BarChart3 size={13} /> View
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  })}
+                  {orgs.length === 0 && <div className="px-4 py-12 text-center text-slate-600 text-sm">No organizations yet.</div>}
+                </div>
+
+                <div className="hidden md:block overflow-x-auto">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-slate-800">
@@ -697,13 +825,7 @@ export default function SuperAdminDashboard() {
                             {/* Plan — click to cycle */}
                             <td className="px-5 py-4">
                               <button
-                                onClick={async () => {
-                                  const plans = ['starter','essential','plus','professional','pilot']
-                                  const next  = plans[(plans.indexOf(org.plan || 'pilot') + 1) % plans.length]
-                                  // Caps follow the plan (pilot keeps whatever it had — it's never capped)
-                                  await supabase.from('organizations').update({ plan: next, ...(PLAN_LIMITS[next] || {}) }).eq('id', org.id)
-                                  fetchAll()
-                                }}
+                                onClick={() => cyclePlan(org)}
                                 title="Click to change plan"
                                 className="text-left hover:opacity-70 transition-opacity">
                                 <div className="text-slate-300 text-sm font-medium">{PLAN_LABELS[org.plan] || org.plan || 'Pilot'}</div>
@@ -714,12 +836,7 @@ export default function SuperAdminDashboard() {
                             {/* Billing status — click to cycle */}
                             <td className="px-5 py-4">
                               <button
-                                onClick={async () => {
-                                  const statuses = ['pilot','trial','active','past_due','cancelled']
-                                  const next = statuses[(statuses.indexOf(org.billing_status || 'pilot') + 1) % statuses.length]
-                                  await supabase.from('organizations').update({ billing_status: next }).eq('id', org.id)
-                                  fetchAll()
-                                }}
+                                onClick={() => cycleBilling(org)}
                                 title="Click to change billing status"
                                 className="hover:opacity-70 transition-opacity">
                                 <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${billing?.color || 'text-slate-500 bg-slate-800 border-slate-700'}`}>
@@ -731,17 +848,10 @@ export default function SuperAdminDashboard() {
                             {/* Access model — rollout switch for the 5-tier access rules (src/lib/accessTiers.js) */}
                             <td className="px-5 py-4">
                               <button
-                                onClick={async () => {
-                                  const next = (org.access_model || 'legacy') === 'legacy' ? 'tiered' : 'legacy'
-                                  const { error } = await supabase.from('organizations').update({ access_model: next }).eq('id', org.id)
-                                  if (error) alert(error.message)
-                                  fetchAll()
-                                }}
+                                onClick={() => toggleAccess(org)}
                                 title="Click to switch between legacy and tiered access"
                                 className="hover:opacity-70 transition-opacity">
-                                <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${org.access_model === 'tiered'
-                                  ? 'text-sage-300 bg-sage-900/40 border-sage-700'
-                                  : 'text-slate-400 bg-slate-800 border-slate-700'}`}>
+                                <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${org.access_model === 'tiered' ? pillOn : pillOff}`}>
                                   {org.access_model === 'tiered' ? 'Tiered' : 'Legacy'}
                                 </span>
                               </button>
@@ -754,18 +864,10 @@ export default function SuperAdminDashboard() {
                                 <span className="text-xs text-slate-600" title="Demo logins share a password, so two-factor is off">Demo</span>
                               ) : (
                                 <button
-                                  onClick={async () => {
-                                    const next = !org.require_mfa
-                                    if (next && !confirm(`Require two-factor sign-in at ${org.name}? Org Admins, the Administrator, and Nursing and Social Services staff will set it up at their next sign-in.`)) return
-                                    const { error } = await supabase.from('organizations').update({ require_mfa: next }).eq('id', org.id)
-                                    if (error) alert(error.message)
-                                    fetchAll()
-                                  }}
+                                  onClick={() => toggleMfa(org)}
                                   title="Click to turn the two-factor requirement on or off"
                                   className="hover:opacity-70 transition-opacity">
-                                  <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${org.require_mfa
-                                    ? 'text-sage-300 bg-sage-900/40 border-sage-700'
-                                    : 'text-slate-400 bg-slate-800 border-slate-700'}`}>
+                                  <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${org.require_mfa ? pillOn : pillOff}`}>
                                     {org.require_mfa ? 'Required' : 'Optional'}
                                   </span>
                                 </button>
@@ -779,16 +881,7 @@ export default function SuperAdminDashboard() {
                                 <span className="text-xs text-slate-600" title="Demo data is made up">Demo</span>
                               ) : (
                                 <button
-                                  onClick={async () => {
-                                    const next = !org.phi_allowed
-                                    const msg = next
-                                      ? `Allow health information at ${org.name}?\n\nOnly turn this on when BOTH business associate agreements are signed: with ${org.name}, and with Supabase (HIPAA add-on). It unlocks Nursing Notes, Social Services, Incident Reports and the clinical records.`
-                                      : `Stop health information at ${org.name}? Nursing Notes, Social Services and Incident Reports turn off, and clinical records can no longer be added or changed.`
-                                    if (!confirm(msg)) return
-                                    const { error } = await supabase.from('organizations').update({ phi_allowed: next }).eq('id', org.id)
-                                    if (error) alert(error.message)
-                                    fetchAll()
-                                  }}
+                                  onClick={() => togglePhi(org)}
                                   title="Click to allow or stop health information for this community"
                                   className="hover:opacity-70 transition-opacity">
                                   <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${org.phi_allowed
@@ -926,7 +1019,7 @@ export default function SuperAdminDashboard() {
               {/* ── PLATFORM SURVEYS TAB ── */}
           {activeTab === 'surveys' && (
             <div className="space-y-6">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 style={{ fontFamily: '"Playfair Display", serif' }} className="text-white font-semibold text-lg">Platform Feedback Surveys</h2>
                   <p className="text-slate-500 text-xs mt-1">Surveys you send to customers, prospects, and internally to gather product feedback.</p>
@@ -954,7 +1047,7 @@ export default function SuperAdminDashboard() {
               {/* Survey cards */}
               <div className="space-y-4">
                 {platformSurveys.map(s => (
-                  <div key={s.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+                  <div key={s.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-6">
                     <div className="flex items-start justify-between gap-4 mb-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 flex-wrap mb-1">
