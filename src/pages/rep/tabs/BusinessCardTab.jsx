@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../../context/AuthContext'
 import { supabase } from '../../../lib/supabase'
 import { Printer, Copy, Check, LayoutGrid, CreditCard } from 'lucide-react'
+import FitToWidth from '../FitToWidth'
 
 function FrontCard({ repName, repPhone, repEmail }) {
   return (
@@ -116,8 +117,8 @@ export default function BusinessCardTab() {
         <>
           {/* Screen preview — single pair */}
           <div className="print:hidden flex flex-wrap gap-8 items-start overflow-x-auto">
-            <FrontCard {...cardProps} />
-            <BackCard qrSrc={qrSrc} signupDisplay={signupDisplay} />
+            <div className="w-full sm:w-auto"><FitToWidth width={336}><FrontCard {...cardProps} /></FitToWidth></div>
+            <div className="w-full sm:w-auto"><FitToWidth width={336}><BackCard qrSrc={qrSrc} signupDisplay={signupDisplay} /></FitToWidth></div>
           </div>
 
           {/* Print output — single pair, actual size */}
@@ -135,8 +136,9 @@ export default function BusinessCardTab() {
           {/* Screen preview — mini versions of both sheets side by side */}
           <div className="print:hidden flex gap-10 flex-wrap items-start overflow-x-auto">
             {[{ label: 'Front Sheet', node: <FrontCard {...cardProps} /> }, { label: 'Back Sheet', node: <BackCard qrSrc={qrSrc} signupDisplay={signupDisplay} /> }].map(({ label, node }) => (
-              <div key={label}>
+              <div key={label} className="w-full sm:w-auto">
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">{label}</p>
+                <FitToWidth width={408}>
                 <div className="bg-white shadow-lg" style={{ width: '4.25in', padding: '0.25in 0.375in', transform: 'scale(1)' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1.75in)', gridTemplateRows: 'repeat(5, 1in)', gap: 0 }}>
                     {Array.from({ length: 10 }).map((_, i) => (
@@ -146,6 +148,7 @@ export default function BusinessCardTab() {
                     ))}
                   </div>
                 </div>
+                </FitToWidth>
               </div>
             ))}
           </div>

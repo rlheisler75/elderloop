@@ -102,7 +102,7 @@ export default function AccountsTab({ repCode }) {
 
       {/* Accounts */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div className="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2">
           <div>
             <h3 className="font-semibold text-slate-700 text-sm">My Accounts</h3>
             <p className="text-xs text-slate-400 mt-0.5">Communities referred by you</p>

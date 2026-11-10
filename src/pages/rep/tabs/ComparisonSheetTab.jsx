@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../../context/AuthContext'
 import { supabase } from '../../../lib/supabase'
 import { Printer } from 'lucide-react'
+import FitToWidth from '../FitToWidth'
 
 const ROWS = [
   ['Family communication', 'Phone tag and printed newsletters', 'Family Portal — real-time updates, photos, and messaging'],
@@ -71,7 +72,7 @@ export default function ComparisonSheetTab() {
         }
       `}</style>
 
-      <div className="overflow-x-auto print:overflow-visible">
+      <FitToWidth width={816}>
       <div id="comparison-sheet" className="mx-auto bg-white shadow-xl" style={{ width: '8.5in', minHeight: '11in', padding: '0.55in 0.6in', color: '#16202b', fontFamily: '"Source Sans 3", system-ui, sans-serif' }}>
 
         <div className="flex items-center justify-between pb-4 mb-4" style={{ borderBottom: '2px solid #0c2340' }}>
@@ -140,7 +141,7 @@ export default function ComparisonSheetTab() {
         </div>
 
       </div>
-      </div>
+      </FitToWidth>
     </div>
   )
 }

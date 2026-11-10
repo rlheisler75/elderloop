@@ -99,7 +99,7 @@ export default function CommissionsTab() {
 
       {/* Ledger */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div className="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2">
           <h3 className="font-semibold text-slate-700 text-sm">Commission & Residual Ledger</h3>
           {events.length > 0 && (
             <button onClick={() => downloadCsv(events)}

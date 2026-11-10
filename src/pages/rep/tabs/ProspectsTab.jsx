@@ -161,7 +161,7 @@ export function ProspectForm({ prospect, onClose, onSaved }) {
               placeholder="e.g. Sunrise Gardens" className={inputCls} />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Contact Name</label>
               <input value={form.contact_name} onChange={e => set('contact_name', e.target.value)} className={inputCls} />
@@ -174,7 +174,7 @@ export function ProspectForm({ prospect, onClose, onSaved }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Email</label>
               <input type="email" value={form.contact_email} onChange={e => set('contact_email', e.target.value)} className={inputCls} />
@@ -185,7 +185,7 @@ export function ProspectForm({ prospect, onClose, onSaved }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">City</label>
               <input value={form.city} onChange={e => set('city', e.target.value)} className={inputCls} />
@@ -196,7 +196,7 @@ export function ProspectForm({ prospect, onClose, onSaved }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Source</label>
               <input value={form.source} onChange={e => set('source', e.target.value)}

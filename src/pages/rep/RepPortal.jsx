@@ -154,13 +154,13 @@ export default function RepPortal() {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <div className="flex items-center gap-3 px-4 lg:px-6 py-3 bg-white border-b border-slate-100">
           <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-slate-500 hover:text-slate-700"><Menu size={22} /></button>
-          <span className="font-display font-semibold text-brand-800 flex-1 lg:hidden">ElderLoop</span>
+          <span className="font-display font-semibold text-brand-800 flex-1 truncate lg:hidden">{TABS.find(t => t.key === tab)?.label || 'ElderLoop'}</span>
           <div className="flex-1 hidden lg:block" />
           <NotificationBell />
         </div>
 
         <main className="flex-1 overflow-y-auto">
-          <div className="max-w-6xl mx-auto px-6 py-6">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 sm:py-6">
             {tab === 'overview'    && <OverviewTab onNavigate={selectTab} />}
             {tab === 'prospects'   && <ProspectsTab />}
             {tab === 'followups'   && <FollowUpsTab />}

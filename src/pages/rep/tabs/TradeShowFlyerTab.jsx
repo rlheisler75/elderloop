@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../../context/AuthContext'
 import { supabase } from '../../../lib/supabase'
 import { Printer } from 'lucide-react'
+import FitToWidth from '../FitToWidth'
 
 const HIGHLIGHTS = ['17 Modules', 'Live in a Day', 'No Contract', 'Free 14-Day Trial']
 
@@ -45,7 +46,7 @@ export default function TradeShowFlyerTab() {
         }
       `}</style>
 
-      <div className="overflow-x-auto print:overflow-visible">
+      <FitToWidth width={816}>
       <div id="tradeshow-flyer" className="mx-auto bg-white shadow-xl flex flex-col items-center text-center"
         style={{ width: '8.5in', minHeight: '11in', padding: '0.6in 0.55in', color: '#16202b', fontFamily: '"Source Sans 3", system-ui, sans-serif' }}>
 
@@ -89,7 +90,7 @@ export default function TradeShowFlyerTab() {
           {repPhone && <div style={{ fontSize: 12.5, color: '#55636f', marginTop: 2 }}>{repPhone}</div>}
         </div>
       </div>
-      </div>
+      </FitToWidth>
     </div>
   )
 }
