@@ -117,7 +117,7 @@ export function TripRequestModal({ residents = [], resident = null, driverOuts =
               ))}
             </div></div>
           <div><label className={labelCls}>Where (doctor or place)</label><input value={form.provider_name} onChange={e => set('provider_name', e.target.value)} className={inputCls} placeholder="e.g. Dr. Lee, Valley Eye Clinic" /></div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div><label className={labelCls}>Address</label><input value={form.provider_address} onChange={e => set('provider_address', e.target.value)} className={inputCls} /></div>
             <div><label className={labelCls}>Phone</label><input value={form.provider_phone} onChange={e => set('provider_phone', e.target.value)} className={inputCls} /></div>
           </div>

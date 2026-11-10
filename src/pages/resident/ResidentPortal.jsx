@@ -132,7 +132,7 @@ function MaintenanceModal({ resident, profile, orgId, onClose, onSaved }) {
 
           <div>
             <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Category</label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-3 min-[400px]:grid-cols-4 gap-2">
               {WO_CATEGORIES.map(cat => (
                 <button key={cat.key} onClick={() => set('category', cat.key)}
                   className={`flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition-all ${form.category === cat.key ? 'border-brand-500 bg-brand-50 dark:bg-brand-950/50' : 'border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700'}`}>
@@ -579,10 +579,10 @@ export default function ResidentPortal() {
                     <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
                       <Radio size={20} className="text-white animate-pulse" />
                     </div>
-                    <div className="flex-1 text-white">
+                    <div className="flex-1 min-w-0 text-white">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs bg-red-500 text-white font-bold px-2 py-0.5 rounded-full">LIVE</span>
-                        <span className="text-sm font-semibold">{liveService.title}</span>
+                        <span className="text-xs bg-red-500 text-white font-bold px-2 py-0.5 rounded-full flex-shrink-0">LIVE</span>
+                        <span className="text-sm font-semibold truncate">{liveService.title}</span>
                       </div>
                       <div className="text-xs text-brand-200 mt-0.5">Tap to watch the chapel service</div>
                     </div>
@@ -628,8 +628,8 @@ export default function ResidentPortal() {
                           <Star size={11} className="fill-amber-500 text-amber-500" /> Pinned
                         </div>
                       )}
-                      <div className="font-semibold text-slate-800 dark:text-slate-100 text-sm mb-1">{a.title}</div>
-                      <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">{a.body}</p>
+                      <div className="font-semibold text-slate-800 dark:text-slate-100 text-sm mb-1 break-words">{a.title}</div>
+                      <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed whitespace-pre-wrap break-words">{a.body}</p>
                       <div className="text-xs text-slate-400 mt-2">
                         {new Date(a.starts_at).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                       </div>
@@ -683,7 +683,7 @@ export default function ResidentPortal() {
                                 <p className="font-medium text-slate-800 dark:text-slate-100 text-sm truncate">{wo.title}</p>
                                 <span className={`text-xs font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${cfg.bg} ${cfg.color}`}>{cfg.label}</span>
                               </div>
-                              <div className="text-xs text-slate-400 mt-0.5 flex items-center gap-1.5">
+                              <div className="text-xs text-slate-400 mt-0.5 flex items-center gap-1.5 flex-wrap">
                                 {cat && <span>{cat.emoji} {cat.label}</span>}
                                 <span>·</span>
                                 <span>{relativeTime(wo.created_at)}</span>
@@ -782,7 +782,7 @@ export default function ResidentPortal() {
                                     {a.end_time ? ` – ${fmt12(a.end_time)}` : ''}
                                     {a.location ? ` · ${a.location}` : ''}
                                   </div>
-                                  {a.description && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{a.description}</p>}
+                                  {a.description && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 break-words">{a.description}</p>}
                                 </div>
                                 {resident && (
                                   <RSVPButton activity={a} occurrenceDate={a.start_date} resident={resident} profile={profile} orgId={orgId}
@@ -804,14 +804,14 @@ export default function ResidentPortal() {
                             return (
                               <div key={a.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-4 flex items-start gap-3">
                                 <div className="w-2 h-2 rounded-full mt-2 flex-shrink-0" style={{ background: a.color || '#0c90e1' }} />
-                                <div className="flex-1">
+                                <div className="flex-1 min-w-0">
                                   <div className="font-semibold text-slate-800 dark:text-slate-100 text-sm">{a.title}</div>
                                   <div className="text-xs text-slate-400 mt-0.5">
                                     {new Date(a.start_date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                                     {a.start_time ? ` · ${fmt12(a.start_time)}` : ''}
                                     {a.location ? ` · ${a.location}` : ''}
                                   </div>
-                                  {a.description && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{a.description}</p>}
+                                  {a.description && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 break-words">{a.description}</p>}
                                 </div>
                                 {resident && (
                                   <RSVPButton activity={a} occurrenceDate={a.start_date} resident={resident} profile={profile} orgId={orgId}
@@ -880,8 +880,8 @@ export default function ResidentPortal() {
                         <a key={s.id}
                           href={`https://youtube.com/watch?v=${s.recording_youtube_id}`}
                           target="_blank" rel="noopener noreferrer"
-                          className="flex items-center justify-between px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group">
-                          <div>
+                          className="flex items-center justify-between gap-3 px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group">
+                          <div className="min-w-0">
                             <div className="text-sm text-slate-700 dark:text-slate-300 group-hover:text-brand-600 dark:group-hover:text-brand-400 font-medium transition-colors">{s.title}</div>
                             <div className="text-xs text-slate-400">
                               {new Date(s.service_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
