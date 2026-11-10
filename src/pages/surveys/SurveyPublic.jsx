@@ -213,9 +213,9 @@ export default function SurveyPublic() {
             {q.type === 'radio' && (
               <div className="space-y-2">
                 {(q.options || []).map(opt => (
-                  <label key={opt} className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${answers[q.id] === opt ? 'bg-brand-50 border-brand-300' : 'border-slate-200 hover:border-slate-300'}`}>
+                  <label key={opt} onClick={() => setAnswer(q.id, opt)} className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${answers[q.id] === opt ? 'bg-brand-50 border-brand-300' : 'border-slate-200 hover:border-slate-300'}`}>
                     <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${answers[q.id] === opt ? 'bg-brand-600 border-brand-600' : 'border-slate-300'}`} />
-                    <span className="text-sm text-slate-700" onClick={() => setAnswer(q.id, opt)}>{opt}</span>
+                    <span className="text-sm text-slate-700">{opt}</span>
                   </label>
                 ))}
               </div>
@@ -229,11 +229,11 @@ export default function SurveyPublic() {
                     setAnswer(q.id, selected ? curr.filter(o => o !== opt) : [...curr, opt])
                   }
                   return (
-                    <label key={opt} className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${selected ? 'bg-brand-50 border-brand-300' : 'border-slate-200 hover:border-slate-300'}`}>
+                    <label key={opt} onClick={toggle} className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${selected ? 'bg-brand-50 border-brand-300' : 'border-slate-200 hover:border-slate-300'}`}>
                       <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${selected ? 'bg-brand-600 border-brand-600' : 'border-slate-300'}`}>
                         {selected && <Check size={10} className="text-white" />}
                       </div>
-                      <span className="text-sm text-slate-700" onClick={toggle}>{opt}</span>
+                      <span className="text-sm text-slate-700">{opt}</span>
                     </label>
                   )
                 })}
