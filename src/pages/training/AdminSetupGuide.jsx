@@ -120,6 +120,8 @@ export default function AdminSetupGuide() {
               { k: 3, text: <>Open <B>Effective access</B> to see the grid of what they can do. <B>Blue</B> boxes come from their roles (hover to see which), <B>green</B> are added just for them, <B>red</B> are removed just for them. Click a box to add or remove one permission; click again to go back.</> },
             ]} />
             <Tip>Use one-off changes sparingly. If several people need the same thing, make or change a Job Role instead. That keeps everyone's access easy to read.</Tip>
+            <H3>Changing someone's sign-in email</H3>
+            <P>On their Edit User screen, click <B>Change</B> next to the email (or edit the email on the Staff screen). The new address becomes their login right away and their password stays the same, so there's no new setup email. ElderLoop emails both the old and new address to let them know. Org Admins and HR/Payroll Managers can do this for staff.</P>
           </SectionBlock>
 
           <SectionBlock id="residents" num="07" title="Residents & families"
@@ -128,7 +130,7 @@ export default function AdminSetupGuide() {
               { k: 1, text: <>Open <B>Admin Panel → Lists &amp; Pick Lists → Residents</B> and click <B>Import from CSV/Excel</B>. Download the CSV template if you need one.</> },
               { k: 2, text: <>Drop in a CSV or Excel file (up to 5,000 residents), match your columns to ElderLoop's, and choose what to do with residents who are already in ElderLoop.</> },
               { k: 3, text: <>Review the result. Any rows that couldn't be imported are listed with the reason.</> },
-              { k: 4, text: <>Under <B>Family Links</B>, connect family members to their resident. Family Portal logins are granted from the resident's profile in the Directory.</> },
+              { k: 4, text: <>Under <B>Family Links</B>, connect family members to their resident. Family Portal logins are granted from the resident's profile in the Directory. Org Admins can change a resident's or family member's portal email there too; their password stays the same.</> },
             ]} />
           </SectionBlock>
 

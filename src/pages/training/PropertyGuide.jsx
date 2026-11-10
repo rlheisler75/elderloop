@@ -32,23 +32,24 @@ export default function PropertyGuide() {
             <Frame src={SHOT('units.png')} alt="Property Management Units tab" caption="Occupancy percentage and open notice count sit above the tab bar" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
             <Steps items={[
-              { k: 1, text: <>Click <b className="text-slate-900">Add Unit</b> to add a unit number, building, type, bedrooms/bathrooms, square footage, market rent, and amenities.</> },
+              { k: 1, text: <>Starting out? Click <b className="text-slate-900">Import from residents</b>. It creates a unit for every home where an Independent Living resident lives (Occupied), plus the empty homes beside them (Available). Run it again any time; units already there are skipped. Use <b className="text-slate-900">Add Unit</b> for anything else: unit number, building, type, bedrooms/bathrooms, square footage, market rent, and amenities.</> },
               { k: 2, text: <>Set <b className="text-slate-900">Status</b> — Available, Occupied, Notice Given, On Hold, Maintenance, or Offline — to keep the occupancy stat accurate.</> },
-              { k: 3, text: <>An occupied unit's card shows its current tenant and lease number, with a dollar-sign shortcut straight to that lease's rent ledger.</> },
+              { k: 3, text: <>An occupied unit's card shows its current tenant and lease number, with a dollar-sign shortcut straight to that lease's rent ledger. With no lease yet, the card shows the residents who live there.</> },
               { k: 4, text: <>If a Marketing lead has pointed at this exact unit as their interest, a rose-colored badge on the card shows who — a heads-up for which prospects to prioritize as a unit nears availability.</> },
             ]} />
             <Tip>The interest badge is read-only here — it's set from the Marketing module's Add/Edit Lead form, under "Interested In Specific Unit."</Tip>
           </SectionBlock>
 
           <SectionBlock id="tenants" num="02" title="Tenants"
-            dek="Contact and emergency contact info, plus background check status, for everyone who has or has had a lease.">
+            dek="Your tenants are your Independent Living residents: contact and emergency contact info, plus background check status, for everyone who has or has had a lease.">
             <Frame src={SHOT('tenants.png')} alt="Property Management Tenants tab" caption="Each row links to that tenant's active lease number and unit" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
             <Steps items={[
-              { k: 1, text: <>Click <b className="text-slate-900">Add Tenant</b> and fill in name, contact info, date of birth, and emergency contact.</> },
+              { k: 1, text: <>Click <b className="text-slate-900">Add IL residents</b> to create a tenant for every Independent Living resident who doesn't have one yet. For one person, click <b className="text-slate-900">Add Tenant</b> and pick the resident; their name and contact details come from the resident record, so there's nothing to type twice.</> },
               { k: 2, text: <>Set <b className="text-slate-900">Background Check</b> status (Pending, Passed, Failed, Waived) as it's completed — a colored pill on the table tracks it at a glance.</> },
               { k: 3, text: <>A tenant isn't tied to a unit until they're attached to a lease — add the tenant first, then create their lease.</> },
             ]} />
+            <Tip warn>When a resident moves out or moves to another level of care, an amber banner at the top lists any lease still open for them, and the lease row is flagged. End the lease and update the unit's status.</Tip>
           </SectionBlock>
 
           <SectionBlock id="leases" num="03" title="Leases & Rent Ledger"
@@ -84,7 +85,9 @@ export default function PropertyGuide() {
               { k: 1, text: <>Click <b className="text-slate-900">New Walkthrough</b>, choose the unit and type, and note whether the tenant was present.</> },
               { k: 2, text: <>Work through the room-by-room checklist — each item gets a condition (Good, Fair, Poor, Damaged, Missing), notes, and an optional charge.</> },
               { k: 3, text: <>Set the <b className="text-slate-900">Total Damage Charges</b> and notes to summarize what's owed — this shows directly on the walkthrough card.</> },
+              { k: 4, text: <>Repairs needed? Click <b className="text-slate-900">Create work order</b> on the walkthrough. Maintenance gets a ticket with the unit's location and every Fair, Poor, Damaged or Missing item, and the card shows the work order number and status.</> },
             ]} />
+            <Tip>Maintenance staff can do walkthroughs too. They see only this tab under Property Mgmt: no rents, leases or tenant details.</Tip>
           </SectionBlock>
 
           <SectionBlock id="notices" num="06" title="Notices"
@@ -99,11 +102,14 @@ export default function PropertyGuide() {
           </SectionBlock>
 
           <QuickRefTable rows={[
+            ['Build units from where IL residents live', 'Units tab → Import from residents'],
             ['Add a new unit', 'Units tab → Add Unit'],
+            ['Make tenants of all IL residents', 'Tenants tab → Add IL residents'],
             ['Move a new resident in', 'Add Tenant, then New Lease'],
             ['Record a rent payment', 'Leases tab → $ icon → Post Entry'],
             ['Issue or return a key', 'Keys tab → Issue Key / checkmark icon'],
             ['Document a move-in or move-out condition', 'Walkthroughs tab → New Walkthrough'],
+            ['Send walkthrough repairs to Maintenance', 'Walkthrough card → Create work order'],
             ['Start a late rent or lease violation notice', 'Notices tab → Issue Notice'],
           ]} />
 

@@ -6,6 +6,7 @@ const NAV = [
   { id: 'workorders', num: '01', label: 'Work Orders' },
   { id: 'assets',     num: '02', label: 'Assets' },
   { id: 'pm',         num: '03', label: 'Preventive Maintenance' },
+  { id: 'walkthroughs', num: '03b', label: 'Unit Walkthroughs' },
   { id: 'lifesafety', num: '04', label: 'Life Safety' },
   { id: 'reports',    num: '05', label: 'Reports' },
   { id: 'costs',    num: '05b', label: 'Costs' },
@@ -35,10 +36,19 @@ export default function MaintenanceGuide() {
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
             <Steps items={[
               { k: 1, text: <>Click <b className="text-slate-900">New Work Order</b> — use <b className="text-slate-900">Pick a template...</b> for a common issue (leaky faucet, HVAC not heating, broken window, etc.) to auto-fill category, priority, and description, or write your own.</> },
-              { k: 2, text: 'Set the location, link a resident or asset if relevant, and attach a photo — you can attach one before the ticket even exists yet.' },
+              { k: 2, text: 'Set the location, link a resident or asset if relevant, and attach a photo — you can attach one before the ticket even exists yet. Picking a resident fills in where they live; picking a location fills in (or offers) the residents who live there.' },
               { k: 3, text: <>A ticket auto-assigns to a staff member if an <b className="text-slate-900">Auto-Assignment</b> rule exists for its category (set up in Settings) — otherwise it's Unassigned until someone picks it up.</> },
               { k: 4, text: <>Open any ticket to use the <b className="text-slate-900">Quick Actions</b> strip — Start Working, Put On Hold, Awaiting Vendor, Mark Complete, Cancel Ticket — instead of manually editing status.</> },
+              { k: 5, text: <>Job needs more than one person? A Supervisor or Manager can add <b className="text-slate-900">Additional Techs</b> on the ticket. <b className="text-slate-900">Assigned To</b> stays the lead (reports, SLA and hand-off follow the lead); the extra techs see the job under My jobs. The list shows <b className="text-slate-900">+1</b>, +2… next to the lead's name.</> },
             ]} />
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Finding jobs</h3>
+            <Steps items={[
+              { k: 1, text: <>The tabs across the top pick which jobs you see: <b className="text-slate-900">My jobs</b> (assigned to you, including as an additional tech), <b className="text-slate-900">My incomplete work</b>, <b className="text-slate-900">Open queue</b> (nobody assigned yet), and <b className="text-slate-900">All jobs</b>. Supervisors and Managers start on All jobs; everyone else starts on My jobs.</> },
+              { k: 2, text: <>Use the Status filter for <b className="text-slate-900">Incomplete</b>, <b className="text-slate-900">Overdue</b> (past due or past its SLA), or <b className="text-slate-900">Closed</b>, which lists the newest completed jobs first with a Completed column. The <b className="text-slate-900">Assigned to</b> filter pulls every job for one person. The overdue banner's <b className="text-slate-900">View all</b> shows every overdue job.</> },
+              { k: 3, text: <>Search looks through the whole history, not just open jobs: title, description, location, who asked, and WO number. Locations show the address first (for example "3190 Circle Lane" or "101-B Northwoods B-Building"); hover to see the full path.</> },
+              { k: 4, text: <><b className="text-slate-900">Print List</b> prints exactly what's on screen, filters and search included, one line per job. Filter to one tech's incomplete work and print it for their day.</> },
+            ]} />
+            <Tip>Work order numbers count up per community. A community that came from Work Hub picks up where its old numbers left off.</Tip>
             <Frame src={SHOT('wo-detail.png')} alt="Work order detail view" caption="An existing ticket, showing linked asset, activity timeline, and comments" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Closing out a job</h3>
             <Frame narrow src={SHOT('close-out.png')} alt="Close this job form" caption="Mark Complete asks for the work type, labor hours, parts bought, and vendor cost" />
@@ -68,7 +78,7 @@ export default function MaintenanceGuide() {
           </SectionBlock>
 
           <SectionBlock id="pm" num="03" title="Preventive Maintenance"
-            dek="Recurring maintenance tasks — weekly generator tests, monthly filter changes, quarterly inspections — that generate a real work order for you with one click.">
+            dek="Recurring maintenance tasks — weekly generator tests, monthly filter changes, quarterly inspections — that turn into real work orders on their own when they come due.">
             <ShotsPair>
               <Frame src={SHOT('pm-schedules-list.png')} alt="Preventive Maintenance schedules list" caption="Schedules, with Overdue and Due Soon badges" />
               <Frame src={SHOT('new-pm-schedule-modal.png')} alt="New PM Schedule form" caption="Setting up a recurring schedule" />
@@ -76,9 +86,21 @@ export default function MaintenanceGuide() {
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
             <Steps items={[
               { k: 1, text: <>Click <b className="text-slate-900">New Schedule</b>, name the task, optionally link an asset, and set the frequency — Weekly, Monthly, Quarterly, Annual, or Custom (every N days).</> },
-              { k: 2, text: <>When a schedule comes due, click <b className="text-slate-900">Generate WO</b> — it creates a real work order (titled with a <code>[PM]</code> prefix) with the category, asset, assignee, and due date already filled in.</> },
-              { k: 3, text: 'The schedule automatically advances to its next due date the moment you generate a work order from it — you never have to reschedule it by hand.' },
+              { k: 2, text: <>Early each morning ElderLoop creates a work order for every schedule that has come due — titled with a <code>[PM]</code> prefix, with the category, asset, assignee, and due date already filled in. Need it sooner? Click <b className="text-slate-900">Generate WO</b> to create it now.</> },
+              { k: 3, text: 'The schedule then moves to its next due date on the calendar (the 1st stays the 1st), so you never reschedule it by hand.' },
             ]} />
+          </SectionBlock>
+
+          <SectionBlock id="walkthroughs" num="03b" title="Unit Walkthroughs" roleNote="Work Orders edit"
+            dek="Move-in, move-out and periodic inspections of Independent Living units, done by Maintenance under Property Mgmt, with a work order one click away.">
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
+            <Steps items={[
+              { k: 1, text: <>Open <b className="text-slate-900">Property Mgmt</b> in the sidebar. Maintenance sees only the <b className="text-slate-900">Walkthroughs</b> tab: no rents, leases or tenant details.</> },
+              { k: 2, text: <>Click <b className="text-slate-900">New Walkthrough</b>, pick the unit and type, and work through the room-by-room checklist. Mark each item Good, Fair, Poor, Damaged or Missing and add notes.</> },
+              { k: 3, text: <>On the saved walkthrough, click <b className="text-slate-900">Create work order</b>. The ticket opens with the unit's location filled in and every Fair, Poor, Damaged or Missing item listed in the description.</> },
+              { k: 4, text: <>The walkthrough card then shows the work order number and its status. Click it to jump straight to the ticket.</> },
+            ]} />
+            <Tip>The Property Manager sees the same walkthroughs, so a move-out inspection, its repairs and any damage charges stay together.</Tip>
           </SectionBlock>
 
           <SectionBlock id="lifesafety" num="04" title="Life Safety"
@@ -133,6 +155,7 @@ export default function MaintenanceGuide() {
               { k: 1, text: <><b className="text-slate-900">SLA Rules:</b> set response and completion hour targets for Urgent, High, Normal, and Low priority — these drive the SLA banners and breach warnings on every ticket.</> },
               { k: 2, text: <><b className="text-slate-900">Auto-Assignment:</b> pick a default staff member per category so new tickets route themselves — this can always be overridden on an individual ticket.</> },
               { k: 3, text: <><b className="text-slate-900">Locations:</b> build out your buildings, halls, floors, and rooms once — click the icons on hover to add a child location, edit, or remove one.</> },
+              { k: 4, text: <><b className="text-slate-900">Import</b> (Managers): bring in work order history from a Work Hub CSV export. Old WO numbers are kept; locations, workers, requestors, residents and categories are matched, and anything unmatched goes into the work order notes. Running the same file again skips jobs already imported.</> },
             ]} />
           </SectionBlock>
 
@@ -158,13 +181,18 @@ export default function MaintenanceGuide() {
             ['Check equipment service history', 'Assets → click a card, or scan its label'],
             ['Print QR labels for equipment', 'Assets → Print Labels'],
             ['Report a problem with a labeled machine', 'Scan the label → New Work Order'],
-            ['Run a recurring task (filter change, generator test)', 'Preventive Maintenance → Generate WO'],
+            ['See just your jobs, or the unassigned queue', 'Work Orders → My jobs / Open queue'],
+            ['Put more than one tech on a job', 'Open the ticket → Additional Techs'],
+            ["Print one tech's open work", 'Assigned to + Incomplete filters → Print List'],
+            ['Run a recurring task now instead of waiting', 'Preventive Maintenance → Generate WO'],
+            ['Inspect an IL unit and open repairs from it', 'Property Mgmt → Walkthroughs → Create work order'],
             ['Conduct a fire/life-safety inspection', 'Life Safety → Inspect'],
             ['Prepare for a state survey', 'Life Safety → Print for Surveyor'],
             ['See SLA performance or staff workload', 'Reports'],
             ['Export ticket data to Excel', 'Reports → Export CSV'],
             ['Change who tickets auto-assign to', 'Settings → Auto-Assignment'],
             ['Add a building, hall, or room', 'Settings → Locations'],
+            ['Bring in Work Hub history', 'Settings → Import'],
           ]} />
 
           <GuideFooter label="Maintenance Module" />

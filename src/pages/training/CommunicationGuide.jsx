@@ -47,7 +47,9 @@ export default function CommunicationGuide() {
               { k: 2, text: <>Attach a photo (JPG, PNG, or GIF up to 5MB) if you have one — it displays under the message on both the board and Digital Signage.</> },
               { k: 3, text: <>Set a future <b className="text-slate-900">Post Date</b> to schedule it ahead of time, and an <b className="text-slate-900">Expiration Date</b> so it automatically stops showing once it's no longer relevant.</> },
               { k: 4, text: <>Check <b className="text-slate-900">Pin to top of board</b> for anything that should stay above the regular feed, like an elevator outage or a policy change.</> },
+              { k: 5, text: <>Under <b className="text-slate-900">Show on screens</b>, leave <b className="text-slate-900">All screens</b> on, or pick only the TVs it belongs on — say, the Assisted Living lobby but not Independent Living.</> },
             ]} />
+            <Tip>Signage screens update within a few seconds when you post, edit, hide, or delete an announcement. Nobody needs to refresh the TV.</Tip>
             <Tip>Background Color only matters for Digital Signage — it has no effect on how the post looks in the staff app itself.</Tip>
           </SectionBlock>
 
