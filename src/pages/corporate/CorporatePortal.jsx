@@ -90,7 +90,7 @@ function CommunityDetail({ community, onClose }) {
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 ml-3"><X size={20} /></button>
         </div>
-        <div className="p-5 space-y-4">
+        <div className="p-4 sm:p-5 space-y-4">
           {error && <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">{error}</div>}
           {!detail && !error && <div className="flex justify-center py-10"><Loader2 className="animate-spin text-slate-400" /></div>}
           {detail && (
@@ -113,7 +113,7 @@ function CommunityDetail({ community, onClose }) {
                 <div className="text-sm font-semibold text-slate-700 mb-2">Open state-reportable incidents (42 CFR 483.12)</div>
                 {(detail.state_reportable_open || []).length === 0 ? <div className="text-xs text-slate-400">None open</div> : (
                   <div className="overflow-x-auto">
-                    <table className="w-full text-xs">
+                    <table className="w-full text-xs min-w-[520px]">
                       <thead><tr className="text-left text-slate-500">
                         <th className="py-1 pr-3">#</th><th className="pr-3">Type</th><th className="pr-3">Severity</th>
                         <th className="pr-3">Initial report due</th><th className="pr-3">Initial filed</th><th>5-day filed</th>
@@ -198,7 +198,37 @@ function Portfolio() {
           No communities are linked to your corporation yet. ElderLoop support links them for you.
         </div>
       ) : (
-        <div className="bg-white border border-slate-200 rounded-xl overflow-x-auto">
+        <>
+        {/* Phone: one card per community, flagged numbers first */}
+        <div className="md:hidden space-y-3">
+          {rows.map(r => (
+            <button key={r.organization_id} onClick={() => setOpen(r)}
+              className="w-full text-left bg-white border border-slate-200 rounded-xl p-4 hover:bg-slate-50">
+              <div className="flex items-center gap-2">
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium text-slate-800 truncate">{r.name}</div>
+                  <div className="text-xs text-slate-400">{[r.city, r.state].filter(Boolean).join(', ')}</div>
+                </div>
+                <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
+              </div>
+              <div className="grid grid-cols-3 gap-x-3 gap-y-2 mt-3">
+                {[...KPI_COLS].sort((a, b) => !!b.warn?.(r) - !!a.warn?.(r)).map(c => {
+                  const warn = c.warn?.(r)
+                  const sub = c.sub?.(r)
+                  return (
+                    <div key={c.key} className="min-w-0">
+                      <div className="text-[11px] text-slate-400 leading-tight">{c.label}</div>
+                      <div className={`text-sm ${warn ? 'text-red-600 font-semibold' : 'text-slate-700'}`}>{cellValue(r, c)}</div>
+                      {sub && <div className={`text-[11px] leading-tight ${warn ? 'text-red-500' : 'text-slate-400'}`}>{sub}</div>}
+                    </div>
+                  )
+                })}
+              </div>
+            </button>
+          ))}
+        </div>
+
+        <div className="hidden md:block bg-white border border-slate-200 rounded-xl overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs text-slate-500 border-b border-slate-200">
@@ -230,9 +260,10 @@ function Portfolio() {
             </tbody>
           </table>
         </div>
+        </>
       )}
 
-      <div className="flex items-center justify-between text-xs text-slate-400">
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
         <span>Counts only. Resident, staff, and prospect names stay inside each community.</span>
         <button onClick={load} className="flex items-center gap-1 hover:text-slate-600"><RefreshCw size={12} /> Refresh</button>
       </div>
@@ -344,7 +375,7 @@ export default function CorporatePortal() {
           </div>
           <div className="min-w-0 flex-1">
             <div className="font-display font-semibold truncate">{corpName || 'ElderLoop'}</div>
-            <div className="text-brand-400 text-xs">Corporate Portal · {profile?.first_name} {profile?.last_name}</div>
+            <div className="text-brand-400 text-xs truncate">Corporate Portal · {profile?.first_name} {profile?.last_name}</div>
           </div>
           <button onClick={() => navigate('/forgot-password')} title="Change password"
             className="p-2 text-brand-300 hover:text-white"><KeyRound size={17} /></button>
@@ -357,14 +388,14 @@ export default function CorporatePortal() {
             const Icon = t.icon
             return (
               <button key={t.key} onClick={() => setTab(t.key)}
-                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t-lg whitespace-nowrap ${tab === t.key ? 'bg-slate-50 text-brand-800' : 'text-brand-300 hover:text-white'}`}>
+                className={`flex items-center gap-2 px-3 sm:px-4 py-2.5 text-sm font-medium rounded-t-lg whitespace-nowrap ${tab === t.key ? 'bg-slate-50 text-brand-800' : 'text-brand-300 hover:text-white'}`}>
                 <Icon size={15} /> {t.label}
               </button>
             )
           })}
         </div>
       </header>
-      <main className="max-w-7xl mx-auto px-4 py-6">
+      <main className="max-w-7xl mx-auto px-4 py-5 sm:py-6">
         {tab === 'portfolio' ? <Portfolio /> : tab === 'budgets' ? <CorporateBudgets /> : <ChainAnnouncement />}
       </main>
     </div>

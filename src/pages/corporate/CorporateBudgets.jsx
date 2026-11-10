@@ -44,7 +44,41 @@ function Overview({ month, onOpen }) {
         : [over > 0 && `${over} department${over === 1 ? ' is' : 's are'} over budget`,
            onPaceOver > 0 && `${onPaceOver} ${over > 0 ? '' : onPaceOver === 1 ? 'department ' : 'departments '}${onPaceOver === 1 ? 'is' : 'are'} on pace to go over`].filter(Boolean).join('; ') + '.'}
     </p>
-    <div className="bg-white border border-slate-200 rounded-xl overflow-x-auto">
+    {/* Phone: one card per community, a line per department */}
+    <div className="md:hidden space-y-3">
+      {communities.map(([id, name]) => (
+        <button key={id} onClick={() => onOpen({ id, name })} className="w-full text-left bg-white border border-slate-200 rounded-xl p-4 hover:bg-slate-50">
+          <div className="font-medium text-slate-800 mb-2">{name}</div>
+          <div className="divide-y divide-slate-100">
+            {BUDGET_DEPARTMENTS.map(d => {
+              const r = rows.find(x => x.organization_id === id && x.department === d.key)
+              return (
+                <div key={d.key} className="py-2 text-sm">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="text-slate-500">{d.label}</span>
+                    {r ? <span className={TONE_CELL[budgetTone(r)]}>{money(r.spent)} <span className="text-xs text-slate-400">/ {money(r.budget)}</span></span>
+                       : <span className="text-slate-300">—</span>}
+                  </div>
+                  {r && (
+                    <div className="text-xs text-slate-400 text-right">
+                      {r.pct_used != null ? `${r.pct_used}% · on pace for ${r.projected_pct}%` : 'No budget'}
+                      {r.spend_ppd != null && ` · ${money(r.spend_ppd, 2)} PPD`}
+                    </div>
+                  )}
+                  {alerts.filter(a => a.organization_id === id && a.department === d.key).map(a => (
+                    <div key={a.kind} className={`text-xs text-right ${a.kind === 'pct100' ? 'text-red-600' : 'text-amber-700'}`}>
+                      {ALERT_LABELS[a.kind]} · {alertDate(a.created_at)}
+                    </div>
+                  ))}
+                </div>
+              )
+            })}
+          </div>
+        </button>
+      ))}
+    </div>
+
+    <div className="hidden md:block bg-white border border-slate-200 rounded-xl overflow-x-auto">
       <table className="w-full text-sm min-w-[640px]">
         <thead>
           <tr className="text-left text-xs text-slate-500 border-b border-slate-200">
@@ -142,10 +176,10 @@ function Requests() {
       {rows.map(r => (
         <div key={r.id} className="bg-white border border-slate-200 rounded-xl p-4">
           <div className="flex flex-wrap items-start justify-between gap-2">
-            <div>
+            <div className="min-w-0">
               <div className="font-semibold text-slate-800">{r.community} · {departmentLabel(r.department)} · {monthLabel(r.month)}</div>
               <div className="text-sm text-slate-600 mt-0.5">{money(r.current_amount)} → <b>{money(r.requested_amount)}</b></div>
-              <div className="text-sm text-slate-500 mt-1">{r.reason}</div>
+              <div className="text-sm text-slate-500 mt-1 break-words">{r.reason}</div>
               {r.decision_note && <div className="text-xs text-slate-400 mt-1">Note: {r.decision_note}</div>}
             </div>
             <span className={`text-xs px-2 py-0.5 rounded-full ${r.status === 'pending' ? 'bg-amber-100 text-amber-700' : r.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>{r.status}</span>
@@ -153,7 +187,7 @@ function Requests() {
           {r.status === 'pending' && (
             <div className="flex flex-wrap items-center gap-2 mt-3">
               <input value={notes[r.id] || ''} onChange={e => setNotes(n => ({ ...n, [r.id]: e.target.value }))} placeholder="Note to the community (optional)"
-                className="flex-1 min-w-[200px] px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full sm:w-auto sm:flex-1 sm:min-w-[200px] px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
               <button onClick={() => decide(r.id, true)} disabled={busy === r.id} className="flex items-center gap-1 px-3 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white rounded-lg text-sm"><Check size={14} /> Approve</button>
               <button onClick={() => decide(r.id, false)} disabled={busy === r.id} className="flex items-center gap-1 px-3 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg text-sm"><X size={14} /> Decline</button>
             </div>
@@ -180,7 +214,7 @@ export default function CorporateBudgets() {
         {view === 'overview' && (
           <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-1">
             <button onClick={() => setMonth(m => shiftMonth(m, -1))} className="p-2 text-slate-500 hover:text-slate-800"><ChevronLeft size={16} /></button>
-            <span className="text-sm font-medium text-slate-700 w-36 text-center">{monthLabel(month)}</span>
+            <span className="text-sm font-medium text-slate-700 w-32 sm:w-36 text-center">{monthLabel(month)}</span>
             <button onClick={() => setMonth(m => shiftMonth(m, 1))} className="p-2 text-slate-500 hover:text-slate-800"><ChevronRight size={16} /></button>
           </div>
         )}
