@@ -187,7 +187,7 @@ function MaintenanceModal({ resident, orgId, profile, onClose, onSubmitted }) {
           {/* Category */}
           <div>
             <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Category</label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-3 min-[400px]:grid-cols-4 gap-2">
               {WO_CATEGORIES.map(cat => (
                 <button key={cat.key} onClick={() => set('category', cat.key)}
                   className={`flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition-all text-center ${
@@ -288,14 +288,14 @@ function NewMessageModal({ resident, orgId, profile, onClose, onSent }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4">
-      <div className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg flex flex-col">
-        <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-slate-100 dark:border-slate-800">
+      <div className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <h2 className="font-semibold text-slate-800 dark:text-slate-100">New Message</h2>
           <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
             <X size={18} />
           </button>
         </div>
-        <div className="px-5 py-4 space-y-3">
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
           <div>
             <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Send To</label>
             <select value={form.department} onChange={e => set('department', e.target.value)}
@@ -317,7 +317,7 @@ function NewMessageModal({ resident, orgId, profile, onClose, onSent }) {
               className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none" />
           </div>
         </div>
-        <div className="px-5 pb-5 flex gap-3">
+        <div className="px-5 pb-5 flex gap-3 flex-shrink-0">
           <button onClick={onClose} className="flex-1 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
           <button onClick={handleSend} disabled={sending || !form.body.trim()}
             className="flex-1 py-2.5 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-2">
@@ -376,7 +376,7 @@ function ThreadView({ thread, profile, onReply, onBack }) {
                 {!isFamily && (
                   <div className="text-xs font-semibold mb-1 text-brand-600 dark:text-brand-400">{dept?.label || 'Staff'}</div>
                 )}
-                <p className="text-sm leading-relaxed">{msg.body}</p>
+                <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{msg.body}</p>
                 {msg.image_url && (
                   <img src={msg.image_url} alt="" className="mt-2 rounded-xl w-full object-cover max-h-48" />
                 )}
@@ -442,7 +442,7 @@ function ProfileTab({ resident, emergencyContacts, medicalContacts, link }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {resident.room && (
               <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
                 <Home size={13} className="text-slate-400 flex-shrink-0" />
@@ -482,8 +482,8 @@ function ProfileTab({ resident, emergencyContacts, medicalContacts, link }) {
           <div className="divide-y divide-slate-50 dark:divide-slate-800">
             {emergencyContacts.map(ec => (
               <div key={ec.id} className="px-5 py-3">
-                <div className="flex items-start justify-between">
-                  <div>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
                     <div className="font-medium text-slate-800 dark:text-slate-100 text-sm">
                       {ec.name}
                       {ec.is_primary && (
@@ -494,12 +494,12 @@ function ProfileTab({ resident, emergencyContacts, medicalContacts, link }) {
                   </div>
                   {ec.phone && (
                     <a href={`tel:${ec.phone}`}
-                      className="flex items-center gap-1 text-brand-600 dark:text-brand-400 text-xs font-medium px-2 py-1 bg-brand-50 dark:bg-brand-950/50 rounded-lg">
+                      className="flex items-center gap-1 text-brand-600 dark:text-brand-400 text-xs font-medium px-2 py-1 bg-brand-50 dark:bg-brand-950/50 rounded-lg whitespace-nowrap flex-shrink-0">
                       <Phone size={11} /> {ec.phone}
                     </a>
                   )}
                 </div>
-                {ec.email && <div className="text-xs text-slate-400 mt-1">{ec.email}</div>}
+                {ec.email && <div className="text-xs text-slate-400 mt-1 break-all">{ec.email}</div>}
               </div>
             ))}
           </div>
@@ -517,8 +517,8 @@ function ProfileTab({ resident, emergencyContacts, medicalContacts, link }) {
           <div className="divide-y divide-slate-50 dark:divide-slate-800">
             {medicalContacts.map(mc => (
               <div key={mc.id} className="px-5 py-3">
-                <div className="flex items-start justify-between">
-                  <div>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
                     <div className="font-medium text-slate-800 dark:text-slate-100 text-sm">{mc.name}</div>
                     <div className="text-xs text-slate-400 mt-0.5">
                       {mc.contact_type && <span className="capitalize">{mc.contact_type.replace('_', ' ')}</span>}
@@ -527,7 +527,7 @@ function ProfileTab({ resident, emergencyContacts, medicalContacts, link }) {
                   </div>
                   {mc.phone && (
                     <a href={`tel:${mc.phone}`}
-                      className="flex items-center gap-1 text-brand-600 dark:text-brand-400 text-xs font-medium px-2 py-1 bg-brand-50 dark:bg-brand-950/50 rounded-lg">
+                      className="flex items-center gap-1 text-brand-600 dark:text-brand-400 text-xs font-medium px-2 py-1 bg-brand-50 dark:bg-brand-950/50 rounded-lg whitespace-nowrap flex-shrink-0">
                       <Phone size={11} /> {mc.phone}
                     </a>
                   )}
@@ -654,7 +654,7 @@ function MaintenanceTab({ myWorkOrders, onNewRequest }) {
                         {cfg.label}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 mt-1 text-xs text-slate-400">
+                    <div className="flex items-center gap-x-2 gap-y-0.5 flex-wrap mt-1 text-xs text-slate-400">
                       {cat && <span>{cat.emoji} {cat.label}</span>}
                       <span>·</span>
                       <span>#{wo.wo_number || wo.id.slice(0,6)}</span>
@@ -1155,9 +1155,9 @@ export default function FamilyPortal() {
                           <div className={`w-9 h-9 ${config.bg} rounded-xl flex items-center justify-center flex-shrink-0`}>
                             <Icon size={16} className={config.color} />
                           </div>
-                          <div className="flex-1">
+                          <div className="flex-1 min-w-0">
                             {u.title && <div className="font-semibold text-slate-800 dark:text-slate-100 text-sm mb-1">{u.title}</div>}
-                            <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">{u.body}</p>
+                            <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed whitespace-pre-wrap break-words">{u.body}</p>
                             {u.photo_url && (
                               <img src={u.photo_url} alt="" className="mt-3 rounded-xl w-full object-cover max-h-52" />
                             )}
@@ -1286,8 +1286,8 @@ export default function FamilyPortal() {
                         <div className="flex items-start gap-3">
                           <div className="w-2 h-2 rounded-full mt-2 flex-shrink-0" style={{ background: a.color || '#0c90e1' }} />
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold text-slate-800 dark:text-slate-100 text-sm">{a.title}</span>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-semibold text-slate-800 dark:text-slate-100 text-sm break-words">{a.title}</span>
                               {isToday && <span className="text-xs bg-brand-100 dark:bg-brand-950/50 text-brand-700 dark:text-brand-400 px-1.5 py-0.5 rounded-full font-medium">Today</span>}
                             </div>
                             <div className="text-xs text-slate-400 mt-0.5">
@@ -1295,7 +1295,7 @@ export default function FamilyPortal() {
                               {a.start_time && ` · ${fmt12(a.start_time)}`}
                               {a.location && ` · ${a.location}`}
                             </div>
-                            {a.description && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{a.description}</p>}
+                            {a.description && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 break-words">{a.description}</p>}
                           </div>
                           <RSVPButton activity={a} occurrenceDate={a.start_date} resident={selectedResident} profile={profile}
                             orgId={organization?.id || profile?.organization_id}
@@ -1388,8 +1388,8 @@ export default function FamilyPortal() {
                             <a key={s.id}
                               href={`https://youtube.com/watch?v=${s.recording_youtube_id}`}
                               target="_blank" rel="noopener noreferrer"
-                              className="flex items-center justify-between px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group">
-                              <div>
+                              className="flex items-center justify-between gap-3 px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group">
+                              <div className="min-w-0">
                                 <div className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">{s.title}</div>
                                 <div className="text-xs text-slate-400">
                                   {new Date(s.service_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
