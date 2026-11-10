@@ -58,6 +58,7 @@ const MaintenanceGuide = lazy(() => import('./pages/training/MaintenanceGuide'))
 const HousekeepingGuide = lazy(() => import('./pages/training/HousekeepingGuide'))
 const ActivitiesGuide = lazy(() => import('./pages/training/ActivitiesGuide'))
 const ChapelGuide = lazy(() => import('./pages/training/ChapelGuide'))
+const EducationGuide = lazy(() => import('./pages/training/EducationGuide'))
 const AccessGuide = lazy(() => import('./pages/training/AccessGuide'))
 const MarketingGuide = lazy(() => import('./pages/training/MarketingGuide'))
 const CommunicationGuide = lazy(() => import('./pages/training/CommunicationGuide'))
@@ -97,6 +98,7 @@ const trainingRoutes = [
   <Route key="training-housekeeping"  path="/training/housekeeping"        element={<Lazy><HousekeepingGuide /></Lazy>} />,
   <Route key="training-activities"    path="/training/activities"          element={<Lazy><ActivitiesGuide /></Lazy>} />,
   <Route key="training-chapel"        path="/training/chapel"              element={<Lazy><ChapelGuide /></Lazy>} />,
+  <Route key="training-education"     path="/training/education"           element={<Lazy><EducationGuide /></Lazy>} />,
   <Route key="training-marketing"     path="/training/marketing"           element={<Lazy><MarketingGuide /></Lazy>} />,
   <Route key="training-communication" path="/training/communication"       element={<Lazy><CommunicationGuide /></Lazy>} />,
   <Route key="training-transportation" path="/training/transportation"     element={<Lazy><TransportationGuide /></Lazy>} />,

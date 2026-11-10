@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Sparkles, HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays, Church, Megaphone, MessageSquare, Car, Building2, Package, ShieldCheck, Gauge, Laptop, Contact, Heart, AlertTriangle, CalendarClock, Users, Clock, ClipboardList, KeyRound, Settings, Wallet, Smartphone, ListChecks, HelpCircle } from 'lucide-react'
+import { Sparkles, HeartHandshake, ArrowRight, UtensilsCrossed, Stethoscope, Wrench, SprayCan, CalendarDays, Church, Megaphone, MessageSquare, Car, Building2, Package, ShieldCheck, Gauge, Laptop, Contact, Heart, AlertTriangle, CalendarClock, Users, Clock, ClipboardList, KeyRound, Settings, Wallet, Smartphone, ListChecks, HelpCircle, GraduationCap } from 'lucide-react'
 
 const GUIDES = [
   {
@@ -113,6 +113,13 @@ const GUIDES = [
     title: 'Chapel',
     desc: 'The Chaplain Portal — scheduling services, streaming them live to YouTube, and keeping a record of attendance and recordings.',
     tag: '4 sections',
+  },
+  {
+    to: '/training/education',
+    icon: GraduationCap,
+    title: 'Education',
+    desc: 'In-services from start to finish: QR sign-in, marking attendance, makeups, the yearly compliance report, and setting training requirements.',
+    tag: '6 sections',
   },
   {
     to: '/training/marketing',
