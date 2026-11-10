@@ -41,7 +41,9 @@ export default function MaintenanceGuide() {
               { k: 4, text: <>Open any ticket to use the <b className="text-slate-900">Quick Actions</b> strip — Start Working, Put On Hold, Awaiting Vendor, Mark Complete, Cancel Ticket — instead of manually editing status.</> },
               { k: 5, text: <>Job needs more than one person? A Supervisor or Manager can add <b className="text-slate-900">Additional Techs</b> on the ticket. <b className="text-slate-900">Assigned To</b> stays the lead (reports, SLA and hand-off follow the lead); the extra techs see the job under My jobs. The list shows <b className="text-slate-900">+1</b>, +2… next to the lead's name.</> },
             ]} />
+            <Frame narrow src={SHOT('additional-techs.png')} alt="Additional Techs on the Edit Work Order form" caption="Click a name to add them to the job; Assigned To stays the lead" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Finding jobs</h3>
+            <Frame src={SHOT('job-tabs.png')} alt="Work order job tabs and filters" caption="My jobs, My incomplete work, Open queue and All jobs, with the filters and Print List beside the search" />
             <Steps items={[
               { k: 1, text: <>The tabs across the top pick which jobs you see: <b className="text-slate-900">My jobs</b> (assigned to you, including as an additional tech), <b className="text-slate-900">My incomplete work</b>, <b className="text-slate-900">Open queue</b> (nobody assigned yet), and <b className="text-slate-900">All jobs</b>. Supervisors and Managers start on All jobs; everyone else starts on My jobs.</> },
               { k: 2, text: <>Use the Status filter for <b className="text-slate-900">Incomplete</b>, <b className="text-slate-900">Overdue</b> (past due or past its SLA), or <b className="text-slate-900">Closed</b>, which lists the newest completed jobs first with a Completed column. The <b className="text-slate-900">Assigned to</b> filter pulls every job for one person. The overdue banner's <b className="text-slate-900">View all</b> shows every overdue job.</> },
@@ -93,6 +95,7 @@ export default function MaintenanceGuide() {
 
           <SectionBlock id="walkthroughs" num="03b" title="Unit Walkthroughs" roleNote="Work Orders edit"
             dek="Move-in, move-out and periodic inspections of Independent Living units, done by Maintenance under Property Mgmt, with a work order one click away.">
+            <Frame src="/training/property/walkthroughs.png" alt="Walkthroughs tab" caption="Each walkthrough card has a Create work order button" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
             <Steps items={[
               { k: 1, text: <>Open <b className="text-slate-900">Property Mgmt</b> in the sidebar. Maintenance sees only the <b className="text-slate-900">Walkthroughs</b> tab: no rents, leases or tenant details.</> },

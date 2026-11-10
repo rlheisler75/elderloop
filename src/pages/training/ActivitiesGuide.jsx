@@ -48,6 +48,7 @@ export default function ActivitiesGuide() {
               { k: 3, text: <>Under <b className="text-slate-900">Repeat</b>, choose Daily, Weekly, Every 2 weeks, or Monthly for a recurring class — set a Repeat Until date, or leave it blank to repeat indefinitely.</> },
               { k: 4, text: <>Use <b className="text-slate-900">Show in Resident Portal</b> and <b className="text-slate-900">Show on Digital Signage</b> to control where it's visible — turn either off for a staff-only or internal planning entry. With Digital Signage on, <b className="text-slate-900">Show on screens</b> lets you pick which TVs show it, or leave it on All screens.</> },
             ]} />
+            <Frame narrow src={SHOT('activity-screens.png')} alt="Show on screens picker on the activity form" caption="With Show on Digital Signage on, pick which TVs show it, or leave it on All screens" />
             <Tip>Deleting a recurring activity removes the whole series, not just one occurrence — there's a confirmation before it happens, but there's no way to delete a single date out of a recurring series today.</Tip>
           </SectionBlock>
 

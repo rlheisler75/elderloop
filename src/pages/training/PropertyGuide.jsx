@@ -29,7 +29,7 @@ export default function PropertyGuide() {
 
           <SectionBlock id="units" num="01" title="Units"
             dek="Every independent living unit with its status, rent, size, and — if occupied — a direct link to the current tenant's lease and ledger.">
-            <Frame src={SHOT('units.png')} alt="Property Management Units tab" caption="Occupancy percentage and open notice count sit above the tab bar" />
+            <Frame src={SHOT('units.png')} alt="Property Management Units tab" caption="Import from residents builds units from where Independent Living residents live" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
             <Steps items={[
               { k: 1, text: <>Starting out? Click <b className="text-slate-900">Import from residents</b>. It creates a unit for every home where an Independent Living resident lives (Occupied), plus the empty homes beside them (Available). Run it again any time; units already there are skipped. Use <b className="text-slate-900">Add Unit</b> for anything else: unit number, building, type, bedrooms/bathrooms, square footage, market rent, and amenities.</> },
@@ -79,7 +79,7 @@ export default function PropertyGuide() {
 
           <SectionBlock id="walkthroughs" num="05" title="Walkthroughs"
             dek="A room-by-room condition checklist for move-in, move-out, periodic, and pre-lease inspections, with per-item notes and damage charges.">
-            <Frame src={SHOT('walkthroughs.png')} alt="Property Management Walkthroughs tab" caption="Damage charges roll up from the itemized checklist" />
+            <Frame src={SHOT('walkthroughs.png')} alt="Property Management Walkthroughs tab" caption="Damage charges roll up from the checklist; Create work order sends repairs to Maintenance" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
             <Steps items={[
               { k: 1, text: <>Click <b className="text-slate-900">New Walkthrough</b>, choose the unit and type, and note whether the tenant was present.</> },

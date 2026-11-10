@@ -49,6 +49,7 @@ export default function CommunicationGuide() {
               { k: 4, text: <>Check <b className="text-slate-900">Pin to top of board</b> for anything that should stay above the regular feed, like an elevator outage or a policy change.</> },
               { k: 5, text: <>Under <b className="text-slate-900">Show on screens</b>, leave <b className="text-slate-900">All screens</b> on, or pick only the TVs it belongs on — say, the Assisted Living lobby but not Independent Living.</> },
             ]} />
+            <Frame narrow src={SHOT('announcement-screens.png')} alt="Show on screens picker on the New Announcement form" caption="All screens, or only the TVs you pick" />
             <Tip>Signage screens update within a few seconds when you post, edit, hide, or delete an announcement. Nobody needs to refresh the TV.</Tip>
             <Tip>Background Color only matters for Digital Signage — it has no effect on how the post looks in the staff app itself.</Tip>
           </SectionBlock>
