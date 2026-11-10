@@ -507,6 +507,9 @@ export default function Education() {
   }, [sessions, attendance, peopleById, makeupMap])
 
   // Hours and topics per person for the chosen year
+  // A makeup class that made up a missed session earns that session's hours,
+  // so its own hours aren't counted again
+  const usedForMakeup = useMemo(() => new Set(makeups.filter(m => m.makeup_session_id).map(m => `${m.makeup_session_id}|${m.profile_id}`)), [makeups])
   const compliance = useMemo(() => {
     const inYear = sessions.filter(s => s.session_date.startsWith(String(year)))
     return people.map(p => {
@@ -515,7 +518,7 @@ export default function Education() {
       for (const s of inYear) {
         const a = markMap.get(`${s.id}|${p.profile_id}`)
         const m = makeupMap.get(`${s.id}|${p.profile_id}`)
-        if (a?.status === 'present' || m) { hours += Number(s.hours); s.topics.forEach(t => topics.add(t.toLowerCase())) }
+        if ((a?.status === 'present' && !usedForMakeup.has(`${s.id}|${p.profile_id}`)) || m) { hours += Number(s.hours); s.topics.forEach(t => topics.add(t.toLowerCase())) }
       }
       const reqs = requirements.filter(r => requirementApplies(r, p)).map(r => {
         const missing = []
@@ -526,7 +529,7 @@ export default function Education() {
       return { p, name: `${p.last_name}, ${p.first_name}`, dept: deptLabel(p), inactive: !p.is_active, hours: Math.round(hours * 100) / 100,
         reqs, owed: owed.filter(o => o.person.profile_id === p.profile_id).length }
     })
-  }, [people, sessions, markMap, makeupMap, requirements, year, owed])
+  }, [people, sessions, markMap, makeupMap, usedForMakeup, requirements, year, owed])
 
   if (loading) return <div className="flex justify-center py-20"><Loader2 size={28} className="animate-spin text-brand-400" /></div>
 

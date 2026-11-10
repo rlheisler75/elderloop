@@ -82,7 +82,7 @@ export default function EducationGuide() {
               { k: 2, text: <>When someone makes it up, click <B>Record makeup</B>, enter the date, and pick how: <B>Read and sign</B>, <B>Makeup session</B>, or Other.</> },
               { k: 3, text: <>A recorded makeup earns the original session's CE hours and topics, and drops off the list. Finished ones are under <B>Completed makeups</B>.</> },
             ]} />
-            <Tip>Holding a makeup class? Add it as an in-service with Type <B>Makeup session</B> and pick the missed session under <B>Makeup for</B>. Afterwards, use Record makeup for each person who came.</Tip>
+            <Tip>Holding a makeup class? Add it as an in-service with Type <B>Makeup session</B> and pick the missed session under <B>Makeup for</B>. Everyone marked Present at the makeup class (or who checks in by QR) has their makeup recorded automatically. Clear their P and it comes off again.</Tip>
           </SectionBlock>
 
           <SectionBlock id="compliance" num="05" title="Compliance" roleNote="Staff Development, Managers, Administrator"
