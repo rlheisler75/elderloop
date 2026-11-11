@@ -637,7 +637,7 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage, canEd
                     <div className="flex items-center justify-between gap-2 mb-2">
                       <div className="font-medium text-slate-800 dark:text-slate-100 text-sm">{table.label}</div>
                       {canManage && (
-                        <select value={table.shape || 'square'} onChange={e => handleSetShape(table.id, e.target.value)} title="Table shape"
+                        <select value={table.shape || 'square'} onChange={e => handleSetShape(table.id, e.target.value)} title="Table shape" aria-label={`${table.label} shape`}
                           className="px-2 py-1 border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
                           {TABLE_SHAPES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
                         </select>
