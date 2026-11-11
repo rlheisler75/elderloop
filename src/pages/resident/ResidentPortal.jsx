@@ -6,6 +6,7 @@ import UserProfileModal from '../../components/UserProfileModal'
 import FeedbackModal from '../../components/FeedbackModal'
 import MealOrderModal, { MEAL_TYPES, MEAL_STATUS } from '../../components/MealOrderModal'
 import RSVPButton from '../../components/RSVPButton'
+import PortalMenu from '../../components/dining/PortalMenu'
 import {
   Bell, Wrench, UtensilsCrossed, Calendar, Church,
   Play, Plus, X, LogOut, LifeBuoy, ChevronRight, Clock,
@@ -234,6 +235,8 @@ function DiningTab({ resident, orgId }) {
           <UtensilsCrossed size={18} /> Order Meal Delivery
         </button>
       )}
+
+      <PortalMenu orgId={orgId} />
 
       {/* Recent orders */}
       {orders.length > 0 && (
@@ -567,7 +570,7 @@ export default function ResidentPortal() {
                       <div className="text-xs text-slate-400 mt-0.5">Meal delivery to your room</div>
                     </> : <>
                       <div className="font-semibold text-slate-800 dark:text-slate-100 text-sm">Dining</div>
-                      <div className="text-xs text-slate-400 mt-0.5">My food preferences</div>
+                      <div className="text-xs text-slate-400 mt-0.5">Menu and food preferences</div>
                     </>}
                   </button>
                 </div>

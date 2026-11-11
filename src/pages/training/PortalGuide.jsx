@@ -49,7 +49,7 @@ export default function PortalGuide() {
               { k: '•', text: <><B>Profile</B>: their room, care level, and the emergency and medical contacts on file, plus your relationship to them.</> },
               { k: '•', text: <><B>Messages</B>: tap <B>New Message</B>, choose a department (Nursing, Dining, Maintenance, Activities, and so on), and write. Staff reply in the same conversation, and a dot shows what's unread.</> },
               { k: '•', text: <><B>Requests</B>: tap <B>New Maintenance Request</B> to report something in their room. You'll see it go from Open to Completed.</> },
-              { k: '•', text: <><B>Dining</B>: their diet details, and <B>Order Meal Delivery</B> to have a meal brought to their room.</> },
+              { k: '•', text: <><B>Dining</B>: the <B>Dining Menu</B> for today and the next six days, their diet details, and <B>Order Meal Delivery</B> to have a meal brought to their room (if your community offers it).</> },
               { k: '•', text: <><B>Photos</B>, <B>Activities</B> (tap <B>RSVP</B> to sign them up), and <B>Chapel</B>, where you can watch services live or past recordings.</> },
             ]} />
             <P>The bell at the top shows community announcements and messages sent to families.</P>
@@ -60,7 +60,7 @@ export default function PortalGuide() {
             <Steps items={[
               { k: '•', text: <><B>Home</B>: today's activities, announcements, and quick buttons for <B>Request Repair</B> and <B>Order Food</B>. When a chapel service is live, a banner lets you watch it.</> },
               { k: '•', text: <><B>Maintenance</B>: tap <B>New Maintenance Request</B>, describe the problem, and choose how urgent it is. Housekeeping requests go straight to the housekeeping team.</> },
-              { k: '•', text: <><B>Dining</B>: your diet details, recent meal orders, and <B>My Food Preferences</B>, where you tell the kitchen what you love and what to avoid.</> },
+              { k: '•', text: <><B>Dining</B>: the <B>Dining Menu</B> for today and the next six days, your diet details, recent meal orders, and <B>My Food Preferences</B>, where you tell the kitchen what you love and what to avoid.</> },
               { k: '•', text: <><B>Activities</B> (tap <B>RSVP</B> to sign up) and <B>Chapel</B> services.</> },
               { k: '•', text: <><B>Rides</B>: your upcoming rides and ride requests. See the next section.</> },
             ]} />
@@ -105,6 +105,7 @@ export default function PortalGuide() {
             ['Reset my password', 'Sign-in page → Forgot password?'],
             ['Message the staff (family)', 'Messages → New Message'],
             ['Report something broken', 'Requests / Maintenance → New Maintenance Request'],
+            ['See the dining menu', 'Dining → Dining Menu'],
             ['Order a meal to the room', 'Dining → Order Meal Delivery / Order Food'],
             ['Sign up for an activity', 'Activities → RSVP'],
             ['Ask for a ride (residents)', 'Rides → Request a Ride'],

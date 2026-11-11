@@ -6,6 +6,7 @@ import UserProfileModal from '../../components/UserProfileModal'
 import FeedbackModal from '../../components/FeedbackModal'
 import MealOrderModal, { MEAL_TYPES, MEAL_STATUS } from '../../components/MealOrderModal'
 import RSVPButton from '../../components/RSVPButton'
+import PortalMenu from '../../components/dining/PortalMenu'
 import { residentPlace } from '../../lib/residentPlace'
 import {
   Heart, Bell, MessageSquare, CalendarDays, ChevronRight,
@@ -680,7 +681,7 @@ function MaintenanceTab({ myWorkOrders, onNewRequest }) {
 }
 
 // ── Dining Tab (order meal delivery for the selected resident) ─
-function DiningTab({ resident, dietProfile, mealOrders, onNewOrder, canOrder }) {
+function DiningTab({ resident, dietProfile, mealOrders, onNewOrder, canOrder, orgId }) {
   return (
     <div className="space-y-4">
       {canOrder && (
@@ -689,6 +690,8 @@ function DiningTab({ resident, dietProfile, mealOrders, onNewOrder, canOrder }) 
           <UtensilsCrossed size={18} /> Order Meal Delivery for {resident?.first_name}
         </button>
       )}
+
+      <PortalMenu orgId={orgId} />
 
       {dietProfile && (dietProfile.diet_type || dietProfile.allergens?.length > 0) && (
         <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-xs text-slate-600 dark:text-slate-300 space-y-1">
@@ -1262,6 +1265,7 @@ export default function FamilyPortal() {
                   mealOrders={mealOrders}
                   onNewOrder={() => setShowOrderModal(true)}
                   canOrder={organization?.meal_ordering_enabled !== false}
+                  orgId={organization?.id}
                 />
               )}
 
