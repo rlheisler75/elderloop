@@ -33,7 +33,7 @@ export default function CommunicationGuide() {
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
             <Steps items={[
               { k: 1, text: <>Use the category chips (General, Birthday, Resident Spotlight, Event, Weather, Chapel, Menu, Alert) to filter the board, or search by title and message text.</> },
-              { k: 2, text: <>Click <b className="text-slate-900">Digital Signage</b> to open the same announcements in the format shown on lobby and hallway screens.</> },
+              { k: 2, text: <>Click <b className="text-slate-900">Digital Signage</b> to open the same announcements in the format shown on lobby and hallway screens. Supervisors and up see this button; staff-level employees don't.</> },
               { k: 3, text: <>Posts with a dashed amber border are scheduled and not visible yet — click the scheduled banner above the board to preview them before they go live.</> },
             ]} />
           </SectionBlock>
@@ -113,7 +113,7 @@ export default function CommunicationGuide() {
             ['Post a community update', 'New Announcement'],
             ['Pin something important to the top', 'New Announcement → Pin to top of board'],
             ['Schedule a post for later', 'New Announcement → Post Date'],
-            ['View announcements on lobby screens', 'Digital Signage'],
+            ['View announcements on lobby screens', 'Digital Signage (Supervisor+)'],
             ['Send a direct message to residents or staff', 'Broadcast Messages tab → New Message'],
             ['Send a common message fast', 'Broadcast Messages tab → Quick Send'],
           ]} />

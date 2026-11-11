@@ -354,6 +354,8 @@ export default function Communication() {
 
   // Only org admins or someone who supervises/manages at least one department see the Broadcast tab
   const canSeeBroadcast = hasAnyDepartmentLevel('supervisor')
+  // Same for the Digital Signage screen list: staff-level employees don't see it
+  const canSeeSignage = hasAnyDepartmentLevel('supervisor')
 
   useEffect(() => { fetchAnnouncements() }, [organization])
 
@@ -406,10 +408,12 @@ export default function Communication() {
         </div>
         {activeTab === 'announcements' && (
           <div className="flex items-center gap-2 flex-wrap">
+            {canSeeSignage && (
             <button onClick={() => setShowScreens(true)}
               className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-brand-600 hover:border-brand-300 rounded-xl text-xs sm:text-sm font-medium transition-colors">
               <Monitor size={16} /> Digital Signage
             </button>
+            )}
             {canPost && (
               <button onClick={handleNew}
                 className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs sm:text-sm font-medium transition-colors">
@@ -540,7 +544,7 @@ export default function Communication() {
           {showModal && <AnnouncementModal item={editItem} onClose={() => setShowModal(false)} onSave={handleSave} />}
         </>
       )}
-      {showScreens && <SignageScreens onClose={() => setShowScreens(false)} />}
+      {showScreens && canSeeSignage && <SignageScreens onClose={() => setShowScreens(false)} />}
     </div>
   )
 }
