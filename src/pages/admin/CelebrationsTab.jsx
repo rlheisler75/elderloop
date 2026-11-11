@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
-import { DEFAULT_CELEBRATIONS, rangeFor, describeRule, ORDINALS, MONTHS, WEEKDAYS } from '../../lib/appreciationWeeks'
+import { DEFAULT_CELEBRATIONS, DEFAULT_CELEBRATION_MESSAGE, rangeFor, describeRule, ORDINALS, MONTHS, WEEKDAYS } from '../../lib/appreciationWeeks'
 import { ACCENT_COLORS, accentSwatch, accentLabel } from '../../lib/accentColors'
 import { PartyPopper, Plus, Pencil, Trash2, RotateCcw, Loader2, Check, X } from 'lucide-react'
 
@@ -9,9 +9,8 @@ import { PartyPopper, Plus, Pencil, Trash2, RotateCcw, Loader2, Check, X } from 
 // (org_celebrations). With no rows the community uses ElderLoop's defaults;
 // customizing copies them in first.
 
-const RULE_FIELDS = ['name', 'emoji', 'accent', 'kind', 'month', 'day', 'end_month', 'end_day', 'n', 'weekday', 'days']
-const BLANK = { name: '', emoji: '🎉', accent: 'teal', kind: 'week', month: 1, n: 1, day: 1, end_month: 1, end_day: 7, weekday: 0, days: 7 }
-
+const RULE_FIELDS = ['name', 'emoji', 'message', 'accent', 'kind', 'month', 'day', 'end_month', 'end_day', 'n', 'weekday', 'days']
+const BLANK = { name: '', emoji: '🎉', message: '', accent: 'teal', kind: 'week', month: 1, n: 1, day: 1, end_month: 1, end_day: 7, weekday: 0, days: 7 }
 // Saved rows have nulls in the columns their kind doesn't use; keep BLANK's
 // values there so switching kinds in the editor starts from something sensible.
 const withoutEmpty = (row) => Object.fromEntries(Object.entries(row).filter(([, v]) => v != null))
@@ -36,6 +35,7 @@ function clean(form) {
   if (row.kind !== 'weekday') Object.assign(row, { weekday: null, days: null })
   row.name = (row.name || '').trim()
   row.emoji = row.emoji?.trim() || null
+  row.message = row.message?.trim() || null
   return row
 }
 
@@ -67,6 +67,12 @@ function CelebrationForm({ initial, onSave, onCancel, saving }) {
             className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm" />
         </label>
         <p className="sm:col-span-2 -mt-1 text-[11px] text-slate-400">To pick a new emoji, click the Emoji box and press Windows key + ; (semicolon), or Control + Command + Space on a Mac.</p>
+        <label className="sm:col-span-2 text-xs font-semibold text-slate-500">Dashboard message <span className="font-normal text-slate-400">(optional)</span>
+          <textarea value={f.message || ''} onChange={e => set('message')(e.target.value)} maxLength={200} rows={2}
+            placeholder={DEFAULT_CELEBRATION_MESSAGE}
+            className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-normal" />
+          <span className="block mt-1 text-[11px] font-normal text-slate-400">Shown on everyone's Dashboard under "Happy {row.name || 'name'}!" while it runs. Leave blank for the standard line.</span>
+        </label>
       </div>
 
       <p className="text-xs font-semibold text-slate-500 mb-2">Color</p>
@@ -236,6 +242,7 @@ export default function CelebrationsTab({ orgId }) {
                 <p className="text-xs text-slate-400">
                   {describeRule(c)}{next && <> · next {fmtDay(next[0])} – {fmtDay(next[1])}</>} · {accentLabel(c.accent)}
                 </p>
+                {c.message && <p className="text-xs text-slate-500 dark:text-slate-400 italic truncate">“{c.message}”</p>}
               </div>
               {custom && (
                 <div className="flex items-center gap-1 flex-shrink-0">

@@ -150,7 +150,7 @@ export default function AdminSetupGuide() {
             <Steps items={[
               { k: 1, text: <>Open <B>Admin Panel → Celebrations</B>. Until you customize it, the community uses ElderLoop's standard calendar (National Nurses Week, Skilled Nursing Care Week, CNA Week, Environmental Services Week, Veterans Day, and more).</> },
               { k: 2, text: <>Add, edit, pause, or remove celebrations, with a name, emoji, color, and when it happens (fixed dates, or "the 2nd week of May").</> },
-              { k: 3, text: <>While a celebration is running, every staff member's <B>Dashboard</B> shows a banner for it in that celebration's color, like "Happy Veterans Day!"</> },
+              { k: 3, text: <>While a celebration is running, every staff member's <B>Dashboard</B> shows a banner for it in that celebration's color, like "Happy Veterans Day!" Under that goes the celebration's <B>Dashboard message</B> if you wrote one, like "Thank you to every veteran in our community", or else "Thank you to everyone we're celebrating."</> },
               { k: 4, text: <>Staff who pick <B>Celebrate</B> as their accent color in Settings also see the whole app in each celebration's color during its week.</> },
             ]} />
           </SectionBlock>

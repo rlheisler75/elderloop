@@ -12,7 +12,7 @@ import {
   Church, ArrowRight, Clock, CheckCircle2, TrendingUp,
   Bell, Users, Activity, Zap, Shield, Utensils, CalendarCheck, TrendingDown, UserX
 } from 'lucide-react'
-import { activeWeeks } from '../../lib/appreciationWeeks'
+import { activeWeeks, DEFAULT_CELEBRATION_MESSAGE } from '../../lib/appreciationWeeks'
 import { accentSwatch } from '../../lib/accentColors'
 
 // ── Celebration banner ─────────────────────────────────────────
@@ -34,7 +34,7 @@ function CelebrationBanner({ list }) {
         <div className="font-display text-xl font-semibold leading-tight">Happy {lead.name}!</div>
         <div className="text-sm text-white/85 mt-0.5">
           {oneDay ? 'Today' : `${fmtDay(lead.start)} – ${fmtDay(lead.end)}`}
-          {' · '}Thank you to everyone we're celebrating.
+          {' · '}{lead.message || DEFAULT_CELEBRATION_MESSAGE}
         </div>
         {rest.length > 0 && (
           <div className="text-sm text-white/85 mt-1">
