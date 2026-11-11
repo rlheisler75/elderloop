@@ -26,6 +26,7 @@ export const DEFAULT_CELEBRATIONS = [
   { name: 'Healthcare Foodservice Workers Week',  emoji: '🍽️', accent: 'cherry', kind: 'week', month: 10, n: 1 },
   { name: 'Healthcare Facilities & Engineering Week', emoji: '🔧', accent: 'cocoa', kind: 'week', month: 10, n: -1 },
   { name: 'National Respiratory Care Week',       emoji: '🫁', accent: 'teal',   kind: 'week', month: 10, n: -1 },
+  { name: 'Veterans Day',                         emoji: '🇺🇸', accent: 'navy',   kind: 'dates', month: 11, day: 11, end_month: 11, end_day: 11 },
 ]
 
 export const ORDINALS = [[1, '1st'], [2, '2nd'], [3, '3rd'], [4, '4th'], [-1, 'Last']]
