@@ -196,7 +196,8 @@ export default function DietaryGuide() {
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Printing</h3>
             <Steps items={[
               { k: 1, text: <>Pick the day in the day box. Seating doesn't change by day, but drink and silverware notes can, so the printout shows that day's notes.</> },
-              { k: 2, text: <>Click <b className="text-slate-900">Print</b> for one day, or <b className="text-slate-900">Print Full Week</b> for one page per day of the week. The printout matches the view on screen: the list, or the table drawings two across.</> },
+              { k: 2, text: <>Use the <b className="text-slate-900">Show</b> box to choose which notes appear under each name: <b className="text-slate-900">All notes</b>, <b className="text-slate-900">Drinks</b>, <b className="text-slate-900">Silverware</b>, <b className="text-slate-900">Other</b>, or <b className="text-slate-900">Names only</b>. Pick Drinks to print a drinks chart for the servers, Silverware for a silverware chart, and so on. The printout's title says which one it is.</> },
+              { k: 3, text: <>Click <b className="text-slate-900">Print</b> for one day, or <b className="text-slate-900">Print Full Week</b> for one page per day of the week. The printout matches the view on screen: the list, or the table drawings two across.</> },
             ]} />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Who can change seating</h3>
             <p className="text-[15px] text-slate-700 mb-6">Anyone in the Dietary department can add, change, and delete dining rooms, tables, seats, and standing drink and silverware notes. Everyone else can view the chart.</p>
@@ -220,6 +221,7 @@ export default function DietaryGuide() {
             ['See tables drawn in their shape (seat 1 at the top, clockwise)', 'Seating Charts → Table layout'],
             ['Record a resident’s usual drink or silverware', 'Seating Charts → List → cup icon next to the resident'],
             ['Print the seating chart', 'Seating Charts → Print or Print Full Week'],
+            ['Print a drinks-only (or silverware-only) chart', 'Seating Charts → Show: Drinks → Print'],
           ]} />
 
           <GuideFooter label="Dietary Module" />

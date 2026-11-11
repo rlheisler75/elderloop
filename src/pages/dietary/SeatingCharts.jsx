@@ -36,6 +36,16 @@ const PREF_CATEGORIES = [
   { key: 'other',     label: 'Other',      icon: StickyNote },
 ]
 
+// Which standing notes show under each name, on screen and printed — one
+// kind at a time makes a drinks chart, a silverware chart, and so on
+const NOTE_VIEWS = [
+  { key: 'all',        label: 'All notes',  cats: ['drink', 'silverware', 'other'] },
+  { key: 'drink',      label: 'Drinks',     cats: ['drink'] },
+  { key: 'silverware', label: 'Silverware', cats: ['silverware'] },
+  { key: 'other',      label: 'Other',      cats: ['other'] },
+  { key: 'none',       label: 'Names only', cats: [] },
+]
+
 // Picks the most specific standing preference(s) for a resident at a given
 // meal + day: an exact day+meal override beats a same-meal every-day
 // default, which beats a fully general (every meal, every day) note. Drink
@@ -177,6 +187,10 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
 
   const todayDow = new Date().getDay()
   const [viewDow, setViewDow] = useState(todayDow)
+  const [noteView, setNoteView] = useState('all')
+  const noteViewInfo = NOTE_VIEWS.find(v => v.key === noteView)
+  const noteCats = noteViewInfo.cats
+  const noteTitle = noteView === 'all' ? '' : ` — ${noteViewInfo.label}`
 
   useEffect(() => { if (orgId) fetchAll() }, [orgId])
 
@@ -283,7 +297,7 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
     const resolved = resolvePreferences(prefs, resident.id, period, dow)
     return {
       number: i + 1, first: resident.first_name, last: resident.last_name,
-      prefs: ['drink', 'silverware', 'other'].flatMap(cat => (resolved[cat] || []).map(p => p.detail)).join(' · '),
+      prefs: noteCats.flatMap(cat => (resolved[cat] || []).map(p => p.detail)).join(' · '),
       allergy: (dietLookup.get(resident.id)?.allergens || []).join(', '),
     }
   })
@@ -315,7 +329,7 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
       </style></head>
       <body>
         <h1>${roomName}</h1>
-        <div class="sub">${MEAL_PERIODS.find(p => p.key === period)?.label} Seating Chart${dayNote}</div>
+        <div class="sub">${MEAL_PERIODS.find(p => p.key === period)?.label} Seating Chart${dayNote}${noteTitle}</div>
         <div class="tables ${view}">${content}</div>
       </body></html>`)
     win.document.close()
@@ -332,7 +346,7 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
       const assignment = getAssignment(table.id, seatNum)
       const resident = assignment ? residentLookup.get(assignment.resident_id) : null
       const resolved = resident ? resolvePreferences(prefs, resident.id, period, dow) : {}
-      const prefLine = ['drink', 'silverware', 'other'].flatMap(cat => (resolved[cat] || []).map(p => p.detail)).join(' · ')
+      const prefLine = noteCats.flatMap(cat => (resolved[cat] || []).map(p => p.detail)).join(' · ')
       const name = resident ? `${resident.first_name} ${resident.last_name}` : 'empty'
       return `<div class="seat"><div>${seatNum}. <span class="${resident ? '' : 'empty'}">${name}</span></div>${resident && prefLine ? `<div class="pref-line">${prefLine}</div>` : ''}</div>`
     }).join('')
@@ -368,7 +382,7 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
       </style></head>
       <body>
         <h1>${roomName}</h1>
-        <div class="sub">${mealLabel} Seating Chart — Full Week</div>
+        <div class="sub">${mealLabel} Seating Chart — Full Week${noteTitle}</div>
         ${daysHtml}
       </body></html>`)
     win.document.close()
@@ -478,6 +492,10 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
               className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
               {DAY_NAMES.map((d, i) => <option key={i} value={i}>{d}{i === todayDow ? ' (Today)' : ''}</option>)}
             </select>
+            <select value={noteView} onChange={e => setNoteView(e.target.value)} title="Which notes show under each name, on screen and printed"
+              className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+              {NOTE_VIEWS.map(v => <option key={v.key} value={v.key}>Show: {v.label}</option>)}
+            </select>
             <button onClick={handlePrint} disabled={!roomTables.length}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors">
               <Printer size={13} /> Print
@@ -547,7 +565,7 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
                     const resident = assignment ? residentLookup.get(assignment.resident_id) : null
                     const profile = assignment ? dietLookup.get(assignment.resident_id) : null
                     const resolved = resident ? resolvePreferences(prefs, resident.id, period, viewDow) : {}
-                    const prefLine = ['drink', 'silverware', 'other'].flatMap(cat =>
+                    const prefLine = noteCats.flatMap(cat =>
                       (resolved[cat] || []).map(p => p.detail)
                     ).join(' · ')
                     return (

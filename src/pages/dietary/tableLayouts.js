@@ -147,6 +147,21 @@ export function seatBoxes(layout) {
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]))
 const clip = (s, max) => (s.length > max ? s.slice(0, max - 1).trimEnd() + '…' : s)
 
+// Word-wraps a seat's notes into at most `lines` lines; the last one is cut
+// with … when it still doesn't fit (the full text is in the tooltip)
+function wrap(s, max = 18, lines = 2) {
+  const out = []
+  let cur = ''
+  for (const word of s.split(/\s+/).filter(Boolean)) {
+    if (!cur) cur = word
+    else if ((cur + ' ' + word).length <= max) cur += ' ' + word
+    else { out.push(cur); cur = word }
+  }
+  if (cur) out.push(cur)
+  if (out.length <= lines) return out.map(l => clip(l, max))
+  return [...out.slice(0, lines - 1), clip(out.slice(lines - 1).join(' '), max)]
+}
+
 // The full name stays in the seat's hover tooltip
 function fitName(first, last, max = 13) {
   const full = `${first} ${last}`
@@ -165,13 +180,15 @@ export function buildTableSVG(layout, label, seats) {
     const filled = !!s.first
     const name = filled ? fitName(s.first, s.last) : 'empty'
     const tip = filled ? `${s.first} ${s.last}${s.prefs ? ` — ${s.prefs}` : ''}${s.allergy ? ` — Allergies: ${s.allergy}` : ''}` : `Seat ${s.number}: empty`
-    const nameY = s.prefs ? y + 19 : y + H / 2 + 4.5
+    const notes = s.prefs ? wrap(s.prefs) : []
+    const nameY = notes.length === 2 ? y + 16 : notes.length ? y + 19 : y + H / 2 + 4.5
+    const noteYs = notes.length === 2 ? [y + 29, y + 40] : [y + 35]
     return `<g><title>${esc(tip)}</title>
       <rect x="${x}" y="${y}" width="${W}" height="${H}" rx="8" fill="var(--seat-bg,#fff)" stroke="var(--seat-line,#cbd5e1)"/>
       <circle cx="${x + 15}" cy="${y + H / 2}" r="10" fill="var(--seat-num-bg,#134e5e)"/>
       <text x="${x + 15}" y="${y + H / 2 + 4}" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">${s.number}</text>
       <text x="${x + 31}" y="${nameY}" font-size="12.5" font-weight="${filled ? 600 : 400}" font-style="${filled ? 'normal' : 'italic'}" fill="${filled ? 'var(--seat-text,#1e293b)' : 'var(--seat-muted,#94a3b8)'}">${esc(name)}</text>
-      ${s.prefs ? `<text x="${x + 31}" y="${y + 35}" font-size="10.5" fill="var(--seat-pref,#0369a1)">${esc(clip(s.prefs, 19))}</text>` : ''}
+      ${notes.map((line, j) => `<text x="${x + 31}" y="${noteYs[j]}" font-size="10" fill="var(--seat-pref,#0369a1)">${esc(line)}</text>`).join('')}
       ${s.allergy ? `<text x="${x + W - 8}" y="${y + 15}" text-anchor="end" font-size="12" fill="#dc2626">⚠</text>` : ''}
     </g>`
   }).join('')
