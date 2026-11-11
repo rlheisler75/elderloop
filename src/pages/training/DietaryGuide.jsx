@@ -189,18 +189,26 @@ export default function DietaryGuide() {
               { k: 2, text: <>Use the <b className="text-slate-900">List / Table layout</b> switch to choose how the chart looks. <b className="text-slate-900">List</b> shows each table as a numbered list of seats. <b className="text-slate-900">Table layout</b> draws each table in its shape, with seat 1 at the top and the rest going clockwise. Your choice is remembered on that computer or tablet.</> },
               { k: 3, text: <>In List view, choose a resident from the drop-down next to a seat number. In Table layout, tap the seat itself. Choose <b className="text-slate-900">— empty —</b> to clear a seat.</> },
               { k: 4, text: <>In Table layout, change a table's shape any time with the box in the corner of that table.</> },
-              { k: 5, text: <>Click the cup icon next to a seated resident (in List view) to add standing notes: <b className="text-slate-900">Drink</b>, <b className="text-slate-900">Silverware</b>, or <b className="text-slate-900">Other</b>. Each note can apply to every meal and day, or just one meal or one day of the week.</> },
+              { k: 5, text: <>Click the cup icon next to a seated resident (in List view) to add standing notes, such as a <b className="text-slate-900">Drink</b>, <b className="text-slate-900">Silverware</b>, or <b className="text-slate-900">Other</b> note. Each note can apply to every meal and day, or just one meal or one day of the week.</> },
             ]} />
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Note types (Supervisors and Managers)</h3>
+            <Steps items={[
+              { k: 1, text: <>Every community starts with Drink, Silverware, and Other. To change the list, click <b className="text-slate-900">Note Types</b> on the seating chart.</> },
+              { k: 2, text: <>Add your own types, like <b className="text-slate-900">Hot drinks</b>, <b className="text-slate-900">Cold drinks</b>, <b className="text-slate-900">Hot cereal</b>, or <b className="text-slate-900">Cold cereal</b>. You can also rename a type, change the order with the arrows, or remove one with the trash icon.</> },
+              { k: 3, text: <>Check <b className="text-slate-900">One at a time</b> when a resident should have just one answer, like their drink. A note for one meal or day then replaces the everyday note. Leave it unchecked when several notes can apply at once, like silverware.</> },
+              { k: 4, text: <>Each type also appears in the <b className="text-slate-900">Show</b> box, so you can print a chart of just that type.</> },
+            ]} />
+            <Tip>Removing a note type hides residents' notes of that type from the chart, but doesn't erase them.</Tip>
             <Tip>A resident can sit in only one seat per meal. If you pick someone who is already seated elsewhere for that meal, you'll be asked to clear their old seat first.</Tip>
             <Tip>A red ⚠ on a seat means that resident has allergies on their diet profile. In Table layout, long names are shortened to fit (for example "D. Simmons"). Hover over a seat to see the full name, notes, and allergies.</Tip>
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Printing</h3>
             <Steps items={[
               { k: 1, text: <>Pick the day in the day box. Seating doesn't change by day, but drink and silverware notes can, so the printout shows that day's notes.</> },
-              { k: 2, text: <>Use the <b className="text-slate-900">Show</b> box to choose which notes appear under each name: <b className="text-slate-900">All notes</b>, <b className="text-slate-900">Drinks</b>, <b className="text-slate-900">Silverware</b>, <b className="text-slate-900">Other</b>, or <b className="text-slate-900">Names only</b>. Pick Drinks to print a drinks chart for the servers, Silverware for a silverware chart, and so on. The printout's title says which one it is.</> },
+              { k: 2, text: <>Use the <b className="text-slate-900">Show</b> box to choose which notes appear under each name: <b className="text-slate-900">All notes</b>, one note type, or <b className="text-slate-900">Names only</b>. Pick Drink to print a drinks chart for the servers, Silverware for a silverware chart, and so on. The printout's title says which one it is.</> },
               { k: 3, text: <>Click <b className="text-slate-900">Print</b> for one day, or <b className="text-slate-900">Print Full Week</b> for one page per day of the week. The printout matches the view on screen: the list, or the table drawings two across.</> },
             ]} />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Who can change seating</h3>
-            <p className="text-[15px] text-slate-700 mb-6">Anyone in the Dietary department can add, change, and delete dining rooms, tables, seats, and standing drink and silverware notes. Everyone else can view the chart.</p>
+            <p className="text-[15px] text-slate-700 mb-6">Anyone in the Dietary department can add, change, and delete dining rooms, tables, seats, and residents' standing notes. Only Dietary Supervisors and Managers can change the list of note types. Everyone else can view the chart.</p>
           </SectionBlock>
 
           <QuickRefTable rows={[
@@ -221,7 +229,8 @@ export default function DietaryGuide() {
             ['See tables drawn in their shape (seat 1 at the top, clockwise)', 'Seating Charts → Table layout'],
             ['Record a resident’s usual drink or silverware', 'Seating Charts → List → cup icon next to the resident'],
             ['Print the seating chart', 'Seating Charts → Print or Print Full Week'],
-            ['Print a drinks-only (or silverware-only) chart', 'Seating Charts → Show: Drinks → Print'],
+            ['Print a drinks-only (or silverware-only) chart', 'Seating Charts → Show: Drink → Print'],
+            ['Add a note type like Hot cereal (Supervisor+)', 'Seating Charts → Note Types'],
           ]} />
 
           <GuideFooter label="Dietary Module" />

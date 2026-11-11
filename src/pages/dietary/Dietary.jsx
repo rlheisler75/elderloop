@@ -1220,7 +1220,7 @@ export default function Dietary() {
 
       {/* SEATING CHARTS TAB */}
       {tab === 'seating' && (
-        <SeatingCharts orgId={organization.id} dietaryProfiles={residents} canManage={canEditSeating} />
+        <SeatingCharts orgId={organization.id} dietaryProfiles={residents} canManage={canEditSeating} canEditNoteTypes={canEditProfiles} />
       )}
 
       {/* FOOD WASTE TAB */}

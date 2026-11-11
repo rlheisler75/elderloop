@@ -30,28 +30,27 @@ const MEAL_PERIODS = [
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
-const PREF_CATEGORIES = [
-  { key: 'drink',     label: 'Drink',      icon: Coffee },
-  { key: 'silverware',label: 'Silverware', icon: Utensils },
-  { key: 'other',     label: 'Other',      icon: StickyNote },
-]
+// Note types are each community's own list (meal_pref_categories), edited by
+// Dietary Supervisor+; the icon is just a guess from the name
+const iconFor = (name = '') =>
+  /drink|coffee|tea|juice|milk|water/i.test(name) ? Coffee
+    : /silver|fork|spoon|knife|utensil/i.test(name) ? Utensils
+    : StickyNote
 
 // Which standing notes show under each name, on screen and printed — one
-// kind at a time makes a drinks chart, a silverware chart, and so on
-const NOTE_VIEWS = [
-  { key: 'all',        label: 'All notes',  cats: ['drink', 'silverware', 'other'] },
-  { key: 'drink',      label: 'Drinks',     cats: ['drink'] },
-  { key: 'silverware', label: 'Silverware', cats: ['silverware'] },
-  { key: 'other',      label: 'Other',      cats: ['other'] },
-  { key: 'none',       label: 'Names only', cats: [] },
+// type at a time makes a drinks chart, a silverware chart, and so on
+const noteViewsFor = (categories) => [
+  { key: 'all', label: 'All notes', cats: categories.map(c => c.id) },
+  ...categories.map(c => ({ key: c.id, label: c.name, cats: [c.id] })),
+  { key: 'none', label: 'Names only', cats: [] },
 ]
 
-// Picks the most specific standing preference(s) for a resident at a given
-// meal + day: an exact day+meal override beats a same-meal every-day
-// default, which beats a fully general (every meal, every day) note. Drink
-// preferences resolve to a single "what to pour right now" answer; other
-// categories (silverware, other) just show everything that applies.
-function resolvePreferences(prefs, residentId, mealPeriod, dayOfWeek) {
+// Picks the standing preference(s) for a resident at a given meal + day,
+// grouped by note type. For a "one at a time" type (Drink, by default) only
+// the most specific note applies: an exact day+meal note beats a same-meal
+// every-day one, which beats an every-meal every-day one. Other types show
+// everything that applies.
+function resolvePreferences(prefs, categories, residentId, mealPeriod, dayOfWeek) {
   const applicable = prefs.filter(p =>
     p.resident_id === residentId &&
     (p.meal_period === null || p.meal_period === mealPeriod) &&
@@ -59,29 +58,125 @@ function resolvePreferences(prefs, residentId, mealPeriod, dayOfWeek) {
   )
   const specificity = (p) => (p.meal_period !== null ? 1 : 0) + (p.day_of_week !== null ? 1 : 0)
   const byCategory = {}
-  applicable.forEach(p => { (byCategory[p.category] ||= []).push(p) })
-  if (byCategory.drink?.length > 1) {
-    const maxSpec = Math.max(...byCategory.drink.map(specificity))
-    byCategory.drink = byCategory.drink.filter(p => specificity(p) === maxSpec)
-  }
+  applicable.forEach(p => { (byCategory[p.category_id] ||= []).push(p) })
+  categories.filter(c => c.single_choice && byCategory[c.id]?.length > 1).forEach(c => {
+    const maxSpec = Math.max(...byCategory[c.id].map(specificity))
+    byCategory[c.id] = byCategory[c.id].filter(p => specificity(p) === maxSpec)
+  })
   return byCategory
 }
 
+// ── Note types modal (Supervisor+) ──────────────────────────
+function NoteTypesModal({ categories, orgId, onClose, onChange }) {
+  const [newName, setNewName]     = useState('')
+  const [newSingle, setNewSingle] = useState(false)
+  const [error, setError]         = useState('')
+
+  const save = async (id, fields) => {
+    setError('')
+    const { data, error: err } = await supabase.from('meal_pref_categories').update(fields).eq('id', id).select().single()
+    if (err) { setError(err.code === '23505' ? 'There is already a note type with that name.' : 'Could not save that change.'); return false }
+    onChange(cs => fields.is_active === false ? cs.filter(c => c.id !== id) : cs.map(c => c.id === id ? data : c))
+    return true
+  }
+
+  const handleAdd = async () => {
+    const name = newName.trim()
+    if (!name) return
+    setError('')
+    const { data, error: err } = await supabase.from('meal_pref_categories').insert({
+      organization_id: orgId, name, single_choice: newSingle,
+      sort_order: Math.max(-1, ...categories.map(c => c.sort_order)) + 1,
+    }).select().single()
+    if (err) { setError(err.code === '23505' ? 'There is already a note type with that name.' : 'Could not add that note type.'); return }
+    setNewName(''); setNewSingle(false)
+    onChange(cs => [...cs, data])
+  }
+
+  // Swap places with the neighbor above or below
+  const move = async (i, dir) => {
+    const a = categories[i], b = categories[i + dir]
+    if (!b) return
+    await Promise.all([
+      supabase.from('meal_pref_categories').update({ sort_order: b.sort_order }).eq('id', a.id),
+      supabase.from('meal_pref_categories').update({ sort_order: a.sort_order }).eq('id', b.id),
+    ])
+    onChange(cs => cs.map(c => c.id === a.id ? { ...c, sort_order: b.sort_order } : c.id === b.id ? { ...c, sort_order: a.sort_order } : c))
+  }
+
+  const remove = (c) => {
+    if (!confirm(`Remove "${c.name}"? Residents' ${c.name} notes will no longer show on the seating chart.`)) return
+    save(c.id, { is_active: false })
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+          <div>
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Note Types</h2>
+            <p className="text-xs text-slate-400">The kinds of standing notes residents can have, like Hot drinks or Cold cereal</p>
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-2">
+          {error && <div className="px-3 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-xs">{error}</div>}
+          {categories.map((c, i) => (
+            <div key={c.id} className="flex items-center gap-2 p-2 border border-slate-100 dark:border-slate-800 rounded-lg">
+              <div className="flex flex-col">
+                <button onClick={() => move(i, -1)} disabled={i === 0} aria-label={`Move ${c.name} up`} className="text-slate-400 hover:text-brand-600 disabled:opacity-30"><ChevronUp size={13} /></button>
+                <button onClick={() => move(i, 1)} disabled={i === categories.length - 1} aria-label={`Move ${c.name} down`} className="text-slate-400 hover:text-brand-600 disabled:opacity-30"><ChevronDown size={13} /></button>
+              </div>
+              <input key={c.name} defaultValue={c.name} aria-label="Note type name" maxLength={40}
+                onBlur={e => { const v = e.target.value.trim(); if (v && v !== c.name) save(c.id, { name: v }); else e.target.value = c.name }}
+                className="flex-1 min-w-0 px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <label className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 flex-shrink-0 cursor-pointer" title="A note for a specific day or meal replaces the everyday one, so only one shows at a time">
+                <input type="checkbox" checked={c.single_choice} onChange={e => save(c.id, { single_choice: e.target.checked })} />
+                One at a time
+              </label>
+              <button onClick={() => remove(c)} aria-label={`Remove ${c.name}`} className="p-1 text-slate-400 hover:text-red-500 flex-shrink-0"><Trash2 size={13} /></button>
+            </div>
+          ))}
+        </div>
+
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex-shrink-0 space-y-2">
+          <div className="flex gap-2">
+            <input value={newName} onChange={e => setNewName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAdd()}
+              placeholder="New note type (e.g. Hot cereal)" maxLength={40}
+              className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            <button onClick={handleAdd} disabled={!newName.trim()}
+              className="px-4 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-xs font-medium rounded-lg transition-colors flex-shrink-0">
+              Add
+            </button>
+          </div>
+          <label className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 cursor-pointer">
+            <input type="checkbox" checked={newSingle} onChange={e => setNewSingle(e.target.checked)} />
+            One at a time: a note for a specific day or meal replaces the everyday one
+          </label>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Standing preferences modal ──────────────────────────────
-function PreferencesModal({ resident, prefs, orgId, canManage, onClose, onChange }) {
-  const [category, setCategory] = useState('drink')
+function PreferencesModal({ resident, prefs, categories, orgId, canManage, onClose, onChange }) {
+  const [category, setCategory] = useState(categories[0]?.id || '')
   const [detail, setDetail]     = useState('')
   const [mealPeriod, setMealPeriod] = useState('')
   const [dayOfWeek, setDayOfWeek]   = useState('')
   const [saving, setSaving]     = useState(false)
 
-  const residentPrefs = prefs.filter(p => p.resident_id === resident.id)
+  // Notes whose type was removed stay in the database but aren't shown
+  const categoryLookup = new Map(categories.map(c => [c.id, c]))
+  const residentPrefs = prefs.filter(p => p.resident_id === resident.id && categoryLookup.has(p.category_id))
 
   const handleAdd = async () => {
-    if (!detail.trim()) return
+    if (!detail.trim() || !category) return
     setSaving(true)
     const { data } = await supabase.from('resident_meal_preferences').insert({
-      organization_id: orgId, resident_id: resident.id, category,
+      organization_id: orgId, resident_id: resident.id, category_id: category,
       detail: detail.trim(), meal_period: mealPeriod || null,
       day_of_week: dayOfWeek !== '' ? Number(dayOfWeek) : null,
     }).select().single()
@@ -116,13 +211,14 @@ function PreferencesModal({ resident, prefs, orgId, canManage, onClose, onChange
           {residentPrefs.length === 0 ? (
             <div className="text-slate-400 text-sm text-center py-4">No standing preferences yet.</div>
           ) : residentPrefs.map(p => {
-            const Icon = PREF_CATEGORIES.find(c => c.key === p.category)?.icon || StickyNote
+            const typeName = categoryLookup.get(p.category_id).name
+            const Icon = iconFor(typeName)
             return (
               <div key={p.id} className="flex items-start gap-2.5 p-2.5 border border-slate-100 dark:border-slate-800 rounded-lg">
                 <Icon size={14} className="text-brand-600 mt-0.5 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm text-slate-700 dark:text-slate-300">{p.detail}</div>
-                  <div className="text-xs text-slate-400">{describeScope(p)}</div>
+                  <div className="text-xs text-slate-400">{typeName} · {describeScope(p)}</div>
                 </div>
                 {canManage && (
                   <button onClick={() => handleDelete(p.id)} className="text-slate-400 hover:text-red-500 flex-shrink-0"><Trash2 size={13} /></button>
@@ -137,9 +233,9 @@ function PreferencesModal({ resident, prefs, orgId, canManage, onClose, onChange
             <div className="flex gap-2">
               <select value={category} onChange={e => setCategory(e.target.value)}
                 className="px-2.5 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-                {PREF_CATEGORIES.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
+                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
-              <input value={detail} onChange={e => setDetail(e.target.value)} placeholder="e.g. Orange Juice, Adaptive silverware"
+              <input value={detail} onChange={e => setDetail(e.target.value)} placeholder="e.g. Orange juice, Curved fork, Oatmeal"
                 className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="flex gap-2">
@@ -165,13 +261,15 @@ function PreferencesModal({ resident, prefs, orgId, canManage, onClose, onChange
   )
 }
 
-export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
+export default function SeatingCharts({ orgId, dietaryProfiles, canManage, canEditNoteTypes }) {
   const printRef = useRef()
   const [rooms, setRooms]           = useState([])
   const [tables, setTables]         = useState([])
   const [assignments, setAssignments] = useState([])
   const [allResidents, setAllResidents] = useState([])
   const [prefs, setPrefs]           = useState([])
+  const [categoryRows, setCategories] = useState([])
+  const [showNoteTypes, setShowNoteTypes] = useState(false)
   const [loading, setLoading]       = useState(true)
   const [selectedRoomId, setSelectedRoomId] = useState(null)
   const [period, setPeriod]         = useState('lunch')
@@ -188,21 +286,26 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
   const todayDow = new Date().getDay()
   const [viewDow, setViewDow] = useState(todayDow)
   const [noteView, setNoteView] = useState('all')
-  const noteViewInfo = NOTE_VIEWS.find(v => v.key === noteView)
+  const categories = [...categoryRows].sort((a, b) => a.sort_order - b.sort_order)
+  const noteViews = noteViewsFor(categories)
+  // Falls back to All notes if the picked type was just removed
+  const noteViewInfo = noteViews.find(v => v.key === noteView) || noteViews[0]
   const noteCats = noteViewInfo.cats
-  const noteTitle = noteView === 'all' ? '' : ` — ${noteViewInfo.label}`
+  const noteTitle = noteViewInfo.key === 'all' ? '' : ` — ${noteViewInfo.label}`
 
   useEffect(() => { if (orgId) fetchAll() }, [orgId])
 
   async function fetchAll() {
     setLoading(true)
-    const [roomsRes, tablesRes, assignRes, residentsRes, prefsRes] = await Promise.all([
+    const [roomsRes, tablesRes, assignRes, residentsRes, prefsRes, catsRes] = await Promise.all([
       supabase.from('dining_rooms').select('*').eq('organization_id', orgId).eq('is_active', true).order('name'),
       supabase.from('dining_tables').select('*').eq('organization_id', orgId).order('sort_order'),
       supabase.from('dining_seat_assignments').select('*').eq('organization_id', orgId),
       supabase.from('residents').select('id, first_name, last_name, room, care_level, unit').eq('organization_id', orgId).eq('is_active', true).order('last_name'),
       supabase.from('resident_meal_preferences').select('*').eq('organization_id', orgId),
+      supabase.from('meal_pref_categories').select('*').eq('organization_id', orgId).eq('is_active', true),
     ])
+    setCategories(catsRes.data || [])
     setRooms(roomsRes.data || [])
     setTables(tablesRes.data || [])
     setAssignments(assignRes.data || [])
@@ -294,7 +397,7 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
     const assignment = getAssignment(table.id, i + 1)
     const resident = assignment ? residentLookup.get(assignment.resident_id) : null
     if (!resident) return { number: i + 1 }
-    const resolved = resolvePreferences(prefs, resident.id, period, dow)
+    const resolved = resolvePreferences(prefs, categories, resident.id, period, dow)
     return {
       number: i + 1, first: resident.first_name, last: resident.last_name,
       prefs: noteCats.flatMap(cat => (resolved[cat] || []).map(p => p.detail)).join(' · '),
@@ -345,7 +448,7 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
     const seatsHtml = Array.from({ length: table.seat_count }, (_, i) => i + 1).map(seatNum => {
       const assignment = getAssignment(table.id, seatNum)
       const resident = assignment ? residentLookup.get(assignment.resident_id) : null
-      const resolved = resident ? resolvePreferences(prefs, resident.id, period, dow) : {}
+      const resolved = resident ? resolvePreferences(prefs, categories, resident.id, period, dow) : {}
       const prefLine = noteCats.flatMap(cat => (resolved[cat] || []).map(p => p.detail)).join(' · ')
       const name = resident ? `${resident.first_name} ${resident.last_name}` : 'empty'
       return `<div class="seat"><div>${seatNum}. <span class="${resident ? '' : 'empty'}">${name}</span></div>${resident && prefLine ? `<div class="pref-line">${prefLine}</div>` : ''}</div>`
@@ -488,14 +591,20 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
               ))}
             </div>
             <select value={viewDow} onChange={e => setViewDow(Number(e.target.value))}
-              title="Which day's drink/silverware preferences to resolve — seating itself doesn't change by day"
+              title="Which day's standing notes to show — seating itself doesn't change by day"
               className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
               {DAY_NAMES.map((d, i) => <option key={i} value={i}>{d}{i === todayDow ? ' (Today)' : ''}</option>)}
             </select>
-            <select value={noteView} onChange={e => setNoteView(e.target.value)} title="Which notes show under each name, on screen and printed"
+            <select value={noteViewInfo.key} onChange={e => setNoteView(e.target.value)} title="Which notes show under each name, on screen and printed"
               className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
-              {NOTE_VIEWS.map(v => <option key={v.key} value={v.key}>Show: {v.label}</option>)}
+              {noteViews.map(v => <option key={v.key} value={v.key}>Show: {v.label}</option>)}
             </select>
+            {canEditNoteTypes && (
+              <button onClick={() => setShowNoteTypes(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300 text-xs font-medium rounded-lg transition-colors">
+                <Edit2 size={13} /> Note Types
+              </button>
+            )}
             <button onClick={handlePrint} disabled={!roomTables.length}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors">
               <Printer size={13} /> Print
@@ -564,7 +673,7 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
                     const assignment = getAssignment(table.id, seatNum)
                     const resident = assignment ? residentLookup.get(assignment.resident_id) : null
                     const profile = assignment ? dietLookup.get(assignment.resident_id) : null
-                    const resolved = resident ? resolvePreferences(prefs, resident.id, period, viewDow) : {}
+                    const resolved = resident ? resolvePreferences(prefs, categories, resident.id, period, viewDow) : {}
                     const prefLine = noteCats.flatMap(cat =>
                       (resolved[cat] || []).map(p => p.detail)
                     ).join(' · ')
@@ -612,10 +721,20 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
         <PreferencesModal
           resident={prefsResident}
           prefs={prefs}
+          categories={categories}
           orgId={orgId}
           canManage={canManage}
           onClose={() => setPrefsResident(null)}
           onChange={(updater) => setPrefs(updater)}
+        />
+      )}
+
+      {showNoteTypes && (
+        <NoteTypesModal
+          categories={categories}
+          orgId={orgId}
+          onClose={() => setShowNoteTypes(false)}
+          onChange={(updater) => setCategories(updater)}
         />
       )}
     </div>
