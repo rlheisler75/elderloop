@@ -980,13 +980,15 @@ export default function Dietary() {
   // 20260930_access_tiers_dietary.sql: menus/recipes and the food budget belong to the
   // Dietary Manager; profiles, seating, and physician orders to Supervisor+; any Dietary
   // employee logs waste and works special requests. The NHA (administrator) views,
-  // approves menu cycles, and sees costs. Legacy communities keep canEditDietary everywhere.
+  // approves menu cycles, and sees costs. Seating charts and standing drink/silverware notes
+  // are any Dietary employee's too. Legacy communities keep canEditDietary everywhere.
   const tiered     = accessModel === 'tiered'
   const dTier      = tierFor('dietary')
   const dRank      = { employee: 0, supervisor: 1, manager: 2, org_admin: 3, super_admin: 3 }[dTier] ?? -1
   const inDietary  = dTier !== 'administrator' && hasDepartmentAccess('dietary', 'employee')
   const canManageMenus  = tiered ? dRank >= 2 : canEditDietary
   const canEditProfiles = tiered ? dRank >= 1 : canEditDietary
+  const canEditSeating  = tiered ? (dRank >= 1 || inDietary) : canEditDietary   // 20261111_seating_all_dietary_staff.sql
   const canLogWaste     = tiered ? (dRank >= 1 || inDietary) : canEditDietary
   const canWorkRequests = tiered ? (dRank >= 1 || inDietary) : canEditDietary
   const canApplyOrders  = tiered ? dRank >= 1 : canEditDietary
@@ -1218,7 +1220,7 @@ export default function Dietary() {
 
       {/* SEATING CHARTS TAB */}
       {tab === 'seating' && (
-        <SeatingCharts orgId={organization.id} dietaryProfiles={residents} canManage={canEditProfiles} />
+        <SeatingCharts orgId={organization.id} dietaryProfiles={residents} canManage={canEditSeating} />
       )}
 
       {/* FOOD WASTE TAB */}

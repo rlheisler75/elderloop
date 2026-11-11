@@ -227,8 +227,8 @@ export function ManagerQuickCards() {
           <p><GuideLink to="/training/maintenance">Maintenance guide</GuideLink></p>
         </Card>
         <Card title="Dietary">
-          <p><B>Daily:</B> meal tickets, Cook's Count, special requests; staff log food waste.</p>
-          <p><B>Supervisors:</B> diet profiles, seating, applying physician diet orders. Physician orders are seen by Dietary Supervisors+, Nursing, and Social Services.</p>
+          <p><B>Daily:</B> meal tickets, Cook's Count, special requests; staff log food waste and keep the seating charts.</p>
+          <p><B>Supervisors:</B> diet profiles, applying physician diet orders. Physician orders are seen by Dietary Supervisors+, Nursing, and Social Services.</p>
           <p><B>Only the Manager:</B> menus, recipes, food budget. <B>Monthly:</B> Cost Report → Food Cost per Resident Day.</p>
           <p><GuideLink to="/training/dietary">Dietary guide</GuideLink></p>
         </Card>

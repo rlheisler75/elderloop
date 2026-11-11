@@ -19,7 +19,7 @@ const B = ({ children }) => <b className="text-slate-900">{children}</b>
 
 const MODULE_ROWS = [
   ['Work Orders', 'See every job; claim open ones; hand off your own job to another tech', 'Whole queue; assign and triage', 'PM schedules, settings, deletes'],
-  ['Dietary', 'Log food waste, special requests', 'Diet profiles, seating, physician orders', 'Menus, recipes, food budget'],
+  ['Dietary', 'Log food waste, special requests, seating charts', 'Diet profiles, physician orders', 'Menus, recipes, food budget'],
   ['Housekeeping', 'Record your own inspections', 'Correct any inspection; bill IL cleaning', 'Areas, checklists, deletes'],
   ['Central Supply', 'Receive, issue, count stock', 'Same as staff', 'Items, vendors, prices, purchase orders'],
   ['Social Services', 'Your caseload + unassigned residents', 'Everyone; assign caseloads', 'Close grievances (with the NHA)'],

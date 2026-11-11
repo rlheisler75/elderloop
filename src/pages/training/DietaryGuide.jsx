@@ -14,6 +14,7 @@ const NAV = [
   { id: 'cost',      num: '09', label: 'Cost & Budget Reporting' },
   { id: 'orders',    num: '10', label: 'Meal Delivery Orders' },
   { id: 'physician', num: '11', label: 'Physician Diet Orders' },
+  { id: 'seating',   num: '12', label: 'Seating Charts' },
 ]
 
 export default function DietaryGuide() {
@@ -24,7 +25,7 @@ export default function DietaryGuide() {
         eyebrow="ElderLoop Staff Training"
         title="Dietary"
         dek="A working guide to resident dietary profiles, meal tickets, and cycle menus — what each screen is for, how to use it day-to-day, and how the smart substitution system decides what actually gets served."
-        chips={['For: Dietary staff, Supervisors, Managers', 'Where: Sidebar → Dietary', '11 sections']}
+        chips={['For: Dietary staff, Supervisors, Managers', 'Where: Sidebar → Dietary', '12 sections']}
       />
 
       <div className="max-w-5xl mx-auto px-6 grid md:grid-cols-[200px_minmax(0,1fr)] gap-10 py-4">
@@ -173,6 +174,34 @@ export default function DietaryGuide() {
             <Tip>There's no live feed from PointClickCare or any other EHR into this screen — orders have to be logged manually as they come in. Think of it as the paper trail for verbal and faxed orders, not an integration.</Tip>
           </SectionBlock>
 
+          <SectionBlock id="seating" num="12" title="Seating Charts"
+            dek="Where each resident sits for each meal, room by room. Seating stays the same every day until someone changes it, and each seat shows that resident's drink and silverware notes for the day you pick.">
+            <Frame src={SHOT('seating-layout.png')} alt="Seating chart in Table layout view with a round table and a horseshoe table" caption="Table layout: seat 1 at the top of each table, numbered clockwise" />
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Setting up rooms and tables</h3>
+            <Steps items={[
+              { k: 1, text: <>Open <b className="text-slate-900">Dining Rooms &amp; Tables</b> at the top of the tab and add each dining room (for example Main Dining Room or Memory Care Dining).</> },
+              { k: 2, text: <>Under a room, click <b className="text-slate-900">Add table</b>. Give it a label, the number of seats, and its shape: <b className="text-slate-900">Square</b>, <b className="text-slate-900">Round</b>, <b className="text-slate-900">Horseshoe</b>, <b className="text-slate-900">L (right)</b> or <b className="text-slate-900">L (left)</b>.</> },
+              { k: 3, text: 'To remove a table or room, click the X or trash icon next to it. Its seats come off the chart with it.' },
+            ]} />
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Seating residents</h3>
+            <Steps items={[
+              { k: 1, text: 'Pick the dining room and the meal (Breakfast, AM Snack, Lunch, PM Snack, Dinner). Each meal has its own seating, so a resident can sit in one place for breakfast and another for dinner.' },
+              { k: 2, text: <>Use the <b className="text-slate-900">List / Table layout</b> switch to choose how the chart looks. <b className="text-slate-900">List</b> shows each table as a numbered list of seats. <b className="text-slate-900">Table layout</b> draws each table in its shape, with seat 1 at the top and the rest going clockwise. Your choice is remembered on that computer or tablet.</> },
+              { k: 3, text: <>In List view, choose a resident from the drop-down next to a seat number. In Table layout, tap the seat itself. Choose <b className="text-slate-900">— empty —</b> to clear a seat.</> },
+              { k: 4, text: <>In Table layout, change a table's shape any time with the box in the corner of that table.</> },
+              { k: 5, text: <>Click the cup icon next to a seated resident (in List view) to add standing notes: <b className="text-slate-900">Drink</b>, <b className="text-slate-900">Silverware</b>, or <b className="text-slate-900">Other</b>. Each note can apply to every meal and day, or just one meal or one day of the week.</> },
+            ]} />
+            <Tip>A resident can sit in only one seat per meal. If you pick someone who is already seated elsewhere for that meal, you'll be asked to clear their old seat first.</Tip>
+            <Tip>A red ⚠ on a seat means that resident has allergies on their diet profile. In Table layout, long names are shortened to fit (for example "D. Simmons"). Hover over a seat to see the full name, notes, and allergies.</Tip>
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Printing</h3>
+            <Steps items={[
+              { k: 1, text: <>Pick the day in the day box. Seating doesn't change by day, but drink and silverware notes can, so the printout shows that day's notes.</> },
+              { k: 2, text: <>Click <b className="text-slate-900">Print</b> for one day, or <b className="text-slate-900">Print Full Week</b> for one page per day of the week. The printout matches the view on screen: the list, or the table drawings two across.</> },
+            ]} />
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Who can change seating</h3>
+            <p className="text-[15px] text-slate-700 mb-6">Anyone in the Dietary department can add, change, and delete dining rooms, tables, seats, and standing drink and silverware notes. Everyone else can view the chart.</p>
+          </SectionBlock>
+
           <QuickRefTable rows={[
             ['Add or update a resident’s diet, allergies, or texture', 'Resident Profiles → click a card'],
             ['Print a meal ticket for a resident', 'Resident Profiles → print icon'],
@@ -186,6 +215,11 @@ export default function DietaryGuide() {
             ['See and work resident/family meal delivery requests', 'Meal Orders'],
             ['Record a physician-directed diet/texture/allergen change', 'Physician Orders → Log Order'],
             ['Apply a reviewed physician order to a resident\'s profile', 'Physician Orders → Apply on a pending order'],
+            ['Add a dining room or table, or change a table’s shape', 'Seating Charts → Dining Rooms & Tables'],
+            ['Seat a resident for a meal', 'Seating Charts → pick the meal → choose a resident at the seat'],
+            ['See tables drawn in their shape (seat 1 at the top, clockwise)', 'Seating Charts → Table layout'],
+            ['Record a resident’s usual drink or silverware', 'Seating Charts → List → cup icon next to the resident'],
+            ['Print the seating chart', 'Seating Charts → Print or Print Full Week'],
           ]} />
 
           <GuideFooter label="Dietary Module" />
