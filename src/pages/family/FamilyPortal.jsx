@@ -691,7 +691,7 @@ function DiningTab({ resident, dietProfile, mealOrders, onNewOrder, canOrder, or
         </button>
       )}
 
-      <PortalMenu orgId={orgId} />
+      <PortalMenu orgId={orgId} residentId={resident?.id} careLevel={resident?.care_level} />
 
       {dietProfile && (dietProfile.diet_type || dietProfile.allergens?.length > 0) && (
         <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-xs text-slate-600 dark:text-slate-300 space-y-1">

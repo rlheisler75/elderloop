@@ -12,7 +12,7 @@ import FoodWaste from './FoodWaste'
 import CostReport from './CostReport'
 import MealOrders from './MealOrders'
 import PhysicianOrders from './PhysicianOrders'
-import { resolveMealItem, calcCycleDay, fetchMealCourses, sumNutrition } from './mealResolution'
+import { resolveMealItem, calcCycleDay, fetchMealCourses, sumNutrition, menuForProfile } from './mealResolution'
 import { computeWeightAlerts } from './malnutritionAlerts'
 import {
   Users, BookOpen, Printer, Plus, X, Edit2, Search, Eye,
@@ -662,7 +662,7 @@ function PrintTicket({ resident, menus, onClose }) {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    const menu = menus?.find(m => m.id === resident.cycle_menu_id) || menus?.find(m => m.is_current) || null
+    const menu = menuForProfile(menus, resident)
     if (!menu) { setCourses(null); return }
     const pos = calcCycleDay(menu, date)
     if (!pos) { setCourses(null); return }
@@ -698,7 +698,7 @@ function PrintTicket({ resident, menus, onClose }) {
   }
 
   const allergenLabels = resident.allergens?.map(a => ALLERGENS.find(al => al.key === a)?.label || a) || []
-  const menu = menus?.find(m => m.id === resident.cycle_menu_id) || menus?.find(m => m.is_current) || null
+  const menu = menuForProfile(menus, resident)
   const cyclePos = menu ? calcCycleDay(menu, date) : null
   const dateLabel = new Date(date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
 
@@ -827,7 +827,7 @@ function BulkPrintModal({ residents, menus, onClose }) {
     let cancelled = false
     setLoading(true)
     Promise.all(residents.map(async (resident) => {
-      const menu = menus?.find(m => m.id === resident.cycle_menu_id) || menus?.find(m => m.is_current) || null
+      const menu = menuForProfile(menus, resident)
       const pos  = menu ? calcCycleDay(menu, date) : null
       const courses = menu && pos ? await fetchMealCourses(menu.id, pos.cycleWeek, pos.dayOfWeek, period) : []
       return { resident, menu, pos, courses }

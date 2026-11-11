@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { createClient } from '@supabase/supabase-js'
 import useSignageLive from '../../hooks/useSignageLive'
 import { onScreen } from '../../components/communication/ScreenPicker'
+import { screenMenu } from '../../lib/menuChoice'
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
@@ -45,7 +46,7 @@ function getOrdinal(n) {
 // Returns the currently-relevant menu from cycle menus via day-of-cycle math.
 // Shows today's menu until dinner service ends, then switches to tomorrow's
 // so residents see what's actually coming up rather than a meal that's done.
-async function fetchTodayMenu(orgId) {
+async function fetchTodayMenu(orgId, menuId) {
   const now = new Date()
   const pastDinner = (now.getHours() * 60 + now.getMinutes()) >= DINNER_END_MINUTES
   const targetDate = new Date(now)
@@ -54,14 +55,14 @@ async function fetchTodayMenu(orgId) {
   const target = new Date(localDateStr(targetDate) + 'T12:00:00')
   const dayOfWeek = target.getDay() // 0=Sun … 6=Sat, matches cycle_menu_days.day_of_week
 
-  // Get active cycle menu
-  const { data: menus } = await supabase
+  // This screen's cycle menu (screenMenu: the one picked for the screen, else
+  // the community's Active menu)
+  const { data: allMenus } = await supabase
     .from('cycle_menus')
-    .select('id, name, cycle_length, start_date')
+    .select('id, name, cycle_length, start_date, is_current, is_active, care_levels')
     .eq('organization_id', orgId)
     .eq('is_active', true)
-    .limit(1)
-    .single()
+  const menus = screenMenu(allMenus, menuId)
 
   if (!menus) return null
 
@@ -200,7 +201,7 @@ function getTag(type, category) {
 
 // ── component ───────────────────────────────────────────────────────────────
 // slugOverride / screenUrl: set when opened from a screen address (/<facility number>-<name>)
-export default function TV({ slugOverride, screenUrl, screenId }) {
+export default function TV({ slugOverride, screenUrl, screenId, menuId }) {
   const params = useParams()
   const slug = slugOverride || params.slug
   const shownUrl = screenUrl || `elderloop.xyz/tv/${slug}`
@@ -279,7 +280,7 @@ export default function TV({ slugOverride, screenUrl, screenId }) {
           .order('service_date')
           .limit(3),
 
-        fetchTodayMenu(orgData.id),
+        fetchTodayMenu(orgData.id, menuId),
       ])
 
       setMenu(menuData)

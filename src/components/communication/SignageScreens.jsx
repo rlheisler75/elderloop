@@ -1,7 +1,9 @@
 // Communication → Digital Signage: the community's screens. Each screen gets the
 // address elderloop.xyz/<facility number>-<name> (signage_screens + the
 // signage_resolve() lookup), and picks a layout: Signage (the board, TV.jsx) or
-// TV slideshow (Signage.jsx); SignageScreen.jsx maps them.
+// TV slideshow (Signage.jsx); SignageScreen.jsx maps them. Each screen can also
+// show a particular cycle menu (signage_screens.cycle_menu_id, e.g. the LTC
+// menu on the LTC screen); unset = the community's Active menu.
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
@@ -19,6 +21,7 @@ export default function SignageScreens({ onClose }) {
   const number = organization?.facility_number
   const host = window.location.host.replace(/^www\./, '')
   const [screens, setScreens] = useState([])
+  const [menus, setMenus] = useState([])
   const [loading, setLoading] = useState(true)
   const [form, setForm] = useState({ name: '', url_name: '', display: 'signage' })
   const [urlTouched, setUrlTouched] = useState(false)
@@ -31,6 +34,9 @@ export default function SignageScreens({ onClose }) {
     const { data } = await supabase.from('signage_screens').select('*')
       .eq('organization_id', organization.id).eq('is_active', true).order('name')
     setScreens(data || []); setLoading(false)
+    const { data: m } = await supabase.from('cycle_menus').select('id, name, is_current')
+      .eq('organization_id', organization.id).eq('is_active', true).order('name')
+    setMenus(m || [])
   }
 
   const address = (urlName) => `${host}/${number}${urlName ? `-${urlName}` : ''}`
@@ -48,6 +54,9 @@ export default function SignageScreens({ onClose }) {
   }
   async function setLayout(s, display) {
     await supabase.from('signage_screens').update({ display }).eq('id', s.id); load()
+  }
+  async function setMenu(s, cycle_menu_id) {
+    await supabase.from('signage_screens').update({ cycle_menu_id: cycle_menu_id || null }).eq('id', s.id); load()
   }
   async function remove(s) {
     if (!window.confirm(`Remove the screen "${s.name}"? Its address will stop working.`)) return
@@ -69,6 +78,13 @@ export default function SignageScreens({ onClose }) {
           {LAYOUTS.map(l => <option key={l.key} value={l.key}>{l.label}</option>)}
         </select>
       ) : <span className="text-xs text-slate-400">{LAYOUTS.find(l => l.key === display)?.label}</span>}
+      {screen && canManage && menus.length > 1 ? (
+        <select value={screen.cycle_menu_id || ''} onChange={e => setMenu(screen, e.target.value)} title="Which menu this screen shows" aria-label={`${name} menu`}
+          className="px-2 py-1 border border-slate-200 dark:border-slate-700 rounded-lg text-xs bg-white dark:bg-slate-800 dark:text-slate-100 max-w-[11rem]">
+          <option value="">Menu: Active menu</option>
+          {menus.map(m => <option key={m.id} value={m.id}>Menu: {m.name}</option>)}
+        </select>
+      ) : screen?.cycle_menu_id && <span className="text-xs text-slate-400">Menu: {menus.find(m => m.id === screen.cycle_menu_id)?.name || 'Active menu'}</span>}
       <button onClick={() => copy(k, address(urlName))} title="Copy address" className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200">
         {copied === k ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
       </button>

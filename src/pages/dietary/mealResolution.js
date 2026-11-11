@@ -6,6 +6,10 @@
 
 import { supabase } from '../../lib/supabase'
 
+// Menu choice (which cycle menu a resident or screen uses) lives in
+// src/lib/menuChoice.js so the signed-out TV screens can use it too
+export { MENU_CARE_LEVELS, menuFor, menuForProfile } from '../../lib/menuChoice'
+
 // Which cycle week + day-of-week a given date falls on for a cycle menu.
 export function calcCycleDay(menu, dateStr) {
   if (!menu?.start_date) return null

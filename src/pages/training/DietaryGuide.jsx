@@ -79,7 +79,16 @@ export default function DietaryGuide() {
               { k: 1, text: <>Click <b className="text-slate-900">New Cycle Menu</b>, name it, set the cycle length in weeks, and set a start date — the start date is what lets the system calculate which week of the cycle any given day falls on.</> },
               { k: 2, text: 'Click a menu card to open its weekly grid and start building it out.' },
               { k: 3, text: <>Use <b className="text-slate-900">Set Active</b> on a menu once it's ready — only one menu can be active for the organization at a time.</> },
+              { k: 4, text: <>If different areas eat from different menus, set <b className="text-slate-900">Serves</b> on each menu card (click <b className="text-slate-900">Change</b>): for example, one menu for Independent Living, one for Assisted Living / RC, and one for Skilled Nursing / LTC.</> },
             ]} />
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Which menu a resident gets</h3>
+            <p className="text-[15px] text-slate-700 mb-3">Meal tickets, Cook's Count, the Order Guide, Snacks &amp; Drinks, and the Resident and Family Portals all choose a resident's menu the same way:</p>
+            <Steps items={[
+              { k: 1, text: <>The <b className="text-slate-900">Assigned Cycle Menu</b> on the resident's diet profile, if one is set.</> },
+              { k: 2, text: <>Otherwise, the menu that <b className="text-slate-900">Serves</b> their care level, so nobody has to be assigned one by one.</> },
+              { k: 3, text: <>Otherwise, the <b className="text-slate-900">Active</b> menu.</> },
+            ]} />
+            <Tip>Each Digital Signage screen can show a particular menu too, like the LTC menu on the LTC screen. Set it under Communication → Digital Signage. A screen with no menu picked shows the Active menu.</Tip>
           </SectionBlock>
 
           <SectionBlock id="grid" num="05" title="Building the Weekly Grid"

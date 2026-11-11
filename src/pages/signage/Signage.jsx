@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import useSignageLive from '../../hooks/useSignageLive'
 import { onScreen } from '../../components/communication/ScreenPicker'
+import { screenMenu } from '../../lib/menuChoice'
 import {
   Cake, Star, Calendar, CloudSun, Church,
   UtensilsCrossed, Bell, Megaphone, Wifi, WifiOff,
@@ -309,7 +310,7 @@ function AnnouncementSlide({ slide, orgName, orgLogo, visible, accent }) {
 
 // ── Main Signage ───────────────────────────────────────────────
 // orgSlug: set when opened from a screen address (/<facility number>-<name>)
-export default function Signage({ orgSlug, screenId }) {
+export default function Signage({ orgSlug, screenId, menuId }) {
   const [org, setOrg]                   = useState(null)
   const [announcements, setAnnouncements] = useState([])
   const [activities, setActivities]     = useState([])
@@ -362,15 +363,16 @@ export default function Signage({ orgSlug, screenId }) {
         .eq('organization_id', org.id).eq('is_active', true)
         .eq('show_on_signage', true),
 
-      // Get today's meal from cycle menu
+      // Today's meals from this screen's cycle menu (screenMenu below)
       supabase.from('cycle_menus').select(`
-        id, start_date, cycle_length,
+        id, start_date, cycle_length, is_current, is_active, care_levels,
         cycle_menu_days(id, week_number, day_of_week,
           cycle_menu_meals(id, meal_period,
             meal_courses(course_name, sort_order,
               menu_items:menu_items!meal_courses_menu_item_id_fkey(name))))
-      `).eq('organization_id', org.id).eq('is_active', true).single()
+      `).eq('organization_id', org.id).eq('is_active', true)
     ])
+    const screenMenuRow = screenMenu(menuRes.data, menuId)
 
     // Items limited to certain screens show only there
     setAnnouncements((annRes.data || []).filter(a => onScreen(a, screenId)))
@@ -379,8 +381,8 @@ export default function Signage({ orgSlug, screenId }) {
     // Calculate which day of the cycle to show — after dinner service ends,
     // switch to previewing tomorrow's menu instead of today's, so residents
     // see what's actually coming up rather than a menu that's already done.
-    if (menuRes.data) {
-      const menu  = menuRes.data
+    if (screenMenuRow) {
+      const menu  = screenMenuRow
       const nowLocal    = new Date()
       const pastDinner  = (nowLocal.getHours() * 60 + nowLocal.getMinutes()) >= DINNER_END_MINUTES
       const targetDate  = new Date(nowLocal)

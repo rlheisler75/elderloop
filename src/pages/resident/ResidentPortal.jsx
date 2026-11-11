@@ -236,7 +236,7 @@ function DiningTab({ resident, orgId }) {
         </button>
       )}
 
-      <PortalMenu orgId={orgId} />
+      <PortalMenu orgId={orgId} residentId={resident?.id} careLevel={resident?.care_level} />
 
       {/* Recent orders */}
       {orders.length > 0 && (

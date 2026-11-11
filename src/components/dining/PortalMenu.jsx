@@ -1,9 +1,10 @@
-// The community's dining menu for the resident and family portals: today and
-// the next six days, from the active cycle menu (same one the TV screens use).
+// The dining menu for the resident and family portals: today and the next
+// six days, from the cycle menu this resident eats from (menuFor: their
+// assigned menu, else their care level's, else the community's Active one).
 import { useEffect, useMemo, useState } from 'react'
 import { UtensilsCrossed } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import { calcCycleDay } from '../../pages/dietary/mealResolution'
+import { calcCycleDay, menuFor } from '../../pages/dietary/mealResolution'
 
 const MEAL_PERIODS = [
   { key: 'breakfast', label: 'Breakfast' },
@@ -15,7 +16,7 @@ const MEAL_PERIODS = [
 
 const localDateStr = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 
-export default function PortalMenu({ orgId }) {
+export default function PortalMenu({ orgId, residentId, careLevel }) {
   const [loading, setLoading] = useState(true)
   const [menu, setMenu] = useState(null)
   const [days, setDays] = useState([])
@@ -28,19 +29,25 @@ export default function PortalMenu({ orgId }) {
   useEffect(() => {
     if (!orgId) return
     ;(async () => {
-      const { data: menus } = await supabase.from('cycle_menus')
-        .select('id, cycle_length, start_date').eq('organization_id', orgId).eq('is_active', true).limit(1)
-      const m = menus?.[0]
+      setLoading(true)
+      const [{ data: menus }, { data: profiles }] = await Promise.all([
+        supabase.from('cycle_menus')
+          .select('id, cycle_length, start_date, is_current, is_active, care_levels').eq('organization_id', orgId).eq('is_active', true),
+        residentId
+          ? supabase.from('resident_dietary_profiles').select('cycle_menu_id').eq('resident_id', residentId).eq('is_active', true).limit(1)
+          : Promise.resolve({ data: [] }),
+      ])
+      const m = menuFor(menus, { assignedId: profiles?.[0]?.cycle_menu_id, careLevel })
       if (m) {
         const { data } = await supabase.from('cycle_menu_days')
           .select('week_number, day_of_week, cycle_menu_meals(meal_period, meal_courses(course_name, sort_order, menu_items:menu_items!meal_courses_menu_item_id_fkey(name)))')
           .eq('cycle_menu_id', m.id)
         setDays(data || [])
-      }
+      } else setDays([])
       setMenu(m || null)
       setLoading(false)
     })()
-  }, [orgId])
+  }, [orgId, residentId, careLevel])
 
   const meals = useMemo(() => {
     const cd = menu && calcCycleDay(menu, dates[picked])

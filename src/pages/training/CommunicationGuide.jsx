@@ -51,6 +51,7 @@ export default function CommunicationGuide() {
             ]} />
             <Frame narrow src={SHOT('announcement-screens.png')} alt="Show on screens picker on the New Announcement form" caption="All screens, or only the TVs you pick" />
             <Tip>Signage screens update within a few seconds when you post, edit, hide, or delete an announcement. Nobody needs to refresh the TV.</Tip>
+            <Tip>The dining menu on the screens comes straight from Dietary's cycle menus, so nobody has to post it. If Dietary keeps separate menus for different areas, pick each screen's menu in <b className="text-slate-900">Digital Signage</b> (for example, the LTC menu on the LTC screen). Screens without one show the Active menu.</Tip>
             <Tip>Background Color only matters for Digital Signage — it has no effect on how the post looks in the staff app itself.</Tip>
           </SectionBlock>
 

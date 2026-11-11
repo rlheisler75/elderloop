@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
-import { resolveMealItem } from './mealResolution'
+import { resolveMealItem, menuForProfile, MENU_CARE_LEVELS } from './mealResolution'
 import { scaleIngredients } from './recipeScaling'
 import {
   Plus, X, Edit2, Trash2, ChevronLeft, ChevronRight,
@@ -646,12 +646,16 @@ function CooksCount({ weekNum, dayIdx, menu, orgId }) {
     const meal = mealRows?.[0] || null
     if (!meal) { setResult(null); setLoading(false); return }
 
-    const [{ data: courseData }, { data: residentProfiles }] = await Promise.all([
+    const [{ data: courseData }, { data: residentProfiles }, { data: allMenus }] = await Promise.all([
       supabase.from('meal_courses')
         .select('*, menu_items:menu_items!meal_courses_menu_item_id_fkey(id,name,allergens,suitable_diets,suitable_consistencies,yield_servings)')
         .eq('meal_id', meal.id).order('sort_order'),
       supabase.from('resident_dietary_profiles')
-        .select('resident_id, diet_type, consistency, allergens, dislikes, cycle_menu_id')
+        .select('resident_id, diet_type, consistency, allergens, dislikes, cycle_menu_id, residents(care_level)')
+        .eq('organization_id', orgId)
+        .eq('is_active', true),
+      supabase.from('cycle_menus')
+        .select('id, is_current, is_active, care_levels')
         .eq('organization_id', orgId)
         .eq('is_active', true),
     ])
@@ -668,12 +672,10 @@ function CooksCount({ weekNum, dayIdx, menu, orgId }) {
       altData = alts || []
     }
 
-    // Only residents actually on this menu: explicitly assigned to it, or
-    // unassigned while this is the org's current menu (same fallback the
-    // meal ticket uses).
-    const residents = (residentProfiles || []).filter(r =>
-      r.cycle_menu_id === menu.id || (!r.cycle_menu_id && menu.is_current)
-    )
+    // Only residents actually on this menu: assigned to it, on it by care
+    // level, or falling back to it as the current menu (menuFor, same as the
+    // meal ticket).
+    const residents = (residentProfiles || []).filter(r => menuForProfile(allMenus, r)?.id === menu.id)
 
     const yieldById = new Map() // item id -> yield_servings, for every item that could get served
     const rows = (courseData || []).map(course => {
@@ -1028,8 +1030,69 @@ function CycleMenuGrid({ menu, items, onBack, canEdit, canApprove = canEdit, org
   )
 }
 
+// ── Who a menu serves (cycle_menus.care_levels) ────────────────
+// Empty = not tied to an area: it serves whoever isn't covered elsewhere once
+// it's the Active menu. See menuFor() in mealResolution.js.
+const servesLabel = (levels) => levels?.length
+  ? MENU_CARE_LEVELS.filter(l => levels.includes(l.key)).map(l => l.label).join(', ')
+  : 'Everyone not on another menu (when Active)'
+
+function CareLevelChecks({ value, onChange }) {
+  const toggle = (key) => onChange(value.includes(key) ? value.filter(k => k !== key) : [...value, key])
+  return (
+    <div className="space-y-1.5">
+      {MENU_CARE_LEVELS.map(l => (
+        <label key={l.key} className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
+          <input type="checkbox" checked={value.includes(l.key)} onChange={() => toggle(l.key)} />
+          {l.label}
+        </label>
+      ))}
+    </div>
+  )
+}
+
+function ServesModal({ menu, onClose, onSaved }) {
+  const [levels, setLevels] = useState(menu.care_levels || [])
+  const [saving, setSaving] = useState(false)
+  const [error, setError]   = useState('')
+  const save = async () => {
+    setSaving(true); setError('')
+    const { error: err } = await supabase.from('cycle_menus').update({ care_levels: levels }).eq('id', menu.id)
+    setSaving(false)
+    if (err) { setError('Could not save. ' + (err.message || '')); return }
+    onSaved()
+  }
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={e => e.stopPropagation()}>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+          <div>
+            <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Who This Menu Serves</h2>
+            <p className="text-xs text-slate-400">{menu.name}</p>
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+        </div>
+        <div className="px-6 py-5 space-y-3">
+          <p className="text-sm text-slate-600 dark:text-slate-300">Residents at these care levels get this menu on their meal tickets and in the Resident and Family Portals. A menu assigned on a resident's diet profile still comes first.</p>
+          <CareLevelChecks value={levels} onChange={setLevels} />
+          <p className="text-xs text-slate-400">Leave all unchecked for a menu that serves everyone not on another menu, once it's set Active.</p>
+          {error && <p className="text-xs text-red-600">{error}</p>}
+        </div>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
+          <button onClick={save} disabled={saving}
+            className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
+            {saving ? 'Saving...' : 'Save'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Cycle Menu List ────────────────────────────────────────────
-function CycleMenuList({ menus, onSelect, onCreate, onDelete, onSetCurrent, canEdit }) {
+function CycleMenuList({ menus, onSelect, onCreate, onDelete, onSetCurrent, onServesSaved, canEdit }) {
+  const [servesMenu, setServesMenu] = useState(null)
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -1067,6 +1130,13 @@ function CycleMenuList({ menus, onSelect, onCreate, onDelete, onSetCurrent, canE
                   <p className={`text-xs mt-1 flex items-center gap-1 ${menu.approved_at ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
                     <ShieldCheck size={11} /> {menu.approved_at ? 'Approved' : 'Not yet approved'}
                   </p>
+                  <p className="text-xs mt-1 text-slate-500 dark:text-slate-400">
+                    <span className="font-semibold">Serves:</span> {servesLabel(menu.care_levels)}
+                    {canEdit && (
+                      <button onClick={e => { e.stopPropagation(); setServesMenu(menu) }}
+                        className="ml-1.5 text-brand-600 hover:underline font-medium">Change</button>
+                    )}
+                  </p>
                 </div>
                 {canEdit && (
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -1096,13 +1166,18 @@ function CycleMenuList({ menus, onSelect, onCreate, onDelete, onSetCurrent, canE
           ))}
         </div>
       )}
+
+      {servesMenu && (
+        <ServesModal menu={servesMenu} onClose={() => setServesMenu(null)}
+          onSaved={() => { setServesMenu(null); onServesSaved() }} />
+      )}
     </div>
   )
 }
 
 // ── New Menu Modal ─────────────────────────────────────────────
 function NewMenuModal({ onClose, onSave, orgId, userId }) {
-  const [form, setForm] = useState({ name: '', cycle_length: 16, start_date: '' })
+  const [form, setForm] = useState({ name: '', cycle_length: 16, start_date: '', care_levels: [] })
   const [saving, setSaving] = useState(false)
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
@@ -1111,7 +1186,7 @@ function NewMenuModal({ onClose, onSave, orgId, userId }) {
     setSaving(true)
     await supabase.from('cycle_menus').insert({
       name: form.name.trim(), cycle_length: form.cycle_length,
-      start_date: form.start_date || null,
+      start_date: form.start_date || null, care_levels: form.care_levels,
       organization_id: orgId, created_by: userId, is_active: true
     })
     setSaving(false)
@@ -1142,6 +1217,11 @@ function NewMenuModal({ onClose, onSave, orgId, userId }) {
             <input type="date" value={form.start_date} onChange={e => set('start_date', e.target.value)}
               className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             <p className="text-xs text-slate-400 mt-1">Used to calculate which week of the cycle today falls on</p>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Serves</label>
+            <CareLevelChecks value={form.care_levels} onChange={v => set('care_levels', v)} />
+            <p className="text-xs text-slate-400 mt-1">Leave all unchecked if one menu serves the whole community. You can change this later.</p>
           </div>
         </div>
         <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
@@ -1214,7 +1294,7 @@ export default function CycleMenuBuilder({ menus, items, onRefresh, orgId, userI
       )}
 
       {view === 'list' && (
-        <CycleMenuList menus={menus} onSelect={handleSelectMenu} onCreate={handleCreate} onDelete={handleDelete} onSetCurrent={handleSetCurrent} canEdit={canEdit} />
+        <CycleMenuList menus={menus} onSelect={handleSelectMenu} onCreate={handleCreate} onDelete={handleDelete} onSetCurrent={handleSetCurrent} onServesSaved={onRefresh} canEdit={canEdit} />
       )}
 
       {view === 'grid' && activeMenu && (

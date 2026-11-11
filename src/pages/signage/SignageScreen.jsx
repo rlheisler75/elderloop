@@ -34,6 +34,6 @@ export default function SignageScreen() {
     </div>
   )
   return screen.display === 'tv'
-    ? <Signage orgSlug={screen.org_slug} screenId={screen.screen_id} />
-    : <TV slugOverride={screen.org_slug} screenId={screen.screen_id} screenUrl={`elderloop.xyz/${code.toLowerCase()}`} />
+    ? <Signage orgSlug={screen.org_slug} screenId={screen.screen_id} menuId={screen.cycle_menu_id} />
+    : <TV slugOverride={screen.org_slug} screenId={screen.screen_id} menuId={screen.cycle_menu_id} screenUrl={`elderloop.xyz/${code.toLowerCase()}`} />
 }

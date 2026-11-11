@@ -10,7 +10,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
-import { calcCycleDay, fetchMealCourses, resolveMealItem } from './mealResolution'
+import { calcCycleDay, fetchMealCourses, resolveMealItem, menuForProfile } from './mealResolution'
 import {
   ClipboardList, Plus, X, Edit2, Trash2, Truck, Calculator,
   CheckCircle2, AlertTriangle, ChevronDown, ChevronUp
@@ -226,7 +226,7 @@ export default function OrderGuide({ orgId, residents, menus, menuItems, canMana
 
     const menuGroups = new Map()
     residents.forEach(r => {
-      const menu = menus?.find(m => m.id === r.cycle_menu_id) || menus?.find(m => m.is_current) || null
+      const menu = menuForProfile(menus, r)
       if (!menu) return
       if (!menuGroups.has(menu.id)) menuGroups.set(menu.id, { menu, group: [] })
       menuGroups.get(menu.id).group.push(r)
