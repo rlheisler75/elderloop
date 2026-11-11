@@ -5,9 +5,20 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { residentPlace } from '../../lib/residentPlace'
+import { TABLE_SHAPES, tableLayout, seatBoxes, buildTableSVG } from './tableLayouts'
 import {
-  Armchair, Plus, X, Edit2, Trash2, Printer, ChevronDown, ChevronUp, Home, Coffee, Utensils, StickyNote
+  Armchair, Plus, X, Edit2, Trash2, Printer, ChevronDown, ChevronUp, Home, Coffee, Utensils, StickyNote, List, LayoutGrid
 } from 'lucide-react'
+
+// Which view the seating chart opens in, remembered per browser
+const VIEW_KEY = 'elderloop.seatingView'
+const readView = () => { try { return localStorage.getItem(VIEW_KEY) === 'layout' ? 'layout' : 'list' } catch { return 'list' } }
+
+// Screen colors for the table drawings; print falls back to the defaults
+// written into the SVG
+const DIAGRAM_VARS = '[--seat-bg:#fff] [--seat-line:#cbd5e1] [--table-bg:#e2e8f0] [--table-line:#94a3b8] '
+  + 'dark:[--seat-bg:#0f172a] dark:[--seat-line:#334155] dark:[--seat-text:#e2e8f0] dark:[--seat-muted:#64748b] '
+  + 'dark:[--seat-pref:#38bdf8] dark:[--table-bg:#1e293b] dark:[--table-line:#475569] dark:[--table-text:#cbd5e1]'
 
 const MEAL_PERIODS = [
   { key: 'breakfast', label: 'Breakfast' },
@@ -159,6 +170,8 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
   const [newTableRoom, setNewTableRoom] = useState(null)
   const [newTableLabel, setNewTableLabel] = useState('')
   const [newTableSeats, setNewTableSeats] = useState(4)
+  const [newTableShape, setNewTableShape] = useState('square')
+  const [view, setView]             = useState(readView)
   const [error, setError]           = useState('')
   const [prefsResident, setPrefsResident] = useState(null)
 
@@ -208,10 +221,21 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
     const roomTables = tables.filter(t => t.dining_room_id === roomId)
     const { data } = await supabase.from('dining_tables').insert({
       organization_id: orgId, dining_room_id: roomId, label: newTableLabel.trim(),
-      seat_count: Number(newTableSeats) || 4, sort_order: roomTables.length,
+      seat_count: Number(newTableSeats) || 4, sort_order: roomTables.length, shape: newTableShape,
     }).select().single()
-    setNewTableLabel(''); setNewTableSeats(4); setNewTableRoom(null)
+    setNewTableLabel(''); setNewTableSeats(4); setNewTableShape('square'); setNewTableRoom(null)
     if (data) setTables(t => [...t, data])
+  }
+
+  const handleSetShape = async (id, shape) => {
+    const { error: err } = await supabase.from('dining_tables').update({ shape }).eq('id', id)
+    if (err) { setError('Could not change the table shape.'); return }
+    setTables(t => t.map(x => x.id === id ? { ...x, shape } : x))
+  }
+
+  const changeView = (v) => {
+    setView(v)
+    try { localStorage.setItem(VIEW_KEY, v) } catch { /* private window: just don't remember it */ }
   }
 
   const handleDeleteTable = async (id) => {
@@ -251,8 +275,24 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
     }
   }
 
+  // Who sits where at one table, shaped for buildTableSVG
+  const seatData = (table, dow) => Array.from({ length: table.seat_count }, (_, i) => {
+    const assignment = getAssignment(table.id, i + 1)
+    const resident = assignment ? residentLookup.get(assignment.resident_id) : null
+    if (!resident) return { number: i + 1 }
+    const resolved = resolvePreferences(prefs, resident.id, period, dow)
+    return {
+      number: i + 1, first: resident.first_name, last: resident.last_name,
+      prefs: ['drink', 'silverware', 'other'].flatMap(cat => (resolved[cat] || []).map(p => p.detail)).join(' · '),
+      allergy: (dietLookup.get(resident.id)?.allergens || []).join(', '),
+    }
+  })
+
+  const tableSVG = (table, dow) =>
+    buildTableSVG(tableLayout(table.shape, table.seat_count), table.label, seatData(table, dow))
+
   const handlePrint = () => {
-    const content = printRef.current.innerHTML
+    const content = view === 'layout' ? buildTablesHTML(viewDow) : printRef.current.innerHTML
     const roomName = rooms.find(r => r.id === selectedRoomId)?.name || 'Dining Room'
     const dayNote = viewDow === todayDow ? '' : ` — ${DAY_NAMES[viewDow]}`
     const win = window.open('', '_blank')
@@ -270,12 +310,13 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
         .pref-line { color: #0369a1; font-size: 11px; padding-left: 20px; }
         select { display: none; }
         .print-only { display: inline !important; }
+        .tables.layout { grid-template-columns: repeat(2, 1fr); }
         @media print { button { display: none; } }
       </style></head>
       <body>
         <h1>${roomName}</h1>
         <div class="sub">${MEAL_PERIODS.find(p => p.key === period)?.label} Seating Chart${dayNote}</div>
-        <div class="tables">${content}</div>
+        <div class="tables ${view}">${content}</div>
       </body></html>`)
     win.document.close()
     win.print()
@@ -286,6 +327,7 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
   // each day's drink/silverware resolution is computed for that day, not
   // just whichever one happens to be selected.
   const buildTablesHTML = (dow) => roomTables.map(table => {
+    if (view === 'layout') return `<div class="table-card">${tableSVG(table, dow)}</div>`
     const seatsHtml = Array.from({ length: table.seat_count }, (_, i) => i + 1).map(seatNum => {
       const assignment = getAssignment(table.id, seatNum)
       const resident = assignment ? residentLookup.get(assignment.resident_id) : null
@@ -303,7 +345,7 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
     const daysHtml = DAY_NAMES.map((dayName, i) => `
       <div class="day-section">
         <h2>${dayName}</h2>
-        <div class="tables">${buildTablesHTML(i)}</div>
+        <div class="tables ${view}">${buildTablesHTML(i)}</div>
       </div>`).join('')
     const win = window.open('', '_blank')
     win.document.write(`
@@ -321,6 +363,7 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
         .seat { font-size: 12px; padding: 2px 0; border-bottom: 1px solid #eee; }
         .empty { color: #aaa; font-style: italic; }
         .pref-line { color: #0369a1; font-size: 11px; padding-left: 20px; }
+        .tables.layout { grid-template-columns: repeat(2, 1fr); }
         @media print { button { display: none; } }
       </style></head>
       <body>
@@ -372,7 +415,7 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
                 <div className="flex flex-wrap gap-2 mb-2">
                   {tables.filter(t => t.dining_room_id === room.id).map(t => (
                     <div key={t.id} className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 dark:bg-slate-800 rounded-lg text-xs text-slate-600 dark:text-slate-300">
-                      {t.label} · {t.seat_count} seats
+                      {t.label} · {t.seat_count} seats · {TABLE_SHAPES.find(s => s.key === t.shape)?.label || 'Square'}
                       {canManage && <button onClick={() => handleDeleteTable(t.id)} className="text-slate-400 hover:text-red-500 ml-1"><X size={11} /></button>}
                     </div>
                   ))}
@@ -384,11 +427,15 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
                         className="px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-lg text-xs flex-1 focus:outline-none focus:ring-2 focus:ring-brand-500" />
                       <input type="number" min="1" max="20" value={newTableSeats} onChange={e => setNewTableSeats(e.target.value)} placeholder="Seats"
                         className="w-16 px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                      <select value={newTableShape} onChange={e => setNewTableShape(e.target.value)} title="Table shape"
+                        className="px-2 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        {TABLE_SHAPES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
+                      </select>
                       <button onClick={() => handleAddTable(room.id)} className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-medium rounded-lg">Add</button>
                       <button onClick={() => setNewTableRoom(null)} className="px-2 py-1.5 text-xs text-slate-500 dark:text-slate-400">Cancel</button>
                     </div>
                   ) : (
-                    <button onClick={() => { setNewTableRoom(room.id); setNewTableLabel(''); setNewTableSeats(4) }}
+                    <button onClick={() => { setNewTableRoom(room.id); setNewTableLabel(''); setNewTableSeats(4); setNewTableShape('square') }}
                       className="text-xs text-brand-600 hover:underline flex items-center gap-1"><Plus size={11} /> Add table</button>
                   )
                 )}
@@ -406,6 +453,14 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
             <h3 className="font-display font-semibold text-slate-800 dark:text-slate-100">Seating Chart</h3>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+              {[['list', 'List', List], ['layout', 'Table layout', LayoutGrid]].map(([key, label, Icon]) => (
+                <button key={key} onClick={() => changeView(key)}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${view === key ? 'bg-white dark:bg-slate-900 text-brand-700 dark:text-brand-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
+                  <Icon size={12} /> {label}
+                </button>
+              ))}
+            </div>
             <select value={selectedRoomId || ''} onChange={e => setSelectedRoomId(e.target.value)}
               className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
               {rooms.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
@@ -444,6 +499,43 @@ export default function SeatingCharts({ orgId, dietaryProfiles, canManage }) {
           <div className="text-slate-400 text-sm py-6 text-center">Add a dining room above to start building a seating chart.</div>
         ) : roomTables.length === 0 ? (
           <div className="text-slate-400 text-sm py-6 text-center">No tables in this room yet — add one above.</div>
+        ) : view === 'layout' ? (
+          <>
+            {canManage && <p className="text-xs text-slate-400 mb-3">Seat 1 is at the top and the rest go clockwise. Tap a seat to put a resident in it.</p>}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+              {roomTables.map(table => {
+                const layout = tableLayout(table.shape, table.seat_count)
+                return (
+                  <div key={table.id} className="border border-slate-100 dark:border-slate-800 rounded-xl p-3">
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <div className="font-medium text-slate-800 dark:text-slate-100 text-sm">{table.label}</div>
+                      {canManage && (
+                        <select value={table.shape || 'square'} onChange={e => handleSetShape(table.id, e.target.value)} title="Table shape"
+                          className="px-2 py-1 border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+                          {TABLE_SHAPES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
+                        </select>
+                      )}
+                    </div>
+                    {/* The drawing is plain SVG (same markup the print window uses);
+                        each seat gets an invisible <select> laid over it */}
+                    <div className={`relative mx-auto ${DIAGRAM_VARS}`} style={{ maxWidth: layout.width }}>
+                      <div dangerouslySetInnerHTML={{ __html: tableSVG(table, viewDow) }} />
+                      {canManage && seatBoxes(layout).map((b, i) => (
+                        <select key={i} aria-label={`${table.label}, seat ${i + 1}`}
+                          value={getAssignment(table.id, i + 1)?.resident_id || ''}
+                          onChange={e => handleAssignSeat(table.id, i + 1, e.target.value)}
+                          className="absolute opacity-0 cursor-pointer"
+                          style={{ left: `${b.left}%`, top: `${b.top}%`, width: `${b.width}%`, height: `${b.height}%` }}>
+                          <option value="">— empty —</option>
+                          {allResidents.map(r => <option key={r.id} value={r.id}>{r.first_name} {r.last_name} {r.room ? `(${residentPlace(r)})` : ''}</option>)}
+                        </select>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <div ref={printRef} className="contents">
