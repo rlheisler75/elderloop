@@ -12,6 +12,39 @@ import {
   Church, ArrowRight, Clock, CheckCircle2, TrendingUp,
   Bell, Users, Activity, Zap, Shield, Utensils, CalendarCheck, TrendingDown, UserX
 } from 'lucide-react'
+import { activeWeeks } from '../../lib/appreciationWeeks'
+import { accentSwatch } from '../../lib/accentColors'
+
+// ── Celebration banner ─────────────────────────────────────────
+// Shown while one of the community's celebrations (Admin Panel → Celebrations)
+// is running, in that celebration's color. Overlapping ones all show; the
+// most recently started leads, same as the "Celebrate" accent.
+const fmtDay = d => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+
+function CelebrationBanner({ list }) {
+  const now = activeWeeks(list)
+  if (!now.length) return null
+  const [lead, ...rest] = now
+  const oneDay = lead.start.getTime() === lead.end.getTime()
+  return (
+    <div className="rounded-2xl px-5 py-4 text-white shadow-sm flex items-center gap-4"
+      style={{ background: `linear-gradient(120deg, ${accentSwatch(lead.accent)}, ${accentSwatch(lead.accent)}cc)` }}>
+      <div className="text-4xl leading-none flex-shrink-0" aria-hidden="true">{lead.emoji || '🎉'}</div>
+      <div className="min-w-0">
+        <div className="font-display text-xl font-semibold leading-tight">Happy {lead.name}!</div>
+        <div className="text-sm text-white/85 mt-0.5">
+          {oneDay ? 'Today' : `${fmtDay(lead.start)} – ${fmtDay(lead.end)}`}
+          {' · '}Thank you to everyone we're celebrating.
+        </div>
+        {rest.length > 0 && (
+          <div className="text-sm text-white/85 mt-1">
+            Also celebrating: {rest.map(w => `${w.emoji || '🎉'} ${w.name}`).join(', ')}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
 
 // ── Stat Card ──────────────────────────────────────────────────
 function StatCard({ icon: Icon, label, value, sub, color, bg, to, alert }) {
@@ -82,7 +115,7 @@ const today = () => {
 
 // ── Main Dashboard ─────────────────────────────────────────────
 export default function Dashboard() {
-  const { profile, organization, hasModule, orgModules, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
+  const { profile, organization, hasModule, orgModules, hasDepartmentAccess, hasAnyDepartmentLevel, celebrations } = useAuth()
   const navigate = useNavigate()
   const [data, setData]       = useState({})
   const [feed, setFeed]       = useState([])
@@ -307,6 +340,8 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      <CelebrationBanner list={celebrations} />
 
       {alerts.length > 0 && (
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-red-100 dark:border-red-900/50 shadow-sm p-4">

@@ -134,15 +134,16 @@ export function AuthProvider({ children }) {
   }, [profile?.accent_color, celebrations])
 
   // The community's own celebration calendar (Admin Panel → Celebrations);
-  // none saved means ElderLoop's defaults. Only needed for 'celebrate'.
+  // none saved means ElderLoop's defaults. Drives the 'celebrate' accent and
+  // the Dashboard's celebration banner, so it loads for everyone.
   const refreshCelebrations = async () => {
     const orgId = organization?.id
-    if (!orgId || profile?.accent_color !== 'celebrate') { setCelebrations(DEFAULT_CELEBRATIONS); return }
+    if (!orgId) { setCelebrations(DEFAULT_CELEBRATIONS); return }
     const { data } = await supabase.from('org_celebrations').select('*')
       .eq('organization_id', orgId).order('sort').order('created_at')
     setCelebrations(data?.length ? data.filter(c => c.enabled) : DEFAULT_CELEBRATIONS)
   }
-  useEffect(() => { refreshCelebrations() }, [organization?.id, profile?.accent_color])
+  useEffect(() => { refreshCelebrations() }, [organization?.id])
 
   // Light/dark mode — a per-user Settings preference (not OS-level), so it's
   // driven by profile.theme_mode via Tailwind's `darkMode: 'class'`.
