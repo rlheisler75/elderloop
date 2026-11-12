@@ -396,7 +396,7 @@ export default function App() {
           <Route path="budgets"
             element={<ProtectedRoute requireModule="budgets"><Lazy><Budgets /></Lazy></ProtectedRoute>} />
           <Route path="central-supply" 
-            element={<ProtectedRoute requireModule="central_supply"><CentralSupply /></ProtectedRoute>} />
+            element={<ProtectedRoute requireModule="central_supply" allStaff><CentralSupply /></ProtectedRoute>} />
 
         </Route>
 

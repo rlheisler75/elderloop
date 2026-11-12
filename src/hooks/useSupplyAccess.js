@@ -14,11 +14,19 @@ import { useAuth } from '../context/AuthContext'
 //               Org Admin, plus the Administrator in legacy communities.
 //   canSeeCharges — the Resident Charges tab: anyone who can bill, plus the
 //               Administrator (view only in tiered communities).
+//   checkoutOnly — no Central Supply permission at all (staff of other departments):
+//               only Issue / Checkout, to their own departments or a resident, through
+//               supply_issue() (20261111_supply_checkout_everyone.sql). Central Supply
+//               Employees and Supervisors have the Manager's permissions since then.
 //   canOrder  — send submitted orders to vendors (download / print / email). Mirrors
 //               supply_can_order() (20261004_vendor_ordering.sql): whoever manages
 //               purchase orders, Org Admins, and the Administrator only in legacy communities.
 export function useSupplyAccess() {
-  const { accessModel, tierFor, canEdit, isViewOnly, hasDepartmentAccess, hasAnyDepartmentLevel, profile, isSuperAdmin, can } = useAuth()
+  const { accessModel, tierFor, canEdit, isViewOnly, hasDepartmentAccess, hasAnyDepartmentLevel, profile, isSuperAdmin, can, hasModule, orgModules } = useAuth()
+
+  if (orgModules.includes('central_supply') && !hasModule('central_supply')) {
+    return { canWork: false, canManage: false, showCosts: false, canBill: false, canSeeCharges: false, canOrder: false, checkoutOnly: true }
+  }
 
   const role = isSuperAdmin ? 'super_admin' : profile?.role
   // Billing resident charges = Central Supply Costs (supply_can_bill())

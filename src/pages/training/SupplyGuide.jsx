@@ -21,7 +21,7 @@ export default function SupplyGuide() {
         eyebrow="ElderLoop Staff Training"
         title="Central Supply"
         dek="A working guide to the supply catalog — receiving stock, issuing it to departments or residents, ringing up cash sales, and ordering more from vendors."
-        chips={['For: Supply staff, Supervisors, Managers', 'Where: Sidebar → Central Supply', '7 sections']}
+        chips={['For: Supply staff; Issue / Checkout for all staff', 'Where: Sidebar → Central Supply', '7 sections']}
       />
 
       <div className="max-w-5xl mx-auto px-6 grid md:grid-cols-[200px_minmax(0,1fr)] gap-10 py-4">
@@ -63,6 +63,7 @@ export default function SupplyGuide() {
               { k: 2, text: <>Search or scan items to add them, and adjust quantity — a line flags <b className="text-slate-900">Over stock!</b> if you request more than what's on hand, though it won't block the issue.</> },
               { k: 3, text: <>Click <b className="text-slate-900">Issue</b> to post — quantity on hand decreases immediately.</> },
             ]} />
+            <Tip>Staff outside Central Supply (employees, supervisors, and managers of other departments) see only this tab. They can scan supplies out to their own department or to a resident, and nothing else. Central Supply employees and supervisors have the same access as the Central Supply Manager.</Tip>
             <Tip>Charging an item to a resident here records it for reporting and audit purposes only — it does not create a billing charge on the resident's account automatically.</Tip>
           </SectionBlock>
 

@@ -60,7 +60,7 @@ const NAV_GROUPS = [
       { to: '/app/housekeeping',        label: 'Housekeeping',   icon: SprayCan,        module: 'housekeeping' },
       { to: '/app/property-management', label: 'Property Mgmt', icon: Home,            module: 'property_management' },
       { to: '/app/meters',              label: 'Meter Readings', icon: Gauge,           module: 'meters' },
-      { to: '/app/central-supply',      label: 'Central Supply', icon: ShoppingBag,     module: 'central_supply' },
+      { to: '/app/central-supply',      label: 'Central Supply', icon: ShoppingBag,     module: 'central_supply', allStaff: true },
       { to: '/app/transportation',      label: 'Transportation', icon: Car,             module: 'transportation' },
       { to: '/app/security',            label: 'Security',       icon: Shield,          module: 'security' },
       { to: '/app/dietary',             label: 'Dietary',        icon: UtensilsCrossed, module: 'dietary' },

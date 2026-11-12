@@ -26,7 +26,7 @@ const ALL_TABS = [
 ]
 
 export default function CentralSupply() {
-  const { hasModule } = useAuth()
+  const { orgModules } = useAuth()
   const [tab, setTab] = useState('inventory')
 
   // Supply staff/supervisors/managers get edit by default for central_supply;
@@ -34,9 +34,11 @@ export default function CentralSupply() {
   // View-only users see Inventory, Purchase Orders, Vendors, and Reports in read-only
   // mode; Receive/Issue/Cash Sales are pure write-workflows and are hidden entirely
   // for view-only users.
-  const { canWork: canEditSupply, canSeeCharges } = useSupplyAccess()
+  // Staff outside Central Supply only scan out (checkoutOnly): Issue / Checkout,
+  // to their own departments or a resident
+  const { canWork: canEditSupply, canSeeCharges, checkoutOnly } = useSupplyAccess()
 
-  if (!hasModule('central_supply')) {
+  if (!orgModules.includes('central_supply')) {
     return (
       <div className="flex items-center justify-center h-64 text-slate-400">
         <div className="text-center">
@@ -48,7 +50,9 @@ export default function CentralSupply() {
     )
   }
 
-  const TABS = ALL_TABS.filter(t => (!t.editOnly || canEditSupply) && (!t.chargesOnly || canSeeCharges))
+  const TABS = checkoutOnly
+    ? ALL_TABS.filter(t => t.key === 'issue')
+    : ALL_TABS.filter(t => (!t.editOnly || canEditSupply) && (!t.chargesOnly || canSeeCharges))
   // If the current tab is no longer visible (e.g. permission downgraded), fall back to inventory
   const current = TABS.find(t => t.key === tab) || TABS[0]
   const ActiveComponent = current?.component
@@ -90,7 +94,7 @@ export default function CentralSupply() {
 
       {/* ── Tab content ── */}
       <div className="flex-1 overflow-y-auto">
-        {ActiveComponent && <ActiveComponent canEdit={canEditSupply} />}
+        {ActiveComponent && <ActiveComponent canEdit={canEditSupply} checkoutOnly={checkoutOnly} />}
       </div>
     </div>
   )

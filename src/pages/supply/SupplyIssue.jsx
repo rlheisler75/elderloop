@@ -5,11 +5,17 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { PackageMinus, Search, ScanLine, CheckCircle2, X, User, Building2, QrCode } from 'lucide-react'
 import BarcodeScanner from './BarcodeScanner'
+import { getOrgDepartments } from '../../lib/departments'
 
 const DEPARTMENTS = ['Nursing','Housekeeping','Dietary','Maintenance','Administration','Activities','Transportation']
 
-export default function SupplyIssue() {
-  const { organization, profile } = useAuth()
+// checkoutOnly: staff outside Central Supply, who may issue only to their own
+// departments (or a resident). supply_issue() enforces the same.
+export default function SupplyIssue({ checkoutOnly = false }) {
+  const { organization, profile, departmentRoles } = useAuth()
+  const myDepartments = [...new Set([...departmentRoles.map(d => d.department), profile?.department].filter(Boolean))]
+    .map(k => getOrgDepartments(organization).find(d => d.key === k)?.label || k)
+  const departments = checkoutOnly ? myDepartments : DEPARTMENTS
   const [issueType, setIssueType]   = useState('dept')  // 'dept' | 'resident'
   const [items,     setItems]       = useState([])
   const [residents, setResidents]   = useState([])
@@ -17,7 +23,7 @@ export default function SupplyIssue() {
   const [itemSearch, setItemSearch] = useState('')
   const [resSearch,  setResSearch]  = useState('')
   const [selectedResident, setSelectedResident] = useState(null)
-  const [selectedDept,     setSelectedDept]     = useState('')
+  const [selectedDept,     setSelectedDept]     = useState(checkoutOnly && myDepartments.length === 1 ? myDepartments[0] : '')
   const [lines,    setLines]        = useState([])
   const [notes,    setNotes]        = useState('')
   const [saving,   setSaving]       = useState(false)
@@ -66,34 +72,22 @@ export default function SupplyIssue() {
     if (issueType === 'resident' && !selectedResident) { alert('Select a resident.'); return }
     setSaving(true)
 
-    for (const line of validLines) {
-      const qty    = Number(line.quantity)
-      const before = Number(line.quantity_on_hand)
-      const after  = Math.max(0, before - qty)
-      await supabase.from('supply_items').update({ quantity_on_hand: after }).eq('id', line.supply_item_id)
-      await supabase.from('supply_transactions').insert({
-        organization_id: organization.id,
-        supply_item_id: line.supply_item_id,
-        transaction_type: issueType === 'resident' ? 'issue_resident' : 'issue_dept',
-        quantity: -qty,
-        quantity_before: before,
-        quantity_after: after,
-        department: issueType === 'dept' ? selectedDept : null,
-        resident_id: issueType === 'resident' ? selectedResident.id : null,
-        performed_by: profile.id,
-        // Prices at the time of issue, so later price changes don't rewrite spend or billing
-        unit_cost: line.unit_cost ?? null,
-        sale_price: line.sale_price ?? null,
-        notes: notes || null,
-      })
-    }
-
+    // One call updates stock and records each issue with the item's cost and sale
+    // price at this moment, so later price changes don't rewrite spend or billing
+    const { error } = await supabase.rpc('supply_issue', {
+      p_lines: validLines.map(l => ({ supply_item_id: l.supply_item_id, quantity: Number(l.quantity) })),
+      p_department: issueType === 'dept' ? selectedDept : null,
+      p_resident: issueType === 'resident' ? selectedResident.id : null,
+      p_notes: notes || null,
+    })
     setSaving(false)
+    if (error) { alert(error.message); return }
+
     setSuccess(true)
     setLines([])
     setNotes('')
     setSelectedResident(null)
-    setSelectedDept('')
+    setSelectedDept(checkoutOnly && myDepartments.length === 1 ? myDepartments[0] : '')
     fetchData()
     setTimeout(() => setSuccess(false), 3000)
   }
@@ -144,7 +138,8 @@ export default function SupplyIssue() {
         <div className="mb-5">
           <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">Department</label>
           <div className="flex gap-2 flex-wrap">
-            {DEPARTMENTS.map(d => (
+            {departments.length === 0 && <p className="text-sm text-slate-400">You aren't in a department yet. Ask your supervisor to add you to one, or issue to a resident.</p>}
+            {departments.map(d => (
               <button key={d} onClick={() => setSelectedDept(d)}
                 className={`px-3 py-1.5 rounded-xl border text-sm font-medium transition-all ${selectedDept === d ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
                 {d}

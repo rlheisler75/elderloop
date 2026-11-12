@@ -21,7 +21,7 @@ const MODULE_ROWS = [
   ['Work Orders', 'See every job; claim open ones; hand off your own job to another tech', 'Whole queue; assign and triage', 'PM schedules, settings, deletes'],
   ['Dietary', 'Log food waste, special requests, seating charts', 'Diet profiles, physician orders', 'Menus, recipes, food budget'],
   ['Housekeeping', 'Record your own inspections', 'Correct any inspection; bill IL cleaning', 'Areas, checklists, deletes'],
-  ['Central Supply', 'Receive, issue, count stock', 'Same as staff', 'Items, vendors, prices, purchase orders'],
+  ['Central Supply', 'Central Supply staff: everything, same as the Manager. Other departments: scan out to your own department or a resident only', 'Same as staff', 'Items, vendors, prices, purchase orders'],
   ['Social Services', 'Your caseload + unassigned residents', 'Everyone; assign caseloads', 'Close grievances (with the NHA)'],
   ['Nursing', 'Notes and vitals under your name', 'Correct any note', 'Medication lists (DON)'],
   ['Incidents', 'File and see your own reports', 'See and investigate every report', 'Close: NHA or Org Admin'],
