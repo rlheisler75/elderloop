@@ -59,8 +59,8 @@ export default function DirectoryGuide() {
             <Frame src={SHOT('staff-directory.png')} alt="Staff Directory" caption="Staff-level employees see profiles marked Public, plus their own, with work email and work phone only" />
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
             <Steps items={[
-              { k: 1, text: <>Search or filter by department. Supervisors and up can click <b className="text-slate-900">My Profile</b> to edit their own entry.</> },
-              { k: 2, text: <>Staff-level employees can only view the directory, and they see each coworker's work email and work phone but not cell phones. Supervisors and up can edit their own <b className="text-slate-900">Bio</b> and toggle <b className="text-slate-900">Directory Visibility</b> (Public to all staff, or Supervisors &amp; above only).</> },
+              { k: 1, text: <>Search or filter by department. Click <b className="text-slate-900">My Profile</b> to edit your own entry.</> },
+              { k: 2, text: <>Everyone can edit their own <b className="text-slate-900">Bio</b> and toggle <b className="text-slate-900">Directory Visibility</b> (Public to all staff, or Supervisors &amp; above only). Staff-level employees edit only their own entry, and see coworkers' work email and work phone but not cell phones.</> },
               { k: 3, text: <>Supervisors and above can edit anyone's job title, department, email, phone, and office location, and see a "Private" label on profiles hidden from regular staff.</> },
             ]} />
             <Tip warn>This is a read-mostly contact list, not the place to hire someone. New staff accounts and role/permission assignment happen in Staff Management.</Tip>
@@ -71,7 +71,7 @@ export default function DirectoryGuide() {
             ['Add a new resident', 'Residents → Add Resident (Supervisor+)'],
             ['Grant family or resident portal access', 'Residents → click a card → Info tab'],
             ['Find a coworker’s phone number', 'Staff Directory → search'],
-            ['Edit your own directory listing', 'Staff Directory → My Profile (Supervisor+)'],
+            ['Edit your own directory listing', 'Staff Directory → My Profile'],
           ]} />
 
           <GuideFooter label="Directory Module" />

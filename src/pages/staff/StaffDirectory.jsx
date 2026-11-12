@@ -183,8 +183,8 @@ function EditProfileModal({ staffMember, isSelf, canEditAll, departments, onClos
                   </div>
                   <p className="text-xs text-slate-400 mt-0.5">
                     {form.directory_public
-                      ? 'All coworkers can see your contact info in the directory.'
-                      : 'Only supervisors, managers, and admins can see your contact info.'}
+                      ? 'All coworkers see your name, work email, and work phone. Supervisors and up also see your cell phone.'
+                      : 'Only supervisors, managers, and admins see you in the directory.'}
                   </p>
                 </div>
               </label>
@@ -211,7 +211,7 @@ function StaffCard({ member, canSeeAll, viewOnly, isSelf, canEdit, departments, 
   const getDept = (key) => departments.find(d => d.key === key)?.label || key || '—'
 
   return (
-    <div className={`bg-white dark:bg-slate-900 rounded-2xl border shadow-sm hover:shadow-md transition-all overflow-hidden ${!member.directory_public && !canSeeAll ? 'opacity-50' : ''} ${isSelf ? 'border-brand-300 ring-2 ring-brand-100' : 'border-slate-100 dark:border-slate-800'}`}>
+    <div className={`bg-white dark:bg-slate-900 rounded-2xl border shadow-sm hover:shadow-md transition-all overflow-hidden ${!member.directory_public && !canSeeAll && !isSelf ? 'opacity-50' : ''} ${isSelf ? 'border-brand-300 ring-2 ring-brand-100' : 'border-slate-100 dark:border-slate-800'}`}>
       {/* Card header */}
       <div className="p-5">
         <div className="flex items-start gap-4">
@@ -285,7 +285,7 @@ function StaffCard({ member, canSeeAll, viewOnly, isSelf, canEdit, departments, 
                 <span className="text-slate-400">work</span>
               </a>
             )}
-            {member.cell_phone && !viewOnly && (
+            {member.cell_phone && (!viewOnly || isSelf) && (
               <a href={`tel:${member.cell_phone}`}
                 className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300 hover:text-brand-600 transition-colors group">
                 <Phone size={12} className="text-slate-400 group-hover:text-brand-500 flex-shrink-0" />
@@ -325,7 +325,8 @@ export default function StaffDirectory() {
   const canSeeAll = hasAnyDepartmentLevel('supervisor')
   const canManageDept = (dept) => hasDepartmentAccess(dept, 'supervisor') || hasAnyDepartmentLevel('manager')
   // Staff-level employees (no Supervisor level anywhere, no Staff permission such as HR)
-  // view only: names, titles, work email and work phone. No cell phones, no editing.
+  // see names, titles, work email and work phone (no cell phones) and edit only their
+  // own entry: visibility, cell phone, bio.
   const viewOnly = !canSeeAll && !hasModule('staff')
 
   useEffect(() => { if (organization) fetchStaff() }, [organization, viewOnly])
@@ -339,15 +340,15 @@ export default function StaffDirectory() {
       .not('role', 'in', '(resident,family)')
       .eq('is_active', true)
       .order('last_name').order('first_name')
-    setStaff(viewOnly ? (data || []) : await withPrivateFields(data))
+    setStaff(await withPrivateFields(data)) // staff-level: only their own private fields come back
     setLoading(false)
   }
 
   const handleEdit = (member) => setEditMember(member)
 
-  const canEditMember = (member) => !viewOnly && (
-    member.id === profile.id           // own profile
-    || canManageDept(member.department)) // supervises this person's department
+  // Everyone edits their own entry (staff-level: visibility, cell phone, bio only)
+  const canEditMember = (member) => member.id === profile.id || (!viewOnly && canManageDept(member.department))
+  const canEditAllFields = (member) => !viewOnly && canEditMember(member)
 
   // Filter
   const filtered = staff.filter(s => {
@@ -382,12 +383,10 @@ export default function StaffDirectory() {
           <p className="text-slate-500 text-sm mt-0.5">Find and contact your coworkers</p>
         </div>
         {/* Edit own profile shortcut */}
-        {!viewOnly && (
         <button onClick={() => setEditMember(staff.find(s => s.id === profile.id) || null)}
           className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 hover:border-brand-300 text-slate-600 dark:text-slate-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
           <Edit2 size={15} /> My Profile
         </button>
-        )}
       </div>
 
       {/* Stats */}
@@ -475,7 +474,7 @@ export default function StaffDirectory() {
         <EditProfileModal
           staffMember={editMember}
           isSelf={editMember.id === profile.id}
-          canEditAll={canEditMember(editMember)}
+          canEditAll={canEditAllFields(editMember)}
           departments={departments}
           onClose={() => setEditMember(null)}
           onSaved={() => { setEditMember(null); fetchStaff() }}
