@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
+import { withPrivateFields } from '../../lib/profilePrivate'
 import {
   UserPlus, Copy, Check, Loader2, AlertCircle, Edit2, Save, X,
   Power, PowerOff, RefreshCw, Eye, EyeOff, KeyRound
@@ -269,12 +270,12 @@ export default function RepAccountsTab() {
   async function fetchAll() {
     setLoading(true)
     const [{ data: profs }, { data: codes }] = await Promise.all([
-      supabase.from('profiles').select('id, first_name, last_name, email, phone, is_active, created_at').eq('role', 'sales_rep').order('created_at', { ascending: false }),
+      supabase.from('profiles').select('id, first_name, last_name, email, is_active, created_at').eq('role', 'sales_rep').order('created_at', { ascending: false }),
       supabase.from('rep_codes').select('id, code, is_active, rep_id'),
     ])
     const codeByRep = {}
     ;(codes || []).forEach(c => { if (c.rep_id) codeByRep[c.rep_id] = c })
-    setReps((profs || []).map(p => ({ ...p, rep_code: codeByRep[p.id] || null })))
+    setReps((await withPrivateFields(profs)).map(p => ({ ...p, rep_code: codeByRep[p.id] || null })))
     setLoading(false)
   }
 

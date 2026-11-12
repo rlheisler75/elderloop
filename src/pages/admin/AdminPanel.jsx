@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { PROFILE_COLS, withPrivateFields } from '../../lib/profilePrivate'
 import { useAuth } from '../../context/AuthContext'
 import {
   Users, Building2, Settings, Plus, X, Edit2, Trash2,
@@ -843,12 +844,12 @@ export default function AdminPanel() {
 
   async function fetchUsers() {
     const [usersRes, modulesRes, allModsRes, mfaRes] = await Promise.all([
-      supabase.from('profiles').select('*').eq('organization_id', currentOrgId).neq('role','super_admin').order('last_name'),
+      supabase.from('profiles').select(PROFILE_COLS).eq('organization_id', currentOrgId).neq('role','super_admin').order('last_name'),
       supabase.from('organization_modules').select('*').eq('organization_id', currentOrgId),
       supabase.from('modules').select('key, label').eq('is_active', true).order('label'),
       supabase.rpc('org_mfa_status', { p_org: currentOrgId }),
     ])
-    setUsers(usersRes.data || [])
+    setUsers(await withPrivateFields(usersRes.data))
     setOrgModules(modulesRes.data || [])
     setAllModules(allModsRes.data || [])
     setMfaByUser(Object.fromEntries((mfaRes.data || []).map(r => [r.profile_id, r])))

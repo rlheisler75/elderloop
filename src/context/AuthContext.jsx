@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { PROFILE_COLS, withPrivateField } from '../lib/profilePrivate'
 import { useSessionTimeout } from '../hooks/useSessionTimeout'
 import SessionTimeoutModal from '../components/SessionTimeoutModal'
 import { tierFor as tierForProfile, NHA_WRITABLE_MODULES, MODULE_DEPARTMENTS } from '../lib/accessTiers'
@@ -154,8 +155,9 @@ export function AuthProvider({ children }) {
   async function fetchProfile(userId) {
     setLoading(true)
     try {
-      const { data: prof } = await supabase
-        .from('profiles').select('*').eq('id', userId).single()
+      const { data: own } = await supabase
+        .from('profiles').select(PROFILE_COLS).eq('id', userId).single()
+      const prof = await withPrivateField(own)
       setProfile(prof)
       if (prof) loadedUserRef.current = userId
 
@@ -374,8 +376,8 @@ export function AuthProvider({ children }) {
 
   const refreshProfile = async () => {
     if (!user?.id) return
-    const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-    if (data) setProfile(data)
+    const { data } = await supabase.from('profiles').select(PROFILE_COLS).eq('id', user.id).single()
+    if (data) setProfile(await withPrivateField(data))
   }
 
   const refreshDepartmentRoles = async () => {

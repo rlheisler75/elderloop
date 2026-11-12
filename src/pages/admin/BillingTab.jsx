@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
+import { withPrivateField } from '../../lib/profilePrivate'
 import { useAuth } from '../../context/AuthContext'
 import {
   CreditCard, CheckCircle, AlertTriangle, XCircle, Clock,
@@ -170,10 +171,10 @@ export default function BillingTab() {
     if (data?.rep_id) {
       const { data: rep } = await supabase
         .from('profiles')
-        .select('first_name, last_name, email, phone')
+        .select('id, first_name, last_name, email')
         .eq('id', data.rep_id)
         .single()
-      setRepInfo(rep || null)
+      setRepInfo(rep ? await withPrivateField(rep) : null)
     } else {
       setRepInfo(null)
     }

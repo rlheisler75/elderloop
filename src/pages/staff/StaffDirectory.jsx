@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { withPrivateFields } from '../../lib/profilePrivate'
 import { useAuth } from '../../context/AuthContext'
 import {
   Search, Phone, Mail, MapPin, Building2, Edit2, X,
@@ -333,12 +334,12 @@ export default function StaffDirectory() {
     setLoading(true)
     const { data } = await supabase
       .from('profiles')
-      .select(`id,first_name,last_name,role,department,job_title,email,work_phone,${viewOnly ? '' : 'cell_phone,'}office_location,bio,directory_public,avatar_url,status,is_active`)
+      .select('id,first_name,last_name,role,department,job_title,email,work_phone,office_location,bio,directory_public,avatar_url,status,is_active')
       .eq('organization_id', organization.id)
       .not('role', 'in', '(resident,family)')
       .eq('is_active', true)
       .order('last_name').order('first_name')
-    setStaff(data || [])
+    setStaff(viewOnly ? (data || []) : await withPrivateFields(data))
     setLoading(false)
   }
 

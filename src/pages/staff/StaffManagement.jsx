@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { PROFILE_COLS, withPrivateFields } from '../../lib/profilePrivate'
 import { useAuth } from '../../context/AuthContext'
 import { CAPPED_PLANS } from '../../lib/planModules'
 import {
@@ -765,7 +766,7 @@ export default function StaffManagement() {
     const _cutoff = new Date(); _cutoff.setDate(_cutoff.getDate() + 30)
     const cutoffStr = `${_cutoff.getFullYear()}-${String(_cutoff.getMonth()+1).padStart(2,'0')}-${String(_cutoff.getDate()).padStart(2,'0')}`
     const [staffRes, certTypesRes, certRes] = await Promise.all([
-      supabase.from('profiles').select('*')
+      supabase.from('profiles').select(PROFILE_COLS)
         .eq('organization_id', organization.id)
         .not('role', 'in', '(resident,family)')
         .order('last_name').order('first_name'),
@@ -778,7 +779,7 @@ export default function StaffManagement() {
         .lte('expiry_date', cutoffStr)
         .order('expiry_date'),
     ])
-    setStaff(staffRes.data || [])
+    setStaff(await withPrivateFields(staffRes.data))
     setCertTypes(certTypesRes.data || [])
     setCertAlerts(certRes.data || [])
     setLoading(false)

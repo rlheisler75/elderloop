@@ -840,7 +840,7 @@ export default function Scheduling() {
         .eq('organization_id', organization.id)
         .gte('shift_date', monthStart).lte('shift_date', monthEnd)
         .order('shift_date').order('start_time'),
-      supabase.from('profiles').select('id,first_name,last_name,role,department,job_title,status,phone')
+      supabase.from('profiles').select('id,first_name,last_name,role,department,job_title,status')
         .eq('organization_id', organization.id)
         .not('role', 'in', '(resident,family)')
         .eq('status', 'active').order('last_name'),

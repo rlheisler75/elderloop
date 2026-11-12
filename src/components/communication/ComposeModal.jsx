@@ -5,6 +5,7 @@ import { X, Mail, MessageSquare, Bell, ChevronDown, ChevronUp, Send, Loader2,
          Users, User, Building2, Heart, Stethoscope, Wrench, UtensilsCrossed,
          SprayCan, AlertTriangle, Calendar, Megaphone, Activity, Clock, Search } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { withPrivateFields } from '../../lib/profilePrivate'
 import { useAuth } from '../../context/AuthContext'
 import AiMessageWriter from './AiMessageWriter'
 import { residentPlace } from '../../lib/residentPlace'
@@ -105,14 +106,15 @@ export default function ComposeModal({ onClose, onSent, prefill = null, restrict
     // Staff + family come from profiles (they have auth accounts)
     let profileQuery = supabase
       .from('profiles')
-      .select('id, first_name, last_name, role, email, cell_phone, phone, department, sms_opt_in')
+      .select('id, first_name, last_name, role, email, department, sms_opt_in')
       .eq('organization_id', organization.id)
       .eq('is_active', true)
       .not('role', 'in', '(super_admin,resident)')
       .order('last_name')
     if (restrictToDepartment) profileQuery = profileQuery.eq('department', restrictToDepartment)
 
-    const { data: profileData } = await profileQuery
+    const { data: profileRows } = await profileQuery
+    const profileData = await withPrivateFields(profileRows)
 
     if (profileData) {
       setFamilyList(restrictToDepartment ? [] : profileData.filter(p => p.role === 'family'))
