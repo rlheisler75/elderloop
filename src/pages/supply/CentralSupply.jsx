@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useSupplyAccess } from '../../hooks/useSupplyAccess'
 import {
@@ -27,7 +28,9 @@ const ALL_TABS = [
 
 export default function CentralSupply() {
   const { orgModules } = useAuth()
-  const [tab, setTab] = useState('inventory')
+  // ?tab= opens a tab directly (Dashboard → Central Supply links)
+  const [searchParams] = useSearchParams()
+  const [tab, setTab] = useState(searchParams.get('tab') || 'inventory')
 
   // Supply staff/supervisors/managers get edit by default for central_supply;
   // org admins can grant/restrict edit access per-user via Admin Panel > Module Access.

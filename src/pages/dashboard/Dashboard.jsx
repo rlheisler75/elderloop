@@ -6,6 +6,7 @@ import PushPermissionModal from '../../components/modals/PushPermissionModal'
 import { ServiceRequestModal } from '../dietary/ServiceRequests'
 import { computeWeightAlerts } from '../dietary/malnutritionAlerts'
 import { computeEngagementAlerts } from '../activities/engagementAlerts'
+import SupplyDashboard from './SupplyDashboard'
 import {
   MessageSquare, Wrench, UtensilsCrossed, SprayCan,
   Car, CalendarDays, AlertTriangle, BookUser, Gauge,
@@ -115,7 +116,10 @@ const today = () => {
 
 // ── Main Dashboard ─────────────────────────────────────────────
 export default function Dashboard() {
-  const { profile, organization, hasModule, orgModules, hasDepartmentAccess, hasAnyDepartmentLevel, celebrations } = useAuth()
+  const { profile, organization, hasModule, orgModules, hasDepartmentAccess, hasAnyDepartmentLevel, celebrations, departmentRoles, tierFor } = useAuth()
+  // Central Supply section: people in the Central Supply department, and its Managers
+  const showSupply = hasModule('central_supply') && (profile?.department === 'central_supply'
+    || departmentRoles.some(r => r.department === 'central_supply') || tierFor('central_supply') === 'manager')
   const navigate = useNavigate()
   const [data, setData]       = useState({})
   const [feed, setFeed]       = useState([])
@@ -342,6 +346,8 @@ export default function Dashboard() {
       </div>
 
       <CelebrationBanner list={celebrations} />
+
+      {showSupply && <SupplyDashboard orgId={organization?.id} />}
 
       {alerts.length > 0 && (
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-red-100 dark:border-red-900/50 shadow-sm p-4">
