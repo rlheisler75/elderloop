@@ -180,7 +180,9 @@ function PortalEmailChange({ profileId, email, onChanged }) {
 }
 
 // ── Resident Detail / Edit ─────────────────────────────────────
-function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
+// limited: staff without contact access see only name, room/address, care level and phone
+// (no birth date, admission date, emergency/medical contacts, family, or print)
+function ResidentDetail({ resident, canEdit, limited = false, onClose, onSave, onDelete }) {
   const { profile } = useAuth()
   const fileRef = useRef()
   const isNew = !resident
@@ -479,11 +481,11 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
               <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">
                 {isNew ? 'Add Resident' : `${form.first_name} ${form.last_name}`}
               </h2>
-              {!isNew && age && <p className="text-xs text-slate-400">Age {age}</p>}
+              {!isNew && age && !limited && <p className="text-xs text-slate-400">Age {age}</p>}
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {!isNew && (
+            {!isNew && !limited && (
               <button onClick={() => setShowPrint(true)}
                 className="p-2 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 transition-colors">
                 <Printer size={16} />
@@ -499,7 +501,7 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
             { key: 'info',      label: 'Info',              icon: User },
             { key: 'emergency', label: 'Emergency Contacts', icon: AlertTriangle },
             { key: 'medical',   label: 'Medical Contacts',  icon: Stethoscope },
-          ].map(t => {
+          ].filter(t => !limited || t.key === 'info').map(t => {
             const Icon = t.icon
             return (
               <button key={t.key} onClick={() => setTab(t.key)}
@@ -560,12 +562,12 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
 
               {/* DOB + Phone */}
               <div className="grid grid-cols-2 gap-3">
-                <div>
+                {!limited && <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Date of Birth</label>
                   <input type="date" value={form.date_of_birth} onChange={e => set('date_of_birth', e.target.value)}
                     className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
                   {age && <p className="text-xs text-slate-400 mt-1">Age {age}</p>}
-                </div>
+                </div>}
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Phone</label>
                   <input value={form.phone} onChange={e => set('phone', e.target.value)}
@@ -646,11 +648,11 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
                     ))}
                   </div>
                 </div>
-                <div>
+                {!limited && <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Admission Date</label>
                   <input type="date" value={form.admission_date} onChange={e => set('admission_date', e.target.value)}
                     className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
-                </div>
+                </div>}
               </div>
 
               {/* Portal Access */}
@@ -707,7 +709,7 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
               )}
 
               {/* Family Portal Access */}
-              {!isNew && (
+              {!isNew && !limited && (
                 <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -963,11 +965,16 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
 
 // ── Main Directory Page ────────────────────────────────────────
 export default function ResidentDirectory() {
-  const { organization, profile, canEdit, isOrgAdmin, hasAnyDepartmentLevel } = useAuth()
+  const { organization, profile, canEdit, isOrgAdmin, hasAnyDepartmentLevel, hasDepartmentAccess } = useAuth()
   // Staff-level employees view only. Adding or changing residents takes Supervisor+
   // (role or any department level), the same rule as org_admins_manage_residents.
   const supervisorUp = ['supervisor', 'manager'].includes(profile?.role) || hasAnyDepartmentLevel('supervisor')
   const canEditDirectory = isOrgAdmin || (canEdit('directory') && supervisorUp)
+  // Emergency and medical contacts (and birth date, family): Nursing Supervisor+, all of
+  // Social Services, Administration, the Administrator and Org Admins. Same rule as
+  // can_see_resident_contacts() (20261111_resident_contacts_scope.sql).
+  const canSeeContacts = isOrgAdmin || hasDepartmentAccess('nursing', 'supervisor')
+    || hasDepartmentAccess('social_services', 'employee') || hasDepartmentAccess('administration', 'employee')
   const [residents, setResidents]   = useState([])
   const [loading, setLoading]       = useState(true)
   const [search, setSearch]         = useState('')
@@ -1115,7 +1122,7 @@ export default function ResidentDirectory() {
                               )}
                             </div>
                             <div className="text-xs text-slate-400 mt-0.5">
-                              {[residentPlace(r, { withUnit: true }), age && `Age ${age}`].filter(Boolean).join(' · ')}
+                              {[residentPlace(r, { withUnit: true }), canSeeContacts && age && `Age ${age}`].filter(Boolean).join(' · ')}
                             </div>
                           </div>
                           <ChevronRight size={15} className="text-slate-300 group-hover:text-brand-400 flex-shrink-0 mt-1 transition-colors" />
@@ -1137,7 +1144,7 @@ export default function ResidentDirectory() {
                           </div>
                         )}
 
-                        {!primaryContact && (
+                        {canSeeContacts && !primaryContact && (
                           <div className="mt-2 pt-2 border-t border-slate-50 dark:border-slate-800">
                             <div className="flex items-center gap-1 text-xs text-amber-500">
                               <AlertTriangle size={11} /> No emergency contact on file
@@ -1189,6 +1196,7 @@ export default function ResidentDirectory() {
         <ResidentDetail
           resident={selected}
           canEdit={canEditDirectory}
+          limited={!canSeeContacts}
           onClose={() => { setShowDetail(false); setSelected(null); fetchResidents() }}
           onSave={handleSave}
           onDelete={handleDelete} />
