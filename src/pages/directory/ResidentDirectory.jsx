@@ -182,8 +182,9 @@ function PortalEmailChange({ profileId, email, onChanged }) {
 
 // ── Resident Detail / Edit ─────────────────────────────────────
 // limited: staff without contact access see only name, room/address, care level and phone
-// (no birth date, admission date, emergency/medical contacts, family, or print)
-function ResidentDetail({ resident, canEdit, limited = false, onClose, onSave, onDelete }) {
+// (no emergency/medical contacts, family, or print); showDates: birth and admission date
+// (resident_private_fields(): also every Nursing level and Property)
+function ResidentDetail({ resident, canEdit, limited = false, showDates = !limited, onClose, onSave, onDelete }) {
   const { profile } = useAuth()
   const fileRef = useRef()
   const isNew = !resident
@@ -482,7 +483,7 @@ function ResidentDetail({ resident, canEdit, limited = false, onClose, onSave, o
               <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">
                 {isNew ? 'Add Resident' : `${form.first_name} ${form.last_name}`}
               </h2>
-              {!isNew && age && !limited && <p className="text-xs text-slate-400">Age {age}</p>}
+              {!isNew && age && showDates && <p className="text-xs text-slate-400">Age {age}</p>}
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -563,7 +564,7 @@ function ResidentDetail({ resident, canEdit, limited = false, onClose, onSave, o
 
               {/* DOB + Phone */}
               <div className="grid grid-cols-2 gap-3">
-                {!limited && <div>
+                {showDates && <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Date of Birth</label>
                   <input type="date" value={form.date_of_birth} onChange={e => set('date_of_birth', e.target.value)}
                     className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
@@ -649,7 +650,7 @@ function ResidentDetail({ resident, canEdit, limited = false, onClose, onSave, o
                     ))}
                   </div>
                 </div>
-                {!limited && <div>
+                {showDates && <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Admission Date</label>
                   <input type="date" value={form.admission_date} onChange={e => set('admission_date', e.target.value)}
                     className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
@@ -976,6 +977,8 @@ export default function ResidentDirectory() {
   // can_see_resident_contacts() (20261111_resident_contacts_scope.sql).
   const canSeeContacts = isOrgAdmin || hasDepartmentAccess('nursing', 'supervisor')
     || hasDepartmentAccess('social_services', 'employee') || hasDepartmentAccess('administration', 'employee')
+  // Birth and admission date: also every Nursing level and Property (can_see_resident_dates())
+  const canSeeDates = canSeeContacts || hasDepartmentAccess('nursing', 'employee') || hasDepartmentAccess('property', 'employee')
   const [residents, setResidents]   = useState([])
   const [loading, setLoading]       = useState(true)
   const [search, setSearch]         = useState('')
@@ -1123,7 +1126,7 @@ export default function ResidentDirectory() {
                               )}
                             </div>
                             <div className="text-xs text-slate-400 mt-0.5">
-                              {[residentPlace(r, { withUnit: true }), canSeeContacts && age && `Age ${age}`].filter(Boolean).join(' · ')}
+                              {[residentPlace(r, { withUnit: true }), canSeeDates && age && `Age ${age}`].filter(Boolean).join(' · ')}
                             </div>
                           </div>
                           <ChevronRight size={15} className="text-slate-300 group-hover:text-brand-400 flex-shrink-0 mt-1 transition-colors" />
@@ -1198,6 +1201,7 @@ export default function ResidentDirectory() {
           resident={selected}
           canEdit={canEditDirectory}
           limited={!canSeeContacts}
+          showDates={canSeeDates}
           onClose={() => { setShowDetail(false); setSelected(null); fetchResidents() }}
           onSave={handleSave}
           onDelete={handleDelete} />
