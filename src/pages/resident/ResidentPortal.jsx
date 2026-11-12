@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { RESIDENT_COLS, withResidentDates } from '../../lib/residentPrivate'
 import { useAuth } from '../../context/AuthContext'
 import UserProfileModal from '../../components/UserProfileModal'
 import FeedbackModal from '../../components/FeedbackModal'
@@ -375,7 +376,7 @@ export default function ResidentPortal() {
 
     const [residentRes, annRes, actRes, chapRes, woRes, ilRes] = await Promise.all([
       // Find resident record linked to this auth user
-      supabase.from('residents').select('*')
+      supabase.from('residents').select(RESIDENT_COLS)
         .eq('profile_id', profile.id).limit(1),
       supabase.from('announcements').select('*')
         .eq('organization_id', orgId).eq('is_active', true)
@@ -396,7 +397,7 @@ export default function ResidentPortal() {
         .order('created_at', { ascending: false }).limit(20),
     ])
 
-    const residentRecord = residentRes.data?.[0] || null
+    const residentRecord = (await withResidentDates(residentRes.data))?.[0] || null
     setResident(residentRecord)
 
     if (residentRecord) {

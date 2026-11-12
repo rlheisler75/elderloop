@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
+import { withResidentDates } from '../../lib/residentPrivate'
 import { useAuth } from '../../context/AuthContext'
 import { useTierAccess } from '../../hooks/useTierAccess'
 import { residentPlace } from '../../lib/residentPlace'
@@ -1129,7 +1130,7 @@ export default function PropertyManagement() {
       supabase.from('leads').select('id,first_name,last_name,phone,email,status,interested_unit_id')
         .eq('organization_id', orgId).not('interested_unit_id', 'is', null)
         .not('status', 'in', '(move_in,lost,disqualified)'),
-      supabase.from('residents').select('id,first_name,last_name,date_of_birth,phone,room,unit,care_level,location_id')
+      supabase.from('residents').select('id,first_name,last_name,phone,room,unit,care_level,location_id')
         .eq('organization_id', orgId).eq('is_active', true).eq('care_level', 'independent').order('last_name'),
     ])
     setUnits(uR.data || [])
@@ -1141,7 +1142,7 @@ export default function PropertyManagement() {
     setWalkthroughs((wR.data || []).map(w => w.unit ? w : { ...w, unit: unitById[w.unit_id] || null }))
     setStaff(sR.data || [])
     setInterestedLeads(ilR.data || [])
-    setIlResidents(rR.data || [])
+    setIlResidents(await withResidentDates(rR.data))
     setLoading(false)
   }, [orgId, maintenanceOnly])
 

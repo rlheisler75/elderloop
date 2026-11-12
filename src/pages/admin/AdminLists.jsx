@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
+import { RESIDENT_COLS } from '../../lib/residentPrivate'
 import {
   Plus, X, Edit2, Trash2, Check, Car, Home, ClipboardList,
   Users, Gauge, Shield, Heart, Award, Link, MapPin, Mail,
@@ -283,7 +284,7 @@ export default function AdminLists({ orgId }) {
     setLoading(true)
     const [v, r, a, c, u, ct, cp, dd, org] = await Promise.all([
       supabase.from('vehicles').select('*').eq('organization_id', orgId).order('name'),
-      supabase.from('residents').select('*').eq('organization_id', orgId).eq('is_active', true).order('last_name'),
+      supabase.from('residents').select(RESIDENT_COLS).eq('organization_id', orgId).eq('is_active', true).order('last_name'),
       supabase.from('inspection_areas').select('*').eq('organization_id', orgId).eq('is_active', true).order('sort_order'),
       supabase.from('inspection_checklist_items').select('*').eq('organization_id', orgId).eq('is_active', true).order('sort_order'),
       supabase.from('utility_types').select('*').eq('organization_id', orgId).eq('is_active', true).order('name'),

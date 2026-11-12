@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
+import { RESIDENT_COLS, withResidentDates } from '../../lib/residentPrivate'
 import { useAuth } from '../../context/AuthContext'
 import { CAPPED_PLANS } from '../../lib/planModules'
 import LocationPickerButton, { fetchLocationPath } from '../../components/ui/LocationPickerButton'
@@ -391,7 +392,7 @@ function ResidentDetail({ resident, canEdit, limited = false, onClose, onSave, o
     if (resident?.id) {
       ({ error: err } = await supabase.from('residents').update(payload).eq('id', resident.id))
     } else {
-      ({ data, error: err } = await supabase.from('residents').insert(payload).select().single())
+      ({ data, error: err } = await supabase.from('residents').insert(payload).select('id').single())
     }
     if (err) { setError(err.message); setSaving(false); return }
     setSaving(false)
@@ -988,11 +989,11 @@ export default function ResidentDirectory() {
   async function fetchResidents() {
     setLoading(true)
     const { data } = await supabase.from('residents')
-      .select('*, resident_emergency_contacts(id, name, is_primary, phone, relationship)')
+      .select(`${RESIDENT_COLS}, resident_emergency_contacts(id, name, is_primary, phone, relationship)`)
       .eq('organization_id', organization.id)
       .eq('is_active', true)
       .order('last_name').order('first_name')
-    setResidents(data || [])
+    setResidents(await withResidentDates(data))
     setLoading(false)
   }
 

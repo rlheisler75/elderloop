@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { RESIDENT_COLS, withResidentDates } from '../../lib/residentPrivate'
 import { useAuth } from '../../context/AuthContext'
 import UserProfileModal from '../../components/UserProfileModal'
 import FeedbackModal from '../../components/FeedbackModal'
@@ -812,9 +813,9 @@ export default function FamilyPortal() {
   async function fetchLinkedResidents() {
     const { data: links } = await supabase
       .from('family_resident_links')
-      .select('*, residents(*)')
+      .select(`*, residents(${RESIDENT_COLS})`)
       .eq('family_user_id', profile.id)
-    const linked = links?.filter(l => l.residents)?.map(l => ({ ...l.residents, link: l })) || []
+    const linked = await withResidentDates(links?.filter(l => l.residents)?.map(l => ({ ...l.residents, link: l })) || [])
     setResidents(linked)
     if (linked.length > 0) setSelectedResident(linked[0])
     else setLoading(false)
