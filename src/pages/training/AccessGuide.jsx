@@ -33,7 +33,9 @@ const MODULE_ROWS = [
   ['Property (IL)', 'Units, keys, walkthroughs', 'Same as staff', 'Tenants, leases, rent, notices'],
   ['Marketing', 'Work leads and follow-ups', 'Campaigns, templates, sequences, sources', 'Deletes'],
   ['Scheduling & Time Clock', "Your departments' schedules; your punches", "Build your departments' schedule; HR/Payroll fix punches", 'Shift templates'],
-  ['Announcements', 'Read', 'Post and edit', 'Post and edit'],
+  ['Announcements', 'Read', 'Post and edit; Digital Signage screens', 'Post and edit; Digital Signage screens'],
+  ['Residents', 'View name, room or address, care level and phone. Nursing staff also see birth and admission dates; Social Services and Administration staff see everything, including emergency and medical contacts', 'Add and edit residents. Nursing Supervisors also see emergency and medical contacts', 'Same as Supervisor'],
+  ['Staff Directory', "Coworkers' work email and work phone; edit your own entry (visibility, cell phone, bio)", "Everyone's contact info, including cell phones; edit entries in your departments", "Edit anyone's entry"],
 ]
 
 export default function AccessGuide() {
