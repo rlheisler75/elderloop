@@ -31,7 +31,7 @@ export default function DirectoryGuide() {
             <Steps items={[
               { k: 1, text: <>Search by name, room, or unit, or click a care-level chip (<b className="text-slate-900">Independent Living</b>, <b className="text-slate-900">Assisted Living</b>, <b className="text-slate-900">Memory Care</b>, <b className="text-slate-900">Skilled Nursing</b>, <b className="text-slate-900">Rehab</b>) to narrow the list.</> },
               { k: 2, text: <>An amber <b className="text-slate-900">No emergency contact on file</b> warning on a card means exactly that — add one before it's needed.</> },
-              { k: 3, text: <>Click any card to open the resident's full profile, or <b className="text-slate-900">Add Resident</b> to create a new one.</> },
+              { k: 3, text: <>Click any card to open the resident's full profile, or <b className="text-slate-900">Add Resident</b> to create a new one. Staff-level employees can view residents but not add or change them. That takes a Supervisor or higher.</> },
             ]} />
             <Tip>A green <b>Public</b> badge means the resident opted into being visible in the in-portal directory other residents can browse — it never exposes phone, medical, or emergency-contact info there.</Tip>
             <div className="mt-4" />
@@ -68,7 +68,7 @@ export default function DirectoryGuide() {
 
           <QuickRefTable rows={[
             ['Find a resident’s emergency contact', 'Residents → click a card → Emergency Contacts'],
-            ['Add a new resident', 'Residents → Add Resident'],
+            ['Add a new resident', 'Residents → Add Resident (Supervisor+)'],
             ['Grant family or resident portal access', 'Residents → click a card → Info tab'],
             ['Find a coworker’s phone number', 'Staff Directory → search'],
             ['Edit your own directory listing', 'Staff Directory → My Profile'],

@@ -963,8 +963,11 @@ function ResidentDetail({ resident, canEdit, onClose, onSave, onDelete }) {
 
 // ── Main Directory Page ────────────────────────────────────────
 export default function ResidentDirectory() {
-  const { organization, canEdit, isOrgAdmin } = useAuth()
-  const canEditDirectory = canEdit('directory') || isOrgAdmin
+  const { organization, profile, canEdit, isOrgAdmin, hasAnyDepartmentLevel } = useAuth()
+  // Staff-level employees view only. Adding or changing residents takes Supervisor+
+  // (role or any department level), the same rule as org_admins_manage_residents.
+  const supervisorUp = ['supervisor', 'manager'].includes(profile?.role) || hasAnyDepartmentLevel('supervisor')
+  const canEditDirectory = isOrgAdmin || (canEdit('directory') && supervisorUp)
   const [residents, setResidents]   = useState([])
   const [loading, setLoading]       = useState(true)
   const [search, setSearch]         = useState('')
