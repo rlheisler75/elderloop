@@ -165,8 +165,10 @@ function AfterSignIn({ fallback }) {
   return <Navigate to={to && to.startsWith('/app/') ? to : fallback} replace />
 }
 
-function ProtectedRoute({ children, requireModule }) {
-  const { user, loading, hasModule } = useAuth()
+// allStaff: every staff login may open it when the community has the module on
+// (Staff Directory), not only people with a permission in it
+function ProtectedRoute({ children, requireModule, allStaff }) {
+  const { user, loading, hasModule, orgModules } = useAuth()
   const location = useLocation()
 
   if (loading) return (
@@ -180,7 +182,7 @@ function ProtectedRoute({ children, requireModule }) {
     return <Navigate to="/login" replace />
   }
 
-  if (requireModule && !hasModule(requireModule)) {
+  if (requireModule && !(allStaff ? orgModules.includes(requireModule) : hasModule(requireModule))) {
     return <Navigate to="/app/dashboard" replace />
   }
 
@@ -374,7 +376,7 @@ export default function App() {
           <Route path="staff"
             element={<ProtectedRoute requireModule="staff"><Lazy><Staff /></Lazy></ProtectedRoute>} />
           <Route path="directory-staff"
-            element={<ProtectedRoute requireModule="staff"><Lazy><StaffDirectory /></Lazy></ProtectedRoute>} />
+            element={<ProtectedRoute requireModule="staff" allStaff><Lazy><StaffDirectory /></Lazy></ProtectedRoute>} />
           <Route path="scheduling"
             element={<ProtectedRoute requireModule="scheduling"><Lazy><Scheduling /></Lazy></ProtectedRoute>} />
           <Route path="timeclock"

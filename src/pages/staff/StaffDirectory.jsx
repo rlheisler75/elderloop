@@ -204,7 +204,7 @@ function EditProfileModal({ staffMember, isSelf, canEditAll, departments, onClos
 }
 
 // ── Staff Card ─────────────────────────────────────────────────
-function StaffCard({ member, canSeeAll, isSelf, canEdit, departments, onEdit, onViewProfile }) {
+function StaffCard({ member, canSeeAll, viewOnly, isSelf, canEdit, departments, onEdit, onViewProfile }) {
   const [expanded, setExpanded] = useState(false)
   const roleCfg = getRoleCfg(member.role)
   const getDept = (key) => departments.find(d => d.key === key)?.label || key || '—'
@@ -284,7 +284,7 @@ function StaffCard({ member, canSeeAll, isSelf, canEdit, departments, onEdit, on
                 <span className="text-slate-400">work</span>
               </a>
             )}
-            {member.cell_phone && (
+            {member.cell_phone && !viewOnly && (
               <a href={`tel:${member.cell_phone}`}
                 className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300 hover:text-brand-600 transition-colors group">
                 <Phone size={12} className="text-slate-400 group-hover:text-brand-500 flex-shrink-0" />
@@ -308,7 +308,7 @@ function StaffCard({ member, canSeeAll, isSelf, canEdit, departments, onEdit, on
 
 // ── Main Staff Directory ───────────────────────────────────────
 export default function StaffDirectory() {
-  const { profile, organization, hasAnyDepartmentLevel, hasDepartmentAccess } = useAuth()
+  const { profile, organization, hasModule, hasAnyDepartmentLevel, hasDepartmentAccess } = useAuth()
   const departments = getOrgDepartments(organization)
   const getDept = (key) => departments.find(d => d.key === key)?.label || key || '—'
   const navigate = useNavigate()
@@ -323,14 +323,17 @@ export default function StaffDirectory() {
   // manager-level in any department (or org_admin/ceo) can still edit anyone.
   const canSeeAll = hasAnyDepartmentLevel('supervisor')
   const canManageDept = (dept) => hasDepartmentAccess(dept, 'supervisor') || hasAnyDepartmentLevel('manager')
+  // Staff-level employees (no Supervisor level anywhere, no Staff permission such as HR)
+  // view only: names, titles, work email and work phone. No cell phones, no editing.
+  const viewOnly = !canSeeAll && !hasModule('staff')
 
-  useEffect(() => { if (organization) fetchStaff() }, [organization])
+  useEffect(() => { if (organization) fetchStaff() }, [organization, viewOnly])
 
   async function fetchStaff() {
     setLoading(true)
     const { data } = await supabase
       .from('profiles')
-      .select('id,first_name,last_name,role,department,job_title,email,work_phone,cell_phone,office_location,bio,directory_public,avatar_url,status,is_active')
+      .select(`id,first_name,last_name,role,department,job_title,email,work_phone,${viewOnly ? '' : 'cell_phone,'}office_location,bio,directory_public,avatar_url,status,is_active`)
       .eq('organization_id', organization.id)
       .not('role', 'in', '(resident,family)')
       .eq('is_active', true)
@@ -341,9 +344,9 @@ export default function StaffDirectory() {
 
   const handleEdit = (member) => setEditMember(member)
 
-  const canEditMember = (member) =>
+  const canEditMember = (member) => !viewOnly && (
     member.id === profile.id           // own profile
-    || canManageDept(member.department) // supervises this person's department
+    || canManageDept(member.department)) // supervises this person's department
 
   // Filter
   const filtered = staff.filter(s => {
@@ -378,10 +381,12 @@ export default function StaffDirectory() {
           <p className="text-slate-500 text-sm mt-0.5">Find and contact your coworkers</p>
         </div>
         {/* Edit own profile shortcut */}
+        {!viewOnly && (
         <button onClick={() => setEditMember(staff.find(s => s.id === profile.id) || null)}
           className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 hover:border-brand-300 text-slate-600 dark:text-slate-300 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors">
           <Edit2 size={15} /> My Profile
         </button>
+        )}
       </div>
 
       {/* Stats */}
@@ -449,6 +454,7 @@ export default function StaffDirectory() {
                       key={member.id}
                       member={member}
                       canSeeAll={canSeeAll}
+                      viewOnly={viewOnly}
                       isSelf={member.id === profile.id}
                       canEdit={canEditMember(member)}
                       departments={departments}

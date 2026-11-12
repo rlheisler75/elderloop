@@ -71,7 +71,7 @@ const NAV_GROUPS = [
     label: 'Staff & HR',
     items: [
       { to: '/app/staff',           label: 'Staff',           icon: UserCheck,     module: 'staff' },
-      { to: '/app/directory-staff', label: 'Staff Directory', icon: Users,         module: 'staff' },
+      { to: '/app/directory-staff', label: 'Staff Directory', icon: Users,         module: 'staff', allStaff: true },
       { to: '/app/scheduling',      label: 'Scheduling',      icon: CalendarCheck, module: 'scheduling' },
       { to: '/app/education',       label: 'Education',       icon: GraduationCap, module: 'education' },
       { to: '/app/timeclock',       label: 'Time Clock',      icon: Clock,         module: 'timeclock' },
@@ -86,7 +86,7 @@ const NAV_GROUPS = [
 ]
 
 export default function Layout() {
-  const { profile, organization, hasModule, isOrgAdmin, isSuperAdmin, signOut, impersonating, exitImpersonation, departmentRoles, accessModel, tierFor, hasDepartmentAccess, isViewOnly, can } = useAuth()
+  const { profile, organization, orgModules, hasModule, isOrgAdmin, isSuperAdmin, signOut, impersonating, exitImpersonation, departmentRoles, accessModel, tierFor, hasDepartmentAccess, isViewOnly, can } = useAuth()
   const location = useLocation()
   // Module of the page being shown, for the "View only" bar (Role Template set to View)
   const currentModule = NAV_GROUPS.flatMap(g => g.items)
@@ -165,7 +165,7 @@ export default function Layout() {
   const seesBudgets = isOrgAdmin || isSuperAdmin
     || BUDGET_DEPARTMENT_KEYS.some(d => can(d === 'maintenance' ? 'work_orders' : d, 'costs'))
   const visibleGroups = NAV_GROUPS
-    .map(group => ({ ...group, items: group.items.filter(item => !item.module || (hasModule(item.module) && !hiddenByTier(item.module) && (item.module !== 'budgets' || seesBudgets))) }))
+    .map(group => ({ ...group, items: group.items.filter(item => !item.module || ((item.allStaff ? orgModules.includes(item.module) : hasModule(item.module)) && !hiddenByTier(item.module) && (item.module !== 'budgets' || seesBudgets))) }))
     .filter(group => group.items.length > 0)
 
   return (
