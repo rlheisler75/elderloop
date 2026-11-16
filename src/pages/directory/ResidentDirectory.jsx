@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext'
 import { CAPPED_PLANS } from '../../lib/planModules'
 import LocationPickerButton, { fetchLocationPath } from '../../components/ui/LocationPickerButton'
 import { residentPlace, splitRoomBed, joinRoomBed } from '../../lib/residentPlace'
+import usePhiView from '../../hooks/usePhiView'
 import {
   Plus, X, Edit2, Trash2, Search, Printer, Phone,
   Mail, MapPin, User, Heart, Stethoscope, Calendar,
@@ -354,6 +355,8 @@ function ResidentDetail({ resident, canEdit, limited = false, showDates = !limit
       fetchContacts()
     }
   }, [resident?.id])
+  // HIPAA view log: emergency/medical contacts and private dates (only shown when not limited)
+  usePhiView('resident_contacts', resident?.id || null, { enabled: !!resident?.id && !limited })
 
   async function fetchContacts() {
     const [ecRes, mcRes] = await Promise.all([

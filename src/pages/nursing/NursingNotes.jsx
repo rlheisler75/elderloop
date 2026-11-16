@@ -3,6 +3,7 @@ import { residentPlace } from '../../lib/residentPlace'
 import CareLevelFilter, { matchesCareLevel } from '../../components/ui/CareLevelFilter'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import usePhiView from '../../hooks/usePhiView'
 import {
   Heart, Pill, FileText, Plus, X, Edit2, Trash2,
   Search, ChevronDown, ChevronUp, AlertTriangle,
@@ -966,6 +967,10 @@ export default function NursingNotes() {
   const [loading, setLoading]         = useState(true)
   const [todayStats, setTodayStats]   = useState({ vitalsToday: 0, notesToday: 0, flagged: 0 })
   const detailPanelRef = useRef(null)
+
+  // HIPAA view log: opening Nursing (flagged notes, today's counts) and each resident's chart
+  usePhiView('nursing')
+  usePhiView('nursing_chart', selected?.id || null, { enabled: !!selected?.id })
 
   // Below the lg breakpoint the detail panel stacks under the resident list
   // rather than sitting beside it — jump to it on selection, same pattern

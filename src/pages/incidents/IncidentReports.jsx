@@ -3,6 +3,7 @@ import { residentPlace } from '../../lib/residentPlace'
 import useListNav from '../../hooks/useListNav'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import usePhiView from '../../hooks/usePhiView'
 import {
   Plus, X, Edit2, Search, Printer, AlertTriangle,
   CheckCircle2, Clock, Eye, ChevronRight, Filter,
@@ -659,6 +660,9 @@ export default function IncidentReports() {
   const [showModal, setShowModal] = useState(false)
   const [selected, setSelected]   = useState(null)
   const [printReport, setPrintReport] = useState(null)
+  // HIPAA view log: the incident list and each report opened
+  usePhiView('incidents')
+  usePhiView('incident_report', selected?.id || null, { enabled: showModal && !!selected?.id })
 
   // ── Progressive access levels ─────────────────────────────
   const role = profile?.role

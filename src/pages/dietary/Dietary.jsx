@@ -22,6 +22,7 @@ import {
 import { DIETARY_STATE_REFS } from '../../lib/dietaryStateRefs'
 import RegRefBanner from '../../components/ui/RegRefBanner'
 import { daysUntil } from '../../lib/dates'
+import usePhiView from '../../hooks/usePhiView'
 
 // ── Constants ─────────────────────────────────────────────────
 // Diet types — aligned with AND (Academy of Nutrition and Dietetics) current terminology
@@ -324,6 +325,8 @@ function ResidentProfileModal({ resident, menus, canEdit, onClose, onSave }) {
   const initialLinked = resident?.residents || null
 
   const [linkedResident, setLinkedResident] = useState(initialLinked)
+  // HIPAA view log: opening an existing diet profile (allergies, diet and texture orders)
+  usePhiView('dietary_profile', resident?.id || null, { enabled: !!resident?.id })
   const [form, setForm] = useState({
     first_name:        resident?.first_name        || '',
     last_name:         resident?.last_name         || '',
@@ -999,6 +1002,8 @@ export default function Dietary() {
   const canSeePhysicianOrders = !tiered || dRank >= 1
     || hasDepartmentAccess('nursing', 'employee') || hasDepartmentAccess('social_services', 'employee')
   const [tab, setTab]             = useState('residents')
+  // HIPAA view log: the residents' diet list and physician diet orders
+  usePhiView(tab === 'residents' ? 'dietary_profiles' : tab === 'physician' ? 'physician_orders' : null)
   const [residents, setResidents]   = useState([])
   const [menus, setMenus]           = useState([])
   const [menuItems, setMenuItems]   = useState([])

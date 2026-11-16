@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { useSocialServicesAccess } from '../../hooks/useSocialServicesAccess'
 import { daysUntil } from '../../lib/dates'
+import { logPhiView } from '../../hooks/usePhiView'
 import { Search, Plus, ChevronRight, User, Save, X, Check,
          Shield, Heart, Book, Loader2, AlertCircle, UserCheck, CalendarCheck, ClipboardCheck } from 'lucide-react'
 
@@ -340,6 +341,7 @@ export default function SocialProfile({ canWrite }) {
 
   async function selectResident(r) {
     setSelected(r); setSsProfile(null); setProfLoading(true)
+    logPhiView('social_profile', r.id)
     const { data } = await supabase.from('ss_social_profiles')
       .select('*').eq('resident_id', r.id).limit(1)
     setSsProfile(data?.[0] || null)

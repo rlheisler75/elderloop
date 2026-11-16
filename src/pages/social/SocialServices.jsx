@@ -10,6 +10,7 @@ import Resources         from './Resources'
 import CaseNotes         from './CaseNotes'
 import Goals             from './Goals'
 import DischargePlanning from './DischargePlanning'
+import usePhiView        from '../../hooks/usePhiView'
 
 const TABS = [
   { key: 'profiles',     label: 'Social Profiles',   icon: FileText,     desc: 'Psycho-social history & advance directives' },
@@ -26,6 +27,8 @@ const TABS = [
 export default function SocialServices() {
   const { profile, canEdit, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
   const [tab, setTab] = useState('profiles')
+  // HIPAA view log: each Social Services list a person opens (social_profiles, social_mood, ...)
+  usePhiView(`social_${tab}`)
 
   const canWrite = canEdit('social_services', ['social_services', 'supervisor', 'manager'])
   const isDirector = hasDepartmentAccess('social_services', 'employee') || hasAnyDepartmentLevel('supervisor')
