@@ -1,6 +1,6 @@
 // src/components/communication/NotificationBell.jsx
 import { useState, useEffect, useRef } from 'react'
-import { Bell, X, Check, CheckCheck, Megaphone, AlertTriangle, Calendar, UtensilsCrossed, Activity, Wallet } from 'lucide-react'
+import { Bell, X, Check, CheckCheck, Megaphone, AlertTriangle, Calendar, UtensilsCrossed, Activity, Wallet, ShieldAlert } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 
@@ -12,6 +12,7 @@ const CATEGORY_ICONS = {
   general:  { icon: Megaphone,     color: 'text-brand-600',  bg: 'bg-brand-50' },
   reminder: { icon: Bell,          color: 'text-slate-500',  bg: 'bg-slate-100 dark:bg-slate-800' },
   budget:   { icon: Wallet,        color: 'text-amber-600',  bg: 'bg-amber-50 dark:bg-amber-950/50' },
+  security: { icon: ShieldAlert,   color: 'text-red-600',    bg: 'bg-red-50 dark:bg-red-950/50' },
 }
 
 function relativeTime(ts) {

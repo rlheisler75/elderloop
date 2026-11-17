@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { ShieldCheck, Download, Loader2, X, Eye, Pencil, Plus, Trash2 } from 'lucide-react'
+import PhiAlertsPanel from './PhiAlertsPanel'
 
 // Admin Panel → Health Data Access: who viewed and changed residents' health
 // information (HIPAA audit controls). Data comes from phi_access_report()
@@ -93,6 +94,14 @@ export default function HealthDataAccessTab({ orgId, orgName }) {
   const [total, setTotal]       = useState(0)
   const [loading, setLoading]   = useState(true)
   const [error, setError]       = useState('')
+  const reportRef = useRef(null)
+
+  // "Show activity" on an alert: that person's views over the alert's dates
+  const showActivity = ({ userId: u, residentId: r, from: f, to: t }) => {
+    setRange('custom'); setFrom(f); setTo(t); setKind('viewed')
+    setUserId(u || ''); setResidentId(r || '')
+    reportRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 
   // Pick lists: everyone in the community (including former staff) and every resident
   useEffect(() => {
@@ -156,7 +165,9 @@ export default function HealthDataAccessTab({ orgId, orgName }) {
 
   return (
     <div className="space-y-5">
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6">
+      <PhiAlertsPanel orgId={orgId} onShowActivity={showActivity} />
+
+      <div ref={reportRef} className="scroll-mt-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h2 className="font-display text-lg font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2">

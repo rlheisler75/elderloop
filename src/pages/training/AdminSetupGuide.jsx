@@ -165,6 +165,15 @@ export default function AdminSetupGuide() {
               { k: 3, text: <><B>Export CSV</B> saves what's shown, for your privacy officer or a surveyor.</> },
             ]} />
             <P>Opening the same record again within 10 minutes counts once. The report lists names and records only, never the health information itself. "System (automatic)" means a change made by an import, a sync, or a scheduled job rather than a person. Views are recorded from November 16, 2026 on.</P>
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3 mt-6">Unusual access alerts</h3>
+            <P>ElderLoop checks each time health information is opened and flags four patterns at the top of the page, with a bell to the Org Admins and Platform Admins:</P>
+            <Steps items={[
+              { k: 1, text: <><B>Many residents in a short time</B>: one person opens 25 or more different residents' records within an hour.</> },
+              { k: 2, text: <><B>Late-night access</B>: someone opens health information between 10 PM and 5 AM and has rarely been signed in at night, so night-shift staff aren't flagged.</> },
+              { k: 3, text: <><B>Former resident's record</B>: a resident who has been inactive for 30 days or more.</> },
+              { k: 4, text: <><B>After employment end date</B>: the person's Employment End Date has passed.</> },
+            ]} />
+            <P>An alert isn't proof of a problem. Click <B>Show activity</B> to see what the person opened, then <B>Mark reviewed</B> with what you found, or <B>Expected</B> if there was a good reason. Every review is kept in the audit log. An alert about you goes to the other admins, and you can't review it yourself. <B>Rules</B> changes the numbers, the hours, the time zone, and who gets the bell. Bells never include staff or resident names.</P>
           </SectionBlock>
 
           <SectionBlock id="pcc" num="11" title="PointClickCare" roleNote="Org Admin"
@@ -193,6 +202,7 @@ export default function AdminSetupGuide() {
             ['Change plan or add AI / Budgets', 'Billing'],
             ['Reset someone\'s two-factor', 'Users → reset icon'],
             ['See who looked at a resident\'s health information', 'Health Data Access → Resident'],
+            ['Review an unusual-access alert', 'Health Data Access → Show activity → Mark reviewed'],
             ['Approve items going to PointClickCare', 'PointClickCare → Approve'],
           ]} />
 
