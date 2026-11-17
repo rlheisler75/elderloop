@@ -18,6 +18,7 @@ import SupplyVendors from '../supply/SupplyVendors'
 import BillingTab from './BillingTab'
 import AiSettingsTab from './AiSettingsTab'
 import CelebrationsTab from './CelebrationsTab'
+import HealthDataAccessTab from './HealthDataAccessTab'
 import PccAuthorizationLetter from './PccAuthorizationLetter'
 import { CreditCard, Sparkles, Lock, ShieldCheck, ShieldAlert, RotateCcw, PartyPopper, MailPlus } from 'lucide-react'
 import { planAllowsModule, PHI_MODULES } from '../../lib/planModules'
@@ -888,6 +889,7 @@ export default function AdminPanel() {
     { key: 'settings',     label: 'Org Settings',       icon: Settings },
     { key: 'lists',        label: 'Lists & Pick Lists', icon: List },
     { key: 'pcc',          label: 'PointClickCare',     icon: Plug },
+    { key: 'phi_access',   label: 'Health Data Access', icon: Shield },
     { key: 'billing',      label: 'Billing',            icon: CreditCard },
     { key: 'ai',           label: 'AI Add-on',          icon: Sparkles },
     { key: 'celebrations', label: 'Celebrations',       icon: PartyPopper },
@@ -1136,6 +1138,7 @@ export default function AdminPanel() {
 
       {tab === 'ai' && <AiSettingsTab orgId={currentOrgId} />}
       {tab === 'celebrations' && <CelebrationsTab orgId={currentOrgId} />}
+      {tab === 'phi_access' && <HealthDataAccessTab orgId={currentOrgId} orgName={selectedOrg?.name || organization?.name} />}
 
       {/* ── LISTS TAB ── */}
       {tab === 'lists' && (
