@@ -122,7 +122,7 @@ One folder per business module (activities, admin, ceo, chapel, communication, d
 - `timeclock` — staff time clock with geolocation capture on clock-in/out
 
 ### PWA / push notifications
-`public/sw.js` service worker is registered from `index.html`. `src/hooks/usePushNotifications.js` implements Web Push subscribe/unsubscribe using `VITE_VAPID_PUBLIC_KEY`, persisting subscriptions to the `push_subscriptions` table.
+In-app bells (`push_notifications`) are shown by Layout.jsx (staff), FamilyPortal.jsx, and `NotificationBell.jsx` (rep portal only). In the staff bell, a bell with `link` (must be an `/app/...` route; `BELL_LINK_ALIASES` in Layout.jsx maps old ones like `/app/social-services` → `/app/social`) opens that screen; a bell without one expands to its full text. `public/sw.js` service worker is registered from `index.html`. `src/hooks/usePushNotifications.js` implements Web Push subscribe/unsubscribe using `VITE_VAPID_PUBLIC_KEY`, persisting subscriptions to the `push_subscriptions` table.
 
 ### Styling
 Tailwind CSS with a custom theme (`tailwind.config.js`): `brand` (blue) and `sage` (green) color scales, `display` font "Playfair Display", `body` font "Source Sans 3". No CSS-in-JS.

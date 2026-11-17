@@ -18,6 +18,44 @@ import FeedbackModal from '../FeedbackModal'
 import { MODULE_DEPARTMENTS } from '../../lib/accessTiers'
 import { BUDGET_DEPARTMENT_KEYS } from '../../lib/budgets'
 
+// Bells (push_notifications.link) open their screen. Old bells from
+// grievance_bell() point at /app/social-services, which isn't a route.
+const BELL_LINK_ALIASES = { '/app/social-services': '/app/social' }
+function bellLink(n) {
+  const link = n?.link
+  if (!link || !link.startsWith('/app')) return null
+  const [path, query] = link.split('?')
+  return (BELL_LINK_ALIASES[path] || path) + (query ? `?${query}` : '')
+}
+function bellAgo(ts) {
+  const diff = Math.floor((Date.now() - new Date(ts)) / 60000)
+  if (diff < 1) return 'Just now'
+  if (diff < 60) return `${diff}m ago`
+  if (diff < 1440) return `${Math.floor(diff / 60)}h ago`
+  return `${Math.floor(diff / 1440)}d ago`
+}
+
+// One bell in the dropdown: with a link it opens that screen; without one,
+// clicking shows the whole message (the list cuts it to two lines).
+function BellItem({ n, expanded, onOpen }) {
+  const msg = n.broadcast_messages
+  const to = bellLink(n)
+  return (
+    <button type="button" onClick={() => onOpen(n)}
+      className={`w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${n.is_read ? '' : 'bg-brand-50 dark:bg-brand-950/30'}`}>
+      <div className="flex items-start gap-2">
+        {!n.is_read && <div className="w-2 h-2 rounded-full bg-brand-500 mt-1.5 flex-shrink-0" />}
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">{n.title || msg?.subject}</p>
+          <p className={`text-xs text-slate-500 dark:text-slate-400 mt-0.5 whitespace-pre-line ${expanded ? '' : 'line-clamp-2'}`}>{n.body || msg?.body}</p>
+          <p className="text-xs text-slate-400 mt-1">{bellAgo(n.created_at)}</p>
+        </div>
+        {to && <ChevronRight size={16} className="text-slate-300 dark:text-slate-600 mt-0.5 flex-shrink-0" aria-label="Open" />}
+      </div>
+    </button>
+  )
+}
+
 // In tiered communities these modules are readable only by their own department
 // (20260930_access_tiers_remaining_modules.sql), so the sidebar hides them from
 // everyone else instead of opening an empty page.
@@ -98,6 +136,8 @@ export default function Layout() {
   const [showNotifs, setShowNotifs] = useState(false)
   const [showFeedback, setShowFeedback] = useState(false)
   const notifRef = useRef(null)
+  const notifRefMobile = useRef(null)   // the phone bar has its own bell
+  const [expandedNotif, setExpandedNotif] = useState(null)
 
   const unread = notifs.filter(n => !n.is_read).length
 
@@ -126,7 +166,10 @@ export default function Layout() {
   }, [profile?.id])
 
   useEffect(() => {
-    const handleClick = (e) => { if (notifRef.current && !notifRef.current.contains(e.target)) setShowNotifs(false) }
+    const handleClick = (e) => {
+      const inside = [notifRef, notifRefMobile].some(r => r.current?.contains(e.target))
+      if (!inside) setShowNotifs(false)
+    }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
@@ -154,6 +197,11 @@ export default function Layout() {
     if (!showNotifs) markAllRead()
   }
   const navigate = useNavigate()
+  const openNotif = (n) => {
+    const to = bellLink(n)
+    if (to) { setShowNotifs(false); setExpandedNotif(null); navigate(to) }
+    else setExpandedNotif(id => id === n.id ? null : n.id)
+  }
   const handleSignOut = async () => { await signOut(); navigate('/login') }
 
   // Maintenance (Work Orders edit) also uses Property for units and walkthroughs (il_maintenance_access())
@@ -272,7 +320,7 @@ export default function Layout() {
         <div className="lg:hidden flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
           <button onClick={() => setSidebarOpen(true)} className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"><Menu size={22} /></button>
           <span className="font-display font-semibold text-brand-800 dark:text-brand-400 flex-1">ElderLoop</span>
-          <div ref={notifRef} className="relative lg:hidden">
+          <div ref={notifRefMobile} className="relative lg:hidden">
             <button onClick={handleOpenNotifs} className="relative p-2 text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg">
               <Bell size={18} />
               {unread > 0 && <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">{unread > 9 ? '9+' : unread}</span>}
@@ -285,15 +333,9 @@ export default function Layout() {
                 <div className="max-h-80 overflow-y-auto divide-y divide-slate-50 dark:divide-slate-800">
                   {notifs.length === 0 ? (
                     <div className="px-4 py-8 text-center text-slate-400 text-sm">No notifications yet</div>
-                  ) : notifs.map(n => {
-                    const msg = n.broadcast_messages
-                    return (
-                      <div key={n.id} className={`px-4 py-3 ${n.is_read ? '' : 'bg-brand-50 dark:bg-brand-950/30'}`}>
-                        <p className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">{n.title || msg?.subject}</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">{n.body || msg?.body}</p>
-                      </div>
-                    )
-                  })}
+                  ) : notifs.map(n => (
+                    <BellItem key={n.id} n={n} expanded={expandedNotif === n.id} onOpen={openNotif} />
+                  ))}
                 </div>
               </div>
             )}
@@ -320,29 +362,9 @@ export default function Layout() {
                 <div className="max-h-96 overflow-y-auto divide-y divide-slate-50 dark:divide-slate-800">
                   {notifs.length === 0 ? (
                     <div className="px-4 py-8 text-center text-slate-400 text-sm">No notifications yet</div>
-                  ) : notifs.map(n => {
-                    const msg = n.broadcast_messages
-                    const ago = (() => {
-                      const d = new Date(n.created_at)
-                      const diff = Math.floor((Date.now() - d) / 60000)
-                      if (diff < 1) return 'Just now'
-                      if (diff < 60) return `${diff}m ago`
-                      if (diff < 1440) return `${Math.floor(diff/60)}h ago`
-                      return `${Math.floor(diff/1440)}d ago`
-                    })()
-                    return (
-                      <div key={n.id} className={`px-4 py-3 ${n.is_read ? '' : 'bg-brand-50 dark:bg-brand-950/30'}`}>
-                        <div className="flex items-start gap-2">
-                          {!n.is_read && <div className="w-2 h-2 rounded-full bg-brand-500 mt-1.5 flex-shrink-0" />}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">{n.title || msg?.subject}</p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">{n.body || msg?.body}</p>
-                            <p className="text-xs text-slate-400 mt-1">{ago}</p>
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })}
+                  ) : notifs.map(n => (
+                    <BellItem key={n.id} n={n} expanded={expandedNotif === n.id} onOpen={openNotif} />
+                  ))}
                 </div>
               </div>
             )}
