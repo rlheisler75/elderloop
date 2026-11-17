@@ -3,3 +3,6 @@ dist
 .env.local
 .env
 *.local
+
+# Walkthrough videos and their capture scripts (large; kept local)
+recordings/walkthroughs/
