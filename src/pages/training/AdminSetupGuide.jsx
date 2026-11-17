@@ -12,6 +12,8 @@ const NAV = [
   { id: 'residents', num: '07', label: 'Residents & families' },
   { id: 'billing',   num: '08', label: 'Billing & add-ons' },
   { id: 'celebrate', num: '09', label: 'Celebrations' },
+  { id: 'phi',       num: '10', label: 'Health Data Access' },
+  { id: 'pcc',       num: '11', label: 'PointClickCare' },
 ]
 
 const B = ({ children }) => <b className="text-slate-900">{children}</b>
@@ -155,6 +157,26 @@ export default function AdminSetupGuide() {
             ]} />
           </SectionBlock>
 
+          <SectionBlock id="phi" num="10" title="Health Data Access" roleNote="Org Admin & Platform Admin"
+            dek="Who opened or changed residents' health information, and when. Use it to answer 'who looked at Mrs. X's chart?' or to review access for HIPAA.">
+            <Steps items={[
+              { k: 1, text: <>Open <B>Admin Panel → Health Data Access</B>. It shows the last 7 days of views and changes to nursing charts, Social Services records, incident reports, emergency and medical contacts, diet profiles, resident records, and anything sent to PointClickCare.</> },
+              { k: 2, text: <>Narrow it by <B>Dates</B>, <B>Type</B> (viewed, changed, or both), <B>Staff member</B>, or <B>Resident</B>. Clicking a name in the list filters to that person or resident.</> },
+              { k: 3, text: <><B>Export CSV</B> saves what's shown, for your privacy officer or a surveyor.</> },
+            ]} />
+            <P>Opening the same record again within 10 minutes counts once. The report lists names and records only, never the health information itself. "System (automatic)" means a change made by an import, a sync, or a scheduled job rather than a person. Views are recorded from November 16, 2026 on.</P>
+          </SectionBlock>
+
+          <SectionBlock id="pcc" num="11" title="PointClickCare" roleNote="Org Admin"
+            dek="Connect the community to PointClickCare, bring residents in, and approve what ElderLoop sends back.">
+            <Steps items={[
+              { k: 1, text: <>Enter the <B>PCC Facility ID</B> and <B>PCC Org UUID</B> in <B>Org Settings</B>. Until they're there, none of the PointClickCare buttons appear.</> },
+              { k: 2, text: <>Bring residents in with <B>Lists & Pick Lists → Residents → Import from CSV/Excel → Sync Now</B>. That links each resident to their PointClickCare record, which they need before anything can be sent for them.</> },
+              { k: 3, text: <><B>Admin Panel → PointClickCare</B> lists everything waiting to go to PointClickCare: progress notes, emergency contacts, and meter charges. Approve, cancel, or retry items there, or <B>Send approved now</B>.</> },
+            ]} />
+            <P>Who approves: progress notes, a Social Services Supervisor or Director; contacts, also the Administrator; charges, the business office (meter costs permission). Org Admins can approve everything. Approvers get a bell when something is waiting. Social Services approvers also have a PointClickCare tab in Social Services, and the business office approves charges in <B>Meters → Billing Export</B>.</P>
+          </SectionBlock>
+
           <QuickRefTable rows={[
             ['Change the community name or logo', 'Org Settings → Edit'],
             ['Turn a module on or off', 'Org Settings → Edit → Enabled Modules'],
@@ -170,6 +192,8 @@ export default function AdminSetupGuide() {
             ['Import residents', 'Lists & Pick Lists → Residents → Import from CSV/Excel'],
             ['Change plan or add AI / Budgets', 'Billing'],
             ['Reset someone\'s two-factor', 'Users → reset icon'],
+            ['See who looked at a resident\'s health information', 'Health Data Access → Resident'],
+            ['Approve items going to PointClickCare', 'PointClickCare → Approve'],
           ]} />
 
           <GuideFooter label="Admin Setup" />

@@ -8,6 +8,7 @@ const NAV = [
   { id: 'adding',    num: '03', label: 'Adding a Meter' },
   { id: 'history',   num: '04', label: 'Meter History' },
   { id: 'setup',     num: '05', label: 'Utility Types & Scanning' },
+  { id: 'billing',   num: '06', label: 'Billing Export' },
 ]
 
 export default function MeterGuide() {
@@ -82,12 +83,31 @@ export default function MeterGuide() {
             <Tip>Set up Utility Types before adding meters — each meter must be assigned to one, and the rate you set there is what every future reading's cost estimate uses.</Tip>
           </SectionBlock>
 
+          <SectionBlock id="billing" num="06" title="Billing Export" roleNote="Business office (meter costs permission)"
+            dek="Turn a month of readings into resident charges: download or print them, then mark them billed so nothing is charged twice. Communities connected to PointClickCare can post the charges straight to residents' PointClickCare accounts.">
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">How to use it</h3>
+            <Steps items={[
+              { k: 1, text: <>Click <b className="text-slate-900">Billing Export</b>, pick the dates (last month by default), and leave <b className="text-slate-900">Not yet billed only</b> checked.</> },
+              { k: 2, text: <><b className="text-slate-900">Download CSV</b> or <b className="text-slate-900">Print Statements</b> for your billing system.</> },
+              { k: 3, text: <>Type a <b className="text-slate-900">billing reference</b> (e.g. "GP batch Oct 2026") and click <b className="text-slate-900">Mark billed</b>. A billed reading's numbers are locked. <b className="text-slate-900">Mark not billed</b> undoes it.</> },
+            ]} />
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Sending charges to PointClickCare</h3>
+            <Steps items={[
+              { k: 1, text: <>Instead of Mark billed, click <b className="text-slate-900">Send to PointClickCare</b>. ElderLoop queues one charge per resident for the readings shown and tells you about any resident who isn't linked to PointClickCare yet, or any meter with no resident.</> },
+              { k: 2, text: <>Approve them under <b className="text-slate-900">Charges for PointClickCare</b> at the bottom of the same window. Click the arrow on an item to see each reading and the total before you approve.</> },
+              { k: 3, text: <><b className="text-slate-900">Send approved now</b> posts them. Readings are marked billed only after PointClickCare accepts them, with the reference "PCC" and PointClickCare's number.</> },
+            ]} />
+            <Tip>A reading can be queued only once, so sending the same month twice doesn't double-charge anyone. Everyone with the meter costs permission gets a bell when charges are waiting for approval.</Tip>
+          </SectionBlock>
+
           <QuickRefTable rows={[
             ['Log a new reading', 'Meter card → Enter Reading'],
             ['See a meter’s full reading history', 'Meter card → trending-up icon'],
             ['Set up a new meter', 'Add Meter'],
             ['Add a utility type or change its rate', 'Utility Types'],
             ['Look up a meter fast by scanning', 'Scan Meter'],
+            ['Export and mark a month billed', 'Billing Export → Mark billed'],
+            ['Post charges to PointClickCare', 'Billing Export → Send to PointClickCare → Approve'],
             ['Print scannable meter labels', 'Print Barcodes'],
           ]} />
 

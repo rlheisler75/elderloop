@@ -13,6 +13,7 @@ const NAV = [
   { id: 'resources', num: '08', label: 'Resources' },
   { id: 'dashboard', num: '09', label: 'Director Dashboard' },
   { id: 'ai', num: '10', label: 'AI Assist' },
+  { id: 'pcc', num: '11', label: 'Sending to PointClickCare' },
 ]
 
 export default function SocialServicesGuide() {
@@ -68,7 +69,7 @@ export default function SocialServicesGuide() {
               { k: 2, text: <>Write what was discussed or observed in <b className="text-slate-900">Summary</b>. Add duration if useful for your records.</> },
               { k: 3, text: <>Toggle <b className="text-slate-900">Follow-up needed</b> and set a date if something needs a second touch.</> },
             ]} />
-            <Tip><b className="text-slate-900">Also documented in EMR</b> doesn't sync anything automatically — it's a manual flag so your team knows a contact is already charted in PointClickCare or MatrixCare, and this entry is just the quick internal log, not a duplicate of the official chart. Set a follow-up date and you'll get a push notification the morning it's due — see the note at the end of the Goals section below for how that works.</Tip>
+            <Tip><b className="text-slate-900">Also documented in EMR</b> is a manual flag so your team knows a contact is already charted in PointClickCare or MatrixCare, and this entry is just the quick internal log, not a duplicate of the official chart. Once your community is connected to PointClickCare, you can send the note there instead of charting it twice: see <a href="#pcc" className="text-brand-600 underline">Sending to PointClickCare</a> below. ElderLoop turns the flag on for you when PointClickCare accepts the note. Set a follow-up date and you'll get a push notification the morning it's due — see the note at the end of the Goals section below for how that works.</Tip>
           </SectionBlock>
 
           <SectionBlock id="goals" num="04" title="Goals"
@@ -177,6 +178,25 @@ export default function SocialServicesGuide() {
             <Tip warn>Because these features handle resident health information, they're only available once ElderLoop has enabled Clinical AI for your community. If Admin Panel → AI Add-on shows Social Services as "Requires HIPAA approval," the buttons won't appear yet.</Tip>
           </SectionBlock>
 
+          <SectionBlock id="pcc" num="11" title="Sending to PointClickCare" roleNote="Communities connected to PointClickCare"
+            dek="Send a case note or discharge plan into the resident's PointClickCare chart as a progress note, so it's charted once. Nothing goes to PointClickCare until a Social Services Supervisor, Director, or Org Admin approves it.">
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Sending a note</h3>
+            <Steps items={[
+              { k: 1, text: <>Save the case note or discharge plan first, then open it again.</> },
+              { k: 2, text: <>Click <b className="text-slate-900">Send to PointClickCare</b> at the bottom. The note now shows <b className="text-slate-900">Waiting for approval</b>, and the people who approve notes get a bell.</> },
+              { k: 3, text: <>You get a bell when it's approved, cancelled, or in PointClickCare. Hover over the status on the note to see who approved it and when.</> },
+            ]} />
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Approving</h3>
+            <Steps items={[
+              { k: 1, text: <>Open the <b className="text-slate-900">PointClickCare</b> tab in Social Services. <b className="text-slate-900">Needs attention</b> lists everything waiting.</> },
+              { k: 2, text: <>Click the arrow next to an item to read <b className="text-slate-900">exactly what will be sent</b>. That text is frozen when the note is queued.</> },
+              { k: 3, text: <><b className="text-slate-900">Approve</b> it, or <b className="text-slate-900">Cancel</b> it with a reason. Approved items go out with <b className="text-slate-900">Send approved now</b>. If sending fails, the error shows on the item and you can <b className="text-slate-900">Retry</b>.</> },
+            ]} />
+            <Tip>Each note can be sent once. If someone edits a note after it was queued, ElderLoop won't let it be approved: cancel it and send the note again so PointClickCare gets the current wording. Notes marked entered in error can't be sent. The resident must be linked to PointClickCare (Import Residents → Sync Now); if they aren't, the button says so.</Tip>
+            <div className="mt-4" />
+            <Tip>The same tab handles <b className="text-slate-900">emergency contacts</b> sent from Residents → a resident → Emergency Contacts → Send to PointClickCare. Those can be approved by a Social Services Supervisor or Director, the Administrator, or an Org Admin. ElderLoop only adds records in PointClickCare; it never changes or deletes anything there.</Tip>
+          </SectionBlock>
+
           <QuickRefTable rows={[
             ['Turn rough notes into a DAP case note', 'New Case Note → Polish note (DAP format)'],
             ['Sort meeting notes into conference sections', 'Care Conference → Organize into sections'],
@@ -191,6 +211,8 @@ export default function SocialServicesGuide() {
             ['Refer a resident to an outside agency', 'Resources → Log Referral'],
             ['See who’s overdue for their annual review', 'Social Profiles badge, or Director Dashboard'],
             ['Check my caseload or team workload', 'Director Dashboard → Caseload Summary'],
+            ['Send a note to PointClickCare', 'Open the saved note → Send to PointClickCare'],
+            ['Approve notes and contacts for PointClickCare', 'PointClickCare tab → Approve'],
           ]} />
 
           <GuideFooter label="Social Services Module" />
