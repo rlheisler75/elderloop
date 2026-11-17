@@ -6,6 +6,7 @@ import { CAPPED_PLANS } from '../../lib/planModules'
 import LocationPickerButton, { fetchLocationPath } from '../../components/ui/LocationPickerButton'
 import { residentPlace, splitRoomBed, joinRoomBed } from '../../lib/residentPlace'
 import usePhiView from '../../hooks/usePhiView'
+import PccSendButton from '../../components/pcc/PccSendButton'
 import {
   Plus, X, Edit2, Trash2, Search, Printer, Phone,
   Mail, MapPin, User, Heart, Stethoscope, Calendar,
@@ -828,6 +829,9 @@ function ResidentDetail({ resident, canEdit, limited = false, showDates = !limit
           )}
 
           {/* EMERGENCY CONTACTS TAB */}
+          {tab === 'emergency' && !isNew && emergencyContacts.length > 0 && (
+            <div className="mb-3"><PccSendButton kind="contact_update" residentId={resident.id} /></div>
+          )}
           {tab === 'emergency' && (
             <fieldset disabled={readOnly} className="space-y-3 disabled:opacity-75">
               {isNew && (

@@ -31,6 +31,7 @@ const TABLES = {
   ss_care_conferences: 'Care conference', ss_case_notes: 'Case note', ss_discharge_plans: 'Discharge plan',
   ss_goals: 'Social Services goal', ss_grievances: 'Grievance', ss_mood_logs: 'Mood log',
   ss_referrals: 'Referral', ss_social_profiles: 'Social Services profile',
+  pcc_outbound: 'Sent to PointClickCare (queue)',
 }
 function areaLabel(area) {
   if (VIEW_AREAS[area]) return VIEW_AREAS[area]

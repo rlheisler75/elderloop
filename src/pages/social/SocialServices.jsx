@@ -11,6 +11,8 @@ import CaseNotes         from './CaseNotes'
 import Goals             from './Goals'
 import DischargePlanning from './DischargePlanning'
 import usePhiView        from '../../hooks/usePhiView'
+import PccOutboundQueue  from '../../components/pcc/PccOutboundQueue'
+import { Plug }          from 'lucide-react'
 
 const TABS = [
   { key: 'profiles',     label: 'Social Profiles',   icon: FileText,     desc: 'Psycho-social history & advance directives' },
@@ -22,10 +24,12 @@ const TABS = [
   { key: 'discharge',    label: 'Discharge Planning',icon: LogOut,       desc: 'Discharge plans & post-acute coordination' },
   { key: 'resources',    label: 'Resources',         icon: BookOpen,     desc: 'Community resource directory & referrals' },
   { key: 'dashboard',    label: 'Director Dashboard', icon: BarChart3,   desc: 'Compliance alerts and facility-wide analytics', directorOnly: true },
+  { key: 'pcc',          label: 'PointClickCare',    icon: Plug,         desc: 'Notes and contacts waiting to go to PointClickCare', pccOnly: true },
 ]
 
 export default function SocialServices() {
-  const { profile, canEdit, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
+  const { profile, organization, canEdit, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
+  const pccConnected = !!organization?.pcc_facility_id?.trim?.()
   const [tab, setTab] = useState('profiles')
   // HIPAA view log: each Social Services list a person opens (social_profiles, social_mood, ...)
   usePhiView(`social_${tab}`)
@@ -52,7 +56,7 @@ export default function SocialServices() {
 
       {/* Tab bar */}
       <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl flex-wrap">
-        {TABS.filter(t => !t.directorOnly || isDirector).map(t => (
+        {TABS.filter(t => (!t.directorOnly || isDirector) && (!t.pccOnly || pccConnected)).map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex-1 justify-center
               ${tab === t.key
@@ -76,6 +80,7 @@ export default function SocialServices() {
         {tab === 'discharge'   && <DischargePlanning canWrite={canWrite} />}
         {tab === 'resources'   && <Resources         canWrite={canWrite} />}
         {tab === 'dashboard'   && <SocialDashboard onNavigate={setTab} />}
+        {tab === 'pcc' && pccConnected && <PccOutboundQueue kinds={['progress_note', 'contact_update']} title="Notes and contacts for PointClickCare" />}
       </div>
     </div>
   )

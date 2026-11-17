@@ -5,6 +5,7 @@ import { Plus, X, LogOut, Search, Loader2, AlertCircle, Check,
          Home, Building2, ChevronDown, ShieldCheck, CalendarClock } from 'lucide-react'
 import { SOCIAL_STATE_REFS } from '../../lib/socialStateRefs'
 import RegRefBanner from '../../components/ui/RegRefBanner'
+import PccSendButton from '../../components/pcc/PccSendButton'
 import { daysUntil } from '../../lib/dates'
 import ResidentPicker from '../../components/ui/ResidentPicker'
 
@@ -202,6 +203,9 @@ function DischargeModal({ plan, residents, orgId, canWrite, onClose, onSaved }) 
         </div>
 
         <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
+          {!isNew && canWrite && (
+            <div className="mr-auto"><PccSendButton kind="progress_note" sourceTable="ss_discharge_plans" sourceId={plan.id} /></div>
+          )}
           <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">{readOnly ? 'Close' : 'Cancel'}</button>
           {!readOnly && (
             <button onClick={handleSave} disabled={saving}

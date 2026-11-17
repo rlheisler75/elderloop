@@ -5,6 +5,7 @@ import { useSocialServicesAccess } from '../../hooks/useSocialServicesAccess'
 import { useAiSection } from '../../hooks/useAiSection'
 import { daysUntil } from '../../lib/dates'
 import ResidentPicker from '../../components/ui/ResidentPicker'
+import PccSendButton from '../../components/pcc/PccSendButton'
 import { Plus, X, ClipboardList, Search, Loader2, AlertCircle, Check,
          Phone, Users, Mail, MessageSquare, ChevronDown, ShieldCheck, Sparkles } from 'lucide-react'
 
@@ -216,6 +217,9 @@ function CaseNoteModal({ note, residents, orgId, canWrite, onClose, onSaved }) {
               className="mr-auto px-3 py-2 text-sm text-red-600 dark:text-red-400 font-medium hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg">
               Mark entered in error
             </button>
+          )}
+          {!isNew && canWrite && !note.entered_in_error && (
+            <PccSendButton kind="progress_note" sourceTable="ss_case_notes" sourceId={note.id} />
           )}
           <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">{readOnly ? 'Close' : 'Cancel'}</button>
           {!readOnly && (

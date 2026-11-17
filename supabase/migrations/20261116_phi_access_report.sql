@@ -76,7 +76,7 @@ begin
                'resident_medications', 'resident_vitals', 'resident_dietary_profiles',
                'care_notes', 'incident_reports', 'resident_updates',
                'ss_care_conferences', 'ss_case_notes', 'ss_discharge_plans', 'ss_goals',
-               'ss_grievances', 'ss_mood_logs', 'ss_referrals', 'ss_social_profiles'))
+               'ss_grievances', 'ss_mood_logs', 'ss_referrals', 'ss_social_profiles', 'pcc_outbound'))
        )
        and (p_kind = 'all'
             or (p_kind = 'viewed'  and a.action = 'VIEW')
@@ -121,6 +121,8 @@ begin
            when f.table_name = 'dietary_profile' and f.res_id is null and f.record_id ~ v_uuid_re then
              (select 'Diet profile: ' || trim(coalesce(d.first_name, '') || ' ' || coalesce(d.last_name, ''))
                 from public.resident_dietary_profiles d where d.id = f.record_id::uuid)
+           when f.table_name = 'pcc_outbound' then
+             coalesce(f.new_values->>'summary', f.old_values->>'summary') || ' · ' || coalesce(f.new_values->>'status', f.old_values->>'status')
          end,
          count(*) over ()
     from filtered f

@@ -19,6 +19,7 @@ import BillingTab from './BillingTab'
 import AiSettingsTab from './AiSettingsTab'
 import CelebrationsTab from './CelebrationsTab'
 import HealthDataAccessTab from './HealthDataAccessTab'
+import PccOutboundQueue from '../../components/pcc/PccOutboundQueue'
 import PccAuthorizationLetter from './PccAuthorizationLetter'
 import { CreditCard, Sparkles, Lock, ShieldCheck, ShieldAlert, RotateCcw, PartyPopper, MailPlus } from 'lucide-react'
 import { planAllowsModule, PHI_MODULES } from '../../lib/planModules'
@@ -1181,6 +1182,7 @@ export default function AdminPanel() {
               <FileText size={15} /> Download Authorization Letter
             </button>
           </div>
+          <PccOutboundQueue />
         </div>
       )}
 

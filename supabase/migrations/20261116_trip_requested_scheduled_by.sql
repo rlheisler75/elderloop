@@ -87,3 +87,5 @@ update public.trips t
        requested_by_name = r.requested_by_name
   from public.trip_requests r
  where r.trip_id = t.id and t.requested_by_name is null;
+
+revoke all on function public.trip_people_stamp() from public, anon, authenticated;
