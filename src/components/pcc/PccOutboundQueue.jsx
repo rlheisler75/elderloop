@@ -111,15 +111,23 @@ export default function PccOutboundQueue({ kinds = ['progress_note', 'charge', '
     const { data, error } = await supabase.functions.invoke('send-pcc-outbound', { body: {} })
     setSending(false)
     if (error || data?.success === false) setMessage({ type: 'error', text: data?.error || error.message })
-    else setMessage({
-      type: data.failed ? 'error' : 'info',
-      text: data.message || `Sent ${data.sent}${data.failed ? `, ${data.failed} failed` : ''}. ${data.waiting} still waiting.`,
-    })
+    else {
+      const recovered = data.recovered
+        ? ` ${data.recovered} item${data.recovered === 1 ? ' was' : 's were'} stuck sending and marked Failed: check PointClickCare before retrying.`
+        : ''
+      setMessage({
+        type: data.failed || data.recovered ? 'error' : 'info',
+        text: (data.message || `Sent ${data.sent}${data.failed ? `, ${data.failed} failed` : ''}. ${data.waiting} still waiting.`) + recovered,
+      })
+    }
     load()
   }
 
   const canApprove = (kind) => perms.approve?.includes(kind)
-  const approvedWaiting = (items || []).some(i => i.status === 'approved' && canApprove(i.kind))
+  // Also offer the button when something has been stuck at "Sending" past the
+  // sender's 15-minute limit, so running it marks those Failed (self-recovery).
+  const stuck = (i) => i.status === 'sending' && Date.now() - new Date(i.updated_at).getTime() > 15 * 60 * 1000
+  const approvedWaiting = (items || []).some(i => (i.status === 'approved' || stuck(i)) && canApprove(i.kind))
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6">
