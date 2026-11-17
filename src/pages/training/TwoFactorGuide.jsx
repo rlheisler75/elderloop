@@ -33,7 +33,7 @@ export default function TwoFactorGuide() {
             <Steps items={[
               { k: '•', text: 'Org Admins and the Administrator' },
               { k: '•', text: 'Anyone who has been made a Platform Admin' },
-              { k: '•', text: 'Everyone in the Nursing or Social Services department, at any level' },
+              { k: '•', text: 'Everyone in the Nursing, Social Services, or Dietary department, at any level' },
             ]} />
             <p className="text-[15px] text-slate-700 mb-6">Everyone else may turn it on by choice, and we recommend it.</p>
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">Which app to use</h3>
