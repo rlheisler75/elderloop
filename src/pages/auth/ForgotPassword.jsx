@@ -90,7 +90,7 @@ export default function ForgotPassword() {
                     autoFocus
                     autoComplete="email"
                     placeholder="you@example.com"
-                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                    className="w-full px-3 py-2.5 border border-slate-200 bg-white text-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
                 </div>
 
                 <button type="submit" disabled={loading}

@@ -178,7 +178,7 @@ export default function Login() {
                   onChange={e => { setEmail(e.target.value); setIsDemo(false) }}
                   required
                   autoComplete="email"
-                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  className="w-full px-3 py-2.5 border border-slate-200 bg-white text-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                   placeholder="you@example.com"
                 />
               </div>
@@ -195,7 +195,7 @@ export default function Login() {
                   onChange={e => setPassword(e.target.value)}
                   required
                   autoComplete="current-password"
-                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  className="w-full px-3 py-2.5 border border-slate-200 bg-white text-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                   placeholder="••••••••"
                 />
               </div>

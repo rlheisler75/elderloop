@@ -67,7 +67,7 @@ export default function MustChangePasswordGate({ onDone, subtitle }) {
                   autoFocus
                   autoComplete="new-password"
                   placeholder="At least 12 characters"
-                  className="w-full px-3 py-2.5 pr-10 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                  className="w-full px-3 py-2.5 pr-10 border border-slate-200 bg-white text-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
                 <button type="button" onClick={() => setShowPw(v => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
                   {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -82,7 +82,7 @@ export default function MustChangePasswordGate({ onDone, subtitle }) {
                 onChange={e => setConfirm(e.target.value)}
                 autoComplete="new-password"
                 placeholder="Re-enter your password"
-                className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                className="w-full px-3 py-2.5 border border-slate-200 bg-white text-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <button type="submit" disabled={saving || !password || !confirm}
               className="w-full py-2.5 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-semibold rounded-xl text-sm transition-colors flex items-center justify-center gap-2">

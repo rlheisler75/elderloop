@@ -174,7 +174,7 @@ export default function ResetPassword() {
                       autoFocus
                       autoComplete="new-password"
                       placeholder="At least 12 characters"
-                      className="w-full px-3 py-2.5 pr-10 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                      className="w-full px-3 py-2.5 pr-10 border border-slate-200 bg-white text-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
                     <button type="button" onClick={() => setShowPw(v => !v)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
                       {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -205,12 +205,12 @@ export default function ResetPassword() {
                     onChange={e => setConfirm(e.target.value)}
                     autoComplete="new-password"
                     placeholder="Re-enter your password"
-                    className={`w-full px-3 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors ${
+                    className={`w-full px-3 py-2.5 border rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors ${
                       confirm && password !== confirm
                         ? 'border-red-300 bg-red-50'
                         : confirm && password === confirm
                           ? 'border-green-300 bg-green-50'
-                          : 'border-slate-200'
+                          : 'border-slate-200 bg-white'
                     }`} />
                   {confirm && password !== confirm && (
                     <p className="text-xs text-red-500 mt-1">Passwords do not match</p>

@@ -104,7 +104,7 @@ function Challenge({ onDone }) {
 
       <input value={code} onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
         inputMode="numeric" autoComplete="one-time-code" autoFocus placeholder="6-digit code"
-        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-center text-lg tracking-[0.4em] font-mono focus:outline-none focus:ring-2 focus:ring-brand-500" />
+        className="w-full px-3 py-2.5 border border-slate-200 bg-white text-slate-800 rounded-xl text-center text-lg tracking-[0.4em] font-mono focus:outline-none focus:ring-2 focus:ring-brand-500" />
 
       <button type="submit" disabled={busy || code.length !== 6 || !factorId}
         className="w-full py-2.5 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-semibold rounded-xl text-sm flex items-center justify-center gap-2">
