@@ -224,6 +224,10 @@ function StatusBadge({ status }) {
 }
 
 // ── Trip Sheet Print (single day or a custom date range) ────────
+function fmtStamp(ts) {
+  return new Date(ts).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })
+}
+
 function fmtLongDate(dateStr) {
   return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
 }
@@ -517,6 +521,9 @@ function TripModal({ trip, fromRequest, vehicles, residents, absences = [], defa
     mileage_start:    trip?.mileage_start    || '',
     mileage_end:      trip?.mileage_end      || '',
     notes:            trip?.notes            || [fromRequest?.needs && `Needs: ${fromRequest.needs}`, fromRequest?.notes].filter(Boolean).join('\n'),
+    // Who asked for the trip: typed (phone/paper requests) or copied from an in-app request
+    requested_by:      trip?.requested_by      || fromRequest?.requested_by      || null,
+    requested_by_name: trip?.requested_by_name || fromRequest?.requested_by_name || '',
   })
   const [saving, setSaving] = useState(false)
   const [error, setError]   = useState('')
@@ -530,8 +537,9 @@ function TripModal({ trip, fromRequest, vehicles, residents, absences = [], defa
     const payload = {
       ...form,
       organization_id: profile.organization_id,
-      scheduled_by: profile.id,
+      // scheduled_by / updated_by and their names are stamped by trg_trip_people_stamp
       vehicle_id: form.vehicle_id || null,
+      requested_by_name: form.requested_by_name.trim() || null,
       mileage_start: form.mileage_start ? parseInt(form.mileage_start) : null,
       mileage_end:   form.mileage_end   ? parseInt(form.mileage_end)   : null,
       return_time:      form.return_time      || null,
@@ -594,6 +602,14 @@ function TripModal({ trip, fromRequest, vehicles, residents, absences = [], defa
             <input value={form.phone} onChange={e => set('phone', e.target.value)}
               className="w-full mt-2 px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="Phone number" />
+          </div>
+
+          {/* Who asked for this trip */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Requested by</label>
+            <input value={form.requested_by_name} onChange={e => set('requested_by_name', e.target.value)} maxLength={120}
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              placeholder="Who asked for the ride, e.g. Susan Burke (daughter), Nurse Patricia, the resident" />
           </div>
 
           {/* Schedule */}
@@ -719,6 +735,17 @@ function TripModal({ trip, fromRequest, vehicles, residents, absences = [], defa
                     placeholder="Odometer in" />
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Record of who requested, scheduled and last changed the trip */}
+          {!isNew && (
+            <div className="text-xs text-slate-500 dark:text-slate-400 space-y-1 border-t border-slate-100 dark:border-slate-800 pt-3">
+              <div><span className="font-semibold">Requested by:</span> {trip.requested_by_name || 'not recorded'}</div>
+              <div><span className="font-semibold">Scheduled by:</span> {trip.scheduled_by_name || 'not recorded'}{trip.created_at && ` · ${fmtStamp(trip.created_at)}`}</div>
+              {trip.updated_by_name && trip.updated_at && (new Date(trip.updated_at) - new Date(trip.created_at) > 60000) && (
+                <div><span className="font-semibold">Last edited by:</span> {trip.updated_by_name} · {fmtStamp(trip.updated_at)}</div>
+              )}
             </div>
           )}
         </div>
@@ -1114,6 +1141,13 @@ export default function Transportation() {
                             </span>
                           )}
                         </div>
+                        {(t.requested_by_name || t.scheduled_by_name) && (
+                          <div className="text-xs text-slate-400 mt-1">
+                            {t.requested_by_name && <>Requested by {t.requested_by_name}</>}
+                            {t.requested_by_name && t.scheduled_by_name && ' · '}
+                            {t.scheduled_by_name && <>Scheduled by {t.scheduled_by_name}</>}
+                          </div>
+                        )}
                         {t.provider_address && (
                           <div className="text-xs text-slate-400 mt-1 flex items-center gap-1">
                             <MapPin size={11} /> {t.provider_address}
