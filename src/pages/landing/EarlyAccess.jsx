@@ -86,10 +86,10 @@ export default function EarlyAccess() {
             </div>
           </div>
           <h2 className="text-white text-3xl font-bold mb-4" style={{ fontFamily: '"Playfair Display", serif' }}>
-            You're on the list.
+            Thanks. I'll be in touch.
           </h2>
           <p className="text-white/60 text-lg leading-relaxed mb-8">
-            Thanks for your interest in ElderLoop. I'll personally reach out within 2 business days to learn more about your community.
+            Thanks for your interest in ElderLoop. I'll personally reach out within 2 business days to set up your demo and learn more about your community.
           </p>
           <div className="p-5 bg-white/5 border border-white/10 rounded-2xl text-left mb-8">
             <div className="text-xs text-brand-400 font-semibold uppercase tracking-wider mb-3">What happens next</div>
@@ -97,7 +97,7 @@ export default function EarlyAccess() {
               'You\'ll get a confirmation email shortly',
               'I\'ll reach out to schedule a 30-min discovery call',
               'We\'ll walk through a live demo tailored to your community',
-              'If it\'s a fit, you can be live within a day',
+              'If it\'s a fit, we\'ll set up your community together and train your staff',
             ].map((step, i) => (
               <div key={i} className="flex items-start gap-3 mb-2 last:mb-0">
                 <div className="w-5 h-5 rounded-full bg-brand-600/30 text-brand-400 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</div>
@@ -133,7 +133,7 @@ export default function EarlyAccess() {
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/15 bg-white/5 text-white/60 text-xs font-medium mb-8">
               <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-              Currently onboarding select communities
+              Now onboarding new communities
             </div>
 
             <h1 className="text-white mb-6 leading-tight" style={{
@@ -141,8 +141,8 @@ export default function EarlyAccess() {
               fontSize: 'clamp(2.2rem, 5vw, 3.5rem)',
               fontWeight: 700,
             }}>
-              Request early<br />
-              <em style={{ color: '#36aaf5', fontStyle: 'italic' }}>access.</em>
+              Request a<br />
+              <em style={{ color: '#36aaf5', fontStyle: 'italic' }}>demo.</em>
             </h1>
 
             <p className="text-white/60 text-lg leading-relaxed mb-10" style={{ fontWeight: 300 }}>
@@ -152,8 +152,8 @@ export default function EarlyAccess() {
             {/* Value props */}
             <div className="space-y-4 mb-10">
               {[
-                { icon: Zap,    text: 'Live within one day — no lengthy implementation' },
-                { icon: Shield, text: 'HIPAA-ready infrastructure from day one' },
+                { icon: Zap,    text: 'We set it up with you, including your work-order history' },
+                { icon: Shield, text: 'Two-factor sign-in and health-record access logging built in' },
                 { icon: Users,  text: 'Replaces TheWorxHub, eMenuCHOICE, IRIS, and more' },
               ].map(({ icon: Icon, text }) => (
                 <div key={text} className="flex items-center gap-3">
@@ -170,12 +170,12 @@ export default function EarlyAccess() {
               <div className="text-xs text-brand-400 font-semibold uppercase tracking-wider mb-4">Why ElderLoop</div>
               <div className="space-y-3">
                 {[
-                  { stat: '12+', desc: 'Years working inside senior living communities' },
-                  { stat: '$8K+', desc: 'Average annual savings vs. legacy software' },
-                  { stat: '1 day', desc: 'Typical time from signup to fully live' },
+                  { stat: '12+', desc: 'Years working inside a senior living community' },
+                  { stat: '44,000+', desc: 'Work orders moved for our founding community, Maranatha Village' },
+                  { stat: '20+', desc: 'Modules on one platform' },
                 ].map(({ stat, desc }) => (
                   <div key={stat} className="flex items-center gap-3">
-                    <div className="text-brand-400 font-bold text-lg w-12 flex-shrink-0" style={{ fontFamily: '"Playfair Display", serif' }}>{stat}</div>
+                    <div className="text-brand-400 font-bold text-lg w-20 flex-shrink-0" style={{ fontFamily: '"Playfair Display", serif' }}>{stat}</div>
                     <div className="text-white/50 text-sm">{desc}</div>
                   </div>
                 ))}
@@ -186,7 +186,7 @@ export default function EarlyAccess() {
           {/* Right — form */}
           <div className="bg-white/5 border border-white/10 backdrop-blur-sm rounded-3xl p-8">
             <h2 className="text-white font-semibold text-xl mb-1" style={{ fontFamily: '"Playfair Display", serif' }}>
-              Get early access
+              Request a demo
             </h2>
             <p className="text-white/40 text-sm mb-7">No commitment. I'll reach out personally within 2 business days.</p>
 
@@ -228,7 +228,7 @@ export default function EarlyAccess() {
                 <input
                   value={form.community}
                   onChange={e => set('community', e.target.value)}
-                  placeholder="Sunrise Gardens Senior Living"
+                  placeholder="Your community's name"
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/20 text-sm focus:outline-none focus:border-brand-500/50 focus:bg-white/8 transition-all"
                 />
               </div>
@@ -282,7 +282,7 @@ export default function EarlyAccess() {
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
-                    Request Early Access
+                    Request a Demo
                     <ArrowRight size={18} className="group-hover:translate-x-0.5 transition-transform" />
                   </>
                 )}
