@@ -6,6 +6,11 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { X, LifeBuoy, Lightbulb, CheckCircle2, AlertCircle, Loader2, Send, MessageSquare } from 'lucide-react'
 
+// Support contact and privacy statement, reachable from every screen (staff,
+// family and resident portals). PointClickCare's validation requires both inside
+// an integrated app; the same address is on /privacy and /terms.
+const SUPPORT_EMAIL = 'info@loopwaresolutions.com'
+
 const fmtWhen = (d) => new Date(d).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
 const STATUS_LABEL = { new: 'Sent', in_progress: 'In progress', done: 'Done' }
 
@@ -155,6 +160,11 @@ export default function FeedbackModal({ onClose }) {
           </div>
         )}
         <MyRequests />
+        <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 flex flex-wrap items-center gap-x-4 gap-y-1">
+          <span>ElderLoop support: <a href={`mailto:${SUPPORT_EMAIL}`} className="text-brand-600 dark:text-brand-400 hover:underline">{SUPPORT_EMAIL}</a></span>
+          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-brand-600 dark:text-brand-400 hover:underline">Privacy Policy</a>
+          <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-brand-600 dark:text-brand-400 hover:underline">Terms of Service</a>
+        </div>
       </div>
     </div>
   )
