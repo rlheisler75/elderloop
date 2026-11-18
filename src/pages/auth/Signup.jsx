@@ -20,7 +20,7 @@ const PLANS = [
     price: '$299/mo',
     desc:  'Every module, for smaller communities',
     color: 'border-brand-300',
-    features: ['Every module — the full platform', 'SMS messaging', 'Nursing, Incidents & Social Services', 'Dietary & Maintenance', 'Activities & Chapel', 'Scheduling & Housekeeping'],
+    features: ['Every module — the full platform', 'SMS messaging', 'Nursing, Incidents & Social Services (with a signed BAA)', 'Dietary & Maintenance', 'Activities & Chapel', 'Scheduling & Housekeeping'],
     note: '100 residents · 40 staff',
   },
   {
@@ -29,17 +29,17 @@ const PLANS = [
     price: '$599/mo',
     desc:  'Every module, for growing communities',
     color: 'border-brand-300',
-    features: ['Everything in Essential', 'Room to grow', 'AI Add-on available'],
+    features: ['Everything in Essential', 'Room to grow', 'AI and Budgets add-ons available'],
     note: '200 residents · 75 staff',
   },
   {
     key:   'professional',
     name:  'Professional',
     price: '$999/mo',
-    desc:  'Every module, no limits, AI included',
+    desc:  'Every module, no limits, add-ons included',
     color: 'border-brand-500',
-    badge: 'Most Popular',
-    features: ['Everything in Plus', 'Unlimited residents & staff', 'AI Add-on included', '+ every new module we build', 'Dedicated onboarding & phone support'],
+    badge: 'Everything included',
+    features: ['Everything in Plus', 'Unlimited residents & staff', 'AI and Budgets add-ons included', '+ every new module we build', 'Dedicated onboarding & phone support'],
     note: null,
   },
 ]
@@ -193,7 +193,7 @@ export default function Signup() {
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-white font-semibold">{p.name}</span>
                           {p.badge && (
-                            <span className="text-xs px-2 py-0.5 bg-brand-600 text-white rounded-full font-medium">
+                            <span className="text-xs px-2 py-0.5 bg-brand-600 text-white rounded-full font-medium whitespace-nowrap">
                               {p.badge}
                             </span>
                           )}

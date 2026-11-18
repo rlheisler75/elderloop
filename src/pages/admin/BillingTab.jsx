@@ -40,7 +40,7 @@ const PLANS = [
     features: [
       'Up to 100 residents & 40 staff',
       'Every module, including SMS messaging',
-      'Nursing, Incidents, Social Services',
+      'Nursing, Incidents, Social Services (with a signed BAA)',
       'Activities, Chapel & Dietary',
       'Maintenance, Housekeeping & Scheduling',
       'Security, Transportation & Central Supply',
@@ -73,14 +73,14 @@ const PLANS = [
     name:    'Professional',
     price:   999,
     period:  '/mo',
-    desc:    'The full platform with no limits — AI included.',
+    desc:    'The full platform with no limits — add-ons included.',
     priceId: import.meta.env.VITE_STRIPE_PRICE_PROFESSIONAL,
     color:   'border-brand-500',
-    badge:   'Most Popular',
+    badge:   'Everything included',
     features: [
       'Everything in Plus',
       'Unlimited residents & staff',
-      'AI Add-on and Budgets included',
+      'AI and Budgets add-ons included',
       'Every new module — included automatically',
       'Dedicated onboarding & phone support',
     ],
@@ -414,7 +414,7 @@ export default function BillingTab() {
                 className={`relative bg-white dark:bg-slate-900 rounded-2xl border-2 p-6 flex flex-col ${plan.color} ${plan.badge ? 'shadow-md' : ''}`}>
                 {plan.badge && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="bg-brand-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                    <span className="bg-brand-600 text-white text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap">
                       {plan.badge}
                     </span>
                   </div>

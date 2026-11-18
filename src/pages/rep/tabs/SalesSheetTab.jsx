@@ -68,14 +68,14 @@ export default function SalesSheetTab() {
           One platform for everything<br />your community runs on — <em style={{ color: '#076bb0', fontStyle: 'italic' }}>not five.</em>
         </h1>
         <p style={{ color: '#55636f', fontSize: 13.5, lineHeight: 1.5, margin: '0 0 16px', maxWidth: '66ch' }}>
-          ElderLoop replaces the scheduling tool, the paper charts, the texting app, and the spreadsheet with a single system built specifically for senior living communities. Set up in a day, not a quarter.
+          ElderLoop replaces the scheduling tool, the paper charts, the texting app, and the spreadsheet with a single system built specifically for senior living communities. We set it up with you, history included.
         </p>
 
         <div className="grid grid-cols-3 rounded-xl overflow-hidden mb-4" style={{ background: '#0c2340' }}>
           {[
             ['12+', 'Years senior living experience'],
-            ['$8K', 'Avg. annual savings vs. legacy tools'],
-            ['1 day', 'Average time to go live'],
+            ['44,000+', 'Work orders moved for our first community'],
+            ['23', 'Modules on one platform'],
           ].map(([v, l], i) => (
             <div key={l} className="text-center py-3.5 px-2" style={{ borderRight: i < 2 ? '1px solid rgba(255,255,255,0.12)' : 'none' }}>
               <div style={{ fontFamily: 'Georgia, "Playfair Display", serif', fontSize: 22, fontWeight: 700, color: '#fff' }}>{v}</div>
@@ -86,7 +86,7 @@ export default function SalesSheetTab() {
 
         <div className="grid mb-4" style={{ gridTemplateColumns: '1.05fr 1.35fr', gap: 22 }}>
           <div>
-            <h2 style={{ fontFamily: 'Georgia, "Playfair Display", serif', fontSize: 14, color: '#0c2340', margin: '0 0 8px', paddingBottom: 5, borderBottom: '1px solid #e1e6e9' }}>17 modules, one login</h2>
+            <h2 style={{ fontFamily: 'Georgia, "Playfair Display", serif', fontSize: 14, color: '#0c2340', margin: '0 0 8px', paddingBottom: 5, borderBottom: '1px solid #e1e6e9' }}>Every department, one login</h2>
             <div className="grid grid-cols-2" style={{ gap: '3px 10px' }}>
               {MODULES.map(m => (
                 <div key={m} className="relative" style={{ fontSize: 11.3, color: '#16202b', padding: '3px 0 3px 13px' }}>
@@ -95,7 +95,7 @@ export default function SalesSheetTab() {
                 </div>
               ))}
             </div>
-            <p style={{ fontSize: 10.5, color: '#55636f', marginTop: 8, fontStyle: 'italic' }}>Every new module we build is included at no extra cost — no add-on pricing, ever.</p>
+            <p style={{ fontSize: 10.5, color: '#55636f', marginTop: 8, fontStyle: 'italic' }}>Nursing and Incidents require a signed BAA. AI and Budgets are add-ons on Essential and Plus.</p>
           </div>
 
           <div>
@@ -137,14 +137,14 @@ export default function SalesSheetTab() {
                 <p style={{ fontSize: 10.5, color: '#55636f', margin: '2px 0 0' }}>Everything in Essential, for up to 200 residents & 75 staff.</p>
               </div>
               <div className="relative" style={{ border: '1.5px solid #0c90e1', borderRadius: 10, padding: '10px 13px', background: '#eaf5fd' }}>
-                <span className="absolute text-white font-bold" style={{ top: -8, right: 12, background: '#0c90e1', fontSize: 9, padding: '2px 8px', borderRadius: 999, letterSpacing: '0.03em' }}>Most Popular</span>
+                <span className="absolute text-white font-bold" style={{ top: -8, right: 12, background: '#0c90e1', fontSize: 9, padding: '2px 8px', borderRadius: 999, letterSpacing: '0.03em', whiteSpace: 'nowrap' }}>Everything included</span>
                 <div className="flex items-baseline justify-between">
                   <span style={{ fontWeight: 700, fontSize: 13, color: '#0c2340' }}>Professional</span>
                   <span style={{ fontFamily: 'Georgia, "Playfair Display", serif', fontWeight: 700, fontSize: 16, color: '#076bb0' }}>$999 <span style={{ fontSize: 10, fontWeight: 400, color: '#55636f' }}>/mo</span></span>
                 </div>
-                <p style={{ fontSize: 10.5, color: '#55636f', margin: '2px 0 5px' }}>The full platform with no limits — AI included.</p>
+                <p style={{ fontSize: 10.5, color: '#55636f', margin: '2px 0 5px' }}>The full platform with no limits — add-ons included.</p>
                 <ul className="grid grid-cols-2" style={{ fontSize: 10.3, color: '#16202b', margin: 0, padding: 0, listStyle: 'none', gap: '0 8px' }}>
-                  {['Unlimited residents & staff', 'AI Add-on included', 'Every new module included', 'Dedicated onboarding'].map(f => (
+                  {['Unlimited residents & staff', 'AI & Budgets included', 'Every new module included', 'Dedicated onboarding'].map(f => (
                     <li key={f} className="relative" style={{ paddingLeft: 11, marginBottom: 1 }}>
                       <span className="absolute" style={{ left: 0, color: '#3a653f', fontWeight: 700, fontSize: 10 }}>✓</span>{f}
                     </li>
@@ -158,7 +158,7 @@ export default function SalesSheetTab() {
         <div className="flex items-center justify-between mb-4" style={{ background: '#eef5ee', border: '1px solid #cfe0d0', borderRadius: 12, padding: '12px 16px' }}>
           <div style={{ fontSize: 12.5, color: '#16202b' }}>
             <strong style={{ color: '#3a653f' }}>Try any plan free for 14 days.</strong> No contract, cancel any time.
-            <div style={{ fontSize: 10.5, color: '#55636f', marginTop: 2 }}>Most communities are fully onboarded and live within a single day.</div>
+            <div style={{ fontSize: 10.5, color: '#55636f', marginTop: 2 }}>We set it up with you, bring over your work-order history, and train your staff.</div>
           </div>
         </div>
 
