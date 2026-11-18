@@ -69,7 +69,7 @@ export default function PhiAlertsPanel({ orgId, onShowActivity }) {
 
   const showActivity = a => {
     const from = new Date(a.first_at), to = new Date(a.last_at)
-    onShowActivity?.({ userId: a.user_id, residentId: a.kind === 'inactive_resident' ? a.resident_id : '', from: ymd(from), to: ymd(to) })
+    onShowActivity?.({ userId: a.user_id, userName: a.user_name, isSupport: a.is_support, residentId: a.kind === 'inactive_resident' ? a.resident_id : '', from: ymd(from), to: ymd(to) })
   }
 
   return (
@@ -131,6 +131,9 @@ export default function PhiAlertsPanel({ orgId, onShowActivity }) {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-medium text-slate-800 dark:text-slate-100">{a.user_name || 'Unknown user'}</span>
+                        {a.is_support && (
+                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300">ElderLoop support</span>
+                        )}
                         <span className="text-xs text-slate-400">·</span>
                         <span className="text-sm text-slate-600 dark:text-slate-300">{k.label}</span>
                         {!open && (

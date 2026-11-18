@@ -95,9 +95,16 @@ export default function HealthDataAccessTab({ orgId, orgName }) {
   const [loading, setLoading]   = useState(true)
   const [error, setError]       = useState('')
   const reportRef = useRef(null)
+  // ElderLoop support (super admin) logins aren't in the community's staff list;
+  // remember the ones seen in the log or an alert so the Staff filter can show them
+  const [supportPeople, setSupportPeople] = useState({})
+  const rememberSupport = found => {
+    if (Object.keys(found).some(id => !supportPeople[id])) setSupportPeople(p => ({ ...p, ...found }))
+  }
 
   // "Show activity" on an alert: that person's views over the alert's dates
-  const showActivity = ({ userId: u, residentId: r, from: f, to: t }) => {
+  const showActivity = ({ userId: u, userName, isSupport, residentId: r, from: f, to: t }) => {
+    if (isSupport && u) rememberSupport({ [u]: userName || 'ElderLoop support' })
     setRange('custom'); setFrom(f); setTo(t); setKind('viewed')
     setUserId(u || ''); setResidentId(r || '')
     reportRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -137,6 +144,13 @@ export default function HealthDataAccessTab({ orgId, orgName }) {
     return () => { cancelled = true }
   }, [orgId, range, from, to, kind, userId, residentId])
 
+  useEffect(() => {
+    const found = {}
+    rows.forEach(r => { if (r.user_role === 'super_admin' && r.user_id) found[r.user_id] = who(r) })
+    rememberSupport(found)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rows])
+
   const stats = useMemo(() => ({
     views:     rows.filter(r => r.action === 'VIEW').length,
     changes:   rows.filter(r => r.action !== 'VIEW').length,
@@ -160,7 +174,7 @@ export default function HealthDataAccessTab({ orgId, orgName }) {
   }
 
   const selCls = 'px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 dark:text-slate-100 text-sm'
-  const staffName = id => { const s = staff.find(x => x.id === id); return s ? `${s.first_name} ${s.last_name}` : '' }
+  const staffName = id => { const s = staff.find(x => x.id === id); return s ? `${s.first_name} ${s.last_name}` : (supportPeople[id] || '') }
   const residentName = id => { const r = residents.find(x => x.id === id); return r ? `${r.first_name} ${r.last_name}` : '' }
 
   return (
@@ -176,7 +190,8 @@ export default function HealthDataAccessTab({ orgId, orgName }) {
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">
               Who opened or changed residents' health information: nursing charts, Social Services records, incident reports,
               emergency and medical contacts, and diet profiles. Opening the same record again within 10 minutes counts once.
-              The report shows names and records only, never the health information itself.
+              ElderLoop support's access while helping your community is included. The report shows names and records
+              only, never the health information itself.
             </p>
           </div>
           <button onClick={exportCsv} disabled={!rows.length}
@@ -218,6 +233,11 @@ export default function HealthDataAccessTab({ orgId, orgName }) {
             <select value={userId} onChange={e => setUserId(e.target.value)} className={`${selCls} max-w-[14rem]`}>
               <option value="">Everyone</option>
               {staff.map(s => <option key={s.id} value={s.id}>{s.last_name}, {s.first_name}{s.is_active === false ? ' (inactive)' : ''}</option>)}
+              {Object.keys(supportPeople).length > 0 && (
+                <optgroup label="ElderLoop support">
+                  {Object.entries(supportPeople).map(([id, name]) => <option key={id} value={id}>{name}</option>)}
+                </optgroup>
+              )}
             </select>
           </div>
           <div>
