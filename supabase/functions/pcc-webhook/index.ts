@@ -41,12 +41,22 @@ function sameText(a: string, b: string): boolean {
   return diff === 0
 }
 
-function authorized(req: Request, user: string, pass: string): boolean {
+// Basic auth: base64 of "username:password" (UTF-8). Returns whether the username
+// matched too, so a refused login can be diagnosed without logging the password.
+function checkLogin(req: Request, user: string, pass: string): { ok: boolean, userMatched: boolean } {
   const h = req.headers.get('Authorization') ?? ''
-  if (!h.startsWith('Basic ')) return false
+  if (!h.startsWith('Basic ')) return { ok: false, userMatched: false }
   let decoded = ''
-  try { decoded = atob(h.slice(6).trim()) } catch { return false }
-  return sameText(decoded, `${user}:${pass}`)
+  try {
+    const bin = atob(h.slice(6).trim())
+    decoded = new TextDecoder().decode(Uint8Array.from(bin, c => c.charCodeAt(0)))
+  } catch { return { ok: false, userMatched: false } }
+  const i = decoded.indexOf(':')
+  const gotUser = i < 0 ? decoded : decoded.slice(0, i)
+  const gotPass = i < 0 ? '' : decoded.slice(i + 1)
+  const userMatched = sameText(gotUser.trim(), user)
+  const passMatched = sameText(gotPass.trim(), pass)
+  return { ok: userMatched && passMatched, userMatched }
 }
 
 // ── PointClickCare API ──────────────────────────────────────────
@@ -137,10 +147,17 @@ async function retryEarlier(admin: SupabaseClient, skipId: string) {
 // ── Listener ────────────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
   if (req.method !== 'POST') return empty(405)
-  const user = Deno.env.get('PCC_WEBHOOK_USER') ?? ''
-  const pass = Deno.env.get('PCC_WEBHOOK_PASSWORD') ?? ''
+  // Spaces or a line break pasted around a secret are ignored (on both sides)
+  const rawUser = Deno.env.get('PCC_WEBHOOK_USER') ?? ''
+  const rawPass = Deno.env.get('PCC_WEBHOOK_PASSWORD') ?? ''
+  const user = rawUser.trim()
+  const pass = rawPass.trim()
   if (!user || !pass) return empty(503)
-  if (!authorized(req, user, pass)) return empty(401)
+  const login = checkLogin(req, user, pass)
+  if (!login.ok) {
+    console.warn(`pcc-webhook: login refused (username ${login.userMatched ? 'matched; password did not' : 'did not match'}${rawUser !== user || rawPass !== pass ? '; a saved secret had spaces around it, which are ignored' : ''})`)
+    return empty(401)
+  }
 
   let msg: Record<string, unknown>
   try { msg = await req.json() } catch { return empty(400) }
