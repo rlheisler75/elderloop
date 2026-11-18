@@ -219,7 +219,7 @@ function CaseNoteModal({ note, residents, orgId, canWrite, onClose, onSaved }) {
             </button>
           )}
           {!isNew && canWrite && !note.entered_in_error && (
-            <PccSendButton kind="progress_note" sourceTable="ss_case_notes" sourceId={note.id} />
+            <PccSendButton sourceTable="ss_case_notes" sourceId={note.id} />
           )}
           <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">{readOnly ? 'Close' : 'Cancel'}</button>
           {!readOnly && (

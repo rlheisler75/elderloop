@@ -6,7 +6,6 @@ import { CAPPED_PLANS } from '../../lib/planModules'
 import LocationPickerButton, { fetchLocationPath } from '../../components/ui/LocationPickerButton'
 import { residentPlace, splitRoomBed, joinRoomBed } from '../../lib/residentPlace'
 import usePhiView from '../../hooks/usePhiView'
-import PccSendButton from '../../components/pcc/PccSendButton'
 import {
   Plus, X, Edit2, Trash2, Search, Printer, Phone,
   Mail, MapPin, User, Heart, Stethoscope, Calendar,
@@ -620,7 +619,7 @@ function ResidentDetail({ resident, canEdit, limited = false, showDates = !limit
                     </div>
                     <div>
                       <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Bed</label>
-                      <select value={form.bed} onChange={e => set('bed', e.target.value)} title="Saved as room-bed, e.g. 103-1, to match PCC"
+                      <select value={form.bed} onChange={e => set('bed', e.target.value)} title="Saved as room-bed, e.g. 103-1, to match PointClickCare"
                         className="w-full px-2 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                         <option value="">—</option>
                         <option value="1">1</option>
@@ -829,9 +828,6 @@ function ResidentDetail({ resident, canEdit, limited = false, showDates = !limit
           )}
 
           {/* EMERGENCY CONTACTS TAB */}
-          {tab === 'emergency' && !isNew && emergencyContacts.length > 0 && (
-            <div className="mb-3"><PccSendButton kind="contact_update" residentId={resident.id} /></div>
-          )}
           {tab === 'emergency' && (
             <fieldset disabled={readOnly} className="space-y-3 disabled:opacity-75">
               {isNew && (

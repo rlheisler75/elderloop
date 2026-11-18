@@ -1,8 +1,6 @@
 // Shared labels for the PointClickCare outbound queue (20261116_pcc_outbound_queue.sql).
 export const PCC_KIND_LABELS = {
   progress_note:  'Progress note',
-  charge:         'Charges',
-  contact_update: 'Emergency contacts',
 }
 
 export const PCC_STATUS = {

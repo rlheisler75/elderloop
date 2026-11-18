@@ -390,9 +390,9 @@ export default function ResidentImport({ orgId, onImported, onClose }) {
                         </div>
                         {syncResult.needs_review?.length > 0 && (
                           <div className="text-amber-700 dark:text-amber-400">
-                            Not synced, more than one possible match. Set their PCC ID on the resident or fix the duplicate, then sync again:
+                            Not synced, more than one possible match. Fix the duplicate in ElderLoop (for example, deactivate the extra record or correct a birth date), then sync again:
                             <ul className="list-disc ml-4 mt-0.5">
-                              {syncResult.needs_review.map(r => <li key={r.pcc_patient_id}>{r.name} (PCC {r.pcc_patient_id}): {r.reason}</li>)}
+                              {syncResult.needs_review.map((r, i) => <li key={i}>{r.name}: {r.reason}</li>)}
                             </ul>
                           </div>
                         )}

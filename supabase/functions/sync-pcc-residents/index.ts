@@ -21,9 +21,13 @@
 // has. care_level, building, location_id, photos and consent are ElderLoop's.
 //
 // PCC credentials are Edge Function secrets: PCC_CLIENT_ID, PCC_CLIENT_SECRET,
-// and optionally PCC_API_BASE. The endpoint paths and field names below follow
-// PCC's published API shape; check them against the developer portal once
-// PointClickCare grants access (everything PCC-specific is in this block).
+// and optionally PCC_API_BASE. Endpoint, query parameters and field names were
+// checked against the developer portal on 2026-11-17; still to be tested in the
+// sandbox (everything PCC-specific is in this block). This is a 2-legged
+// (client credentials) server-to-server call, so it goes to connect2.
+// PointClickCare's validation rules: pull only the statuses needed (Current) and
+// only the fields used, and once webhooks are set up, rely on them for ongoing
+// changes rather than polling.
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
 const corsHeaders = {
@@ -36,8 +40,9 @@ const json = (data: object, status = 200) =>
   new Response(JSON.stringify(data), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 
 // ── PointClickCare API ──────────────────────────────────────────
-const PCC_BASE = (Deno.env.get('PCC_API_BASE') ?? 'https://connect.pointclickcare.com').replace(/\/$/, '')
-const PAGE_SIZE = 200
+const PCC_BASE = (Deno.env.get('PCC_API_BASE') ?? 'https://connect2.pointclickcare.com').replace(/\/$/, '')
+const PAGE_SIZE = 200 // PointClickCare's maximum
+const PATIENT_FIELDS = 'patientId,firstName,middleName,lastName,birthDate,roomDesc,bedDesc,unitDesc,admissionDate,patientStatus'
 const MAX_PAGES = 50 // 10,000 residents; stops a runaway paging loop
 
 type PccPatient = {
@@ -75,7 +80,7 @@ async function pccToken(): Promise<string> {
 async function pccCurrentPatients(token: string, orgUuid: string, facId: string): Promise<PccPatient[]> {
   const all: PccPatient[] = []
   for (let page = 1; page <= MAX_PAGES; page++) {
-    const qs = new URLSearchParams({ facId, patientStatus: 'Current', page: String(page), pageSize: String(PAGE_SIZE) })
+    const qs = new URLSearchParams({ facId, patientStatus: 'Current', fields: PATIENT_FIELDS, page: String(page), pageSize: String(PAGE_SIZE) })
     const res = await fetch(`${PCC_BASE}/api/public/preview1/orgs/${encodeURIComponent(orgUuid)}/patients?${qs}`, {
       headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
       signal: AbortSignal.timeout(30000),
@@ -190,7 +195,8 @@ Deno.serve(async (req: Request) => {
 
     let created = 0, updated = 0, linked = 0, unchanged = 0, failed = 0
     const errors: string[] = []
-    const needs_review: { pcc_patient_id: string, name: string, reason: string }[] = []
+    // Names and reasons only: PointClickCare's patientId must never reach a screen.
+    const needs_review: { name: string, reason: string }[] = []
     const seen = new Set<string>()
 
     for (const p of patients) {
@@ -205,12 +211,12 @@ Deno.serve(async (req: Request) => {
         const dobMatches = incoming.date_of_birth ? candidates.filter(r => r.date_of_birth === incoming.date_of_birth) : []
         if (dobMatches.length === 1) match = dobMatches[0]
         else if (dobMatches.length > 1) {
-          needs_review.push({ pcc_patient_id: incoming.pcc_patient_id, name: label, reason: 'More than one ElderLoop resident has this name and birth date' })
+          needs_review.push({ name: label, reason: 'More than one ElderLoop resident has this name and birth date' })
           continue
         } else if (candidates.length === 1 && (!incoming.date_of_birth || !candidates[0].date_of_birth)) {
           match = candidates[0]
         } else if (candidates.length > 1) {
-          needs_review.push({ pcc_patient_id: incoming.pcc_patient_id, name: label, reason: 'More than one ElderLoop resident has this name' })
+          needs_review.push({ name: label, reason: 'More than one ElderLoop resident has this name' })
           continue
         }
         // A same-name resident with a different birth date is someone else: falls through to create

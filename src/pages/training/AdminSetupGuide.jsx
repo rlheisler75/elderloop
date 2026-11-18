@@ -164,7 +164,7 @@ export default function AdminSetupGuide() {
               { k: 2, text: <>Narrow it by <B>Dates</B>, <B>Type</B> (viewed, changed, or both), <B>Staff member</B>, or <B>Resident</B>. Clicking a name in the list filters to that person or resident.</> },
               { k: 3, text: <><B>Export CSV</B> saves what's shown, for your privacy officer or a surveyor.</> },
             ]} />
-            <P>Opening the same record again within 10 minutes counts once. The report lists names and records only, never the health information itself. "System (automatic)" means a change made by an import, a sync, or a scheduled job rather than a person. Views are recorded from November 16, 2026 on.</P>
+            <P>Opening the same record again within 10 minutes counts once. The report lists names and records only, never the health information itself. "System (automatic)" means a change made by an import, a sync, or a scheduled job rather than a person. "ElderLoop support" is our team, when we open records while helping your community; that access is logged and checked by the same alerts as your staff's. Views are recorded from November 16, 2026 on.</P>
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3 mt-6">Unusual access alerts</h3>
             <P>ElderLoop checks each time health information is opened and flags four patterns at the top of the page, with a bell to the Org Admins and Platform Admins:</P>
             <Steps items={[
@@ -179,11 +179,11 @@ export default function AdminSetupGuide() {
           <SectionBlock id="pcc" num="11" title="PointClickCare" roleNote="Org Admin"
             dek="Connect the community to PointClickCare, bring residents in, and approve what ElderLoop sends back.">
             <Steps items={[
-              { k: 1, text: <>Enter the <B>PCC Facility ID</B> and <B>PCC Org UUID</B> in <B>Org Settings</B>. Until they're there, none of the PointClickCare buttons appear.</> },
+              { k: 1, text: <>Enter the <B>PointClickCare Facility ID</B> and <B>PointClickCare Org UUID</B> in <B>Org Settings</B>. Until they're there, none of the PointClickCare buttons appear.</> },
               { k: 2, text: <>Bring residents in with <B>Lists & Pick Lists → Residents → Import from CSV/Excel → Sync Now</B>. That links each resident to their PointClickCare record, which they need before anything can be sent for them.</> },
-              { k: 3, text: <><B>Admin Panel → PointClickCare</B> lists everything waiting to go to PointClickCare: progress notes, emergency contacts, and meter charges. Approve, cancel, or retry items there, or <B>Send approved now</B>.</> },
+              { k: 3, text: <><B>Admin Panel → PointClickCare</B> lists the Social Services progress notes waiting to go to PointClickCare. Approve, cancel, or retry them there, or <B>Send approved now</B>.</> },
             ]} />
-            <P>Who approves: progress notes, a Social Services Supervisor or Director; contacts, also the Administrator; charges, the business office (meter costs permission). Org Admins can approve everything. Approvers get a bell when something is waiting. Social Services approvers also have a PointClickCare tab in Social Services, and the business office approves charges in <B>Meters → Billing Export</B>.</P>
+            <P>Who approves: a Social Services Supervisor or Director, or an Org Admin. Approvers get a bell when a note is waiting, and Social Services approvers also have a PointClickCare tab in Social Services. Emergency contacts and meter charges aren't sent to PointClickCare: PointClickCare has no way to receive them.</P>
           </SectionBlock>
 
           <QuickRefTable rows={[

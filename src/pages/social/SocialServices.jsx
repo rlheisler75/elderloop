@@ -80,7 +80,7 @@ export default function SocialServices() {
         {tab === 'discharge'   && <DischargePlanning canWrite={canWrite} />}
         {tab === 'resources'   && <Resources         canWrite={canWrite} />}
         {tab === 'dashboard'   && <SocialDashboard onNavigate={setTab} />}
-        {tab === 'pcc' && pccConnected && <PccOutboundQueue kinds={['progress_note', 'contact_update']} title="Notes and contacts for PointClickCare" />}
+        {tab === 'pcc' && pccConnected && <PccOutboundQueue title="Notes for PointClickCare" />}
       </div>
     </div>
   )

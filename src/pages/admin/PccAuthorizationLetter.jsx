@@ -82,7 +82,7 @@ export default function PccAuthorizationLetter({ orgId, onClose }) {
                     <div><strong>Community:</strong> {org.name}</div>
                     {(org.address || cityStateZip) && <div><strong>Address:</strong> {[org.address, cityStateZip].filter(Boolean).join(', ')}</div>}
                     {org.phone && <div><strong>Phone:</strong> {org.phone}</div>}
-                    <div><strong>PCC Facility ID:</strong> {org.pcc_facility_id || <span style={{ color: '#8a97a3' }}>(if known — otherwise leave blank)</span>}</div>
+                    <div><strong>PointClickCare Facility ID:</strong> {org.pcc_facility_id || <span style={{ color: '#8a97a3' }}>(if known — otherwise leave blank)</span>}</div>
                   </div>
                 </div>
                 <div>

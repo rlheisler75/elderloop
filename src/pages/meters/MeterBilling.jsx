@@ -1,13 +1,12 @@
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
-import { X, Download, Printer, CheckCircle, Undo2, AlertCircle, Loader2, ImageOff, Receipt, Send } from 'lucide-react'
-import PccOutboundQueue from '../../components/pcc/PccOutboundQueue'
-import { pccError } from '../../components/pcc/pccOutbound'
+import { X, Download, Printer, CheckCircle, Undo2, AlertCircle, Loader2, ImageOff, Receipt } from 'lucide-react'
 
 // Billing Export for utility meters. ElderLoop doesn't keep resident accounts: the
 // business office bills elsewhere (Maranatha: statements on letterhead, then GP and
-// PCC) from this summary, then marks the period billed (mark_meter_readings_billed).
+// PointClickCare) from this summary, then marks the period billed (mark_meter_readings_billed).
+// Charges can't be sent to PointClickCare: its API has no charges endpoint.
 // A billed reading's numbers are frozen by meter_billing_guard.
 
 const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -29,23 +28,6 @@ export default function MeterBilling({ meters, utilityTypes, onClose }) {
   const [reference, setReference] = useState('')
   const [busy, setBusy]         = useState(false)
   const [message, setMessage]   = useState(null)
-  const [queueKey, setQueueKey] = useState(0)
-  const pccConnected = !!organization?.pcc_facility_id?.trim?.()
-
-  // Queue the unbilled readings shown as PointClickCare charges (one item per resident).
-  // They're marked billed only after PCC accepts them (send-pcc-outbound).
-  async function sendToPcc() {
-    setBusy(true); setMessage(null)
-    const { data, error } = await supabase.rpc('pcc_queue_charges', { p_reading_ids: toMark })
-    setBusy(false)
-    if (error) { setMessage({ type: 'error', text: pccError(error) }); return }
-    const parts = [`Queued charges for ${data.queued} resident${data.queued === 1 ? '' : 's'} for approval.`]
-    if (data.unlinked_residents?.length) parts.push(`Not linked to PointClickCare: ${data.unlinked_residents.join(', ')}.`)
-    if (data.no_resident_readings) parts.push(`${data.no_resident_readings} reading${data.no_resident_readings === 1 ? '' : 's'} on meters with no resident were skipped.`)
-    if (data.skipped_readings) parts.push(`${data.skipped_readings} already queued or billed.`)
-    setMessage({ type: data.queued ? 'success' : 'error', text: parts.join(' ') })
-    setQueueKey(k => k + 1)
-  }
 
   const typeById = useMemo(() => Object.fromEntries(utilityTypes.map(t => [t.id, t])), [utilityTypes])
 
@@ -260,7 +242,6 @@ export default function MeterBilling({ meters, utilityTypes, onClose }) {
               </table>
             </div>
           )}
-          {pccConnected && <PccOutboundQueue key={queueKey} kinds={['charge']} title="Charges for PointClickCare" />}
         </div>
 
         <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center gap-3">
@@ -269,13 +250,6 @@ export default function MeterBilling({ meters, utilityTypes, onClose }) {
           {toUnmark.length > 0 && (
             <button onClick={() => mark(false)} disabled={busy}
               className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium"><Undo2 size={15} /> Mark not billed</button>
-          )}
-          {pccConnected && (
-            <button onClick={sendToPcc} disabled={busy || !toMark.length}
-              title="Queue these charges for approval, then post them to residents' PointClickCare accounts"
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl border border-brand-200 dark:border-brand-900 text-brand-700 dark:text-brand-300 hover:bg-brand-50 dark:hover:bg-brand-950/40 disabled:opacity-50">
-              <Send size={15} /> Send to PointClickCare
-            </button>
           )}
           <button onClick={() => mark(true)} disabled={busy || !toMark.length}
             className="flex items-center gap-2 px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-xl">

@@ -193,8 +193,6 @@ export default function SocialServicesGuide() {
               { k: 3, text: <><b className="text-slate-900">Approve</b> it, or <b className="text-slate-900">Cancel</b> it with a reason. Approved items go out with <b className="text-slate-900">Send approved now</b>. If sending fails, the error shows on the item and you can <b className="text-slate-900">Retry</b>.</> },
             ]} />
             <Tip>Each note can be sent once. If someone edits a note after it was queued, ElderLoop won't let it be approved: cancel it and send the note again so PointClickCare gets the current wording. Notes marked entered in error can't be sent. The resident must be linked to PointClickCare (Import Residents → Sync Now); if they aren't, the button says so.</Tip>
-            <div className="mt-4" />
-            <Tip>The same tab handles <b className="text-slate-900">emergency contacts</b> sent from Residents → a resident → Emergency Contacts → Send to PointClickCare. Those can be approved by a Social Services Supervisor or Director, the Administrator, or an Org Admin. ElderLoop only adds records in PointClickCare; it never changes or deletes anything there.</Tip>
           </SectionBlock>
 
           <QuickRefTable rows={[
@@ -212,7 +210,7 @@ export default function SocialServicesGuide() {
             ['See who’s overdue for their annual review', 'Social Profiles badge, or Director Dashboard'],
             ['Check my caseload or team workload', 'Director Dashboard → Caseload Summary'],
             ['Send a note to PointClickCare', 'Open the saved note → Send to PointClickCare'],
-            ['Approve notes and contacts for PointClickCare', 'PointClickCare tab → Approve'],
+            ['Approve notes for PointClickCare', 'PointClickCare tab → Approve'],
           ]} />
 
           <GuideFooter label="Social Services Module" />

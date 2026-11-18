@@ -54,7 +54,6 @@ export default function DirectoryGuide() {
               { k: 3, text: <><b className="text-slate-900">Emergency Contacts</b> and <b className="text-slate-900">Medical Contacts</b> (physician, specialist, dentist, pharmacy, hospital) are both repeatable — add as many as needed and mark one emergency contact <b className="text-slate-900">Primary</b>.</> },
               { k: 4, text: <>The print icon in the header generates a confidential profile sheet. "Deleting" a resident actually deactivates them — records are retained, not erased.</> },
             ]} />
-            <Tip>Communities connected to PointClickCare also see <b className="text-slate-900">Send to PointClickCare</b> on the Emergency Contacts tab. It queues the resident's current emergency contacts for approval by a Social Services Supervisor or Director, the Administrator, or an Org Admin (Social Services → PointClickCare tab). After you change contacts, send them again. ElderLoop adds or updates contacts in PointClickCare but never deletes any there.</Tip>
           </SectionBlock>
 
           <SectionBlock id="staff-dir" num="03" title="Staff Directory"

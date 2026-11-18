@@ -204,7 +204,7 @@ function DischargeModal({ plan, residents, orgId, canWrite, onClose, onSaved }) 
 
         <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
           {!isNew && canWrite && (
-            <div className="mr-auto"><PccSendButton kind="progress_note" sourceTable="ss_discharge_plans" sourceId={plan.id} /></div>
+            <div className="mr-auto"><PccSendButton sourceTable="ss_discharge_plans" sourceId={plan.id} /></div>
           )}
           <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">{readOnly ? 'Close' : 'Cancel'}</button>
           {!readOnly && (

@@ -7,8 +7,9 @@ import { PCC_KIND_LABELS, PCC_STATUS, pccError, fmtStamp } from './pccOutbound'
 // The PointClickCare outbound queue: everything waiting to be written into PCC,
 // with Approve / Cancel / Retry for the people allowed to approve each kind
 // (pcc_can_approve) and "Send approved now" (send-pcc-outbound Edge Function).
-// Used in Admin Panel → PointClickCare (all kinds), Social Services → PointClickCare
-// (notes and contacts) and Meter billing (charges).
+// Used in Admin Panel → PointClickCare and Social Services → PointClickCare.
+// Progress notes only: charges and contact updates were removed 2026-11-17
+// (PointClickCare's API has no endpoint for either).
 
 const FILTERS = [
   { key: 'open',   label: 'Needs attention', statuses: ['pending', 'approved', 'sending', 'failed'] },
@@ -16,55 +17,17 @@ const FILTERS = [
   { key: 'closed', label: 'Cancelled',       statuses: ['cancelled'] },
   { key: 'all',    label: 'All',             statuses: null },
 ]
-const money = (n) => n == null ? '—' : `$${Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-
 function Preview({ item }) {
   const p = item.payload || {}
-  if (item.kind === 'progress_note') {
-    return (
-      <div className="text-xs text-slate-600 dark:text-slate-300">
-        <div className="text-slate-400 mb-1">{p.note_type} progress note · effective {p.effective_date}{p.author_name ? ` · written by ${p.author_name}` : ''}</div>
-        <div className="whitespace-pre-wrap bg-slate-50 dark:bg-slate-800/60 rounded-lg p-3">{p.text}</div>
-      </div>
-    )
-  }
-  if (item.kind === 'charge') {
-    return (
-      <table className="w-full text-xs">
-        <thead className="text-slate-400"><tr>
-          <th className="text-left py-1">Date</th><th className="text-left py-1">Utility / meter</th>
-          <th className="text-right py-1">Usage</th><th className="text-right py-1">Amount</th>
-        </tr></thead>
-        <tbody className="text-slate-600 dark:text-slate-300">
-          {(p.lines || []).map((l, i) => (
-            <tr key={i} className="border-t border-slate-100 dark:border-slate-800">
-              <td className="py-1">{l.reading_date}</td>
-              <td className="py-1">{l.utility || 'Utility'}{l.meter_number ? ` · ${l.meter_number}` : ''}</td>
-              <td className="py-1 text-right">{l.usage ?? ''} {l.usage_unit || ''}</td>
-              <td className="py-1 text-right">{money(l.amount)}</td>
-            </tr>
-          ))}
-          <tr className="border-t border-slate-200 dark:border-slate-700 font-semibold">
-            <td colSpan={3} className="py-1 text-right">Total</td><td className="py-1 text-right">{money(p.total)}</td>
-          </tr>
-        </tbody>
-      </table>
-    )
-  }
   return (
-    <ul className="text-xs text-slate-600 dark:text-slate-300 space-y-1">
-      {(p.contacts || []).map((c, i) => (
-        <li key={i}>
-          <span className="font-medium">{c.name}</span>{c.relationship ? ` (${c.relationship})` : ''}{c.is_primary ? ' · primary' : ''}
-          {[c.phone, c.alt_phone, c.email].filter(Boolean).length > 0 && <span className="text-slate-400"> · {[c.phone, c.alt_phone, c.email].filter(Boolean).join(' · ')}</span>}
-        </li>
-      ))}
-      <li className="text-slate-400">{p.note}</li>
-    </ul>
+    <div className="text-xs text-slate-600 dark:text-slate-300">
+      <div className="text-slate-400 mb-1">{p.note_type} progress note · effective {p.effective_date}{p.author_name ? ` · written by ${p.author_name}` : ''}</div>
+      <div className="whitespace-pre-wrap bg-slate-50 dark:bg-slate-800/60 rounded-lg p-3">{p.text}</div>
+    </div>
   )
 }
 
-export default function PccOutboundQueue({ kinds = ['progress_note', 'charge', 'contact_update'], title = 'Sending to PointClickCare' }) {
+export default function PccOutboundQueue({ kinds = ['progress_note'], title = 'Sending to PointClickCare' }) {
   const { organization, profile } = useAuth()
   const connected = !!organization?.pcc_facility_id?.trim?.()
   const [cancelling, setCancelling]     = useState(null)
@@ -142,7 +105,7 @@ export default function PccOutboundQueue({ kinds = ['progress_note', 'charge', '
           </p>
           {!connected && (
             <p className="text-xs text-amber-700 dark:text-amber-400 mt-2">
-              PointClickCare isn't connected for this community yet, so nothing can be queued. Add the PCC Facility ID in Org Settings once the partnership is set up.
+              PointClickCare isn't connected for this community yet, so nothing can be queued. Add the PointClickCare Facility ID in Org Settings once the partnership is set up.
             </p>
           )}
         </div>
@@ -194,7 +157,7 @@ export default function PccOutboundQueue({ kinds = ['progress_note', 'charge', '
                     <div className="text-xs text-slate-400 mt-1">
                       Queued by {item.created_by_name || 'someone'} · {fmtStamp(item.created_at)}
                       {item.decided_by_name && ` · ${item.status === 'cancelled' ? 'Cancelled' : 'Approved'} by ${item.decided_by_name} · ${fmtStamp(item.decided_at)}`}
-                      {item.sent_at && ` · Sent ${fmtStamp(item.sent_at)}${item.pcc_ref ? ` (PCC ${item.pcc_ref})` : ''}`}
+                      {item.sent_at && ` · Sent ${fmtStamp(item.sent_at)}${item.pcc_ref ? ` (PointClickCare note ${item.pcc_ref})` : ''}`}
                     </div>
                     {item.cancel_reason && <div className="text-xs text-slate-500 mt-1">Reason: {item.cancel_reason}</div>}
                     {item.error && <div className="text-xs text-red-600 dark:text-red-400 mt-1">{item.error}</div>}
