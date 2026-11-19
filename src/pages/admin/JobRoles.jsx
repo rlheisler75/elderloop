@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import { Plus, Search, Check, X, Users, Trash2, Info, Loader2, Copy } from 'lucide-react'
 import { ACTIONS, PERMISSION_MODULES } from '../../lib/permissions'
+import { loadJobRolePermissions } from '../../lib/jobRolePermissions'
 
 // Job Roles (20261023_job_roles_foundation.sql): per-community bundles of module x
 // action permissions. A person can hold several; department & level hand out the
@@ -72,12 +73,12 @@ export default function JobRoles({ orgId, orgModules }) {
   const load = useCallback(async () => {
     const [r, p, m, pe] = await Promise.all([
       supabase.from('job_roles').select('*').eq('organization_id', orgId).order('name'),
-      supabase.from('job_role_permissions').select('job_role_id, module_key, action'),
+      loadJobRolePermissions(orgId),
       supabase.from('user_job_roles').select('job_role_id, profile_id, auto').eq('organization_id', orgId),
       supabase.from('profiles').select('id, first_name, last_name, role, is_active').eq('organization_id', orgId)
         .eq('is_active', true).not('role', 'in', '(family,resident)').order('last_name'),
     ])
-    if (r.error) setError(r.error.message)
+    if (r.error || p.error) setError((r.error || p.error).message)
     setRoles(r.data || []); setPerms(p.data || []); setMembers(m.data || []); setPeople(pe.data || [])
     setSelectedId(id => id || r.data?.find(x => x.source === 'everyone')?.id || r.data?.[0]?.id || null)
   }, [orgId])
@@ -95,7 +96,9 @@ export default function JobRoles({ orgId, orgModules }) {
     setBusy(cell); setError('')
     const { error: err } = on
       ? await supabase.from('job_role_permissions').delete().eq('job_role_id', selectedId).eq('module_key', moduleKey).eq('action', action)
-      : await supabase.from('job_role_permissions').insert({ job_role_id: selectedId, module_key: moduleKey, action })
+      // Already granted (e.g. by another admin since this screen loaded) is fine: the box just turns on
+      : await supabase.from('job_role_permissions').upsert({ job_role_id: selectedId, module_key: moduleKey, action },
+          { onConflict: 'job_role_id,module_key,action', ignoreDuplicates: true })
     setBusy(null)
     if (err) return setError(err.message)
     setPerms(ps => on ? ps.filter(p => !(p.job_role_id === selectedId && p.module_key === moduleKey && p.action === action))

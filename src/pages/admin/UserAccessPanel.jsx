@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import { X, Plus, Check, Minus, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
 import { ACTIONS, PERMISSION_MODULES } from '../../lib/permissions'
+import { loadJobRolePermissions } from '../../lib/jobRolePermissions'
 
 // Edit User → Job Roles & effective access. Job Roles give permissions; the grid
 // shows the result and lets an admin add or remove one permission for this person
@@ -22,7 +23,7 @@ export default function UserAccessPanel({ user, orgId, orgModules, refreshKey })
     const [r, m, p, o] = await Promise.all([
       supabase.from('job_roles').select('id, name, source').eq('organization_id', orgId).order('name'),
       supabase.from('user_job_roles').select('job_role_id, auto').eq('profile_id', user.id),
-      supabase.from('job_role_permissions').select('job_role_id, module_key, action'),
+      loadJobRolePermissions(orgId),
       supabase.from('user_access_overrides').select('module_key, action, allow').eq('profile_id', user.id),
     ])
     setRoles(r.data || []); setMine(m.data || []); setPerms(p.data || []); setOverrides(o.data || [])
