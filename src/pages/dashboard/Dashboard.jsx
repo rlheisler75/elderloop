@@ -170,7 +170,11 @@ export default function Dashboard() {
 
     if (hasModule('communication')) {
       queries.push(
-        supabase.from('announcements').select('id,title,created_at,category').eq('organization_id', orgId).eq('is_active', true).lte('starts_at', new Date().toISOString()).order('created_at', { ascending: false }).limit(5)
+        // Live announcements only: started, and not past their expiry (same rule as the portals and signage)
+        supabase.from('announcements').select('id,title,created_at,category').eq('organization_id', orgId).eq('is_active', true)
+          .lte('starts_at', new Date().toISOString())
+          .or(`expires_at.is.null,expires_at.gte.${new Date().toISOString()}`)
+          .order('created_at', { ascending: false }).limit(5)
       )
     } else queries.push(Promise.resolve({ data: [] }))
 

@@ -258,6 +258,10 @@ export default function TV({ slugOverride, screenUrl, screenId, menuId }) {
           .select('id, title, body, category, image_url, pinned, starts_at, expires_at, signage_screen_ids')
           .eq('organization_id', orgData.id)
           .eq('is_active', true)
+          // Live only. Public screens already get this from RLS, but a screen opened
+          // while signed in reads through the staff policy, which includes expired ones.
+          .lte('starts_at', today.toISOString())
+          .or(`expires_at.is.null,expires_at.gte.${today.toISOString()}`)
           .order('pinned', { ascending: false })
           .order('created_at', { ascending: false })
           .limit(10),
