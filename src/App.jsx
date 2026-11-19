@@ -241,10 +241,17 @@ function SuspendedWall() {
 
 export default function App() {
   const { user, loading, profile, isSuperAdmin, impersonating, suspended, mfaStep } = useAuth()
+  const { pathname } = useLocation()
 
   // A super admin with no org actively impersonated has nothing to see in the
   // staff dashboard shell — send them to the platform Super Admin Dashboard instead.
   const defaultAppRoute = (isSuperAdmin && !impersonating) ? '/superadmin' : '/app/dashboard'
+
+  // The reset page signs in with the link, asks for the two-factor code itself,
+  // changes the password and signs out. Render it ahead of the loading screen,
+  // MfaGate and the role branches below: each of those replaced it mid-change, so
+  // it was rebuilt from scratch, lost "Password Updated" and showed the form again.
+  if (pathname === '/reset-password') return <Lazy><ResetPassword /></Lazy>
 
   if (loading) return (
     <div className="flex h-screen items-center justify-center bg-brand-950">

@@ -19,6 +19,9 @@ export default function ResetPassword() {
   const [error,       setError]       = useState('')
   const [validSession, setValidSession] = useState(false)
   const [checking,    setChecking]    = useState(true)
+  const [linkUsed,    setLinkUsed]    = useState(false)  // the one-time code is spent once verified
+  const [needCode,    setNeedCode]    = useState(false)  // account uses two-factor sign-in
+  const [code,        setCode]        = useState('')
 
   useEffect(() => {
     if (tokenHash) { setValidSession(true); setChecking(false); return }
@@ -61,10 +64,31 @@ export default function ResetPassword() {
     }
 
     setLoading(true)
-    if (tokenHash) {
+    if (tokenHash && !linkUsed) {
       const { error: otpErr } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'recovery' })
       if (otpErr) { setLoading(false); setValidSession(false); return }
+      setLinkUsed(true)
     }
+
+    // Accounts with two-factor sign-in: Supabase only accepts a new password from a
+    // session that has passed the authenticator code (AAL2), and refuses it otherwise
+    // ("AAL2 session is required to update email or password when MFA is enabled").
+    const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+    if (aal?.nextLevel === 'aal2' && aal?.currentLevel !== 'aal2') {
+      if (!needCode || !code.trim()) { setNeedCode(true); setLoading(false); return }
+      const { data: factors } = await supabase.auth.mfa.listFactors()
+      const factorId = factors?.totp?.[0]?.id
+      const { error: mfaErr } = factorId
+        ? await supabase.auth.mfa.challengeAndVerify({ factorId, code: code.trim() })
+        : { error: new Error('No authenticator is set up on this account.') }
+      if (mfaErr) {
+        setLoading(false); setCode('')
+        setError(mfaErr.message.includes('Invalid') ? "That code didn't match. Try the newest code in your app." : mfaErr.message)
+        try { await supabase.rpc('log_audit_event', { p_action: 'MFA_FAILED', p_notes: 'Wrong two-factor code (password reset)' }) } catch (_) { /* non-blocking */ }
+        return
+      }
+    }
+
     const { error: err } = await supabase.auth.updateUser({ password })
     setLoading(false)
 
@@ -217,7 +241,22 @@ export default function ResetPassword() {
                   )}
                 </div>
 
-                <button type="submit" disabled={loading || !password || !confirm}
+                {needCode && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Authenticator code</label>
+                    <input
+                      value={code}
+                      onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      autoFocus
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      placeholder="6-digit code"
+                      className="w-full px-3 py-2.5 border border-slate-200 bg-white text-slate-800 rounded-xl text-sm tracking-widest focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                    <p className="text-xs text-slate-500 mt-1">Your account uses two-factor sign-in. Open your authenticator app and type the 6-digit code for ElderLoop.</p>
+                  </div>
+                )}
+
+                <button type="submit" disabled={loading || !password || !confirm || (needCode && code.length !== 6)}
                   className="w-full py-2.5 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-semibold rounded-xl text-sm transition-colors flex items-center justify-center gap-2">
                   {loading ? <><Loader2 size={15} className="animate-spin" /> Updating...</> : 'Set New Password'}
                 </button>
