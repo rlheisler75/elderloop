@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { RESIDENT_COLS, withResidentDates } from '../../lib/residentPrivate'
 import { useAuth } from '../../context/AuthContext'
+import { portalHidesClinical } from '../../lib/pointClickCare'
 import UserProfileModal from '../../components/UserProfileModal'
 import FeedbackModal from '../../components/FeedbackModal'
 import MealOrderModal, { MEAL_TYPES, MEAL_STATUS } from '../../components/MealOrderModal'
@@ -275,8 +276,8 @@ function DiningTab({ resident, orgId }) {
         <div className="px-5 py-4 space-y-4">
           {dietProfile ? (
             <>
-              {/* Diet type / allergens — read only */}
-              {(dietProfile.diet_type || (dietProfile.allergens?.length > 0)) && (
+              {/* Diet type / allergens — read only; hidden once PointClickCare data can flow (Appendix A) */}
+              {!portalHidesClinical(organization) && (dietProfile.diet_type || (dietProfile.allergens?.length > 0)) && (
                 <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-xs text-slate-600 dark:text-slate-300 space-y-1">
                   {dietProfile.diet_type && (
                     <div><span className="font-semibold">Diet type:</span> <span className="capitalize">{dietProfile.diet_type.replace('_', ' ')}</span></div>

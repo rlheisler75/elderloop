@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { RESIDENT_COLS, withResidentDates } from '../../lib/residentPrivate'
 import { useAuth } from '../../context/AuthContext'
+import { portalHidesClinical } from '../../lib/pointClickCare'
 import UserProfileModal from '../../components/UserProfileModal'
 import FeedbackModal from '../../components/FeedbackModal'
 import MealOrderModal, { MEAL_TYPES, MEAL_STATUS } from '../../components/MealOrderModal'
@@ -683,6 +684,7 @@ function MaintenanceTab({ myWorkOrders, onNewRequest }) {
 
 // ── Dining Tab (order meal delivery for the selected resident) ─
 function DiningTab({ resident, dietProfile, mealOrders, onNewOrder, canOrder, orgId }) {
+  const { organization } = useAuth()
   return (
     <div className="space-y-4">
       {canOrder && (
@@ -694,7 +696,7 @@ function DiningTab({ resident, dietProfile, mealOrders, onNewOrder, canOrder, or
 
       <PortalMenu orgId={orgId} residentId={resident?.id} careLevel={resident?.care_level} />
 
-      {dietProfile && (dietProfile.diet_type || dietProfile.allergens?.length > 0) && (
+      {!portalHidesClinical(organization) && dietProfile && (dietProfile.diet_type || dietProfile.allergens?.length > 0) && (
         <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-xs text-slate-600 dark:text-slate-300 space-y-1">
           {dietProfile.diet_type && (
             <div><span className="font-semibold">Diet type:</span> <span className="capitalize">{dietProfile.diet_type.replace('_', ' ')}</span></div>
