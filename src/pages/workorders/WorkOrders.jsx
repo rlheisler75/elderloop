@@ -365,8 +365,8 @@ function ResidentPicker({ residents, value, onChange }) {
   )
 }
 
-// showMaintFields: Linked Asset, Est. Hours, Vendor Information and Recurring Task are
-// for the Maintenance team only (see onMaintenanceTeam in WorkOrders below).
+// showMaintFields: Linked Asset, Est. Hours, Vendor Information, Recurring Task and
+// Internal Notes are for the Maintenance team only (see onMaintenanceTeam in WorkOrders below).
 function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, residentList, locationPaths = {}, categories, canEdit, canClose, canAssign, canTriage = true, showMaintFields = false }) {
   const { profile, organization } = useAuth()
   const aiEnabled = useAiSection('maintenance')
@@ -1178,15 +1178,15 @@ function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, resident
               </div>
             )}
 
-            {/* Notes */}
-            <div>
+            {/* Internal Notes — Maintenance team only */}
+            {showMaintFields && <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Internal Notes</label>
               {editing
                 ? <textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows={2}
                     className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
                     placeholder="Internal notes (not visible to residents)..." />
                 : wo.notes && <p className="text-sm text-slate-600 dark:text-slate-300 italic">{wo.notes}</p>}
-            </div>
+            </div>}
 
             {/* Photos — staged on new tickets, live upload on existing */}
             <div>
@@ -1472,7 +1472,7 @@ function AssetScanPanel({ asset, workOrders, isPrivileged, canCreate, onOpen, on
 // ── Main Page ─────────────────────────────────────────────────
 export default function WorkOrders() {
   const { profile, organization, hasDepartmentAccess, accessModel, tierFor, departmentRoles, isSuperAdmin } = useAuth()
-  // Who sees Linked Asset, Est. Hours, Vendor Information and Recurring Task on a work
+  // Who sees Linked Asset, Est. Hours, Vendor Information, Recurring Task and Internal Notes on a work
   // order: anyone in the Maintenance department (any level), Org Admins and ElderLoop
   // support. Not the Administrator or other departments' managers and supervisors, so
   // hasDepartmentAccess (true for ceo and for meter-only permissions) isn't used here.
