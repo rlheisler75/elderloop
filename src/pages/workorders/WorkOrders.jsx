@@ -41,6 +41,7 @@ import PMSchedules from './PMSchedules'
 import Reports from './Reports'
 import MaintenanceCosts from './MaintenanceCosts'
 import MaintenanceSettings from './MaintenanceSettings'
+import WorkOrderChecklist from './WorkOrderChecklist'
 import LocationPickerButton from '../../components/ui/LocationPickerButton'
 import BroadcastPanel from '../communication/BroadcastPanel'
 import { fetchWOCategories, topLevelCategories, subcategoriesOf } from '../../lib/workOrderCategories'
@@ -404,6 +405,13 @@ function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, resident
     location_detail: initialAsset.location || '',
   } : {}) })
   const [closing, setClosing]     = useState(false) // Mark Complete opens the close-out form first
+  // Checklist progress (WorkOrderChecklist): unanswered steps only warn at close-out
+  const [checklistSum, setChecklistSum] = useState(null)
+  const checklistWarning = checklistSum?.unanswered > 0 && (
+    <p className="mb-2 text-xs font-medium text-amber-700 dark:text-amber-400">
+      {checklistSum.unanswered} of {checklistSum.total} checklist steps aren’t answered yet. You can still close the job.
+    </p>
+  )
   // The assigned tech can pass the job to another Maintenance staff member
   // (handoff_work_order: reassigns, logs the note, bells the new tech + supervisors)
   const [handingOff, setHandingOff]         = useState(false) // false | 'actions' | 'field' (where it was opened)
@@ -1118,6 +1126,7 @@ function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, resident
             {wo && (editing || wo.status === 'closed') && (
               <div className="p-4 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl">
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Close-out</label>
+                {editing && form.status === 'closed' && wo.status !== 'closed' && checklistWarning}
                 {editing ? <CloseOutFields form={form} set={set} /> : (
                   <div className="text-sm text-slate-700 dark:text-slate-300 flex flex-wrap gap-x-4 gap-y-1">
                     <span>{WORK_TYPES.find(t => t.key === wo.work_type)?.label ?? 'Routine repair'}</span>
@@ -1187,6 +1196,11 @@ function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, resident
                     placeholder="Internal notes (not visible to residents)..." />
                 : wo.notes && <p className="text-sm text-slate-600 dark:text-slate-300 italic">{wo.notes}</p>}
             </div>}
+
+            {/* Checklist — copied from the PM schedule, or added by the Maintenance team */}
+            {!isNew && (
+              <WorkOrderChecklist wo={wo} canAddChecklist={showMaintFields} onSummary={setChecklistSum} onChanged={fetchActivity} />
+            )}
 
             {/* Photos — staged on new tickets, live upload on existing */}
             <div>
@@ -1308,6 +1322,7 @@ function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, resident
                 {closing && (
                   <div className="mt-3 p-4 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900 rounded-xl">
                     <div className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-2">Close this job</div>
+                    {checklistWarning}
                     <CloseOutFields form={form} set={set} />
                     <div className="flex justify-end gap-2 mt-3">
                       <button type="button" onClick={() => setClosing(false)} className="px-3 py-1.5 text-xs text-slate-500">Cancel</button>

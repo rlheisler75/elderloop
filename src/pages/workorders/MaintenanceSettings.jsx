@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
-import { Save, Check, AlertTriangle, Users, Clock, MapPin, Tag, Upload } from 'lucide-react'
+import { Save, Check, AlertTriangle, Users, Clock, MapPin, Tag, Upload, ListChecks } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import LocationManager from '../../components/ui/LocationManager'
 import CategoryManager from '../../components/ui/CategoryManager'
 import WorkOrderImport from './WorkOrderImport'
+import ChecklistManager from './ChecklistManager'
 import { fetchWOCategories, topLevelCategories } from '../../lib/workOrderCategories'
 
 const PRIORITIES = [
@@ -98,13 +99,14 @@ export default function MaintenanceSettings({ orgId, profile }) {
   if (loading) return <div className="text-center py-10 text-slate-400 text-sm">Loading settings...</div>
 
   return (
-    <div className="max-w-3xl">
+    <div className={settingsTab === 'checklists' ? 'max-w-5xl' : 'max-w-3xl'}>
       {/* Settings sub-tabs */}
       <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl mb-6 w-fit">
         {[
           { key: 'sla',        label: 'SLA Rules',        icon: Clock },
           { key: 'assign',     label: 'Auto-Assignment',  icon: Users },
           { key: 'categories', label: 'Categories',       icon: Tag },
+          { key: 'checklists', label: 'Checklists',       icon: ListChecks },
           { key: 'locations',  label: 'Locations',        icon: MapPin },
           ...(canImport ? [{ key: 'import', label: 'Import', icon: Upload }] : []),
         ].map(t => {
@@ -126,6 +128,11 @@ export default function MaintenanceSettings({ orgId, profile }) {
       {/* Categories tab */}
       {settingsTab === 'categories' && (
         <CategoryManager orgId={orgId} />
+      )}
+
+      {/* Checklists tab */}
+      {settingsTab === 'checklists' && (
+        <ChecklistManager orgId={orgId} />
       )}
 
       {/* Import tab */}

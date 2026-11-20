@@ -20,7 +20,7 @@ const FREQ_OPTIONS = [
 
 const fmt = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) : '—'
 
-function PMModal({ schedule, assets, staff, categories, orgId, profile, onClose, onSaved }) {
+function PMModal({ schedule, assets, staff, categories, checklists = [], orgId, profile, onClose, onSaved }) {
   const isNew = !schedule
   const [form, setForm] = useState({
     title:          schedule?.title          || '',
@@ -33,6 +33,7 @@ function PMModal({ schedule, assets, staff, categories, orgId, profile, onClose,
     assign_to:      schedule?.assign_to      || '',
     next_due:       schedule?.next_due       || '',
     advance_days:   schedule?.advance_days   || 7,
+    checklist_id:   schedule?.checklist_id   || '',
   })
   const [saving, setSaving] = useState(false)
   const [error, setError]   = useState('')
@@ -59,6 +60,7 @@ function PMModal({ schedule, assets, staff, categories, orgId, profile, onClose,
       assign_to:       form.assign_to || null,
       next_due:        form.next_due,
       advance_days:    parseInt(form.advance_days) || 7,
+      checklist_id:    form.checklist_id || null,
       is_active:       true,
     }
     const { error: err } = schedule?.id
@@ -148,6 +150,17 @@ function PMModal({ schedule, assets, staff, categories, orgId, profile, onClose,
             </select>
           </div>
           <div>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Checklist</label>
+            <select value={form.checklist_id} onChange={e => set('checklist_id', e.target.value)}
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+              <option value="">No checklist</option>
+              {checklists.filter(c => c.is_active || c.id === form.checklist_id).map(c => (
+                <option key={c.id} value={c.id}>{c.name}{c.is_active ? '' : ' (turned off)'}</option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-slate-400">Each work order this schedule creates gets a copy of the checklist. Build checklists in Settings → Checklists.</p>
+          </div>
+          <div>
             <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Description</label>
             <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={3}
               className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
@@ -174,6 +187,7 @@ export default function PMSchedules({ orgId: orgIdProp, profile: profileProp }) 
   const [assets, setAssets]       = useState([])
   const [staff, setStaff]         = useState([])
   const [categories, setCategories] = useState([])
+  const [checklists, setChecklists] = useState([])
   const [loading, setLoading]     = useState(true)
   const [editSchedule, setEditSchedule] = useState(null)
   const [showModal, setShowModal] = useState(false)
@@ -184,15 +198,17 @@ export default function PMSchedules({ orgId: orgIdProp, profile: profileProp }) 
 
   async function fetchAll() {
     setLoading(true)
-    const [schRes, assetRes, staffRes, cats] = await Promise.all([
-      supabase.from('pm_schedules').select('*, maintenance_assets(name,asset_number), profiles!assign_to(first_name,last_name)')
+    const [schRes, assetRes, staffRes, cats, listRes] = await Promise.all([
+      supabase.from('pm_schedules').select('*, maintenance_assets(name,asset_number), profiles!assign_to(first_name,last_name), wo_checklists(name)')
         .eq('organization_id', orgId).eq('is_active', true).order('next_due'),
       supabase.from('maintenance_assets').select('id,name,asset_number').eq('organization_id', orgId).eq('is_active', true),
       supabase.from('profiles').select('id,first_name,last_name').eq('organization_id', orgId)
         .not('role','in','(resident,family)').order('last_name'),
       fetchWOCategories(orgId),
+      supabase.from('wo_checklists').select('id, name, is_active').eq('organization_id', orgId).order('name'),
     ])
     setSchedules(schRes.data || [])
+    setChecklists(listRes.data || [])
     setAssets(assetRes.data || [])
     setStaff(staffRes.data || [])
     setCategories(cats)
@@ -283,6 +299,7 @@ export default function PMSchedules({ orgId: orgIdProp, profile: profileProp }) 
                       {s.maintenance_assets && <span>🔧 {s.maintenance_assets.name}</span>}
                       {s.profiles && <span>👤 {s.profiles.first_name} {s.profiles.last_name}</span>}
                       {s.estimated_hours && <span>⏱ {s.estimated_hours}h</span>}
+                      {s.wo_checklists && <span>☑ {s.wo_checklists.name}</span>}
                       {s.last_generated && <span>Last generated: {fmt(s.last_generated)}</span>}
                     </div>
                   </div>
@@ -308,7 +325,7 @@ export default function PMSchedules({ orgId: orgIdProp, profile: profileProp }) 
       )}
 
       {showModal && (
-        <PMModal schedule={editSchedule} assets={assets} staff={staff} categories={categories} orgId={orgId} profile={profile}
+        <PMModal schedule={editSchedule} assets={assets} staff={staff} categories={categories} checklists={checklists} orgId={orgId} profile={profile}
           onClose={() => { setShowModal(false); setEditSchedule(null) }}
           onSaved={() => { setShowModal(false); setEditSchedule(null); fetchAll() }} />
       )}
