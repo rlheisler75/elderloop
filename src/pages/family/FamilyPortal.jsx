@@ -113,6 +113,7 @@ function MaintenanceModal({ resident, orgId, profile, onClose, onSubmitted }) {
   const [form, setForm] = useState({
     title: '', description: '', category: 'general', priority: 'normal',
     unit: resident?.unit || '', building: resident?.building || '',
+    permission_to_enter: false,
   })
   const [saving, setSaving] = useState(false)
   const [error, setError]   = useState('')
@@ -149,6 +150,7 @@ function MaintenanceModal({ resident, orgId, profile, onClose, onSubmitted }) {
           submitted_by:    profile.id,
           submitted_by_name: `${profile.first_name} ${profile.last_name} (Family)`,
           source:          'family',
+          permission_to_enter: !!form.permission_to_enter,
         })
     if (err) { setError(err.message); setSaving(false); return }
     onSubmitted()
@@ -237,6 +239,17 @@ function MaintenanceModal({ resident, orgId, profile, onClose, onSubmitted }) {
               className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent resize-none"
             />
           </div>
+
+          {form.category !== 'housekeeping' && (
+            <label className="flex items-start gap-2.5 p-3 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl cursor-pointer">
+              <input type="checkbox" checked={form.permission_to_enter} onChange={e => set('permission_to_enter', e.target.checked)}
+                className="w-4 h-4 mt-0.5 rounded text-brand-600" />
+              <span>
+                <span className="block text-sm font-medium text-slate-700 dark:text-slate-300">Permission to enter the home</span>
+                <span className="block text-xs text-slate-500 dark:text-slate-400">Maintenance may go in if no one is there.</span>
+              </span>
+            </label>
+          )}
 
           <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900 rounded-xl">
             <AlertCircle size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />

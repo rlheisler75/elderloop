@@ -79,6 +79,7 @@ const EMPTY_FORM = {
   vendor_name: '', vendor_phone: '', vendor_eta: '',
   is_recurring: false, recur_type: 'interval',
   recur_interval_days: 90, recur_day: 1, recur_month: '',
+  permission_to_enter: false,
 }
 
 // ── Status Badge ──────────────────────────────────────────────
@@ -211,6 +212,11 @@ function WORow({ wo, categories, onClick, showCompleted }) {
               {wo.source === 'resident' && (
                 <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-400 text-xs font-semibold rounded-full">
                   🏠 Resident
+                </span>
+              )}
+              {wo.permission_to_enter && (
+                <span title="Permission to enter the home" className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-sky-100 text-sky-700 dark:bg-sky-950/50 dark:text-sky-400 text-xs font-semibold rounded-full">
+                  🔑 OK to enter
                 </span>
               )}
             </div>
@@ -359,7 +365,9 @@ function ResidentPicker({ residents, value, onChange }) {
   )
 }
 
-function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, residentList, locationPaths = {}, categories, canEdit, canClose, canAssign, canTriage = true }) {
+// showMaintFields: Linked Asset, Est. Hours, Vendor Information and Recurring Task are
+// for the Maintenance team only (see onMaintenanceTeam in WorkOrders below).
+function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, residentList, locationPaths = {}, categories, canEdit, canClose, canAssign, canTriage = true, showMaintFields = false }) {
   const { profile, organization } = useAuth()
   const aiEnabled = useAiSection('maintenance')
   const fileRef = useRef()
@@ -385,6 +393,7 @@ function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, resident
     is_recurring: wo.is_recurring || false, recur_type: wo.recur_type || 'interval',
     recur_interval_days: wo.recur_interval_days || 90,
     recur_day: wo.recur_day || 1, recur_month: wo.recur_month || '',
+    permission_to_enter: wo.permission_to_enter || false,
     // Close-out (budget layer): labor hours, parts bought for the job, vendor cost, type
     work_type: wo.work_type || 'routine', actual_hours: wo.actual_hours ?? '',
     parts_cost: wo.parts_cost ?? '', vendor_cost: wo.vendor_cost ?? '',
@@ -594,6 +603,7 @@ function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, resident
       recur_interval_days: form.is_recurring && form.recur_type === 'interval' ? form.recur_interval_days : null,
       recur_day: form.is_recurring && form.recur_type === 'scheduled' ? form.recur_day : null,
       recur_month: form.is_recurring && form.recur_type === 'scheduled' ? (form.recur_month || null) : null,
+      permission_to_enter: !!form.permission_to_enter,
       updated_at: new Date().toISOString(),
     }
     let err
@@ -901,8 +911,8 @@ function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, resident
               )}
             </div>
 
-            {/* Asset Link */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Asset Link + estimate (Maintenance team only) */}
+            {showMaintFields && <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Linked Asset</label>
                 {editing
@@ -923,7 +933,7 @@ function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, resident
                       placeholder="e.g. 2.0" />
                   : <p className="text-sm text-slate-700 dark:text-slate-300">{wo?.estimated_hours ? `${wo.estimated_hours}h` : '—'}</p>}
               </div>
-            </div>
+            </div>}
 
             {/* Resident */}
             <div>
@@ -1062,8 +1072,23 @@ function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, resident
               )}
             </div>
 
-            {/* Vendor Info — show when status is awaiting_vendor or editing */}
-            {(editing || form.status === 'awaiting_vendor' || wo?.vendor_name) && (
+            {/* Permission to enter — anyone opening a work order can set it */}
+            {editing
+              ? <label className="flex items-start gap-2.5 p-3 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl cursor-pointer">
+                  <input type="checkbox" checked={!!form.permission_to_enter} onChange={e => set('permission_to_enter', e.target.checked)}
+                    className="w-4 h-4 mt-0.5 rounded text-brand-600" />
+                  <span>
+                    <span className="block text-sm font-medium text-slate-700 dark:text-slate-300">Permission to enter the home</span>
+                    <span className="block text-xs text-slate-500 dark:text-slate-400">Maintenance may go in if no one is home.</span>
+                  </span>
+                </label>
+              : <div>
+                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Permission to Enter Home</label>
+                  <p className="text-sm text-slate-700 dark:text-slate-300">{wo?.permission_to_enter ? 'Yes' : 'No'}</p>
+                </div>}
+
+            {/* Vendor Info — Maintenance team only; shown when editing, awaiting a vendor, or one is set */}
+            {showMaintFields && (editing || form.status === 'awaiting_vendor' || wo?.vendor_name) && (
               <div className="p-4 bg-orange-50 dark:bg-orange-950/30 border border-orange-100 dark:border-orange-900 rounded-xl">
                 <label className="block text-xs font-semibold text-orange-700 dark:text-orange-400 uppercase tracking-wide mb-2 flex items-center gap-1.5">
                   <Truck size={13} /> Vendor Information
@@ -1105,8 +1130,8 @@ function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, resident
               </div>
             )}
 
-            {/* Recurring */}
-            {editing && (
+            {/* Recurring — Maintenance team only */}
+            {showMaintFields && editing && (
               <div className="p-4 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl">
                 <label className="flex items-center gap-2 cursor-pointer mb-3">
                   <input type="checkbox" checked={form.is_recurring} onChange={e => set('is_recurring', e.target.checked)}
@@ -1446,7 +1471,14 @@ function AssetScanPanel({ asset, workOrders, isPrivileged, canCreate, onOpen, on
 
 // ── Main Page ─────────────────────────────────────────────────
 export default function WorkOrders() {
-  const { profile, organization, hasDepartmentAccess, accessModel, tierFor } = useAuth()
+  const { profile, organization, hasDepartmentAccess, accessModel, tierFor, departmentRoles, isSuperAdmin } = useAuth()
+  // Who sees Linked Asset, Est. Hours, Vendor Information and Recurring Task on a work
+  // order: anyone in the Maintenance department (any level), Org Admins and ElderLoop
+  // support. Not the Administrator or other departments' managers and supervisors, so
+  // hasDepartmentAccess (true for ceo and for meter-only permissions) isn't used here.
+  const onMaintenanceTeam = profile?.role === 'org_admin' || isSuperAdmin
+    || profile?.department === 'maintenance'
+    || (departmentRoles || []).some(d => d.department === 'maintenance')
   // Tiered communities (src/lib/accessTiers.js): a Maintenance employee sees every job,
   // works their own or unassigned ones, and can't change priority/category/due/vendor.
   const tieredEmployee = accessModel === 'tiered' && tierFor('work_orders') === 'employee'
@@ -1882,6 +1914,7 @@ export default function WorkOrders() {
           canClose={canClose}
           canAssign={canAssign}
           canTriage={!tieredEmployee}
+          showMaintFields={onMaintenanceTeam}
         />
       )}
       </>)}
