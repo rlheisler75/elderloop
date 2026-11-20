@@ -6,6 +6,10 @@ import { useAuth } from '../../context/AuthContext'
 import QRCode from 'qrcode'
 import { X, Printer, Gauge, Search, CheckSquare, Square, AlertCircle } from 'lucide-react'
 
+// Labels never show the resident's name (Maranatha, 2026-11-20): a label on
+// a meter outlives whoever lives there. The big line is the building and unit.
+const labelPlace = (m) => [m.building, m.unit ? `Unit ${m.unit}` : null].filter(Boolean).join(' · ')
+
 const LABEL_SIZES = [
   { key: 'small',  label: 'Small  2.5" × 1"',  cols: 3, w: '2.5in', h: '1in',   qr: 64,  fontSize: 7  },
   { key: 'medium', label: 'Medium 4" × 2"',     cols: 2, w: '4in',  h: '2in',   qr: 100, fontSize: 9  },
@@ -33,11 +37,10 @@ function Label({ meter, utilityType, qrDataUrl, orgName, size }) {
         <div style={{ fontSize: s.fontSize - 1, color: '#1e3a5f', fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase' }}>
           {orgName}
         </div>
-        <div style={{ fontWeight: 700, fontSize: s.fontSize + 2, lineHeight: 1.2, margin: '2px 0', wordBreak: 'break-word' }}>
-          {meter.resident_name || `Unit ${meter.unit}`}
-        </div>
-        {(meter.building || meter.unit) && (
-          <div style={{ fontSize: s.fontSize, color: '#555' }}>{[meter.building, meter.unit ? `Unit ${meter.unit}` : null].filter(Boolean).join(' · ')}</div>
+        {labelPlace(meter) && (
+          <div style={{ fontWeight: 700, fontSize: s.fontSize + 2, lineHeight: 1.2, margin: '2px 0', wordBreak: 'break-word' }}>
+            {labelPlace(meter)}
+          </div>
         )}
         {utilityType && (
           <div style={{ fontSize: s.fontSize, color: '#555' }}>{utilityType.name}</div>
@@ -140,8 +143,7 @@ export default function MeterBarcodeLabels({ onClose }) {
           </div>
           <div style="flex:1;min-width:0;overflow:hidden;font-family:sans-serif;">
             <div style="font-size:${s.fontSize - 1}px;color:#1e3a5f;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;">${organization.name}</div>
-            <div style="font-weight:700;font-size:${s.fontSize + 2}px;line-height:1.2;margin:2px 0;word-break:break-word;">${m.resident_name || `Unit ${m.unit}`}</div>
-            ${(m.building || m.unit) ? `<div style="font-size:${s.fontSize}px;color:#555;">${[m.building, m.unit ? `Unit ${m.unit}` : null].filter(Boolean).join(' · ')}</div>` : ''}
+            ${labelPlace(m) ? `<div style="font-weight:700;font-size:${s.fontSize + 2}px;line-height:1.2;margin:2px 0;word-break:break-word;">${labelPlace(m)}</div>` : ''}
             ${t ? `<div style="font-size:${s.fontSize}px;color:#555;">${t.name}</div>` : ''}
             <div style="font-size:${s.fontSize}px;color:#444;font-family:monospace;">#${m.meter_number}</div>
           </div>
@@ -214,7 +216,7 @@ export default function MeterBarcodeLabels({ onClose }) {
                       {selected.has(m.id) && <svg width="8" height="8" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                     </div>
                     <div className="min-w-0">
-                      <div className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">{m.resident_name || `Unit ${m.unit}`}</div>
+                      <div className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">{m.resident_name || labelPlace(m) || 'Meter'}</div>
                       <div className="text-xs text-slate-400">{m.meter_number ? `#${m.meter_number}` : 'No meter number'}</div>
                     </div>
                   </button>
