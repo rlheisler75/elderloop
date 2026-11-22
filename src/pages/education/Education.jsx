@@ -8,16 +8,12 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { getOrgDepartments } from '../../lib/departments'
 import { Plus, X, Loader2, Check, Printer, QrCode, GraduationCap, ClipboardCheck, AlertCircle,
-         CalendarDays, Users, ListChecks, Settings, Trash2, Pencil, ChevronLeft } from 'lucide-react'
+         CalendarDays, Users, ListChecks, Settings, Trash2, Pencil, ChevronLeft, BarChart3, UserRound, Upload } from 'lucide-react'
 import { printQrPoster, printSignInSheet, printCompliance, fmtDay, fmtTime } from './eduPrint'
+import { SESSION_TYPES, isRequired, tracksMakeups, todayStr } from './eduRules'
+import { ReportsTab, IndividualTab } from './EducationReports'
+import EducationImport from './EducationImport'
 
-const SESSION_TYPES = [
-  { key: 'mandatory',   label: 'Mandatory' },
-  { key: 'department',  label: 'Department' },
-  { key: 'educational', label: 'Educational activity (optional, no makeups)' },
-  { key: 'orientation', label: 'New-hire orientation' },
-  { key: 'makeup',      label: 'Makeup session' },
-]
 // Suggested topics; sessions and requirements can use any text
 const TOPIC_SUGGESTIONS = ['Abuse & neglect', 'Dementia care', 'Infection prevention', 'Resident rights',
   'HIPAA', 'Fire safety', 'Emergency preparedness', 'QAPI', 'Pressure injury prevention', 'Trauma-informed care']
@@ -34,18 +30,8 @@ const MAKEUP_METHODS = [
 
 const inputCls = 'w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500'
 const labelCls = 'block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5'
-const today = () => new Date().toLocaleDateString('en-CA')
+const today = todayStr
 const fullName = (p) => `${p.first_name ?? ''} ${p.last_name ?? ''}`.trim()
-
-// Same rule as edu_session_roster() in the database
-function isRequired(session, p) {
-  if (p.hire_date && p.hire_date > session.session_date) return false
-  if (p.employment_end_date && p.employment_end_date < session.session_date) return false
-  if (!p.is_active && !p.employment_end_date) return false
-  if (session.audience === 'all') return true
-  const depts = [p.department, ...(p.departments || [])]
-  return depts.some(d => d && session.audience_departments.includes(d))
-}
 
 function requirementApplies(req, p) {
   if (!req.departments?.length) return true
@@ -104,6 +90,7 @@ function SessionModal({ session, departments, orgId, sessions, onClose, onSaved 
     hours: session?.hours ?? 1, instructor: session?.instructor || '', location: session?.location || '',
     audience: session?.audience || 'all', audience_departments: session?.audience_departments || [],
     topics: session?.topics || [], notes: session?.notes || '', makeup_for: session?.makeup_for || '',
+    track_makeups: session?.track_makeups ?? true,
   })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -174,6 +161,13 @@ function SessionModal({ session, departments, orgId, sessions, onClose, onSaved 
             </div>
             {form.audience === 'departments' && <DeptChips departments={departments} value={form.audience_departments} onChange={v => set('audience_departments', v)} />}
           </div>
+          {!['educational', 'makeup'].includes(form.session_type) && (
+            <label className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
+              <input type="checkbox" checked={form.track_makeups} onChange={e => set('track_makeups', e.target.checked)} className="mt-0.5 rounded" />
+              <span>Absent or Excused owes a makeup
+                <span className="block text-xs text-slate-400">Turn off for old history where makeups weren't tracked. Absences still show in reports.</span></span>
+            </label>
+          )}
           <div><label className={labelCls}>Topics (count toward yearly requirements)</label>
             <TopicPicker value={form.topics} onChange={v => set('topics', v)} /></div>
           <div><label className={labelCls}>Notes</label>
@@ -298,7 +292,7 @@ function SessionDetail({ session, people, attendance, isAdmin, managed, deptLabe
             <table className="w-full"><tbody>{extras.map(p => <Row key={p.profile_id} p={p} />)}</tbody></table>
           </>
         )}
-        <p className="text-xs text-slate-400 mt-3">Tap a letter again to clear it. Absent and Excused go on the makeup list.</p>
+        <p className="text-xs text-slate-400 mt-3">Tap a letter again to clear it. {tracksMakeups(session) ? 'Absent and Excused go on the makeup list.' : 'Makeups aren\'t tracked for this session.'}</p>
       </div>
     </div>
   )
@@ -461,6 +455,8 @@ export default function Education() {
   const [year, setYear] = useState(new Date().getFullYear())
   const [deptFilter, setDeptFilter] = useState('')
   const [behindOnly, setBehindOnly] = useState(false)
+  const [personId, setPersonId] = useState('')
+  const [importing, setImporting] = useState(false)
 
   const isManager = managed.length > 0
   const seesOthers = isAdmin || canViewAll || isManager
@@ -468,11 +464,22 @@ export default function Education() {
   useEffect(() => { fetchAll() }, [])
   useEffect(() => { if (seesOthers && tab === 'mine' && !loading) setTab('sessions') }, [seesOthers, loading])
 
+  // Supabase returns at most 1,000 rows per request; a year of attendance is more
+  async function fetchPaged(build) {
+    const out = []
+    for (let from = 0; ; from += 1000) {
+      const { data, error } = await build().range(from, from + 999)
+      if (error || !data) return { data: out, error }
+      out.push(...data)
+      if (data.length < 1000) return { data: out }
+    }
+  }
+
   async function fetchAll() {
     const [s, a, m, r, p, md] = await Promise.all([
       supabase.from('edu_sessions').select('*').eq('organization_id', organization.id).eq('is_active', true).order('session_date', { ascending: false }),
-      supabase.from('edu_attendance').select('session_id, profile_id, status, method').eq('organization_id', organization.id),
-      supabase.from('edu_makeups').select('*').eq('organization_id', organization.id),
+      fetchPaged(() => supabase.from('edu_attendance').select('session_id, profile_id, status, method').eq('organization_id', organization.id).order('session_id').order('profile_id')),
+      fetchPaged(() => supabase.from('edu_makeups').select('*').eq('organization_id', organization.id).order('id')),
       supabase.from('edu_requirements').select('*').eq('organization_id', organization.id).eq('is_active', true).order('name'),
       supabase.rpc('edu_people'),
       supabase.rpc('edu_my_managed_departments'),
@@ -492,10 +499,11 @@ export default function Education() {
 
   // Absent or Excused on a session they were required at, with no makeup yet.
   // Educational activities are optional: they earn hours but never owe a makeup.
+  // Sessions with makeups turned off (e.g. imported history) never owe one either.
   const owed = useMemo(() => {
     const out = []
     for (const s of sessions) {
-      if (s.session_type === 'makeup' || s.session_type === 'educational') continue
+      if (!tracksMakeups(s)) continue
       for (const a of attendance) {
         if (a.session_id !== s.id || a.status === 'present') continue
         const person = peopleById.get(a.profile_id)
@@ -539,6 +547,8 @@ export default function Education() {
       { key: 'sessions', label: 'Sessions', icon: CalendarDays },
       { key: 'makeups', label: `Makeups${owed.length ? ` (${owed.length})` : ''}`, icon: ClipboardCheck },
       { key: 'compliance', label: 'Compliance', icon: Users },
+      { key: 'reports', label: 'Reports', icon: BarChart3 },
+      { key: 'individual', label: 'Individual', icon: UserRound },
     ] : []),
     ...(canSettings || canViewAll ? [{ key: 'requirements', label: 'Requirements', icon: Settings }] : []),
   ]
@@ -557,9 +567,14 @@ export default function Education() {
           <p className="text-slate-500 text-sm mt-0.5">In-services, attendance, makeups, and yearly training</p>
         </div>
         {isAdmin && !openSession && (
-          <button onClick={() => setEditSession({})} className="flex items-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl shadow-sm">
-            <Plus size={16} /> New In-Service
-          </button>
+          <div className="flex gap-2">
+            <button onClick={() => setImporting(true)} className="flex items-center gap-2 px-4 py-2.5 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-sm font-medium rounded-xl">
+              <Upload size={15} /> Import attendance
+            </button>
+            <button onClick={() => setEditSession({})} className="flex items-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl shadow-sm">
+              <Plus size={16} /> New In-Service
+            </button>
+          </div>
         )}
       </div>
 
@@ -620,6 +635,7 @@ export default function Education() {
                   <div className="text-xs text-slate-400">
                     {s.session_date}{s.start_time ? ` · ${fmtTime(s.start_time)}` : ''} · {SESSION_TYPES.find(t => t.key === s.session_type)?.label} · {Number(s.hours)} hr
                     · {s.audience === 'all' ? 'Everyone' : s.audience_departments.map(d => departments.find(x => x.key === d)?.label || d).join(', ')}
+                    {s.track_makeups === false && !['educational', 'makeup'].includes(s.session_type) ? ' · makeups not tracked' : ''}
                   </div>
                 </div>
                 <div className="text-xs text-right whitespace-nowrap">
@@ -657,7 +673,9 @@ export default function Education() {
               <tbody>
                 {shownCompliance.map(c => (
                   <tr key={c.p.profile_id} className="border-b border-slate-50 dark:border-slate-800">
-                    <td className="px-4 py-2 font-medium text-slate-800 dark:text-slate-100">{c.name}{c.inactive && <span className="text-xs text-slate-400"> (former)</span>}</td>
+                    <td className="px-4 py-2 font-medium text-slate-800 dark:text-slate-100">
+                      <button onClick={() => { setPersonId(c.p.profile_id); setTab('individual') }} className="text-left hover:text-brand-600 hover:underline">{c.name}</button>
+                      {c.inactive && <span className="text-xs text-slate-400"> (former)</span>}</td>
                     <td className="px-4 py-2 text-slate-500">{c.dept}</td>
                     <td className="px-4 py-2">{c.hours}</td>
                     <td className="px-4 py-2">{c.reqs.length ? c.reqs.map(q => (
@@ -670,6 +688,12 @@ export default function Education() {
             </table>
           </div>
         </div>
+      ) : tab === 'reports' ? (
+        <ReportsTab sessions={sessions} people={people} markMap={markMap} makeupMap={makeupMap} departments={departments}
+          orgName={organization?.name || ''} />
+      ) : tab === 'individual' ? (
+        <IndividualTab sessions={sessions} people={people} markMap={markMap} makeupMap={makeupMap} usedForMakeup={usedForMakeup}
+          owed={owed} deptLabel={deptLabel} orgName={organization?.name || ''} personId={personId} onPerson={setPersonId} />
       ) : tab === 'requirements' ? (
         <RequirementsTab requirements={requirements} departments={departments} deptLabel={deptLabel} canSettings={canSettings} orgId={organization.id} onChanged={fetchAll} />
       ) : null}
@@ -677,6 +701,12 @@ export default function Education() {
       {editSession && (
         <SessionModal session={editSession} departments={departments} orgId={organization.id} sessions={sessions}
           onClose={() => setEditSession(null)} onSaved={() => { setEditSession(null); fetchAll() }} />
+      )}
+
+      {importing && (
+        <EducationImport orgId={organization.id} orgName={organization?.name || ''} departments={departments} people={people}
+          sessions={sessions} markMap={markMap} canFillHireDates={['org_admin', 'ceo', 'super_admin'].includes(profile?.role)}
+          onClose={() => setImporting(false)} onImported={fetchAll} />
       )}
     </div>
   )

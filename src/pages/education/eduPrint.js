@@ -96,3 +96,59 @@ export function printCompliance(rows, { orgName, year, requirements }) {
     </table>
     <div class="foot">Hours count sessions attended plus completed makeups (credited with the missed session's hours). Printed ${new Date().toLocaleString()} · ElderLoop Education</div>`)
 }
+
+// ── Reports tab: by session type, by department (with types), sessions ──
+const rateTxt = (c) => { const b = c.present + c.absent + c.unmarked; return b ? `${(Math.round((c.present / b) * 1000) / 10).toFixed(1)}%` : '—' }
+const TYPE_NAMES = { mandatory: 'Mandatory', department: 'Department', orientation: 'Orientation', educational: 'Educational activity', makeup: 'Makeup session' }
+const OPTIONAL = ['educational', 'makeup']
+const cells = (c, optional) => optional
+  ? `<td class="n">${c.present}</td><td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="n">Optional</td>`
+  : `<td class="n">${c.present}</td><td class="n">${c.absent}</td><td class="n">${c.excused}</td><td class="n">${c.unmarked}</td><td class="n">${c.madeUp}</td><td class="n"><b>${rateTxt(c)}</b></td>`
+const tableCss = `
+  table { width: 100%; border-collapse: collapse; margin: 6px 0 16px; }
+  th { background: #f1f5f9; text-align: left; font-size: 10px; text-transform: uppercase; padding: 5px 6px; border-bottom: 2px solid #e2e8f0; }
+  td { padding: 4px 6px; border-bottom: 1px solid #e2e8f0; font-size: 11px; } .n { text-align: right; } th.n { text-align: right; }
+  tr.sub td { color: #64748b; font-size: 10px; } tr.sub td:first-child { padding-left: 20px; } tr.tot td { font-weight: bold; background: #f8fafc; }
+  h2 { font-size: 13px; margin: 14px 0 0; }`
+const countHead = '<th class="n">Present</th><th class="n">Absent</th><th class="n">Excused</th><th class="n">Not marked</th><th class="n">Made up</th><th class="n">Rate</th>'
+
+export function printEduReport({ orgName, subtitle, data, deptName }) {
+  const typeRows = data.typeRows.map(t => `<tr><td>${esc(TYPE_NAMES[t.type] || t.type)}</td><td class="n">${t.sessions}</td>${cells(t, OPTIONAL.includes(t.type))}</tr>`).join('')
+  const deptRows = data.deptRows.map(d => `<tr><td><b>${esc(deptName(d.key))}</b></td><td class="n">${d.people.size}</td>${cells(d)}</tr>` +
+    d.typeRows.map(t => `<tr class="sub"><td>${esc(TYPE_NAMES[t.type] || t.type)}</td><td class="n">${t.sessionIds.size} sess.</td>${cells(t)}</tr>`).join('')).join('')
+  const sessRows = data.sessionRows.map(r => `<tr><td>${esc(r.session.session_date)}</td><td>${esc(r.session.title)}</td>${cells(r, OPTIONAL.includes(r.session.session_type))}</tr>`).join('')
+  openPrint('In-service attendance report', `@page { size: portrait; margin: 0.5in; } ${tableCss}`, `
+    <h1>${esc(orgName)}</h1>
+    <div class="sub">In-Service Attendance Report · ${esc(subtitle)}</div>
+    <h2>By session type</h2>
+    <table><thead><tr><th>Session type</th><th class="n">Sessions</th>${countHead}</tr></thead>
+      <tbody>${typeRows || '<tr><td colspan="8">No in-services in this period.</td></tr>'}
+      ${data.typeRows.length ? `<tr class="tot"><td>All required sessions</td><td class="n">${data.total.sessions}</td>${cells(data.total)}</tr>` : ''}</tbody></table>
+    <h2>By department (required sessions)</h2>
+    <table><thead><tr><th>Department</th><th class="n">People</th>${countHead}</tr></thead>
+      <tbody>${deptRows || '<tr><td colspan="8">None.</td></tr>'}</tbody></table>
+    <h2>Sessions</h2>
+    <table><thead><tr><th>Date</th><th>Session</th>${countHead}</tr></thead><tbody>${sessRows || '<tr><td colspan="8">None.</td></tr>'}</tbody></table>
+    <div class="foot">Rate = Present ÷ (Present + Absent + Not marked); Excused doesn't count against anyone. Only people required at each session are counted. Printed ${new Date().toLocaleString()} · ElderLoop Education</div>`)
+}
+
+export function printIndividual({ orgName, person, dept, periodLabel, view, owedCount, statusBadge }) {
+  const c = view.counts
+  const rows = view.rows.map(r => `<tr><td>${esc(r.s.session_date)}</td><td>${esc(r.s.title)}</td><td>${esc(TYPE_NAMES[r.s.session_type] || r.s.session_type)}</td>
+    <td class="n">${r.hours || ''}</td><td>${esc(statusBadge[r.status][0])}${r.notes ? `<br><small>${esc(r.notes)}</small>` : ''}</td></tr>`).join('')
+  openPrint(`In-service history: ${person.first_name} ${person.last_name}`, `@page { size: portrait; margin: 0.5in; } ${tableCss}
+    .tiles { display: flex; gap: 8px; margin: 10px 0 4px; } .tile { flex: 1; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 8px; }
+    .tile b { display: block; font-size: 16px; } .tile span { font-size: 9px; color: #64748b; text-transform: uppercase; } small { color: #64748b; }`, `
+    <h1>${esc(orgName)}</h1>
+    <div class="sub">In-Service History · ${esc(periodLabel)}</div>
+    <div style="font-size:15px"><b>${esc(person.first_name)} ${esc(person.last_name)}</b> · ${esc(dept)} · Hired ${esc(person.hire_date || 'not set')}${person.employment_end_date ? ` · Ended ${esc(person.employment_end_date)}` : ''}</div>
+    <div class="tiles">
+      <div class="tile"><span>Required</span><b>${c.sessions}</b></div><div class="tile"><span>Present</span><b>${c.present}</b></div>
+      <div class="tile"><span>Absent</span><b>${c.absent}</b></div><div class="tile"><span>Excused</span><b>${c.excused}</b></div>
+      <div class="tile"><span>Rate</span><b>${rateTxt(c)}</b></div><div class="tile"><span>CE hours</span><b>${view.hours}</b></div>
+      <div class="tile"><span>Makeups owed</span><b>${owedCount}</b></div>
+    </div>
+    <table><thead><tr><th>Date</th><th>Session</th><th>Type</th><th class="n">CE hours</th><th>Status</th></tr></thead>
+      <tbody>${rows || '<tr><td colspan="5">No in-services in this period.</td></tr>'}</tbody></table>
+    <div class="foot">Printed ${new Date().toLocaleString()} · ElderLoop Education</div>`)
+}
