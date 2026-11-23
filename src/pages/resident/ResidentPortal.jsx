@@ -701,6 +701,7 @@ export default function ResidentPortal() {
                                 <span className={`text-xs font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${cfg.bg} ${cfg.color}`}>{cfg.label}</span>
                               </div>
                               <div className="text-xs text-slate-400 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                                {wo.wo_number != null && <><span className="font-mono">#{wo.wo_number}</span><span>·</span></>}
                                 {cat && <span>{cat.emoji} {cat.label}</span>}
                                 <span>·</span>
                                 <span>{relativeTime(wo.created_at)}</span>

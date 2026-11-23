@@ -198,6 +198,9 @@ function WORow({ wo, categories, onClick, showCompleted }) {
 
   return (
     <tr onClick={onClick} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors">
+      <td className="px-4 py-3 text-xs font-mono text-slate-500 dark:text-slate-400 whitespace-nowrap align-top pt-[15px]">
+        {wo.wo_number != null ? `#${wo.wo_number}` : <span className="text-slate-300">—</span>}
+      </td>
       <td className="px-4 py-3">
         <div className="flex items-center gap-2">
           {wo.priority === 'urgent' && <AlertTriangle size={14} className="text-red-500 flex-shrink-0" />}
@@ -737,6 +740,7 @@ function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, resident
           <div className="flex items-center gap-3">
             <Wrench size={18} className="text-brand-600" />
             <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">
+              {!isNew && wo.wo_number != null && <span className="font-mono text-slate-400 dark:text-slate-500 mr-2">#{wo.wo_number}</span>}
               {isNew ? 'New Work Order' : editing ? 'Edit Work Order' : wo.title}
             </h2>
             {!isNew && <StatusBadge status={form.status} />}
@@ -1457,7 +1461,9 @@ function AssetScanPanel({ asset, workOrders, isPrivileged, canCreate, onOpen, on
                 <button key={w.id} onClick={() => onOpen(w)}
                   className="w-full text-left p-3 rounded-xl border border-slate-100 dark:border-slate-800 hover:border-brand-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                   <div className="flex items-start justify-between gap-2">
-                    <span className="text-sm font-medium text-slate-800 dark:text-slate-100">{w.title}</span>
+                    <span className="text-sm font-medium text-slate-800 dark:text-slate-100">
+                      {w.wo_number != null && <span className="font-mono text-xs text-slate-400 mr-1.5">#{w.wo_number}</span>}{w.title}
+                    </span>
                     <StatusBadge status={w.status} />
                   </div>
                   <div className="text-xs text-slate-400 mt-1">
@@ -1893,9 +1899,10 @@ export default function WorkOrders() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[780px]">
+            <table className="w-full min-w-[860px]">
               <thead>
                 <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">WO #</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Issue</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Location</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Status</th>

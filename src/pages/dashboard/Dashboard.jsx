@@ -164,7 +164,7 @@ export default function Dashboard() {
 
     if (hasModule('work_orders')) {
       queries.push(
-        supabase.from('work_orders').select('id,status,priority,created_at,title').eq('organization_id', orgId).neq('status','closed').neq('status','cancelled'),
+        supabase.from('work_orders').select('id,status,priority,created_at,title,wo_number').eq('organization_id', orgId).neq('status','closed').neq('status','cancelled'),
       )
     } else queries.push(Promise.resolve({ data: [] }))
 
@@ -510,7 +510,9 @@ export default function Dashboard() {
                   <div key={w.id} className="flex items-center gap-3 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
                     <div className={`w-2 h-2 rounded-full flex-shrink-0 ${w.priority === 'urgent' ? 'bg-red-500' : w.priority === 'high' ? 'bg-orange-400' : 'bg-slate-300'}`} />
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">{w.title}</div>
+                      <div className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">
+                        {w.wo_number != null && <span className="font-mono text-xs text-slate-400 mr-1.5">#{w.wo_number}</span>}{w.title}
+                      </div>
                     </div>
                     <span className="text-xs text-slate-400 capitalize flex-shrink-0">{w.status.replace('_',' ')}</span>
                   </div>
