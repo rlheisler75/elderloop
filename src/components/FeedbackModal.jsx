@@ -4,7 +4,7 @@
 // Sender, community, and role are stamped server-side by platform_feedback_stamp.
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import { X, LifeBuoy, Lightbulb, CheckCircle2, AlertCircle, Loader2, Send, MessageSquare } from 'lucide-react'
+import { X, LifeBuoy, Lightbulb, CheckCircle2, AlertCircle, Loader2, Send, MessageSquare, Paperclip } from 'lucide-react'
 
 // Support contact and privacy statement, reachable from every screen (staff,
 // family and resident portals). PointClickCare's validation requires both inside
@@ -12,6 +12,17 @@ import { X, LifeBuoy, Lightbulb, CheckCircle2, AlertCircle, Loader2, Send, Messa
 const SUPPORT_EMAIL = 'info@loopwaresolutions.com'
 
 const fmtWhen = (d) => new Date(d).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+
+// Attachments go to the private feedback-attachments bucket under <user id>/
+// (20261123_feedback_attachments.sql); only the sender and super admins can read them.
+const ATTACH_BUCKET = 'feedback-attachments'
+const MAX_FILES = 5
+const MAX_BYTES = 10 * 1024 * 1024
+const ACCEPT = 'image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.csv'
+const ALLOWED_EXT = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'csv']
+const extOf = (name) => (name.split('.').pop() || '').toLowerCase()
+const fmtSize = (b) => b >= 1048576 ? `${(b / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(b / 1024))} KB`
+const safeName = (name) => name.replace(/[^\w.\- ]+/g, '_').replace(/\s+/g, ' ').trim().slice(-120) || 'file'
 const STATUS_LABEL = { new: 'Sent', in_progress: 'In progress', done: 'Done' }
 
 // The person's own earlier messages and the ElderLoop team's replies
@@ -74,17 +85,54 @@ export default function FeedbackModal({ onClose }) {
   const [sending, setSending] = useState(false)
   const [error, setError]     = useState(null)
   const [sent, setSent]       = useState(false)
+  const [files, setFiles]     = useState([])
+  const [fileError, setFileError] = useState(null)
 
   const canSend = subject.trim().length >= 3 && message.trim().length >= 3 && !sending
+
+  function addFiles(list) {
+    setFileError(null)
+    const picked = Array.from(list || [])
+    const ok = []
+    for (const f of picked) {
+      if (!ALLOWED_EXT.includes(extOf(f.name))) { setFileError(`${f.name}: only pictures, PDFs, Word, Excel, text and CSV files`); continue }
+      if (f.size > MAX_BYTES) { setFileError(`${f.name} is over 10 MB`); continue }
+      ok.push(f)
+    }
+    setFiles(cur => {
+      const next = [...cur, ...ok]
+      if (next.length > MAX_FILES) setFileError(`Up to ${MAX_FILES} files per message`)
+      return next.slice(0, MAX_FILES)
+    })
+  }
 
   async function send() {
     if (!canSend) return
     setSending(true); setError(null)
+
+    let attachments = []
+    if (files.length) {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { setSending(false); setError('Please sign in again, then send.'); return }
+      const folder = `${user.id}/${crypto.randomUUID()}`
+      for (const f of files) {
+        const path = `${folder}/${safeName(f.name)}`
+        const { error: upErr } = await supabase.storage.from(ATTACH_BUCKET).upload(path, f, { contentType: f.type || undefined })
+        if (upErr) {
+          setSending(false)
+          setError(`${f.name} didn't upload. Please try again, or send without it.`)
+          return
+        }
+        attachments.push({ path, name: f.name, size: f.size, type: f.type || '' })
+      }
+    }
+
     const { error } = await supabase.from('platform_feedback').insert({
       kind,
       subject: subject.trim().slice(0, 150),
       message: message.trim().slice(0, 5000),
       page: window.location.pathname,
+      attachments,
     })
     setSending(false)
     if (error) { setError('Your message didn\'t send. Please try again in a moment.'); return }
@@ -140,8 +188,39 @@ export default function FeedbackModal({ onClose }) {
                 className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500 resize-y" />
             </div>
 
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Attachments <span className="font-normal text-slate-400">(optional)</span></label>
+              {files.length > 0 && (
+                <ul className="mb-2 space-y-1">
+                  {files.map((f, i) => (
+                    <li key={`${f.name}-${i}`} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 text-sm">
+                      <Paperclip size={13} className="text-slate-400 flex-shrink-0" />
+                      <span className="flex-1 min-w-0 truncate text-slate-700 dark:text-slate-200">{f.name}</span>
+                      <span className="text-[11px] text-slate-400 flex-shrink-0">{fmtSize(f.size)}</span>
+                      <button type="button" onClick={() => setFiles(cur => cur.filter((_, j) => j !== i))} disabled={sending}
+                        className="p-0.5 text-slate-400 hover:text-red-500" aria-label={`Remove ${f.name}`}>
+                        <X size={14} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {files.length < MAX_FILES && (
+                <label className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 text-sm text-slate-500 dark:text-slate-400 hover:border-brand-400 hover:text-brand-600 cursor-pointer">
+                  <Paperclip size={15} /> Attach a file
+                  <input type="file" multiple accept={ACCEPT} className="hidden" disabled={sending}
+                    onChange={e => { addFiles(e.target.files); e.target.value = '' }} />
+                </label>
+              )}
+              <p className="text-[11px] text-slate-400 mt-1">
+                {fileError
+                  ? <span className="text-red-600 dark:text-red-400">{fileError}</span>
+                  : `Screenshots, PDFs, Word or Excel files. Up to ${MAX_FILES} files, 10 MB each.`}
+              </p>
+            </div>
+
             <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 rounded-lg px-3 py-2">
-              This goes to the ElderLoop software team, not your community's staff. Please don't include health or medical information. For emergencies, call the front desk or use your call button.
+              This goes to the ElderLoop software team, not your community's staff. Please don't include health or medical information, in the message or the files. For emergencies, call the front desk or use your call button.
             </p>
 
             {error && (

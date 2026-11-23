@@ -2,7 +2,13 @@
 // "Help & Feedback" button (staff sidebar, family portal, resident portal).
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
-import { LifeBuoy, Lightbulb, Loader2, Mail, Send, Trash2 } from 'lucide-react'
+import { LifeBuoy, Lightbulb, Loader2, Mail, Send, Trash2, Paperclip } from 'lucide-react'
+
+// Files sent with a message (FeedbackModal). Private bucket: opened through a
+// short-lived signed URL, never a public link.
+const ATTACH_BUCKET = 'feedback-attachments'
+const fmtSize = (b) => !b ? '' : b >= 1048576 ? `${(b / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(b / 1024))} KB`
+const attachmentsOf = (item) => Array.isArray(item.attachments) ? item.attachments.filter(a => a?.path) : []
 
 const STATUS_TABS = [
   { key: 'new',         label: 'New' },
@@ -27,9 +33,27 @@ function FeedbackCard({ item, onChange, onDelete, onReplied }) {
   const [reply, setReply]         = useState('')
   const [sending, setSending]     = useState(false)
   const [replyMsg, setReplyMsg]   = useState(null) // { ok, text }
+  const [opening, setOpening]     = useState(null)
+  const [fileError, setFileError] = useState(null)
   const sender = item.profiles
   const replies = [...(item.platform_feedback_replies ?? [])].sort((a, b) => a.created_at.localeCompare(b.created_at))
   const portalSender = PORTAL_ROLES.includes(item.role)
+  const files = attachmentsOf(item)
+
+  async function openFile(a) {
+    // Open the tab now (still inside the click) so pop-up blockers allow it
+    const win = window.open('', '_blank')
+    setOpening(a.path); setFileError(null)
+    const { data, error } = await supabase.storage.from(ATTACH_BUCKET).createSignedUrl(a.path, 300)
+    setOpening(null)
+    if (error || !data?.signedUrl) {
+      win?.close()
+      setFileError(`Couldn't open ${a.name}: ${error?.message || 'unknown error'}`)
+      return
+    }
+    if (win) win.location.href = data.signedUrl
+    else window.location.href = data.signedUrl
+  }
 
   async function sendReply() {
     if (!reply.trim() || sending) return
@@ -79,6 +103,20 @@ function FeedbackCard({ item, onChange, onDelete, onReplied }) {
       </div>
 
       <p className="text-sm text-slate-300 whitespace-pre-wrap mt-3 ml-12">{item.message}</p>
+      {files.length > 0 && (
+        <div className="mt-3 ml-12 flex flex-wrap gap-2">
+          {files.map(a => (
+            <button key={a.path} onClick={() => openFile(a)} disabled={opening === a.path}
+              className="flex items-center gap-1.5 max-w-full px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-950 text-xs text-slate-200 hover:border-brand-600 hover:text-white disabled:opacity-60"
+              title="Open in a new tab">
+              {opening === a.path ? <Loader2 size={12} className="animate-spin flex-shrink-0" /> : <Paperclip size={12} className="flex-shrink-0" />}
+              <span className="truncate">{a.name}</span>
+              {a.size ? <span className="text-slate-500 flex-shrink-0">{fmtSize(a.size)}</span> : null}
+            </button>
+          ))}
+        </div>
+      )}
+      {fileError && <p className="text-xs text-red-400 mt-2 ml-12">{fileError}</p>}
       {item.page && <p className="text-xs text-slate-600 mt-2 ml-12">Sent from {item.page}</p>}
 
       {replies.length > 0 && (
@@ -164,9 +202,14 @@ export default function FeedbackTab({ onCountChange }) {
   }
 
   async function remove(id) {
-    if (!window.confirm('Delete this message for good?')) return
+    const files = attachmentsOf(items.find(i => i.id === id) ?? {})
+    if (!window.confirm(files.length ? `Delete this message and its ${files.length} file${files.length === 1 ? '' : 's'} for good?` : 'Delete this message for good?')) return
     const { error } = await supabase.from('platform_feedback').delete().eq('id', id)
     if (error) { setError(error.message); return }
+    if (files.length) {
+      const { error: fileErr } = await supabase.storage.from(ATTACH_BUCKET).remove(files.map(a => a.path))
+      if (fileErr) setError(`Message deleted, but its files weren't: ${fileErr.message}`)
+    }
     setItems(list => list.filter(i => i.id !== id))
   }
 

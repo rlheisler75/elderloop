@@ -4,6 +4,7 @@
 // on. Each message is claimed before sending, so a second call never sends it twice.
 // The email never carries the subject or message text (no BAA with Resend, and family
 // members may type health details): who sent it, from where, and a link to the inbox.
+// Attached files stay in ElderLoop too; the email only says how many there are.
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
 const SITE_URL = Deno.env.get('SITE_URL') ?? 'https://elderloop.xyz'
@@ -17,12 +18,14 @@ const esc = (s: string) => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;
 const ROLE_LABEL: Record<string, string> = { family: 'Family', resident: 'Resident', ceo: 'Administrator', org_admin: 'Org Admin', super_admin: 'Super Admin' }
 const roleLabel = (r: string | null) => r ? (ROLE_LABEL[r] ?? r.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())) : 'Unknown role'
 
-type Feedback = { id: string; kind: string; role: string | null; user_id: string; organization_id: string | null }
+type Feedback = { id: string; kind: string; role: string | null; user_id: string; organization_id: string | null; attachments: unknown }
 
 function compose(f: Feedback, sender: string, orgName: string) {
   const what = f.kind === 'help' ? 'help request' : 'suggestion'
   const subject = `New ${what} from ${sender} (${orgName})`
-  const lead = `${sender} (${roleLabel(f.role)}) at ${orgName} sent a ${what}.`
+  const files = Array.isArray(f.attachments) ? f.attachments.length : 0
+  const withFiles = files ? ` with ${files} attached file${files === 1 ? '' : 's'}` : ''
+  const lead = `${sender} (${roleLabel(f.role)}) at ${orgName} sent a ${what}${withFiles}.`
   const link = `${SITE_URL}/superadmin`
   const html = `<div style="font-family:Arial,sans-serif;max-width:560px;color:#0c2340">
   <p style="font-size:13px;color:#5b6b79;margin:0 0 8px">ElderLoop · Help &amp; Feedback</p>
@@ -45,7 +48,7 @@ Deno.serve(async (req: Request) => {
 
   const since = new Date(Date.now() - 3 * 86400000).toISOString()
   const { data: pending, error } = await admin.from('platform_feedback')
-    .select('id, kind, role, user_id, organization_id')
+    .select('id, kind, role, user_id, organization_id, attachments')
     .is('email_claimed_at', null).gte('created_at', since)
     .order('created_at').limit(50)
   if (error) return respond({ error: error.message }, 500)
