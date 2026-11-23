@@ -6,6 +6,11 @@
 // permission rules as the functions that create the logins: staff = create-user
 // (Org Admins and HR/Payroll Managers), portal logins = enable-resident-portal /
 // enable-family-portal (Org Admins and the Administrator); super admins for anyone.
+//
+// send_welcome: true (staff only) is for fixing a wrong address someone never got
+// their welcome at: the new address gets the welcome email with a fresh
+// password-setup link (sent by resend-welcome, same rules and audit) instead of the
+// "email changed" notice, and the old address is only told if they had ever signed in.
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
 const corsHeaders = {
@@ -34,14 +39,15 @@ Deno.serve(async (req: Request) => {
     const { data: { user: callingUser } } = await supabaseClient.auth.getUser(token)
     if (!callingUser) return respond({ success: false, error: 'Unauthorized' })
 
-    const { target_user_id, new_email } = await req.json()
+    const { target_user_id, new_email, send_welcome } = await req.json()
     const email = String(new_email ?? '').trim().toLowerCase()
+    const sendWelcome = send_welcome === true
     if (!target_user_id) return respond({ success: false, error: 'target_user_id is required' })
     if (!EMAIL_RE.test(email)) return respond({ success: false, error: 'Enter a valid email address' })
 
     const [{ data: callerProfile }, { data: target }] = await Promise.all([
       supabaseAdmin.from('profiles').select('email, role, organization_id').eq('id', callingUser.id).single(),
-      supabaseAdmin.from('profiles').select('email, first_name, role, organization_id').eq('id', target_user_id).single(),
+      supabaseAdmin.from('profiles').select('email, first_name, role, organization_id, is_active').eq('id', target_user_id).single(),
     ])
     if (!target?.organization_id) return respond({ success: false, error: 'Account not found' })
     const isPortal = ['resident', 'family'].includes(target.role)
@@ -74,9 +80,19 @@ Deno.serve(async (req: Request) => {
       }
     }
 
+    // Checked before anything changes, so a welcome that can't go out doesn't
+    // leave the email changed with no setup link sent
+    if (sendWelcome && isPortal) {
+      return respond({ success: false, error: 'Portal logins get their welcome email from the resident record' })
+    }
+    if (sendWelcome && target.is_active === false) {
+      return respond({ success: false, error: 'This account is inactive; reactivate it before sending a welcome email' })
+    }
+
     // The login is what counts: before this function, the Staff screen could change
     // profiles.email alone, so the two can disagree (and this repairs that)
     const { data: authData } = await supabaseAdmin.auth.admin.getUserById(target_user_id)
+    const hasSignedIn = !!authData?.user?.last_sign_in_at
     const loginEmail = (authData?.user?.email ?? '').trim().toLowerCase()
     const oldEmail = loginEmail || (target.email ?? '').trim().toLowerCase()
     const profileEmail = (target.email ?? '').trim().toLowerCase()
@@ -128,7 +144,34 @@ Deno.serve(async (req: Request) => {
       }),
     }).then(async r => { if (!r.ok) console.error('change-user-email Resend error:', r.status, await r.text()) })
       .catch(e => console.error('change-user-email Resend failed:', e))
-    await Promise.all([notice(email, true), ...(oldEmail && oldEmail !== email ? [notice(oldEmail, false)] : [])])
+    // With send_welcome the new address gets the welcome instead (below), and an old
+    // address they never signed in with is most likely the wrong one, so skip it
+    const tellOld = !!oldEmail && oldEmail !== email && (!sendWelcome || hasSignedIn)
+    await Promise.all([...(sendWelcome ? [] : [notice(email, true)]), ...(tellOld ? [notice(oldEmail, false)] : [])])
+
+    // resend-welcome does the sending, checks and audit entry; called with the
+    // caller's own token so its permission rules apply to them
+    let welcomeSent = false
+    let welcomeError: string | null = null
+    if (sendWelcome) {
+      try {
+        const res = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/resend-welcome`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'apikey': Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ target_user_id }),
+        })
+        const result = await res.json().catch(() => null)
+        welcomeSent = !!result?.success
+        if (!welcomeSent) welcomeError = result?.error ?? `The welcome email didn't go out (${res.status})`
+      } catch (e) {
+        welcomeError = e instanceof Error ? e.message : String(e)
+      }
+      if (welcomeError) console.error('change-user-email welcome failed:', welcomeError)
+    }
 
     const { error: auditErr } = await supabaseAdmin.from('audit_log').insert({
       organization_id: target.organization_id,
@@ -140,11 +183,13 @@ Deno.serve(async (req: Request) => {
       record_id: target_user_id,
       old_values: { email: oldEmail },
       new_values: { email },
-      notes: isPortal ? `Portal (${target.role}) sign-in email changed` : 'Sign-in email changed by an administrator',
+      notes: isPortal ? `Portal (${target.role}) sign-in email changed`
+        : sendWelcome ? 'Sign-in email changed by an administrator; welcome email sent to the new address'
+        : 'Sign-in email changed by an administrator',
     })
     if (auditErr) console.error('change-user-email audit insert failed:', auditErr.message)
 
-    return respond({ success: true, email })
+    return respond({ success: true, email, welcome_sent: welcomeSent, welcome_error: welcomeError })
   } catch (error) {
     return respond({ success: false, error: error instanceof Error ? error.message : String(error) })
   }

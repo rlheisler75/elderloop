@@ -8,7 +8,7 @@ import {
   Plus, X, Edit2, Trash2, Search, Upload, Download,
   AlertTriangle, CheckCircle2, Clock, User, Shield,
   FileText, ChevronRight, Filter, Award, Phone,
-  Calendar, Building2, Eye, XCircle
+  Calendar, Building2, Eye, XCircle, MailPlus
 } from 'lucide-react'
 import { FALLBACK_DEPARTMENTS, STAFF_LEVELS, getOrgDepartments } from '../../lib/departments'
 import StaffImport from './StaffImport'
@@ -296,6 +296,13 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
   const [saving, setSaving] = useState(false)
   const [error, setError]   = useState('')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+  // Welcome email (password-setup link): same people change-user-email / resend-welcome
+  // allow (Org Admin, HR/Payroll Manager), never yourself or an inactive account
+  const canWelcome = !isNew && canEditAccess && staff?.id !== profile?.id && staff?.is_active !== false
+    && !['resident', 'family'].includes(staff?.role)
+  const emailChanged = !isNew && form.email.trim().toLowerCase() !== (staff?.email || '').trim().toLowerCase()
+  const [sendWelcome, setSendWelcome] = useState(true)
+  const [welcomeBusy, setWelcomeBusy] = useState(false)
 
   useEffect(() => { if (staff?.id) fetchCerts() }, [staff?.id])
   useEffect(() => { if (staff?.id) fetchDeptRoles() }, [staff?.id])
@@ -318,11 +325,18 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
     // The email is their login: change-user-email moves the login and profile together
     // (saving profiles.email alone left people unable to sign in with the new address)
     const newEmail = form.email.trim().toLowerCase()
+    let welcomeNote = ''
     if (newEmail && newEmail !== (staff.email || '').trim().toLowerCase()) {
+      const welcome = canWelcome && sendWelcome
       const { data, error: fnErr } = await supabase.functions.invoke('change-user-email', {
-        body: { target_user_id: staff.id, new_email: newEmail },
+        body: { target_user_id: staff.id, new_email: newEmail, send_welcome: welcome },
       })
       if (fnErr || data?.success === false) { setError(data?.error || fnErr.message); setSaving(false); return }
+      if (welcome) {
+        welcomeNote = data.welcome_sent
+          ? `Sign-in email changed to ${data.email}, and the welcome email with a new password-setup link went to that address.`
+          : `Sign-in email changed to ${data.email}, but the welcome email didn't go out: ${data.welcome_error || 'unknown error'}. Open them again and use "Resend welcome email".`
+      }
     }
     const { email: _email, ...rest } = form
     const payload = {
@@ -345,7 +359,18 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
     }
 
     setSaving(false)
+    if (welcomeNote) alert(welcomeNote)
     onSave()
+  }
+
+  // New password-setup link to their current address (first one expired, or never arrived)
+  const handleResendWelcome = async () => {
+    if (!confirm(`Send ${staff.first_name} ${staff.last_name} the welcome email again at ${staff.email}? It has a new password-setup link that works for 24 hours.`)) return
+    setWelcomeBusy(true); setError('')
+    const { data, error: fnErr } = await supabase.functions.invoke('resend-welcome', { body: { target_user_id: staff.id } })
+    setWelcomeBusy(false)
+    if (fnErr || data?.success === false) { setError(data?.error || fnErr.message); return }
+    alert(`Welcome email sent to ${data.email}.`)
   }
 
   const handleDeleteCert = async (id) => {
@@ -443,7 +468,19 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
                   <input type="email" value={form.email} onChange={e => set('email', e.target.value)} disabled={!canEditBasic}
                     className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60 disabled:cursor-not-allowed"
                     placeholder="staff@email.com" />
-                  {!isNew && <p className="text-[11px] text-slate-400 mt-1">This is their sign-in. Changing it moves their login; the password stays the same.</p>}
+                  {!isNew && !(emailChanged && canWelcome) && <p className="text-[11px] text-slate-400 mt-1">This is their sign-in. Changing it moves their login; the password stays the same.</p>}
+                  {emailChanged && canWelcome && (
+                    <label className="flex items-start gap-2 mt-2 text-xs text-slate-600 dark:text-slate-300 cursor-pointer">
+                      <input type="checkbox" checked={sendWelcome} onChange={e => setSendWelcome(e.target.checked)} className="mt-0.5 rounded" />
+                      <span>Send the welcome email to the new address when I save<span className="block text-[11px] text-slate-400">With a new password-setup link, for someone who never got or used their first one.</span></span>
+                    </label>
+                  )}
+                  {canWelcome && !emailChanged && (
+                    <button type="button" onClick={handleResendWelcome} disabled={welcomeBusy}
+                      className="mt-1.5 inline-flex items-center gap-1 text-xs text-brand-600 dark:text-brand-400 hover:underline font-medium disabled:opacity-50">
+                      <MailPlus size={12} /> {welcomeBusy ? 'Sending…' : 'Resend welcome email'}
+                    </button>
+                  )}
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Hire Date</label>

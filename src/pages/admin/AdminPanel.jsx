@@ -226,22 +226,43 @@ function EditUserModal({ user, orgId, departments, orgModules, onClose, onSave }
   const [error, setError] = useState('')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
-  // Sign-in email: changed right away by change-user-email (login + profile together);
-  // the password stays the same and both addresses get a notice
+  // Sign-in email: changed right away by change-user-email (login + profile together).
+  // With "send welcome" (the usual case: fixing an address their welcome never reached)
+  // the new address gets the welcome email with a password-setup link; without it the
+  // password stays the same and both addresses get a "your email changed" notice.
+  const { profile: me } = useAuth()
+  const isPortal = ['resident', 'family'].includes(user.role)
+  const canWelcome = !isPortal && user.is_active !== false && user.id !== me?.id
   const [email, setEmail] = useState(user.email || '')
   const [newEmail, setNewEmail] = useState(null) // null = not editing
+  const [sendWelcome, setSendWelcome] = useState(true)
   const [emailBusy, setEmailBusy] = useState(false)
   const [emailMsg, setEmailMsg] = useState('')
 
   async function changeEmail() {
     setEmailBusy(true); setError(''); setEmailMsg('')
     const { data, error: fnErr } = await supabase.functions.invoke('change-user-email', {
-      body: { target_user_id: user.id, new_email: newEmail },
+      body: { target_user_id: user.id, new_email: newEmail, send_welcome: canWelcome && sendWelcome },
     })
     setEmailBusy(false)
     if (fnErr || data?.success === false) { setError(data?.error || fnErr.message); return }
     setEmail(data.email); setNewEmail(null)
-    setEmailMsg(`Sign-in email changed to ${data.email}. Their password is the same; a notice went to the old and new addresses.`)
+    if (canWelcome && sendWelcome) {
+      if (data.welcome_sent) setEmailMsg(`Sign-in email changed to ${data.email}, and a welcome email with a new password-setup link went to that address.`)
+      else setError(`Sign-in email changed to ${data.email}, but the welcome email didn't go out: ${data.welcome_error || 'unknown error'}. Try "Resend welcome email".`)
+    } else {
+      setEmailMsg(`Sign-in email changed to ${data.email}. Their password is the same; a notice went to the old and new addresses.`)
+    }
+  }
+
+  // New password-setup link to the current address (first one expired, or never arrived)
+  async function resendWelcome() {
+    if (!confirm(`Send the welcome email to ${email} again? It has a new password-setup link that works for 24 hours.`)) return
+    setEmailBusy(true); setError(''); setEmailMsg('')
+    const { data, error: fnErr } = await supabase.functions.invoke('resend-welcome', { body: { target_user_id: user.id } })
+    setEmailBusy(false)
+    if (fnErr || data?.success === false) { setError(data?.error || fnErr.message); return }
+    setEmailMsg(`Welcome email sent to ${data.email}.`)
   }
 
   useEffect(() => { fetchDeptRoles() }, [user.id])
@@ -294,13 +315,7 @@ function EditUserModal({ user, orgId, departments, orgModules, onClose, onSave }
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div>
             <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100">Edit User</h2>
-            <p className="text-xs text-slate-400 mt-0.5 break-all">
-              {email}
-              {newEmail === null && !['resident', 'family'].includes(user.role) && (
-                <button onClick={() => { setNewEmail(email); setEmailMsg('') }}
-                  className="ml-2 text-brand-600 dark:text-brand-400 hover:underline font-semibold">Change</button>
-              )}
-            </p>
+            <p className="text-xs text-slate-400 mt-0.5 break-all">{email}</p>
           </div>
           <button onClick={onClose} className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"><X size={20} /></button>
         </div>
@@ -309,17 +324,45 @@ function EditUserModal({ user, orgId, departments, orgModules, onClose, onSave }
 
           {error && <div className="px-4 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">{error}</div>}
 
+          {/* Sign-in email (portal logins change theirs from the resident record) */}
+          {!isPortal && newEmail === null && (
+            <div>
+              <label className={labelCls}>Sign-In Email</label>
+              <div className="flex gap-2">
+                <div className="flex-1 min-w-0 px-3 py-2 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 dark:text-slate-100 rounded-lg text-sm break-all">{email || '—'}</div>
+                <button onClick={() => { setNewEmail(email); setSendWelcome(true); setEmailMsg(''); setError('') }} disabled={emailBusy}
+                  className="px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 text-brand-600 dark:text-brand-400 font-semibold hover:bg-brand-50 dark:hover:bg-brand-950/40 disabled:opacity-50 flex-shrink-0">Change Email</button>
+              </div>
+              {canWelcome && (
+                <button onClick={resendWelcome} disabled={emailBusy}
+                  className="mt-2 inline-flex items-center gap-1.5 text-sm text-brand-600 dark:text-brand-400 hover:underline font-medium disabled:opacity-50">
+                  <MailPlus size={14} /> {emailBusy ? 'Sending…' : 'Resend welcome email'}
+                </button>
+              )}
+            </div>
+          )}
+
           {newEmail !== null && (
             <div className="p-3 rounded-xl border border-brand-200 dark:border-brand-900 bg-brand-50/50 dark:bg-brand-950/30 space-y-2">
               <label className={labelCls}>New Sign-In Email</label>
               <input type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} className={inputCls} autoFocus />
-              <p className="text-xs text-slate-500 dark:text-slate-400">This becomes their login as soon as you save it. Their password doesn't change and no new setup is needed. We'll email the old and new addresses to let them know.</p>
+              {canWelcome && (
+                <label className="flex items-start gap-2 text-sm text-slate-700 dark:text-slate-200 cursor-pointer">
+                  <input type="checkbox" checked={sendWelcome} onChange={e => setSendWelcome(e.target.checked)} className="mt-0.5 rounded" />
+                  <span>Send the welcome email to the new address<span className="block text-xs text-slate-500 dark:text-slate-400">With a new password-setup link. Use this when they never got or used their first one.</span></span>
+                </label>
+              )}
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                {canWelcome && sendWelcome
+                  ? 'This becomes their login as soon as you save it, and the welcome email goes to the new address.'
+                  : "This becomes their login as soon as you save it. Their password doesn't change and no new setup is needed. We'll email the old and new addresses to let them know."}
+              </p>
               <div className="flex gap-2 justify-end">
                 <button onClick={() => setNewEmail(null)} disabled={emailBusy}
                   className="px-3 py-1.5 text-sm rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">Cancel</button>
                 <button onClick={changeEmail} disabled={emailBusy || !newEmail.trim() || newEmail.trim().toLowerCase() === email.toLowerCase()}
                   className="px-3 py-1.5 text-sm rounded-lg bg-brand-600 text-white font-semibold disabled:opacity-50">
-                  {emailBusy ? 'Changing…' : 'Change Email'}
+                  {emailBusy ? 'Changing…' : canWelcome && sendWelcome ? 'Change & Send Welcome' : 'Change Email'}
                 </button>
               </div>
             </div>
