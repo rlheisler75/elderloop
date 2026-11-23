@@ -408,6 +408,11 @@ function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, resident
     location_detail: initialAsset.location || '',
   } : {}) })
   const [closing, setClosing]     = useState(false) // Mark Complete opens the close-out form first
+  // Cancelling asks for a reason (Maranatha's WorxHub "Rejected" reasons: duplicate,
+  // incorrect or incomplete information, ...). It's the note on the status-change
+  // entry in wo_activity and shows at the top of a cancelled ticket.
+  const [cancelling, setCancelling]     = useState(false)
+  const [cancelReason, setCancelReason] = useState('')
   // Checklist progress (WorkOrderChecklist): unanswered steps only warn at close-out
   const [checklistSum, setChecklistSum] = useState(null)
   const checklistWarning = checklistSum?.unanswered > 0 && (
@@ -488,6 +493,26 @@ function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, resident
       .eq('work_order_id', wo.id)
       .order('created_at', { ascending: false })
     setActivity(data || [])
+  }
+
+  // Latest cancel entry with a reason (activity is newest first)
+  const cancelledEntry = wo?.status === 'cancelled'
+    ? activity.find(a => a.action_type === 'status_change' && /to Cancelled$/.test(a.action || '') && a.note)
+    : null
+
+  async function cancelTicket() {
+    const reason = cancelReason.trim()
+    if (reason.length < 3) return
+    setSaving(true); setError('')
+    const { error: err } = await supabase.from('work_orders')
+      .update({ status: 'cancelled', updated_at: new Date().toISOString() }).eq('id', wo.id)
+    if (err) { setError(err.message); setSaving(false); return }
+    await supabase.from('wo_activity').insert({
+      work_order_id: wo.id, user_id: profile.id,
+      action: 'Status changed to Cancelled', note: reason, action_type: 'status_change',
+    })
+    setSaving(false)
+    onSave()
   }
 
   async function fetchPhotos() {
@@ -572,6 +597,8 @@ function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, resident
 
   async function handleSave() {
     if (!form.title.trim()) { setError('Title is required'); return }
+    const newlyCancelled = !!wo?.id && form.status === 'cancelled' && wo.status !== 'cancelled'
+    if (newlyCancelled && cancelReason.trim().length < 3) { setError('Give a reason for cancelling this ticket'); return }
     setSaving(true)
 
     // Auto-assign if no assignee set
@@ -623,6 +650,7 @@ function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, resident
         await supabase.from('wo_activity').insert({
           work_order_id: wo.id, user_id: profile.id,
           action: `Status changed from ${getStatus(wo.status).label} to ${getStatus(form.status).label}`,
+          note: newlyCancelled ? cancelReason.trim() : null,
           action_type: 'status_change',
         })
         // Mark SLA responded if first assignment
@@ -773,6 +801,20 @@ function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, resident
           <div className="px-6 py-5 space-y-4">
             {error && <div className="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
 
+            {cancelledEntry && (
+              <div className="px-4 py-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-xl">
+                <div className="text-sm">
+                  <span className="font-semibold text-red-700 dark:text-red-400">Cancelled: </span>
+                  <span className="text-slate-700 dark:text-slate-200 whitespace-pre-line">{cancelledEntry.note}</span>
+                </div>
+                <div className="text-xs text-slate-400 mt-0.5">
+                  {[cancelledEntry.profiles && `${cancelledEntry.profiles.first_name || ''} ${cancelledEntry.profiles.last_name || ''}`.trim(),
+                    new Date(cancelledEntry.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })]
+                    .filter(Boolean).join(' · ')}
+                </div>
+              </div>
+            )}
+
             {/* Template picker — new tickets only */}
             {isNew && (
               <div>
@@ -887,6 +929,15 @@ function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, resident
                 </div>
               )}
             </div>
+
+            {editing && wo?.id && form.status === 'cancelled' && wo.status !== 'cancelled' && (
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Reason for cancelling *</label>
+                <textarea value={cancelReason} onChange={e => setCancelReason(e.target.value)} rows={2}
+                  placeholder="e.g. Duplicate of #77412, or incorrect / incomplete information"
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              </div>
+            )}
 
             {/* Subcategory — only shown when the selected category has any */}
             {(() => {
@@ -1297,7 +1348,8 @@ function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, resident
                       key={action.status}
                       type="button"
                       onClick={async () => {
-                        if (action.status === 'closed') { setHandingOff(false); setClosing(true); return }
+                        if (action.status === 'closed') { setHandingOff(false); setCancelling(false); setClosing(true); return }
+                        if (action.status === 'cancelled') { setHandingOff(false); setClosing(false); setCancelling(true); return }
                         const updatePayload = {
                           status: action.status,
                           updated_at: new Date().toISOString(),
@@ -1323,6 +1375,26 @@ function WOModal({ wo, initialAsset = null, onClose, onSave, staffList, resident
                   )}
                 </div>
                 {handingOff === 'actions' && handoffPanel}
+                {cancelling && (
+                  <div className="mt-3 p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-xl">
+                    <div className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-2">Cancel this ticket</div>
+                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Reason *</label>
+                    <textarea value={cancelReason} onChange={e => setCancelReason(e.target.value)} rows={2} autoFocus
+                      placeholder="e.g. Duplicate of #77412, or incorrect / incomplete information"
+                      className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-400" />
+                    <p className="text-[11px] text-slate-400 mt-1">Shown at the top of the ticket and saved on the activity timeline.</p>
+                    <div className="flex justify-end gap-2 mt-3">
+                      <button type="button" onClick={() => { setCancelling(false); setCancelReason('') }}
+                        className="px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-slate-800">
+                        Keep ticket
+                      </button>
+                      <button type="button" onClick={cancelTicket} disabled={saving || cancelReason.trim().length < 3}
+                        className="px-3 py-1.5 rounded-xl text-xs font-medium bg-red-600 hover:bg-red-700 text-white disabled:opacity-50">
+                        {saving ? 'Cancelling...' : 'Cancel ticket'}
+                      </button>
+                    </div>
+                  </div>
+                )}
                 {closing && (
                   <div className="mt-3 p-4 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900 rounded-xl">
                     <div className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-2">Close this job</div>
