@@ -106,7 +106,7 @@ export default function AdminSetupGuide() {
           <SectionBlock id="templates" num="05" title="Job Roles"
             dek="A Job Role is a set of things someone can do, module by module. People can hold several; the database enforces exactly what they add up to.">
             <Steps items={[
-              { k: 1, text: <>Open <B>Admin Panel → Job Roles</B>. Roles are grouped: <B>Everyone</B> (every staff login), <B>Administrator</B> (the NHA), <B>Custom roles</B>, <B>Department roles</B> (one per department and level), and roles <B>carried over</B> from the old Role Templates.</> },
+              { k: 1, text: <>Open <B>Admin Panel → Job Roles</B>. Roles are grouped: <B>Everyone</B> (every staff login), <B>Administrator</B> (the NHA), <B>Custom roles</B>, and <B>Department roles</B> (one per department and level).</> },
               { k: 2, text: <>Click a role to see its grid: modules down the side, the seven actions across the top (<B>View, Create, Edit, Approve, Delete, Settings, Costs</B>). Click a box to turn it on or off; it saves right away. Hover a box to see what that action allows in that module.</> },
               { k: 3, text: <>Click <B>New Job Role</B> to make your own, for example "Transportation Coordinator" or "Dietary Aide (no costs)". Start empty or from a copy of an existing role. Add people under <B>People with this role</B>.</> },
               { k: 4, text: <>Changing a role changes it for everyone who has it, the next time they sign in or refresh.</> },
@@ -117,7 +117,7 @@ export default function AdminSetupGuide() {
           <SectionBlock id="access" num="06" title="One person's access"
             dek="Extra roles and one-off changes for a single person, on their Edit User screen.">
             <Steps items={[
-              { k: 1, text: <>Open <B>Admin Panel → Users</B> and edit the person. Their Job Roles are listed; ones marked <B>auto</B> come from their department and level or account type.</> },
+              { k: 1, text: <>Open <B>Admin Panel → Users</B> and edit the person. Their Job Roles are listed; ones marked <B>auto</B> come from their department and level (plus Everyone, or Administrator for the NHA).</> },
               { k: 2, text: <>Use <B>Add a Job Role</B> for anything extra. For example, a Social Services Director who also oversees rides gets <B>Transportation Supervisor</B>. Remove a role you added with its ×.</> },
               { k: 3, text: <>Open <B>Effective access</B> to see the grid of what they can do. <B>Blue</B> boxes come from their roles (hover to see which), <B>green</B> are added just for them, <B>red</B> are removed just for them. Click a box to add or remove one permission; click again to go back.</> },
             ]} />

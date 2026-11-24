@@ -13,13 +13,11 @@ const SOURCE_GROUPS = [
   { key: 'administrator', label: 'Administrator' },
   { key: 'custom',        label: 'Custom roles' },
   { key: 'department',    label: 'Department roles' },
-  { key: 'template',      label: 'Carried over from Role Templates' },
 ]
 const SOURCE_NOTE = {
   everyone: 'Every staff login has this role.',
   administrator: 'Given to the Administrator (NHA). Org Admins can always do everything.',
   department: 'Given automatically to everyone at this department & level (Admin Panel → Users → edit).',
-  template: 'Carried over from the old Role Templates. Given automatically by account role.',
   custom: 'Assign it to people below or from their Edit User screen.',
 }
 
@@ -198,7 +196,7 @@ export default function JobRoles({ orgId, orgModules }) {
             <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-5 mb-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="flex-1 min-w-[220px]">
-                  {['custom', 'template'].includes(selected.source) ? (
+                  {selected.source === 'custom' ? (
                     <input defaultValue={selected.name} key={`n-${selected.id}`} onBlur={e => e.target.value.trim() && e.target.value !== selected.name && saveDetails({ name: e.target.value.trim() })}
                       className="font-display font-semibold text-lg text-slate-800 dark:text-slate-100 bg-transparent border-b border-transparent hover:border-slate-200 focus:border-brand-500 focus:outline-none w-full" />
                   ) : <div className="font-display font-semibold text-lg text-slate-800 dark:text-slate-100">{selected.name}</div>}
@@ -209,7 +207,7 @@ export default function JobRoles({ orgId, orgModules }) {
                 </div>
                 <div className="flex gap-2">
                   <button onClick={() => setShowNew(selectedId)} title="Make a copy" className="flex items-center gap-1 px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-600 dark:text-slate-300"><Copy size={12} /> Copy</button>
-                  {['custom', 'template'].includes(selected.source) && (
+                  {selected.source === 'custom' && (
                     <button onClick={deleteRole} className="flex items-center gap-1 px-3 py-1.5 border border-red-200 text-red-600 rounded-lg text-xs"><Trash2 size={12} /> Delete</button>
                   )}
                 </div>

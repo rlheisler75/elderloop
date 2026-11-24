@@ -35,21 +35,8 @@ const PLAN_LIMITS: Record<string, { residents: number | null; staff: number | nu
   professional: { residents: null, staff: null },
 }
 
-// Default per-role module visibility (Admin Panel → Role Templates). Seeded here so a
-// brand-new org doesn't start with an empty template and staff seeing almost nothing —
-// same defaults already curated and in production use for the Sunrise Gardens pilot org.
-// Org Admin/CEO/Super Admin excluded (already unconditional full access), Family/Resident
-// excluded (routed to a fixed portal, hasModule()/role templates never apply to them).
-const ROLE_TEMPLATE: Record<string, string[]> = {
-  staff:           ['activities', 'chapel', 'communication', 'directory', 'timeclock'],
-  supervisor:      ['activities', 'chapel', 'communication', 'dietary', 'directory', 'housekeeping', 'incidents', 'nursing', 'staff', 'timeclock', 'transportation', 'work_orders'],
-  manager:         ['activities', 'chapel', 'communication', 'dietary', 'directory', 'family', 'housekeeping', 'incidents', 'marketing', 'nursing', 'property_management', 'security', 'staff', 'surveys', 'timeclock', 'transportation', 'work_orders'],
-  maintenance:     ['communication', 'directory', 'incidents', 'timeclock', 'work_orders'],
-  dietary:         ['activities', 'communication', 'dietary', 'directory', 'timeclock'],
-  housekeeping:    ['activities', 'communication', 'directory', 'housekeeping', 'timeclock'],
-  nursing:         ['activities', 'chapel', 'communication', 'dietary', 'directory', 'incidents', 'nursing'],
-  social_services: ['activities', 'chapel', 'communication', 'directory', 'incidents', 'social_services'],
-}
+// Staff access comes from Job Roles, which the database seeds for every new
+// organization (seed_job_roles()). Role Templates were retired 2026-11-23.
 
 function makeSlug(name: string): string {
   return name.toLowerCase().trim()
@@ -122,20 +109,6 @@ Deno.serve(async (req: Request) => {
       await admin.from('organization_modules').insert(
         moduleKeys.map((key: string) => ({ organization_id: orgId, module_key: key, is_enabled: true }))
       )
-    }
-
-    // Seed Role Templates (role_module_visibility) with sensible per-role defaults,
-    // trimmed to whichever modules this plan actually enables — same approach already
-    // used above for organization_modules.
-    const enabledSet = new Set(moduleKeys)
-    const roleVisRows: { organization_id: string; role: string; module_key: string }[] = []
-    for (const [role, modules] of Object.entries(ROLE_TEMPLATE)) {
-      for (const key of modules) {
-        if (enabledSet.has(key)) roleVisRows.push({ organization_id: orgId, role, module_key: key })
-      }
-    }
-    if (roleVisRows.length > 0) {
-      await admin.from('role_module_visibility').insert(roleVisRows)
     }
 
     const siteUrl = Deno.env.get('SITE_URL') ?? 'https://elderloop.xyz'
