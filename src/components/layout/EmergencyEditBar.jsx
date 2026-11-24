@@ -2,18 +2,18 @@ import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { ShieldAlert, Eye, X } from 'lucide-react'
 
-// Shown only to an Administrator (NHA) in a community on tiered access. Outside
+// Shown only to an Administrator (NHA). Outside
 // their own modules the NHA is view + approve; Emergency Edit (24 hours, reason
 // required) lifts that, is written to the audit log, and alerts the Org Admins.
 // The database guard (nha_write_guard) enforces the same rule.
 export default function EmergencyEditBar() {
-  const { profile, accessModel, emergencyEditOn, emergencyUntil, startEmergencyEdit, endEmergencyEdit } = useAuth()
+  const { profile, emergencyEditOn, emergencyUntil, startEmergencyEdit, endEmergencyEdit } = useAuth()
   const [open, setOpen]       = useState(false)
   const [reason, setReason]   = useState('')
   const [busy, setBusy]       = useState(false)
   const [error, setError]     = useState('')
 
-  if (profile?.role !== 'ceo' || accessModel !== 'tiered') return null
+  if (profile?.role !== 'ceo') return null
 
   const until = emergencyUntil
     ? new Date(emergencyUntil).toLocaleString('en-US', { weekday: 'short', hour: 'numeric', minute: '2-digit' })

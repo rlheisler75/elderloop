@@ -79,8 +79,7 @@ function fmtCountdown(due, now = new Date()) {
 const fmtWhen = (d) => new Date(d).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
 
 // Who decides reportability and closes incidents: the Administrator (NHA) or an
-// Org Admin in tiered communities (incident_close_guard enforces it); anyone who
-// can review in legacy communities.
+// Org Admin (incident_close_guard enforces it).
 function ReportingClock({ incident, canDecide, onChanged }) {
   const [now, setNow] = useState(new Date())
   const [busy, setBusy] = useState(false)
@@ -650,7 +649,7 @@ function IncidentModal({ incident, canEdit, canReview, canClose = true, viewOnly
 
 // ── Main Page ──────────────────────────────────────────────────
 export default function IncidentReports() {
-  const { profile, organization, accessModel, tierFor } = useAuth()
+  const { profile, organization, tierFor } = useAuth()
   const [reports, setReports]     = useState([])
   const [residents, setResidents] = useState([])
   const [loading, setLoading]     = useState(true)
@@ -666,17 +665,12 @@ export default function IncidentReports() {
 
   // ── Progressive access levels ─────────────────────────────
   const role = profile?.role
-  // Tiered communities: department Supervisor+ sees and investigates every incident;
-  // only the Administrator (NHA) or an Org Admin closes one or decides state reporting.
-  const tiered  = accessModel === 'tiered'
+  // Department Supervisor+ sees and investigates every incident; only the
+  // Administrator (NHA) or an Org Admin closes one or decides state reporting.
   const incTier = tierFor('incidents')
-  const canViewAll = tiered
-    ? ['supervisor', 'manager', 'administrator', 'org_admin', 'super_admin'].includes(incTier)
-    : ['supervisor','manager','ceo','org_admin','super_admin'].includes(role)
-  const canEditAny = tiered
-    ? ['supervisor', 'manager', 'administrator', 'org_admin', 'super_admin'].includes(incTier)
-    : ['manager','ceo','org_admin','super_admin'].includes(role)
-  const canClose = !tiered || ['ceo', 'org_admin', 'super_admin'].includes(role)
+  const canViewAll = ['supervisor', 'manager', 'administrator', 'org_admin', 'super_admin'].includes(incTier)
+  const canEditAny = canViewAll
+  const canClose = ['ceo', 'org_admin', 'super_admin'].includes(role)
   const canFile    = !['family','resident'].includes(role)
 
   // Per-report edit logic

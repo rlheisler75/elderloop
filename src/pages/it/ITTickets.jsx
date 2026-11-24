@@ -603,12 +603,12 @@ export default function ITTickets() {
   // everyone else can only submit tickets and see their own (query-scoped below, not just UI-hidden).
   const isITStaff = hasDepartmentAccess('it', 'employee')
   const admin  = isITStaff  // boolean — not a function call
-  // Tiered communities: assets are IT-only and added by the IT Manager; licenses
-  // (with their costs) are the IT Manager's alone
+  // Assets are IT-only and added by the IT Manager; licenses (with their costs) are
+  // the IT Manager's alone
   const tierAccess = useTierAccess('it')
-  const canAddAsset  = tierAccess.tiered ? tierAccess.atLeast('manager') : admin
-  const showAssets   = !tierAccess.tiered || isITStaff
-  const showLicenses = !tierAccess.tiered || tierAccess.atLeast('manager')
+  const canAddAsset  = tierAccess.atLeast('manager')
+  const showAssets   = isITStaff
+  const showLicenses = tierAccess.atLeast('manager')
   const orgId  = organization?.id || profile?.organization_id
   const userId = profile?.id
 

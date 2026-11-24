@@ -34,7 +34,7 @@ export default function SocialServices() {
   // HIPAA view log: each Social Services list a person opens (social_profiles, social_mood, ...)
   usePhiView(`social_${tab}`)
 
-  const canWrite = canEdit('social_services', ['social_services', 'supervisor', 'manager'])
+  const canWrite = canEdit('social_services')
   const isDirector = hasDepartmentAccess('social_services', 'employee') || hasAnyDepartmentLevel('supervisor')
 
   return (

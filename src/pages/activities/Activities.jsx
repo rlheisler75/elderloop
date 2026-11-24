@@ -731,16 +731,13 @@ function UpcomingList({ activities, onEdit, canEdit, canTakeAttendance = canEdit
 
 // ── Main Activities Page ───────────────────────────────────────
 export default function Activities() {
-  const { profile, organization, canEdit, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
-  // Supervisors/managers get edit by default for activities; org admins can
-  // grant/restrict edit access per-user via Admin Panel > Module Access
-  const legacyCanEdit = canEdit('activities', ['supervisor','manager']) || hasDepartmentAccess('activities','employee') || hasAnyDepartmentLevel('supervisor')
-  // Tiered communities: Supervisor+ runs the calendar, Activities staff take
-  // attendance, only the Manager deletes (20260930_access_tiers_remaining_modules.sql)
+  const { profile, organization, hasDepartmentAccess } = useAuth()
+  // Supervisor+ runs the calendar, Activities staff take attendance, only the
+  // Manager deletes (20260930_access_tiers_remaining_modules.sql)
   const tierAccess = useTierAccess('activities')
-  const canEditActivities = tierAccess.tiered ? tierAccess.atLeast('supervisor') : legacyCanEdit
-  const canTakeAttendance = tierAccess.tiered ? tierAccess.member : legacyCanEdit
-  const canDeleteActivities = tierAccess.tiered ? tierAccess.atLeast('manager') : legacyCanEdit
+  const canEditActivities = tierAccess.atLeast('supervisor')
+  const canTakeAttendance = tierAccess.member
+  const canDeleteActivities = tierAccess.atLeast('manager')
   // Participation reports: Activities department (any level) plus the Administrator,
   // Org Admins, and super admins — hasDepartmentAccess passes all three
   const canSeeReports = hasDepartmentAccess('activities', 'employee')

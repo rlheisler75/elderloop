@@ -518,9 +518,7 @@ function SecurityReportModal({ report, roundId, checkpoints, onClose, onSave }) 
   const { profile, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
   const isNew = !report
   const tierAccess = useTierAccess('security')
-  const isSupervisor = tierAccess.tiered
-    ? tierAccess.atLeast('supervisor')
-    : hasDepartmentAccess('security', 'supervisor') || hasAnyDepartmentLevel('manager')
+  const isSupervisor = tierAccess.atLeast('supervisor')
 
   const [form, setForm] = useState({
     report_type:         report?.report_type         || 'general',
@@ -746,12 +744,9 @@ export default function Security() {
   const [showReport, setShowReport]     = useState(false)
   const [editReport, setEditReport]     = useState(null)
 
-  // Checkpoint setup. Legacy: Security Supervisor+ or any org-wide Manager.
-  // Tiered: the Security Manager only (20260930_access_tiers_remaining_modules.sql)
+  // Checkpoint setup: the Security Manager only (20260930_access_tiers_remaining_modules.sql)
   const tierAccess = useTierAccess('security')
-  const isSupervisor = tierAccess.tiered
-    ? tierAccess.atLeast('manager')
-    : hasDepartmentAccess('security', 'supervisor') || hasAnyDepartmentLevel('manager')
+  const isSupervisor = tierAccess.atLeast('manager')
 
   useEffect(() => {
     const handler = (e) => {
@@ -774,7 +769,7 @@ export default function Security() {
         .order('started_at', { ascending: false }).limit(50),
       supabase.from('profiles').select('id,first_name,last_name,role')
         .eq('organization_id', organization.id)
-        .in('role', ['staff','maintenance','supervisor','manager','org_admin','super_admin']),
+        .in('role', ['staff','org_admin','super_admin']),
       supabase.from('security_reports')
         .select('*, filer:profiles!security_reports_filed_by_fkey(first_name,last_name), reviewer:profiles!security_reports_reviewed_by_fkey(first_name,last_name), security_checkpoints(name)')
         .eq('organization_id', organization.id)
@@ -965,7 +960,7 @@ export default function Security() {
         <div>
           {!isSupervisor && (
             <div className="mb-4 px-4 py-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded-xl text-sm text-blue-700 dark:text-blue-400">
-              {tierAccess.tiered ? 'Only the Security Manager can add or edit checkpoints.' : 'Only supervisors and admins can add or edit checkpoints.'}
+              Only the Security Manager can add or edit checkpoints.
             </div>
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

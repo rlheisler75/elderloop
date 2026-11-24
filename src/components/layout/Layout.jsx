@@ -56,7 +56,7 @@ function BellItem({ n, expanded, onOpen }) {
   )
 }
 
-// In tiered communities these modules are readable only by their own department
+// These modules are readable only by their own department
 // (20260930_access_tiers_remaining_modules.sql), so the sidebar hides them from
 // everyone else instead of opening an empty page.
 const DEPARTMENT_ONLY_MODULES = ['security', 'marketing', 'property_management', 'meters']
@@ -124,7 +124,7 @@ const NAV_GROUPS = [
 ]
 
 export default function Layout() {
-  const { profile, organization, orgModules, hasModule, isOrgAdmin, isSuperAdmin, signOut, impersonating, exitImpersonation, departmentRoles, accessModel, tierFor, hasDepartmentAccess, isViewOnly, can } = useAuth()
+  const { profile, organization, orgModules, hasModule, isOrgAdmin, isSuperAdmin, signOut, impersonating, exitImpersonation, departmentRoles, tierFor, hasDepartmentAccess, isViewOnly, can } = useAuth()
   const location = useLocation()
   // Module of the page being shown, for the "View only" bar (Role Template set to View)
   const currentModule = NAV_GROUPS.flatMap(g => g.items)
@@ -205,7 +205,7 @@ export default function Layout() {
   const handleSignOut = async () => { await signOut(); navigate('/login') }
 
   // Maintenance (Work Orders edit) also uses Property for units and walkthroughs (il_maintenance_access())
-  const hiddenByTier = (mod) => accessModel === 'tiered' && DEPARTMENT_ONLY_MODULES.includes(mod)
+  const hiddenByTier = (mod) => DEPARTMENT_ONLY_MODULES.includes(mod)
     && !ABOVE_EMPLOYEE.includes(tierFor(mod)) && !hasDepartmentAccess(MODULE_DEPARTMENTS[mod], 'employee')
     && !(mod === 'property_management' && can('work_orders', 'edit'))
   // Budgets: only people who can see a budget (department Managers of the budget

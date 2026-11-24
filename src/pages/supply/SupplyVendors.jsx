@@ -150,7 +150,7 @@ function VendorModal({ vendor, orgId, canEdit, onClose, onSaved }) {
 
 export default function SupplyVendors() {
   const { organization, canEdit, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
-  const canEditSupply = canEdit('central_supply', ['supervisor','manager']) || hasDepartmentAccess('central_supply','employee') || hasAnyDepartmentLevel('supervisor')
+  const canEditSupply = canEdit('central_supply') || hasDepartmentAccess('central_supply','employee') || hasAnyDepartmentLevel('supervisor')
   const [vendors,  setVendors]  = useState([])
   const [loading,  setLoading]  = useState(true)
   const [search,   setSearch]   = useState('')

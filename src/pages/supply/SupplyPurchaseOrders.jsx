@@ -23,7 +23,7 @@ const TYPE_CFG = {
   non_stock: { label: 'Non-Stock',    color: 'bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-400' },
 }
 
-// Submit a PO. In tiered communities an order over the approval threshold is
+// Submit a PO. An order over the approval threshold is
 // refused by supply_po_guard (hint po_needs_approval) — it goes to the Administrator
 // as 'awaiting_approval' instead. Legacy communities submit straight through.
 async function submitPO(poId) {
@@ -85,7 +85,7 @@ function CreatePOModal({ orgId, profileId, vendors, items, editPO, editLines, on
     setSaving(true); setError('')
 
     // Saved as a draft first so the lines exist before any submit (the approval
-    // threshold check in tiered communities totals the lines).
+    // threshold check totals the lines).
     const poPayload = {
       po_type: poType, status: 'draft',
       vendor_id: vendorId || null,

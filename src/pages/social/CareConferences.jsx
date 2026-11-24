@@ -272,17 +272,22 @@ export default function CareConferences({ canWrite }) {
 
   async function fetchAll() {
     setLoading(true)
-    const [{ data: conf }, { data: res }, { data: st }] = await Promise.all([
+    const [{ data: conf }, { data: res }, { data: ssDept }] = await Promise.all([
       supabase.from('ss_care_conferences')
         .select('*, residents(first_name, last_name, room, care_level, unit), facilitator:facilitated_by(first_name, last_name)')
         .eq('organization_id', organization.id)
         .order('scheduled_date', { ascending: false }),
       supabase.from('residents').select('id, first_name, last_name, room, care_level, unit')
         .eq('organization_id', organization.id).eq('is_active', true).order('last_name'),
-      supabase.from('profiles').select('id, first_name, last_name')
-        .eq('organization_id', organization.id).eq('is_active', true)
-        .in('role', ['social_services','supervisor','manager','org_admin','ceo']).order('last_name')
+      supabase.from('staff_department_roles').select('profile_id')
+        .eq('organization_id', organization.id).eq('department', 'social_services'),
     ])
+    // Facilitators: the Social Services department, plus Org Admins and the Administrator
+    const ssIds = [...new Set((ssDept || []).map(r => r.profile_id))]
+    const { data: st } = await supabase.from('profiles').select('id, first_name, last_name')
+      .eq('organization_id', organization.id).eq('is_active', true)
+      .or(ssIds.length ? `role.in.(org_admin,ceo),id.in.(${ssIds.join(',')})` : 'role.in.(org_admin,ceo)')
+      .order('last_name')
     setConferences(conf || [])
     setResidents(res || [])
     setStaff(st || [])

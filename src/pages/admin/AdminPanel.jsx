@@ -10,10 +10,8 @@ import {
   Save, Globe, Phone, MapPin, User, List, Plug, FileText, Layers, Truck
 } from 'lucide-react'
 import AdminLists from './AdminLists'
-import UserPermissions from './UserPermissions'
 import JobRoles from './JobRoles'
 import UserAccessPanel from './UserAccessPanel'
-import RoleTemplates, { TEMPLATE_ROLES } from './RoleTemplates'
 import SupplyVendors from '../supply/SupplyVendors'
 import BillingTab from './BillingTab'
 import AiSettingsTab from './AiSettingsTab'
@@ -26,30 +24,27 @@ import { planAllowsModule, PHI_MODULES } from '../../lib/planModules'
 import { ALL_STATES } from '../../lib/complianceStates'
 import { DepartmentLevelEditor, getOrgDepartments } from '../staff/StaffManagement'
 
-// Department + level (Housekeeping Supervisor, etc.) is assigned separately below —
-// see DepartmentLevelEditor. Account Type here is just the special tier.
+// Account type is only the kind of login. A staff member's job is their department &
+// level (DepartmentLevelEditor); what they can do is their Job Roles (UserAccessPanel).
+// The old per-job account types (Nursing, Manager, ...) were retired 2026-11-23.
 const ALL_ROLES = [
   { key: 'ceo',         label: 'Administrator', desc: 'Executive Director — Administrator Dashboard + full access to this community' },
   { key: 'org_admin',   label: 'Org Admin',   desc: 'Full access to organization' },
-  { key: 'staff',       label: 'Staff',       desc: 'General staff — department/level and module access assigned separately' },
+  { key: 'staff',       label: 'Staff',       desc: 'Everyone else on staff: their department & level and Job Roles decide what they can do' },
   { key: 'resident',    label: 'Resident',    desc: 'Resident portal access' },
   { key: 'family',      label: 'Family',      desc: 'Family portal access' },
 ]
 
-// Every role that isn't one of these is a staff role (staff, supervisor, manager,
-// nursing, maintenance, …): the Staff tile covers them all, and the Role Template
-// picker chooses which one (role_module_visibility is keyed on it).
-const NON_STAFF_ROLES = ['ceo', 'org_admin', 'resident', 'family']
-const isStaffRole = (role) => !NON_STAFF_ROLES.includes(role)
+const isStaffRole = (role) => role === 'staff'
 
 function AccountTypePicker({ role, onChange, cols = 3 }) {
   return (
     <div className={`grid gap-2 ${cols === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
       {ALL_ROLES.map(r => {
-        const on = r.key === 'staff' ? isStaffRole(role) : role === r.key
+        const on = role === r.key
         return (
           <button key={r.key} type="button"
-            onClick={() => onChange(r.key === 'staff' ? (isStaffRole(role) ? role : 'staff') : r.key)}
+            onClick={() => onChange(r.key)}
             className={`text-left px-3 py-2 rounded-lg border text-xs transition-all ${on ? 'bg-brand-600 text-white border-brand-600' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-brand-300'}`}>
             <div className="font-semibold">{r.label}</div>
             <div className={`text-xs mt-0.5 ${on ? 'text-brand-100' : 'text-slate-400'}`}>{r.desc}</div>
@@ -60,22 +55,13 @@ function AccountTypePicker({ role, onChange, cols = 3 }) {
   )
 }
 
-// Staff accounts: which Role Template applies, plus department & level
-// (Employee / Supervisor / Manager), which drives access in tiered communities
-function StaffAccessFields({ role, onRoleChange, assignments, onAssignmentsChange, departments }) {
-  const known = TEMPLATE_ROLES.some(r => r.key === role)
+// Staff accounts: their department(s) & level (Employee / Supervisor / Manager). Each
+// assignment gives the matching Department Job Role automatically.
+function StaffAccessFields({ assignments, onAssignmentsChange, departments }) {
   return (
-    <div className="space-y-3">
-      <div>
-        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Account role</label>
-        <select value={role} onChange={e => onRoleChange(e.target.value)}
-          className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-          {!known && <option value={role}>{role}</option>}
-          {TEMPLATE_ROLES.map(r => <option key={r.key} value={r.key}>{r.label}</option>)}
-        </select>
-        <p className="text-xs text-slate-400 mt-1">Older accounts carry a role name (Nursing, Manager, ...) that gives a matching carried-over Job Role. What someone can do comes from their Job Roles: department & level below give the Department role (Employee, Supervisor, Manager), and you can add more under Job Roles.</p>
-      </div>
+    <div className="space-y-2">
       <DepartmentLevelEditor assignments={assignments} onChange={onAssignmentsChange} departments={departments} />
+      <p className="text-xs text-slate-400">Each department & level gives the matching Job Role (for example Dietary Manager). Add other Job Roles below if they need more.</p>
     </div>
   )
 }
@@ -181,7 +167,7 @@ function CreateUserModal({ orgId, orgName, departments, onClose, onSave }) {
           </div>
 
           {isStaffRole(form.role) && (
-            <StaffAccessFields role={form.role} onRoleChange={v => set('role', v)}
+            <StaffAccessFields
               assignments={deptAssignments} onAssignmentsChange={setDeptAssignments} departments={departments} />
           )}
 
@@ -394,13 +380,13 @@ function EditUserModal({ user, orgId, departments, orgModules, onClose, onSave }
                 className="w-4 h-4 mt-0.5 rounded text-brand-600" />
               <div>
                 <div className="text-sm font-medium text-slate-700 dark:text-slate-300">Also a Platform Admin</div>
-                <div className="text-xs text-slate-400">Lets this Administrator manage settings, users, and modules too — for communities where the NHA also runs ElderLoop. Takes effect when your community moves to tiered access.</div>
+                <div className="text-xs text-slate-400">Lets this Administrator manage settings, users, and modules too — for communities where the NHA also runs ElderLoop.</div>
               </div>
             </label>
           )}
 
           {isStaffRole(form.role) && (
-            <StaffAccessFields role={form.role} onRoleChange={v => set('role', v)}
+            <StaffAccessFields
               assignments={deptAssignments} onAssignmentsChange={setDeptAssignments} departments={departments} />
           )}
 
@@ -835,7 +821,7 @@ export default function AdminPanel() {
   const orgParam = searchParams.get('org')
   // ?tab= deep links (limit-hit prompts, onboarding, Stripe return URLs)
   const tabParam = searchParams.get('tab')
-  // An Administrator (NHA) in a tiered community without the Platform Admin switch
+  // An Administrator (NHA) without the Platform Admin switch
   // only handles billing here (plan upgrades, AI Add-on); configuration is the Org Admin's.
   const [tab, setTab]             = useState(canManagePlatform ? (tabParam || 'users') : 'billing')
   useEffect(() => {
@@ -1154,21 +1140,9 @@ export default function AdminPanel() {
         </div>
       )}
 
-      {/* ── PERMISSIONS TAB ── */}
-      {tab === 'permissions' && (
-        <UserPermissions
-          orgId={currentOrgId}
-          orgModules={orgModules.map(m => m.module_key || m).filter(Boolean)} />
-      )}
       {/* ── JOB ROLES TAB ── */}
       {tab === 'job_roles' && (
         <JobRoles
-          orgId={currentOrgId}
-          orgModules={orgModules.map(m => m.module_key || m).filter(Boolean)} />
-      )}
-      {/* ── ROLE TEMPLATES TAB ── */}
-      {tab === 'role_templates' && (
-        <RoleTemplates
           orgId={currentOrgId}
           orgModules={orgModules.map(m => m.module_key || m).filter(Boolean)} />
       )}

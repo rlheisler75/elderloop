@@ -10,26 +10,11 @@ import { resolveAccent, DEFAULT_CELEBRATIONS } from '../lib/appreciationWeeks'
 
 const AuthContext = createContext({})
 
-// Modules that are automatically visible to certain roles
-// without needing a user_module_permissions row.
-// Format: module_key -> minimum roles that get it by default
-// (also read by Admin Panel → Module Access by User to show the role default)
-export const ROLE_MODULE_DEFAULTS = {
-  // Surveys: supervisor+ see the module; staff take via public link only
-  surveys:    ['supervisor', 'manager', 'ceo', 'org_admin', 'super_admin'],
-  // Incidents: all filing-eligible roles see their own reports
-  incidents:  ['staff', 'dietary', 'housekeeping', 'maintenance', 'nursing',
-               'supervisor', 'manager', 'ceo', 'org_admin', 'super_admin'],
-}
-
 export function AuthProvider({ children }) {
   const [user, setUser]               = useState(null)
   const [profile, setProfile]         = useState(null)
   const [organization, setOrg]        = useState(null)
   const [orgModules, setOrgModules]   = useState([])
-  const [userPerms, setUserPerms]     = useState([])
-  const [roleVisibility, setRoleVisibility] = useState([])
-  const [roleViewOnly, setRoleViewOnly]     = useState([]) // Role Template modules set to View
   const [departmentRoles, setDepartmentRoles] = useState([]) // [{ department, level }] for the current user
   const [permissions, setPermissions] = useState(new Set())  // Job Roles: 'module|action' (my_permissions())
   const [thresholds, setThresholds]   = useState({})         // module_access_thresholds by module
@@ -86,7 +71,7 @@ export function AuthProvider({ children }) {
       else {
         loadedUserRef.current = null
         setProfile(null); setOrg(null); setOrgModules([]); setMfaStep(null); setMfaStatus(null)
-        setUserPerms([]); setRoleVisibility([]); setRoleViewOnly([]); setSuperAdmin(false); setLoading(false)
+        setSuperAdmin(false); setLoading(false)
       }
     })
     return () => subscription.unsubscribe()
@@ -171,14 +156,10 @@ export function AuthProvider({ children }) {
       const orgIdToLoad = storedOrgId || prof?.organization_id
 
       if (orgIdToLoad) {
-        const [orgRes, modsRes, permsRes, roleVisRes, deptRolesRes, jobPermsRes, thresholdsRes] = await Promise.all([
+        const [orgRes, modsRes, deptRolesRes, jobPermsRes, thresholdsRes] = await Promise.all([
           supabase.from('organizations').select('*').eq('id', orgIdToLoad).single(),
           supabase.from('organization_modules').select('module_key, is_enabled')
             .eq('organization_id', orgIdToLoad),
-          supabase.from('user_module_permissions').select('module_key, access_level')
-            .eq('user_id', userId),
-          supabase.from('role_module_visibility').select('module_key, access_level')
-            .eq('organization_id', orgIdToLoad).eq('role', prof?.role),
           supabase.from('staff_department_roles').select('department, level')
             .eq('profile_id', userId),
           // Job Roles: the caller's effective permissions, and which action makes
@@ -198,9 +179,6 @@ export function AuthProvider({ children }) {
 
         setOrg(org)
         setOrgModules(modsRes.data?.filter(m => m.is_enabled !== false).map(m => m.module_key) || [])
-        setUserPerms(permsRes.data || [])
-        setRoleVisibility(roleVisRes.data?.map(r => r.module_key) || [])
-        setRoleViewOnly(roleVisRes.data?.filter(r => r.access_level === 'view').map(r => r.module_key) || [])
         setDepartmentRoles(deptRolesRes.data || [])
         setPermissions(new Set((jobPermsRes.data || []).map(p => `${p.module_key}|${p.action}`)))
         setThresholds(Object.fromEntries((thresholdsRes.data || []).map(t => [t.module_key, t])))
@@ -219,26 +197,14 @@ export function AuthProvider({ children }) {
     onTimeout: () => navigate('/login?reason=timeout'),
   })
 
-  // Same defaults as ROLE_MODULE_DEFAULTS, but expressed as a minimum
-  // department+level rank instead of a literal legacy role string — so
-  // someone reassigned off the flat role (role='staff' + a department/level
-  // row) doesn't silently lose a module's sidebar visibility. Purely additive
-  // alongside ROLE_MODULE_DEFAULTS; org-wide (any department) by design,
-  // matching the "any department's supervisor+" access this module already grants.
-  const LEVEL_MODULE_DEFAULTS = {
-    surveys: 'supervisor',
-  }
-
   // ── Access tiers (see src/lib/accessTiers.js) ─────────────────────────────
-  // In a 'tiered' community the Administrator (NHA, role ceo) is view + approve
-  // outside their own modules, unless Emergency Edit (24h, reason required) is on.
-  const accessModel       = organization?.access_model || 'legacy'
+  // The Administrator (NHA, role ceo) is view + approve outside their own modules,
+  // unless Emergency Edit (24h, reason required) is on.
   const emergencyEditOn   = !!emergencyUntil && new Date(emergencyUntil) > new Date()
-  const nhaViewOnly       = accessModel === 'tiered' && profile?.role === 'ceo' && !emergencyEditOn
-  // Settings / users / modules: Org Admin always; in tiered communities an NHA
-  // only with the Platform Admin switch; in legacy ones the NHA as before.
+  const nhaViewOnly       = profile?.role === 'ceo' && !emergencyEditOn
+  // Settings / users / modules: Org Admin always; the NHA only with the Platform Admin switch.
   const canManagePlatform = ['org_admin', 'super_admin'].includes(profile?.role) || superAdmin
-    || (profile?.role === 'ceo' && (accessModel === 'legacy' || !!profile?.is_platform_admin))
+    || (profile?.role === 'ceo' && !!profile?.is_platform_admin)
 
   // ── Job Roles (20261023_job_roles_*.sql) ──────────────────────────────────
   // can(module, action) mirrors can() in the database: Org Admins and super admins
@@ -424,12 +390,12 @@ export function AuthProvider({ children }) {
 
   return (
       <AuthContext.Provider value={{
-      user, profile, organization, orgModules, userPerms,
+      user, profile, organization, orgModules,
       loading, suspended, hasModule, canEdit, isViewOnly, accessibleModules,
       isOrgAdmin, isSuperAdmin, isCEO, signOut, refreshModules, refreshProfile, refreshOrganization,
       impersonating, impersonateOrg, exitImpersonation,
       departmentRoles, hasDepartmentAccess, hasAnyDepartmentLevel, refreshDepartmentRoles,
-      accessModel, isPlatformAdmin, tierFor, can, permissions,
+      isPlatformAdmin, tierFor, can, permissions,
       nhaViewOnly, canManagePlatform, emergencyEditOn, emergencyUntil, startEmergencyEdit, endEmergencyEdit,
       mfaStep, mfaStatus, recheckMfa, celebrations, refreshCelebrations,
     }}>

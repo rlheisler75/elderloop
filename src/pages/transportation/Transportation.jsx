@@ -783,7 +783,7 @@ export default function Transportation() {
   // Trip requests: Nursing staff ask for a ride, Transportation schedules it
   // (trip_can_request() / trip_can_schedule() in 20261022_trip_requests.sql)
   const nursingAccess = useTierAccess('nursing')
-  const canRequest = !canWrite && nursingAccess.tiered && nursingAccess.member
+  const canRequest = !canWrite && nursingAccess.member
   const [requests, setRequests]   = useState([])
   const [showRequest, setShowRequest] = useState(false)
   const [fromRequest, setFromRequest] = useState(null)

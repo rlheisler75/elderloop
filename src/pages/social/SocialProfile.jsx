@@ -50,7 +50,7 @@ function FieldGroup({ title, icon: Icon, children }) {
 
 function ProfileEditor({ resident, orgId, profile: existingProfile, staff, canWrite, onSaved, onCancel }) {
   const { profile: authProfile } = useAuth()
-  // Caseload assignment is a Supervisor+ decision in tiered communities
+  // Caseload assignment is a Supervisor+ decision
   const { isSupervisor } = useSocialServicesAccess()
   const [form, setForm] = useState({
     cognitive_level:             existingProfile?.cognitive_level || '',
@@ -321,15 +321,14 @@ export default function SocialProfile({ canWrite }) {
       supabase.from('ss_social_profiles').select('resident_id, review_due_date, assigned_to')
         .eq('organization_id', organization.id),
     ])
-    // Social workers only: anyone in the Social Services department (any level) or with
-    // the Social Services account type. Not managers, supervisors, Org Admins or the
-    // Administrator of other departments.
+    // Social workers only: anyone in the Social Services department (any level). Not
+    // managers, supervisors, Org Admins or the Administrator of other departments.
     const deptIds = [...new Set((ssDept || []).map(r => r.profile_id))]
-    const { data: workers } = await supabase.from('profiles').select('id, first_name, last_name')
-      .eq('organization_id', organization.id)
-      .eq('is_active', true)
-      .or(deptIds.length ? `role.eq.social_services,id.in.(${deptIds.join(',')})` : 'role.eq.social_services')
-      .order('last_name')
+    const { data: workers } = deptIds.length
+      ? await supabase.from('profiles').select('id, first_name, last_name')
+          .eq('organization_id', organization.id).eq('is_active', true)
+          .in('id', deptIds).order('last_name')
+      : { data: [] }
     // Someone already assigned who isn't a social worker stays visible (marked) until reassigned.
     const workerIds = new Set((workers || []).map(w => w.id))
     const outsideIds = [...new Set((profilesData || []).map(p => p.assigned_to).filter(id => id && !workerIds.has(id)))]

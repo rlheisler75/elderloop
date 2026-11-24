@@ -973,7 +973,7 @@ export default function ResidentDirectory() {
   const { organization, profile, canEdit, isOrgAdmin, hasAnyDepartmentLevel, hasDepartmentAccess } = useAuth()
   // Staff-level employees view only. Adding or changing residents takes Supervisor+
   // (role or any department level), the same rule as org_admins_manage_residents.
-  const supervisorUp = ['supervisor', 'manager'].includes(profile?.role) || hasAnyDepartmentLevel('supervisor')
+  const supervisorUp = hasAnyDepartmentLevel('supervisor')
   const canEditDirectory = isOrgAdmin || (canEdit('directory') && supervisorUp)
   // Emergency and medical contacts (and birth date, family): Nursing Supervisor+, all of
   // Social Services, Administration, the Administrator and Org Admins. Same rule as

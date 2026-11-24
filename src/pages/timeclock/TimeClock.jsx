@@ -544,7 +544,7 @@ export default function TimeClock() {
   // Team tab, Payroll Export, and Settings are for HR/Payroll supervisors+ (or org admins, always) —
   // everyone else only ever sees their own clock (My Clock / My History).
   const admin = hasDepartmentAccess('hr', 'supervisor') || hasDepartmentAccess('payroll', 'supervisor')
-  // Geofence settings are platform settings: in a tiered community the NHA needs the
+  // Geofence settings are platform settings: the NHA needs the
   // Platform Admin switch (nha_write_guard('platform') on geofence_settings)
   const canEditSettings = admin && (profile?.role !== 'ceo' || canManagePlatform)
   const orgId = organization?.id

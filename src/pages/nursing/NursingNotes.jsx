@@ -107,7 +107,7 @@ async function markEnteredInError(table, id, profile) {
   return true
 }
 
-function VitalsModal({ vital, resident, orgId, profile, tiered = false, onClose, onSaved }) {
+function VitalsModal({ vital, resident, orgId, profile, onClose, onSaved }) {
   const isEdit = !!vital
   const [form, setForm] = useState({
     shift:        vital?.shift         || 'day',
@@ -153,17 +153,11 @@ function VitalsModal({ vital, resident, orgId, profile, tiered = false, onClose,
     onSaved()
   }
 
+  // Never deleted: marked entered in error (20260930_access_tiers_nursing_incidents.sql)
   const handleDelete = async () => {
-    if (tiered) {
-      setDeleting(true)
-      if (await markEnteredInError('resident_vitals', vital.id, profile)) onSaved()
-      setDeleting(false)
-      return
-    }
-    if (!confirm('Delete this vitals record? This cannot be undone.')) return
     setDeleting(true)
-    await supabase.from('resident_vitals').delete().eq('id', vital.id)
-    onSaved()
+    if (await markEnteredInError('resident_vitals', vital.id, profile)) onSaved()
+    setDeleting(false)
   }
 
   const bp = bpClass(parseInt(form.bp_systolic), parseInt(form.bp_diastolic))
@@ -270,7 +264,7 @@ function VitalsModal({ vital, resident, orgId, profile, tiered = false, onClose,
             {isEdit && (
               <button onClick={handleDelete} disabled={deleting}
                 className="px-4 py-2 text-sm text-red-500 hover:text-red-700 font-medium disabled:opacity-50">
-                {deleting ? 'Saving...' : tiered ? 'Mark entered in error' : 'Delete'}
+                {deleting ? 'Saving...' : 'Mark entered in error'}
               </button>
             )}
           </div>
@@ -456,7 +450,7 @@ function MedModal({ med, resident, orgId, profile, onClose, onSaved }) {
 }
 
 // ── Care Note Modal ────────────────────────────────────────────
-function NoteModal({ note, resident, orgId, profile, tiered = false, onClose, onSaved }) {
+function NoteModal({ note, resident, orgId, profile, onClose, onSaved }) {
   const isNew = !note
   const [form, setForm] = useState({
     shift:      note?.shift    || 'day',
@@ -493,17 +487,11 @@ function NoteModal({ note, resident, orgId, profile, tiered = false, onClose, on
     onSaved()
   }
 
+  // Never deleted: marked entered in error
   const handleDelete = async () => {
-    if (tiered) {
-      setDeleting(true)
-      if (await markEnteredInError('care_notes', note.id, profile)) onSaved()
-      setDeleting(false)
-      return
-    }
-    if (!confirm('Delete this care note? This cannot be undone.')) return
     setDeleting(true)
-    await supabase.from('care_notes').update({ is_active: false }).eq('id', note.id)
-    onSaved()
+    if (await markEnteredInError('care_notes', note.id, profile)) onSaved()
+    setDeleting(false)
   }
 
   return (
@@ -580,7 +568,7 @@ function NoteModal({ note, resident, orgId, profile, tiered = false, onClose, on
             {!isNew && (
               <button onClick={handleDelete} disabled={deleting}
                 className="px-4 py-2 text-sm text-red-500 hover:text-red-700 font-medium disabled:opacity-50">
-                {deleting ? 'Saving...' : tiered ? 'Mark entered in error' : 'Delete'}
+                {deleting ? 'Saving...' : 'Mark entered in error'}
               </button>
             )}
           </div>
@@ -598,7 +586,7 @@ function NoteModal({ note, resident, orgId, profile, tiered = false, onClose, on
 }
 
 // ── Resident Detail Panel ──────────────────────────────────────
-function ResidentPanel({ resident, orgId, profile, canEdit, canEditAll = true, canManageMeds = canEdit, tiered = false, onSaved }) {
+function ResidentPanel({ resident, orgId, profile, canEdit, canEditAll = true, canManageMeds = canEdit, onSaved }) {
   // Tiered: nurses edit their own entries; Nursing Supervisor+ edits anyone's
   const canEditEntry = (authorId) => canEdit && (canEditAll || authorId === profile?.id)
   const [tab, setTab]       = useState('vitals')
@@ -757,14 +745,8 @@ function ResidentPanel({ resident, orgId, profile, canEdit, canEditAll = true, c
                                 <div className="flex gap-1">
                                   <button onClick={() => { setEditVital(v); setShowVitals(true) }}
                                     className="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg transition-colors"><Edit2 size={13} /></button>
-                                  <button title={tiered ? 'Mark entered in error' : 'Delete'} onClick={async () => {
-                                    if (tiered) {
-                                      if (await markEnteredInError('resident_vitals', v.id, profile)) { fetchAll(); onSaved?.() }
-                                      return
-                                    }
-                                    if (!confirm('Delete this vitals record?')) return
-                                    await supabase.from('resident_vitals').delete().eq('id', v.id)
-                                    fetchAll(); onSaved?.()
+                                  <button title="Mark entered in error" onClick={async () => {
+                                    if (await markEnteredInError('resident_vitals', v.id, profile)) { fetchAll(); onSaved?.() }
                                   }} className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg transition-colors"><X size={13} /></button>
                                 </div>
                               )}
@@ -920,14 +902,8 @@ function ResidentPanel({ resident, orgId, profile, canEdit, canEditAll = true, c
                               <div className="flex gap-1 flex-shrink-0">
                                 <button onClick={() => { setEditNote(n); setShowNote(true) }}
                                   className="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg transition-colors"><Edit2 size={13} /></button>
-                                <button title={tiered ? 'Mark entered in error' : 'Delete'} onClick={async () => {
-                                  if (tiered) {
-                                    if (await markEnteredInError('care_notes', n.id, profile)) fetchAll()
-                                    return
-                                  }
-                                  if (!confirm('Delete this note?')) return
-                                  await supabase.from('care_notes').update({ is_active: false }).eq('id', n.id)
-                                  fetchAll()
+                                <button title="Mark entered in error" onClick={async () => {
+                                  if (await markEnteredInError('care_notes', n.id, profile)) fetchAll()
                                 }} className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg transition-colors"><X size={13} /></button>
                               </div>
                             )}
@@ -950,16 +926,16 @@ function ResidentPanel({ resident, orgId, profile, canEdit, canEditAll = true, c
       </div>
 
       {/* Modals */}
-      {showVitals && <VitalsModal vital={editVital} resident={resident} orgId={orgId} profile={profile} tiered={tiered} onClose={() => { setShowVitals(false); setEditVital(null) }} onSaved={() => { setShowVitals(false); setEditVital(null); fetchAll(); onSaved?.() }} />}
+      {showVitals && <VitalsModal vital={editVital} resident={resident} orgId={orgId} profile={profile} onClose={() => { setShowVitals(false); setEditVital(null) }} onSaved={() => { setShowVitals(false); setEditVital(null); fetchAll(); onSaved?.() }} />}
       {showMed    && <MedModal    med={editMed}   resident={resident} orgId={orgId} profile={profile} onClose={() => { setShowMed(false); setEditMed(null) }} onSaved={() => { setShowMed(false); setEditMed(null); fetchAll(); onSaved?.() }} />}
-      {showNote   && <NoteModal   note={editNote} resident={resident} orgId={orgId} profile={profile} tiered={tiered} onClose={() => { setShowNote(false); setEditNote(null) }} onSaved={() => { setShowNote(false); setEditNote(null); fetchAll(); onSaved?.() }} />}
+      {showNote   && <NoteModal   note={editNote} resident={resident} orgId={orgId} profile={profile} onClose={() => { setShowNote(false); setEditNote(null) }} onSaved={() => { setShowNote(false); setEditNote(null); fetchAll(); onSaved?.() }} />}
     </div>
   )
 }
 
 // ── Main Nursing Notes Page ────────────────────────────────────
 export default function NursingNotes() {
-  const { profile, organization, canEdit, hasDepartmentAccess, hasAnyDepartmentLevel, accessModel, tierFor } = useAuth()
+  const { profile, organization, hasDepartmentAccess, tierFor } = useAuth()
   const [residents, setResidents]     = useState([])
   const [selected, setSelected]       = useState(null)
   const [search, setSearch]           = useState('')
@@ -982,19 +958,13 @@ export default function NursingNotes() {
     }
   }
 
-  // Nursing/supervisor/manager get edit by default; org admins can override
-  // per-user via Admin Panel > Module Access (grant edit to other roles, or
-  // downgrade a nursing-role user to view-only)
-  const legacyCanEdit = canEdit('nursing', ['nursing','supervisor','manager']) || hasDepartmentAccess('nursing','employee') || hasAnyDepartmentLevel('supervisor')
-  // Tiered communities (20260930_access_tiers_nursing_incidents.sql): Nursing staff
-  // write their own notes/vitals, Nursing Supervisor+ edits anyone's, the DON (Nursing
-  // Manager) keeps the medication list; the NHA views. Supervisors of other departments
-  // no longer get Nursing edit rights.
-  const tiered        = accessModel === 'tiered'
+  // 20260930_access_tiers_nursing_incidents.sql: Nursing staff write their own notes/
+  // vitals, Nursing Supervisor+ edits anyone's, the DON (Nursing Manager) keeps the
+  // medication list; the NHA views. Supervisors of other departments get no Nursing edit.
   const nTier         = tierFor('nursing')
   const nursingSup    = ['supervisor', 'manager', 'org_admin', 'super_admin'].includes(nTier)
-  const canEditNursing = tiered ? (nursingSup || (nTier !== 'administrator' && hasDepartmentAccess('nursing', 'employee'))) : legacyCanEdit
-  const canManageMeds  = tiered ? ['manager', 'org_admin', 'super_admin'].includes(nTier) : legacyCanEdit
+  const canEditNursing = nursingSup || (nTier !== 'administrator' && hasDepartmentAccess('nursing', 'employee'))
+  const canManageMeds  = ['manager', 'org_admin', 'super_admin'].includes(nTier)
 
   useEffect(() => { if (organization) fetchAll() }, [organization])
 
@@ -1106,9 +1076,8 @@ export default function NursingNotes() {
             orgId={organization.id}
             profile={profile}
             canEdit={canEditNursing}
-            canEditAll={!tiered || nursingSup}
+            canEditAll={nursingSup}
             canManageMeds={canManageMeds}
-            tiered={tiered}
             onSaved={fetchAll} />
         )}
       </div>

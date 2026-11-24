@@ -308,7 +308,7 @@ function WipeModal({ org, onClose, onDone }) {
     'trips','meter_readings','meters',
     'security_rounds','security_checkpoints','incident_reports',
     'resident_dietary_profiles','residents',
-    'user_module_permissions','organization_modules',
+    'organization_modules',
   ]
 
   const handleWipe = async () => {
@@ -487,12 +487,6 @@ export default function SuperAdminDashboard() {
     const statuses = ['pilot','trial','active','past_due','cancelled']
     const next = statuses[(statuses.indexOf(org.billing_status || 'pilot') + 1) % statuses.length]
     await supabase.from('organizations').update({ billing_status: next }).eq('id', org.id)
-    fetchAll()
-  }
-  const toggleAccess = async (org) => {
-    const next = (org.access_model || 'legacy') === 'legacy' ? 'tiered' : 'legacy'
-    const { error } = await supabase.from('organizations').update({ access_model: next }).eq('id', org.id)
-    if (error) alert(error.message)
     fetchAll()
   }
   const toggleMfa = async (org) => {
@@ -747,10 +741,6 @@ export default function SuperAdminDashboard() {
                             <div className="text-slate-500 mb-1">Billing</div>
                             <span className={`px-2 py-0.5 rounded-full border font-medium ${billing?.color || pillOff}`}>{billing?.label || org.billing_status || 'pilot'}</span>
                           </button>
-                          <button onClick={() => toggleAccess(org)} className="text-left px-3 py-2 bg-slate-800/60 rounded-lg">
-                            <div className="text-slate-500 mb-1">Access</div>
-                            <span className={`px-2 py-0.5 rounded-full border font-medium ${org.access_model === 'tiered' ? pillOn : pillOff}`}>{org.access_model === 'tiered' ? 'Tiered' : 'Legacy'}</span>
-                          </button>
                           <div className="px-3 py-2 bg-slate-800/60 rounded-lg">
                             <div className="text-slate-500">Modules · Rep</div>
                             <div className="text-slate-200 font-medium">{org.enabled_modules}/21{org.rep_code ? ` · ${org.rep_code}` : ''}</div>
@@ -795,7 +785,7 @@ export default function SuperAdminDashboard() {
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-slate-800">
-                        {['Organization','Location','Plan','Billing','Access','2FA','Health data','Users','Rep','Modules','Contact','Actions'].map(h => (
+                        {['Organization','Location','Plan','Billing','2FA','Health data','Users','Rep','Modules','Contact','Actions'].map(h => (
                           <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
                         ))}
                       </tr>
@@ -841,18 +831,6 @@ export default function SuperAdminDashboard() {
                                 className="hover:opacity-70 transition-opacity">
                                 <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${billing?.color || 'text-slate-500 bg-slate-800 border-slate-700'}`}>
                                   {billing?.label || org.billing_status || 'pilot'}
-                                </span>
-                              </button>
-                            </td>
-
-                            {/* Access model — rollout switch for the 5-tier access rules (src/lib/accessTiers.js) */}
-                            <td className="px-5 py-4">
-                              <button
-                                onClick={() => toggleAccess(org)}
-                                title="Click to switch between legacy and tiered access"
-                                className="hover:opacity-70 transition-opacity">
-                                <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${org.access_model === 'tiered' ? pillOn : pillOff}`}>
-                                  {org.access_model === 'tiered' ? 'Tiered' : 'Legacy'}
                                 </span>
                               </button>
                             </td>

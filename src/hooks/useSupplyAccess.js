@@ -1,9 +1,7 @@
 import { useAuth } from '../context/AuthContext'
 
 // Central Supply permissions, shared by every supply screen. Mirrors
-// supabase/migrations/20260930_access_tiers_central_supply.sql for communities on
-// tiered access; legacy communities keep the original rule (any supply staff,
-// any org-wide supervisor, or an explicit module grant can work the module).
+// supabase/migrations/20260930_access_tiers_central_supply.sql.
 //
 //   canWork   — receive, issue, cash sales, record counts
 //   canManage — items, prices, par levels, vendors, purchase orders
@@ -11,18 +9,18 @@ import { useAuth } from '../context/AuthContext'
 //               database column masking comes with the budget layer.
 //   canBill   — mark resident charges billed. Mirrors supply_can_bill()
 //               (20261003_budget_dietary_supply.sql): Central Supply Manager or
-//               Org Admin, plus the Administrator in legacy communities.
+//               Org Admin.
 //   canSeeCharges — the Resident Charges tab: anyone who can bill, plus the
-//               Administrator (view only in tiered communities).
+//               Administrator (view only).
 //   checkoutOnly — no Central Supply permission at all (staff of other departments):
 //               only Issue / Checkout, to their own departments or a resident, through
 //               supply_issue() (20261111_supply_checkout_everyone.sql). Central Supply
 //               Employees and Supervisors have the Manager's permissions since then.
 //   canOrder  — send submitted orders to vendors (download / print / email). Mirrors
 //               supply_can_order() (20261004_vendor_ordering.sql): whoever manages
-//               purchase orders, Org Admins, and the Administrator only in legacy communities.
+//               purchase orders, and Org Admins.
 export function useSupplyAccess() {
-  const { accessModel, tierFor, canEdit, isViewOnly, hasDepartmentAccess, hasAnyDepartmentLevel, profile, isSuperAdmin, can, hasModule, orgModules } = useAuth()
+  const { tierFor, isViewOnly, hasDepartmentAccess, profile, isSuperAdmin, can, hasModule, orgModules } = useAuth()
 
   if (orgModules.includes('central_supply') && !hasModule('central_supply')) {
     return { canWork: false, canManage: false, showCosts: false, canBill: false, canSeeCharges: false, canOrder: false, checkoutOnly: true }
@@ -31,20 +29,14 @@ export function useSupplyAccess() {
   const role = isSuperAdmin ? 'super_admin' : profile?.role
   // Billing resident charges = Central Supply Costs (supply_can_bill())
   const csManager = role !== 'ceo' && can('central_supply', 'costs')
-  const canBill = ['org_admin', 'super_admin'].includes(role) || (role === 'ceo' && accessModel !== 'tiered') || csManager
+  const canBill = ['org_admin', 'super_admin'].includes(role) || csManager
   const canSeeCharges = canBill || role === 'ceo'
 
-  // Role Template set to View (outside Central Supply): read only, costs still shown
-  // to whoever would normally see them. role_view_only_guard enforces it.
+  // View-only in Central Supply: read only, costs still shown to whoever would
+  // normally see them. role_view_only_guard enforces it.
   if (isViewOnly('central_supply')) {
-    const showCosts = accessModel !== 'tiered' || ['manager', 'administrator', 'org_admin', 'super_admin'].includes(tierFor('central_supply'))
+    const showCosts = ['manager', 'administrator', 'org_admin', 'super_admin'].includes(tierFor('central_supply'))
     return { canWork: false, canManage: false, showCosts, canBill: false, canSeeCharges, canOrder: false }
-  }
-
-  if (accessModel !== 'tiered') {
-    const canWork = canEdit('central_supply', ['supervisor', 'manager'])
-      || hasDepartmentAccess('central_supply', 'employee') || hasAnyDepartmentLevel('supervisor')
-    return { canWork, canManage: canWork, showCosts: true, canBill, canSeeCharges, canOrder: canWork || ['org_admin', 'super_admin', 'ceo'].includes(role) }
   }
 
   const csTier = tierFor('central_supply')

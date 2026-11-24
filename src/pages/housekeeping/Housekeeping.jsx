@@ -459,26 +459,20 @@ function InspectionDetailModal({ inspection, checklistItems, onClose }) {
 
 // ── Main Housekeeping Page ─────────────────────────────────────
 export default function Housekeeping() {
-  const { profile, organization, hasDepartmentAccess, hasAnyDepartmentLevel, accessModel, tierFor } = useAuth()
-  // Housekeeping Supervisor+ (or an org-wide Manager) manages inspection areas
-  // and sees the full inspection log; a plain housekeeper still logs inspections
-  // but only sees the ones they personally completed. IL cleaning requests stay
-  // open to any Housekeeping staff regardless of level.
-  // Tiered communities (20260930_access_tiers_housekeeping.sql): only Housekeeping's own
-  // Supervisor+ sees the full log and bills IL visits, and only its Manager sets up areas —
-  // a manager of another department no longer qualifies.
-  const tiered  = accessModel === 'tiered'
+  const { profile, organization, hasDepartmentAccess, tierFor } = useAuth()
+  // 20260930_access_tiers_housekeeping.sql: Housekeeping's own Supervisor+ sees the full
+  // inspection log and bills IL visits, and only its Manager sets up areas; a plain
+  // housekeeper logs inspections but sees only their own. IL cleaning requests stay open
+  // to any Housekeeping staff regardless of level.
   const hkTier  = tierFor('housekeeping')
   const hkRank  = { employee: 0, supervisor: 1, manager: 2, org_admin: 3, super_admin: 3 }[hkTier] ?? -1
-  const isHousekeepingManager = tiered
-    ? (hkRank >= 1 || hkTier === 'administrator')
-    : (hasDepartmentAccess('housekeeping', 'supervisor') || hasAnyDepartmentLevel('manager'))
-  const canManageAreas = tiered ? hkRank >= 2 : isHousekeepingManager
-  const canBill        = !tiered || hkRank >= 1
+  const isHousekeepingManager = hkRank >= 1 || hkTier === 'administrator'
+  const canManageAreas = hkRank >= 2
+  const canBill        = hkRank >= 1
   // Linen discards (20261004_budget_maintenance_housekeeping.sql): Housekeeping staff log;
-  // Supervisor+ corrects anyone's entry; the NHA views but doesn't log in tiered communities
-  const canLogLinen     = !tiered || (hkRank >= 0 && hkTier !== 'administrator')
-  const canCorrectLinen = !tiered || hkRank >= 1
+  // Supervisor+ corrects anyone's entry; the NHA views but doesn't log
+  const canLogLinen     = hkRank >= 0 && hkTier !== 'administrator'
+  const canCorrectLinen = hkRank >= 1
   const [tab, setTab]             = useState('ltc')
   const [areas, setAreas]         = useState([])
   const [checklistItems, setChecklistItems] = useState([])

@@ -7,9 +7,9 @@
 // Administrator — role key `ceo`, NOT a system admin) → corporate (planned).
 // org_admin is the platform/system admin and sits outside the tiers.
 //
-// Phase 2+: communities on access_model 'tiered' get the NHA rules (nhaViewOnly,
-// canManagePlatform in AuthContext; nha_write_guard in the database). Later phases
-// convert the remaining tiers module by module.
+// Every community follows these rules (the old 'legacy' model was retired 2026-11-23):
+// nhaViewOnly / canManagePlatform in AuthContext, nha_write_guard in the database, and
+// can() / Job Roles for everything else.
 import ACCESS_MATRIX from './accessMatrix.json'
 import { LEVEL_RANK } from './departments'
 
@@ -49,12 +49,10 @@ export function tierFor({ role, isSuperAdmin, departmentRoles = [] }, moduleKey)
     .map(d => LEVEL_RANK[d.level] ?? 0)
   if (levels.length) return ['employee', 'supervisor', 'manager'][Math.max(...levels)]
 
-  // Legacy role-only supervisors/managers with no department assignments at all
-  if (!departmentRoles.length && (role === 'manager' || role === 'supervisor')) return role
   return 'employee'
 }
 
-// Modules where the Administrator (NHA) writes in a tiered community, per the matrix
+// Modules where the Administrator (NHA) writes, per the matrix
 // (incident close-out, community announcements, family communication, facility
 // surveys, admissions/discharges). Everywhere else the NHA is view + approve.
 // The database mirror is the set of tables left OUT of nha_write_guard.

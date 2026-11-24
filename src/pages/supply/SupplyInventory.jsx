@@ -501,7 +501,7 @@ export default function SupplyInventory() {
   const { organization, profile, canEdit, hasDepartmentAccess, hasAnyDepartmentLevel } = useAuth()
   // Supply staff/supervisors/managers get edit by default for central_supply;
   // org admins can grant/restrict per-user via Admin Panel > Module Access
-  // Items, prices, and par levels are the Manager's in tiered communities
+  // Items, prices, and par levels are the Manager's
   const { canManage: canEditSupply, showCosts } = useSupplyAccess()
   const [items,    setItems]    = useState([])
   const [vendors,  setVendors]  = useState([])

@@ -1564,7 +1564,7 @@ function AssetScanPanel({ asset, workOrders, isPrivileged, canCreate, onOpen, on
 
 // ── Main Page ─────────────────────────────────────────────────
 export default function WorkOrders() {
-  const { profile, organization, hasDepartmentAccess, accessModel, tierFor, departmentRoles, isSuperAdmin } = useAuth()
+  const { profile, organization, hasDepartmentAccess, tierFor, departmentRoles, isSuperAdmin } = useAuth()
   // Who sees Linked Asset, Est. Hours, Vendor Information, Recurring Task and Internal Notes on a work
   // order: anyone in the Maintenance department (any level), Org Admins and ElderLoop
   // support. Not the Administrator or other departments' managers and supervisors, so
@@ -1572,9 +1572,9 @@ export default function WorkOrders() {
   const onMaintenanceTeam = profile?.role === 'org_admin' || isSuperAdmin
     || profile?.department === 'maintenance'
     || (departmentRoles || []).some(d => d.department === 'maintenance')
-  // Tiered communities (src/lib/accessTiers.js): a Maintenance employee sees every job,
+  // By tier (src/lib/accessTiers.js): a Maintenance employee sees every job,
   // works their own or unassigned ones, and can't change priority/category/due/vendor.
-  const tieredEmployee = accessModel === 'tiered' && tierFor('work_orders') === 'employee'
+  const tieredEmployee = tierFor('work_orders') === 'employee'
     && hasDepartmentAccess('maintenance', 'employee')
   // 'mine' | 'queue' | 'all'. Every Maintenance member gets the tabs; employees
   // start on their own jobs, supervisors and managers on all jobs.
@@ -1608,7 +1608,7 @@ export default function WorkOrders() {
     supabase.rpc('maintenance_cost_report', { p_months: 1, p_org: organization.id }).then(({ data }) => setCanSeeCosts(!!data?.length))
   }, [organization?.id])
 
-  const canCreate      = profile && ['super_admin','org_admin','ceo','supervisor','manager','maintenance','staff','dietary','housekeeping'].includes(profile.role)
+  const canCreate      = profile && ['super_admin','org_admin','ceo','staff'].includes(profile.role)
   // Any level (employee/supervisor/manager) in the maintenance department works the shared queue;
   // assigning a work order to someone else requires supervisor+ within that department.
   const canEdit        = hasDepartmentAccess('maintenance', 'employee')

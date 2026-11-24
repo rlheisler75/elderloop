@@ -165,7 +165,7 @@ export default function FamilyMessaging() {
   // Any org-wide Supervisor+ gets edit (reply + post updates) by default for family
   // messaging — not tied to a specific department; org admins can grant/restrict
   // per-user via Admin Panel > Module Access
-  const canEditMessaging = canEdit('family', ['supervisor','manager']) || hasAnyDepartmentLevel('supervisor')
+  const canEditMessaging = canEdit('family') || hasAnyDepartmentLevel('supervisor')
   const DEPTS = organization?.departments?.length ? organization.departments : [
     {key:'nursing',label:'Nursing'},{key:'maintenance',label:'Maintenance'},
     {key:'dietary',label:'Dietary'},{key:'housekeeping',label:'Housekeeping'},

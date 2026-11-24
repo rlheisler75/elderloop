@@ -970,36 +970,30 @@ function BulkPrintModal({ residents, menus, onClose }) {
 
 // ── Main Dietary Page ──────────────────────────────────────────
 export default function Dietary() {
-  const { profile, organization, canEdit, hasDepartmentAccess, hasAnyDepartmentLevel, accessModel, tierFor } = useAuth()
-  // Dietary/kitchen staff, supervisors, and managers get edit by default;
-  // org admins can override per-user via Admin Panel > Module Access. The legacy
-  // role fallback is kept for not-yet-reassigned staff; the department/level checks
-  // are what a newly-assigned Dietary employee (any level) or any org-wide
-  // supervisor+ actually rely on today.
-  const canEditDietary = canEdit('dietary', ['dietary','supervisor','manager'])
-    || hasDepartmentAccess('dietary', 'employee') || hasAnyDepartmentLevel('supervisor')
+  const { profile, organization, canEdit, hasDepartmentAccess, hasAnyDepartmentLevel, tierFor } = useAuth()
+  // Meal orders: Dietary staff (any level), any department's supervisor+, or anyone with
+  // a Dietary write permission in their Job Roles.
+  const canEditDietary = canEdit('dietary') || hasDepartmentAccess('dietary', 'employee') || hasAnyDepartmentLevel('supervisor')
 
-  // Tiered communities (src/lib/accessTiers.js) split that one flag by tier, matching
-  // 20260930_access_tiers_dietary.sql: menus/recipes and the food budget belong to the
-  // Dietary Manager; profiles, seating, and physician orders to Supervisor+; any Dietary
-  // employee logs waste and works special requests. The NHA (administrator) views,
-  // approves menu cycles, and sees costs. Seating charts and standing drink/silverware notes
-  // are any Dietary employee's too. Legacy communities keep canEditDietary everywhere.
-  const tiered     = accessModel === 'tiered'
+  // By tier (src/lib/accessTiers.js), matching 20260930_access_tiers_dietary.sql: menus/
+  // recipes and the food budget belong to the Dietary Manager; profiles, seating, and
+  // physician orders to Supervisor+; any Dietary employee logs waste and works special
+  // requests. The NHA (administrator) views, approves menu cycles, and sees costs. Seating
+  // charts and standing drink/silverware notes are any Dietary employee's too.
   const dTier      = tierFor('dietary')
   const dRank      = { employee: 0, supervisor: 1, manager: 2, org_admin: 3, super_admin: 3 }[dTier] ?? -1
   const inDietary  = dTier !== 'administrator' && hasDepartmentAccess('dietary', 'employee')
-  const canManageMenus  = tiered ? dRank >= 2 : canEditDietary
-  const canEditProfiles = tiered ? dRank >= 1 : canEditDietary
-  const canEditSeating  = tiered ? (dRank >= 1 || inDietary) : canEditDietary   // 20261111_seating_all_dietary_staff.sql
-  const canLogWaste     = tiered ? (dRank >= 1 || inDietary) : canEditDietary
-  const canWorkRequests = tiered ? (dRank >= 1 || inDietary) : canEditDietary
-  const canApplyOrders  = tiered ? dRank >= 1 : canEditDietary
-  const canApproveMenus = tiered ? (dRank >= 2 || dTier === 'administrator') : canEditDietary
-  const canSeeCosts     = !tiered || dRank >= 2 || dTier === 'administrator'
+  const canManageMenus  = dRank >= 2
+  const canEditProfiles = dRank >= 1
+  const canEditSeating  = dRank >= 1 || inDietary   // 20261111_seating_all_dietary_staff.sql
+  const canLogWaste     = dRank >= 1 || inDietary
+  const canWorkRequests = dRank >= 1 || inDietary
+  const canApplyOrders  = dRank >= 1
+  const canApproveMenus = dRank >= 2 || dTier === 'administrator'
+  const canSeeCosts     = dRank >= 2 || dTier === 'administrator'
   // Physician orders: Dietary Supervisor+, Nursing, Social Services, administrators
   // (pdo_read_scope, 20261021_physician_orders_read_scope.sql). Not Dietary aides.
-  const canSeePhysicianOrders = !tiered || dRank >= 1
+  const canSeePhysicianOrders = dRank >= 1
     || hasDepartmentAccess('nursing', 'employee') || hasDepartmentAccess('social_services', 'employee')
   const [tab, setTab]             = useState('residents')
   // HIPAA view log: the residents' diet list and physician diet orders
@@ -1235,7 +1229,7 @@ export default function Dietary() {
 
       {/* COST REPORT TAB */}
       {tab === 'cost' && canSeeCosts && (
-        <CostReport orgId={organization.id} canManage={tiered ? dRank >= 2 : canEditDietary} />
+        <CostReport orgId={organization.id} canManage={dRank >= 2} />
       )}
 
       {/* MEAL ORDERS TAB */}
