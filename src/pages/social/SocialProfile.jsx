@@ -139,7 +139,9 @@ function ProfileEditor({ resident, orgId, profile: existingProfile, staff, canWr
             <select value={form.assigned_to} onChange={e => set('assigned_to', e.target.value)} disabled={readOnly || !isSupervisor}
               className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-slate-100">
               <option value="">Unassigned</option>
-              {(staff || []).map(s => <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>)}
+              {(staff || []).filter(s => !s.outside || s.id === form.assigned_to).map(s => (
+                <option key={s.id} value={s.id}>{s.first_name} {s.last_name}{s.outside ? ' (not in Social Services)' : ''}</option>
+              ))}
             </select>
           </div>
           <div>
@@ -307,21 +309,34 @@ export default function SocialProfile({ canWrite }) {
 
   async function fetchResidents() {
     setLoading(true)
-    const [{ data }, { data: staffData }, { data: profilesData }] = await Promise.all([
+    const [{ data }, { data: ssDept }, { data: profilesData }] = await Promise.all([
       supabase.from('residents')
         .select('id, first_name, last_name, room, unit, care_level')
         .eq('organization_id', organization.id)
         .eq('is_active', true)
         .order('last_name'),
-      supabase.from('profiles').select('id, first_name, last_name')
+      supabase.from('staff_department_roles').select('profile_id')
         .eq('organization_id', organization.id)
-        .eq('is_active', true)
-        .in('role', ['social_services', 'supervisor', 'manager', 'org_admin', 'ceo'])
-        .order('last_name'),
-      supabase.from('ss_social_profiles').select('resident_id, review_due_date')
+        .eq('department', 'social_services'),
+      supabase.from('ss_social_profiles').select('resident_id, review_due_date, assigned_to')
         .eq('organization_id', organization.id),
     ])
-    setStaff(staffData || [])
+    // Social workers only: anyone in the Social Services department (any level) or with
+    // the Social Services account type. Not managers, supervisors, Org Admins or the
+    // Administrator of other departments.
+    const deptIds = [...new Set((ssDept || []).map(r => r.profile_id))]
+    const { data: workers } = await supabase.from('profiles').select('id, first_name, last_name')
+      .eq('organization_id', organization.id)
+      .eq('is_active', true)
+      .or(deptIds.length ? `role.eq.social_services,id.in.(${deptIds.join(',')})` : 'role.eq.social_services')
+      .order('last_name')
+    // Someone already assigned who isn't a social worker stays visible (marked) until reassigned.
+    const workerIds = new Set((workers || []).map(w => w.id))
+    const outsideIds = [...new Set((profilesData || []).map(p => p.assigned_to).filter(id => id && !workerIds.has(id)))]
+    const { data: outside } = outsideIds.length
+      ? await supabase.from('profiles').select('id, first_name, last_name').in('id', outsideIds)
+      : { data: [] }
+    setStaff([...(workers || []), ...(outside || []).map(o => ({ ...o, outside: true }))])
     setResidents(data || [])
     setProfilesByResident(new Map((profilesData || []).map(p => [p.resident_id, p])))
     setLoading(false)

@@ -43,7 +43,7 @@ export default function SocialServicesGuide() {
               { k: 3, text: <>In <b className="text-slate-900">Case Management &amp; Review</b>, set the <b className="text-slate-900">Assigned Social Worker</b> and click <b className="text-slate-900">Mark Reviewed Today</b> once you've completed an annual review — this logs today's date and automatically sets the next review due date one year out.</> },
               { k: 4, text: <>A resident with no profile yet shows an amber <b className="text-slate-900">No profile yet</b> badge; residents nearing or past their review date show a due-soon or overdue badge next to their name.</> },
             ]} />
-            <Tip>Only staff with the Social Services, Supervisor, Manager, Org Admin, or Administrator role appear in the Assigned Social Worker dropdown. That's intentional: it's the same set of roles the Director Dashboard's caseload table counts, so every assignment you make here shows up there.</Tip>
+            <Tip>Only social workers appear in the Assigned Social Worker dropdown: anyone in the Social Services department, at any level. Managers, supervisors, Org Admins and the Administrator of other departments don't. To add someone, put them in the Social Services department on their staff record.</Tip>
           </SectionBlock>
 
           <SectionBlock id="mood" num="02" title="Mood & Behavior"
