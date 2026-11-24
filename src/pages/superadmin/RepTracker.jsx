@@ -231,12 +231,12 @@ export default function RepTracker() {
       {/* Summary stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: 'Total Orgs',       value: orgs.length,    icon: Building2,   color: 'text-brand-600',  bg: 'bg-brand-50'  },
-          { label: 'Active Reps',      value: repCount,       icon: Users,       color: 'text-purple-600', bg: 'bg-purple-50' },
-          { label: 'Rep-Sourced',      value: orgs.filter(o => o.rep_code).length, icon: TrendingUp, color: 'text-green-600', bg: 'bg-green-50' },
-          { label: 'Rep MRR',          value: fmtMRR(repMRR), icon: DollarSign,  color: 'text-amber-600',  bg: 'bg-amber-50'  },
+          { label: 'Total Orgs',       value: orgs.length,    icon: Building2,   color: 'text-brand-600 dark:text-brand-400',   bg: 'bg-brand-50'  },
+          { label: 'Active Reps',      value: repCount,       icon: Users,       color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50' },
+          { label: 'Rep-Sourced',      value: orgs.filter(o => o.rep_code).length, icon: TrendingUp, color: 'text-green-600 dark:text-green-400', bg: 'bg-green-50' },
+          { label: 'Rep MRR',          value: fmtMRR(repMRR), icon: DollarSign,  color: 'text-amber-600 dark:text-amber-400',   bg: 'bg-amber-50'  },
         ].map(s => (
-          <div key={s.label} className={`${s.bg} dark:bg-slate-900 rounded-2xl p-4`}>
+          <div key={s.label} className={`${s.bg} dark:bg-slate-900 border border-transparent dark:border-slate-800 rounded-2xl p-4`}>
             <div className="flex items-start justify-between mb-2">
               <s.icon size={16} className={s.color} />
             </div>

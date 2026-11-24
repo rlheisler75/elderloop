@@ -7,7 +7,7 @@ import {
 } from 'lucide-react'
 
 // ── Pipeline stages ───────────────────────────────────────────
-const STAGES = [
+export const STAGES = [
   { key: 'new',           label: 'New',            color: 'bg-blue-500',    text: 'text-blue-400',   badge: 'bg-blue-900/40 text-blue-300 border-blue-700/40' },
   { key: 'contacted',     label: 'Contacted',      color: 'bg-amber-500',   text: 'text-amber-400',  badge: 'bg-amber-900/40 text-amber-300 border-amber-700/40' },
   { key: 'demo_scheduled',label: 'Demo Scheduled', color: 'bg-purple-500',  text: 'text-purple-400', badge: 'bg-purple-900/40 text-purple-300 border-purple-700/40' },

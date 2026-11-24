@@ -117,7 +117,13 @@ function FeedbackCard({ item, onChange, onDelete, onReplied }) {
         </div>
       )}
       {fileError && <p className="text-xs text-red-400 mt-2 ml-12">{fileError}</p>}
-      {item.page && <p className="text-xs text-slate-600 mt-2 ml-12">Sent from {item.page}</p>}
+      {(item.page || item.app_version) && (
+        <p className="text-xs text-slate-500 mt-2 ml-12">
+          {item.page && <>Sent from {item.page}</>}
+          {item.page && item.app_version && ' · '}
+          {item.app_version && <>Version <span className="font-mono text-slate-400">{item.app_version}</span></>}
+        </p>
+      )}
 
       {replies.length > 0 && (
         <div className="mt-3 ml-12 space-y-2">

@@ -9,6 +9,7 @@ import CorporationsTab from './CorporationsTab'
 import RepCommissionsTab from './RepCommissionsTab'
 import PlatformActivityTab from './PlatformActivityTab'
 import FeedbackTab from './FeedbackTab'
+import OverviewTab from './OverviewTab'
 import { useAuth } from '../../context/AuthContext'
 import { PLAN_LIMITS } from '../../lib/planModules'
 import {
@@ -576,8 +577,11 @@ export default function SuperAdminDashboard() {
     setTimeout(() => setCopiedToken(null), 2000)
   }
 
+  // Super Admin is always dark. `dark` here turns on the dark: styles of the tabs
+  // shared with the light app (Rep Tracking, Rep Accounts, Corporations) whatever
+  // the person's own theme is.
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex" style={{ fontFamily: '"Source Sans 3", system-ui, sans-serif' }}>
+    <div className="dark min-h-screen bg-slate-950 text-white flex" style={{ fontFamily: '"Source Sans 3", system-ui, sans-serif' }}>
       <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet" />
 
       {/* ── Sidebar (drawer below md) ── */}
@@ -673,7 +677,12 @@ export default function SuperAdminDashboard() {
             <div className="text-center py-20 text-slate-500">Loading platform data...</div>
           ) : (
             <>
-              {(activeTab === 'overview' || activeTab === 'organizations') && (
+              {activeTab === 'overview' && (
+                <OverviewTab orgs={orgs} stats={stats} platformSurveys={platformSurveys}
+                  surveyResponses={surveyResponses} onOpen={setActiveTab} />
+              )}
+
+              {activeTab === 'organizations' && (
               <>
               {/* Stats */}
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
@@ -956,12 +965,6 @@ export default function SuperAdminDashboard() {
               {/* ── REP TRACKING TAB ── */}
             {activeTab === 'reps' && (
               <div>
-                <div className="mb-6">
-                  <h2 style={{ fontFamily: '"Playfair Display", serif' }} className="text-xl font-semibold text-white">
-                    Rep Tracking
-                  </h2>
-                  <p className="text-slate-500 text-sm mt-0.5">Signups attributed to sales reps by code</p>
-                </div>
                 <RepTracker />
               </div>
             )}

@@ -4,6 +4,7 @@
 // Sender, community, and role are stamped server-side by platform_feedback_stamp.
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { APP_VERSION } from '../lib/appVersion'
 import { X, LifeBuoy, Lightbulb, CheckCircle2, AlertCircle, Loader2, Send, MessageSquare, Paperclip } from 'lucide-react'
 
 // Support contact and privacy statement, reachable from every screen (staff,
@@ -133,6 +134,7 @@ export default function FeedbackModal({ onClose }) {
       message: message.trim().slice(0, 5000),
       page: window.location.pathname,
       attachments,
+      app_version: APP_VERSION,
     })
     setSending(false)
     if (error) { setError('Your message didn\'t send. Please try again in a moment.'); return }
@@ -243,6 +245,7 @@ export default function FeedbackModal({ onClose }) {
           <span>ElderLoop support: <a href={`mailto:${SUPPORT_EMAIL}`} className="text-brand-600 dark:text-brand-400 hover:underline">{SUPPORT_EMAIL}</a></span>
           <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-brand-600 dark:text-brand-400 hover:underline">Privacy Policy</a>
           <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-brand-600 dark:text-brand-400 hover:underline">Terms of Service</a>
+          <span className="sm:ml-auto text-slate-400 dark:text-slate-500">Version {APP_VERSION}</span>
         </div>
       </div>
     </div>
