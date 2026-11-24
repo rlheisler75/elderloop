@@ -10,8 +10,9 @@
 //     set this function answers 503 and stores nothing.
 //   - Reply 200/201/202/204 with an EMPTY body. 4xx/5xx makes PointClickCare
 //     resend after 90 seconds, then every 5 minutes.
-//   - Sandbox listeners must use port 3443 or 30440-30443 (production: 443), so
-//     sandbox testing needs a relay in front of this URL.
+//   - Port 443 works for the sandbox and production. The docs list 3443 or
+//     30440-30443 for the sandbox, but PointClickCare support confirmed 443 on
+//     2026-11-18, so the sandbox subscribes straight to this URL (no relay).
 //
 // Flow: check auth -> store the message in pcc_webhook_events (message_id is
 // unique, so a resend is ignored) -> reply 202 -> process it in the background.
