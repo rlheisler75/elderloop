@@ -224,7 +224,7 @@ export default function Dashboard() {
 
     if (hasModule('meters')) {
       queries.push(
-        supabase.from('meters').select('id').eq('organization_id', orgId).eq('is_active', true)
+        supabase.from('meters').select('id,billing_type').eq('organization_id', orgId).eq('is_active', true)
       )
     } else queries.push(Promise.resolve({ data: [] }))
 
@@ -294,6 +294,7 @@ export default function Dashboard() {
       openSecReports:  secReports.filter(r => r.status === 'open').length,
       urgentSecReports:secReports.filter(r => r.priority === 'urgent').length,
       meterCount: meters.length,
+      meterBilledCount: meters.filter(m => m.billing_type === 'revenue').length,
       dietReviewsDue: dietOverdue + dietDueSoon,
       dietReviewsOverdue: dietOverdue,
       weightLossAlerts: weightAlerts.size,
@@ -419,7 +420,9 @@ export default function Dashboard() {
         )}
         {hasModule('meters') && data.meterCount > 0 && (
           <StatCard icon={Gauge} label="Meters" value={data.meterCount}
-            sub="Active utility meters"
+            sub={data.meterBilledCount === data.meterCount ? 'All billed to residents'
+              : data.meterBilledCount > 0 ? `${data.meterBilledCount} billed to residents · ${data.meterCount - data.meterBilledCount} community`
+              : 'Community utility meters'}
             color="text-amber-600" bg="bg-amber-50" to="/app/meters" />
         )}
         {hasModule('housekeeping') && data.ilPending > 0 && (

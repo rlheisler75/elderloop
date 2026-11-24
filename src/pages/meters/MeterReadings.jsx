@@ -23,6 +23,14 @@ const ICON_MAP = {
 
 const getIcon = (icon) => ICON_MAP[icon] || Gauge
 
+// meters.billing_type: revenue = billed to the resident (Billing Export), expense = paid by the community
+const BILLING_TYPES = [
+  { id: 'revenue', label: 'Billed to resident', short: 'Revenue', hint: 'Usage is re-billed to the resident (Billing Export)', badge: 'bg-green-50 text-green-700 dark:bg-green-950/50 dark:text-green-400' },
+  { id: 'expense', label: 'Community expense',  short: 'Expense', hint: 'Common areas and buildings the community pays for', badge: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400' },
+]
+const billingOf = (m) => BILLING_TYPES.find(b => b.id === m?.billing_type) || BILLING_TYPES[1]
+const isRevenue = (m) => m?.billing_type === 'revenue'
+
 const fmtNum = (n, decimals = 2) => n != null ? Number(n).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) : '—'
 const fmtCost = (n) => n != null ? `$${fmtNum(n)}` : '—'
 const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
@@ -303,7 +311,7 @@ function AddReadingModal({ meter, lastReading, utilityType, onClose, onSave }) {
               </div>
               {cost != null && (
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-500">Estimated cost</span>
+                  <span className="text-slate-500">{isRevenue(meter) ? 'Charge to resident' : 'Estimated cost'}</span>
                   <span className="font-semibold" style={{ color: utilityType?.color }}>{fmtCost(cost)}</span>
                 </div>
               )}
@@ -333,7 +341,7 @@ function AddReadingModal({ meter, lastReading, utilityType, onClose, onSave }) {
 }
 
 // ── Add / Edit Meter Modal ──────────────────────────────────────
-function AddMeterModal({ orgId, utilityTypes, residents, meter, onClose, onSave }) {
+function AddMeterModal({ orgId, utilityTypes, residents, meter, defaultBilling = 'expense', onClose, onSave }) {
   const isEditing = !!meter
   const [form, setForm] = useState({
     utility_type_id: meter?.utility_type_id || utilityTypes[0]?.id || '',
@@ -341,13 +349,15 @@ function AddMeterModal({ orgId, utilityTypes, residents, meter, onClose, onSave 
     unit:             meter?.unit || '',
     building:         meter?.building || '',
     meter_number:     meter?.meter_number || '',
+    billing_type:     meter?.billing_type || defaultBilling,
   })
   const [saving, setSaving] = useState(false)
+  const [error, setError]   = useState('')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
   const handleSave = async () => {
     if (!form.utility_type_id || !form.unit.trim()) { return }
-    setSaving(true)
+    setSaving(true); setError('')
     const selectedResident = residents.find(r => `${r.first_name} ${r.last_name}` === form.resident_name)
     const payload = {
       utility_type_id: form.utility_type_id,
@@ -356,13 +366,13 @@ function AddMeterModal({ orgId, utilityTypes, residents, meter, onClose, onSave 
       unit:          form.unit.trim(),
       building:      form.building || null,
       meter_number:  form.meter_number || null,
+      billing_type:  form.billing_type,
     }
-    if (isEditing) {
-      await supabase.from('meters').update(payload).eq('id', meter.id)
-    } else {
-      await supabase.from('meters').insert({ organization_id: orgId, is_active: true, ...payload })
-    }
+    const { error: err } = isEditing
+      ? await supabase.from('meters').update(payload).eq('id', meter.id)
+      : await supabase.from('meters').insert({ organization_id: orgId, is_active: true, ...payload })
     setSaving(false)
+    if (err) { setError(err.message); return }
     onSave()
   }
 
@@ -421,6 +431,23 @@ function AddMeterModal({ orgId, utilityTypes, residents, meter, onClose, onSave 
                 placeholder="Physical meter ID" />
             </div>
           </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Billing</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {BILLING_TYPES.map(b => (
+                <button key={b.id} type="button" onClick={() => set('billing_type', b.id)} aria-pressed={form.billing_type === b.id}
+                  className={`text-left px-3 py-2.5 rounded-xl border transition-all ${form.billing_type === b.id ? 'ring-2 ring-offset-1 ring-brand-400 border-transparent bg-brand-50 dark:bg-brand-950/30 dark:ring-offset-slate-900' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'}`}>
+                  <div className="text-sm font-medium text-slate-800 dark:text-slate-100">{b.label}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{b.hint}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+          {error && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">
+              <AlertCircle size={14} /> {error}
+            </div>
+          )}
         </div>
         <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
           <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
@@ -484,7 +511,7 @@ function MeterHistoryModal({ meter, utilityType, onClose }) {
                   <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">Reading</th>
                   <th className="px-2 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wide">Photo</th>
                   <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">Usage</th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">Est. Cost</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">{isRevenue(meter) ? 'Charge' : 'Est. Cost'}</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Read By</th>
                 </tr>
               </thead>
@@ -642,9 +669,16 @@ export default function MeterReadings() {
     typeMeters.some(m => m.id === r.meter_id)
   )
   const totalUsage = typeReadings.reduce((a, r) => a + (parseFloat(r.usage) || 0), 0)
-  const totalCost  = typeReadings.reduce((a, r) => a + (parseFloat(r.estimated_cost) || 0), 0)
+  const meterById  = Object.fromEntries(typeMeters.map(m => [m.id, m]))
+  const sumWhere   = (rev) => typeReadings.filter(r => isRevenue(meterById[r.meter_id]) === rev).reduce((a, r) => a + (parseFloat(r.estimated_cost) || 0), 0)
+  const revenueTotal = sumWhere(true)
+  const expenseTotal = sumWhere(false)
+  const hasRevenue = typeMeters.some(isRevenue)
+  const hasExpense = typeMeters.some(m => !isRevenue(m))
   const unread     = typeMeters.filter(m => !lastReadings[m.id]).length
   const Icon       = activeType ? getIcon(activeType.icon) : Gauge
+  // New meters default to whatever most of this community's meters are.
+  const defaultBilling = meters.filter(isRevenue).length > meters.length / 2 ? 'revenue' : 'expense'
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -716,16 +750,17 @@ export default function MeterReadings() {
           {activeType && (
             <>
               {/* Stats */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+              <div className={`grid grid-cols-2 gap-3 mb-5 ${hasRevenue && hasExpense ? 'sm:grid-cols-5' : 'sm:grid-cols-4'}`}>
                 {[
                   { label: 'Meters',      value: typeMeters.length,           unit: '' },
                   { label: 'Unread',      value: unread,                      unit: '', alert: unread > 0 },
                   { label: 'Total Usage', value: fmtNum(totalUsage, 1),       unit: activeType.unit },
-                  { label: 'Est. Total',  value: fmtCost(totalCost || null),  unit: '' },
-                ].map(s => (
+                  hasRevenue && { label: 'Billed to Residents', value: fmtCost(revenueTotal || null), unit: '', tone: 'text-green-700 dark:text-green-400' },
+                  (hasExpense || !hasRevenue) && { label: 'Community Cost', value: fmtCost(expenseTotal || null), unit: '' },
+                ].filter(Boolean).map(s => (
                   <div key={s.label} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-4">
                     <div className="flex items-end gap-1">
-                      <span className={`text-2xl font-display font-bold ${s.alert ? 'text-amber-600' : 'text-slate-800 dark:text-slate-100'}`}>{s.value}</span>
+                      <span className={`text-2xl font-display font-bold ${s.alert ? 'text-amber-600' : s.tone || 'text-slate-800 dark:text-slate-100'}`}>{s.value}</span>
                       {s.unit && <span className="text-xs text-slate-400 mb-1">{s.unit}</span>}
                     </div>
                     <div className="text-slate-400 text-xs mt-0.5">{s.label}</div>
@@ -765,6 +800,9 @@ export default function MeterReadings() {
                               {[meter.building, `Unit ${meter.unit}`].filter(Boolean).join(' · ')}
                               {meter.meter_number && <span className="ml-1 text-slate-300">#{meter.meter_number}</span>}
                             </div>
+                            <span className={`inline-block mt-1.5 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded ${billingOf(meter).badge}`} title={billingOf(meter).hint}>
+                              {billingOf(meter).short}
+                            </span>
                           </div>
                           <div className="flex gap-1">
                             <button onClick={() => setHistoryMeter(meter)}
@@ -800,7 +838,7 @@ export default function MeterReadings() {
                             )}
                             {last.estimated_cost != null && (
                               <div className="flex items-center justify-between text-xs">
-                                <span className="text-slate-500">Est. cost</span>
+                                <span className="text-slate-500">{isRevenue(meter) ? 'Charge' : 'Est. cost'}</span>
                                 <span className="font-medium" style={{ color: activeType.color }}>{fmtCost(last.estimated_cost)}</span>
                               </div>
                             )}
@@ -853,7 +891,7 @@ export default function MeterReadings() {
       )}
       {showAddMeter && (
         <AddMeterModal
-          orgId={organization.id} utilityTypes={utilityTypes} residents={residents}
+          orgId={organization.id} utilityTypes={utilityTypes} residents={residents} defaultBilling={defaultBilling}
           onClose={() => setShowAddMeter(false)} onSave={() => { setShowAddMeter(false); fetchAll() }} />
       )}
       {readingMeter && (
@@ -882,7 +920,8 @@ export default function MeterReadings() {
         <MeterBarcodeLabels onClose={() => setShowBarcodeLabels(false)} />
       )}
       {showBilling && (
-        <MeterBilling meters={meters} utilityTypes={utilityTypes} onClose={() => setShowBilling(false)} />
+        <MeterBilling meters={meters.filter(isRevenue)} expenseCount={meters.filter(m => !isRevenue(m)).length}
+          utilityTypes={utilityTypes} onClose={() => setShowBilling(false)} />
       )}
     </div>
   )

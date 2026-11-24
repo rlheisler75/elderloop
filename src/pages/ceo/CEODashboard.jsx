@@ -69,7 +69,7 @@ export default function CEODashboard() {
       resRes, woRes, incRes, tripRes, actRes, meterRes,
       chapelRes, secRes, complianceRes, pmRes, dietRes,
       surveyRes, careRes,
-      supplyItemsRes, supplyPORes, supplyTxRes
+      supplyItemsRes, supplyPORes, supplyTxRes, meterTypesRes
     ] = await Promise.all([
       // Residents
       supabase.from('residents').select('id,care_level').eq('organization_id', orgId).eq('is_active', true),
@@ -85,8 +85,8 @@ export default function CEODashboard() {
       // Activities today
       supabase.from('activities').select('id,start_date,start_time,recur_type,title')
         .eq('organization_id', orgId).eq('is_active', true).eq('show_on_signage', true),
-      // Meter readings this month
-      supabase.from('meter_readings').select('estimated_cost').eq('organization_id', orgId).gte('created_at', monthStart),
+      // Meter readings this month (by reading date), split by whether the meter is billed to the resident
+      supabase.from('meter_readings').select('estimated_cost, meters(billing_type)').eq('organization_id', orgId).gte('reading_date', todayStr.slice(0, 8) + '01'),
       // Chapel — today's service + next upcoming
       supabase.from('chapel_services').select('id,title,service_date,start_time,is_live')
         .eq('organization_id', orgId).eq('is_active', true)
@@ -120,6 +120,8 @@ export default function CEODashboard() {
       supabase.from('supply_transactions').select('quantity,transaction_type')
         .eq('organization_id', orgId).gte('created_at', monthStart)
         .in('transaction_type', ['issue_dept','issue_resident']),
+      // Which kinds of meters the community has (billed to residents vs. community-paid)
+      supabase.from('meters').select('billing_type').eq('organization_id', orgId).eq('is_active', true),
     ])
 
     const residents    = resRes.data    || []
@@ -144,7 +146,13 @@ export default function CEODashboard() {
 
     const todayActs = activities.filter(a => a.start_date === todayStr || a.recur_type !== 'none')
 
-    const monthCost = readings.reduce((sum, r) => sum + (parseFloat(r.estimated_cost) || 0), 0)
+    const sumReadings = (rev) => readings.filter(r => (r.meters?.billing_type === 'revenue') === rev)
+      .reduce((sum, r) => sum + (parseFloat(r.estimated_cost) || 0), 0)
+    const monthBilled = sumReadings(true)    // re-billed to residents
+    const monthCost   = sumReadings(false)   // paid by the community
+    const meterKinds = meterTypesRes.data || []
+    const hasBilledMeters = meterKinds.some(m => m.billing_type === 'revenue') || readings.some(r => r.meters?.billing_type === 'revenue')
+    const hasCostMeters   = meterKinds.some(m => m.billing_type !== 'revenue') || readings.some(r => r.meters?.billing_type !== 'revenue')
 
     const byLevel = residents.reduce((acc, r) => {
       const k = r.care_level || 'independent'
@@ -177,6 +185,11 @@ export default function CEODashboard() {
       todayTrips:      trips.length,
       todayActs:       todayActs.length,
       monthCost,
+      monthBilled,
+      // A card for each kind of meter the community has; with no meters at all, the cost
+      // card stays as before (shows "—").
+      showBilled: hasBilledMeters,
+      showCost:   hasCostMeters || !hasBilledMeters,
       // Security
       secActive, lastRoundTime,
       lastRoundStatus: lastRound?.status || null,
@@ -315,7 +328,12 @@ export default function CEODashboard() {
                 <KPICard icon={ClipboardList} label="Compliance Overdue"  value={data.overdueCompliance} sub={data.overduePM > 0 ? `+ ${data.overduePM} PM overdue` : 'Inspections past due'} color={data.overdueCompliance > 0 ? "text-red-600" : "text-green-600"} bg={data.overdueCompliance > 0 ? "bg-red-50" : "bg-green-50"} to="/app/maintenance" alert={data.overdueCompliance > 0} />
                 <KPICard icon={TrendingUp}    label="Incidents This Month" value={data.monthIncidents} sub="Last 30 days"                    color="text-orange-600" bg="bg-orange-50"  to="/app/incidents" />
                 <KPICard icon={UtensilsCrossed} label="Dietary Profiles"  value={data.dietProfiles}   sub={`${data.specialDiets} special diet${data.specialDiets !== 1 ? 's' : ''}`} color="text-green-600" bg="bg-green-50" to="/app/dietary" />
-                <KPICard icon={Gauge}         label="Utility Cost (MTD)"  value={data.monthCost > 0 ? `$${data.monthCost.toFixed(0)}` : '—'} sub="Month to date" color="text-slate-600" bg="bg-slate-100" to="/app/meters" />
+                {data.showBilled && (
+                  <KPICard icon={Gauge}       label="Utility Billing (MTD)" value={data.monthBilled > 0 ? `$${data.monthBilled.toFixed(0)}` : '—'} sub="Billed to residents · month to date" color="text-green-600" bg="bg-green-50" to="/app/meters" />
+                )}
+                {data.showCost && (
+                  <KPICard icon={Gauge}       label="Utility Cost (MTD)"  value={data.monthCost > 0 ? `$${data.monthCost.toFixed(0)}` : '—'} sub="Paid by the community · month to date" color="text-slate-600" bg="bg-slate-100" to="/app/meters" />
+                )}
               </div>
             </div>
 

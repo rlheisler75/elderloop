@@ -20,7 +20,9 @@ const fmtDate = (s) => s ? new Date(s + 'T12:00:00').toLocaleDateString('en-US',
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
 const csvCell = (v) => { const s = String(v ?? ''); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s }
 
-export default function MeterBilling({ meters, utilityTypes, onClose }) {
+// `meters` are only the ones billed to residents (billing_type 'revenue'); community-expense
+// meters are left out and counted in `expenseCount`.
+export default function MeterBilling({ meters, expenseCount = 0, utilityTypes, onClose }) {
   const { organization } = useAuth()
   const [range, setRange]       = useState(lastMonth())
   const [readings, setReadings] = useState(null)
@@ -191,6 +193,11 @@ export default function MeterBilling({ meters, utilityTypes, onClose }) {
           {message && (
             <div className={`px-4 py-2 rounded-xl text-sm ${message.type === 'error' ? 'bg-red-50 border border-red-200 text-red-700' : 'bg-green-50 border border-green-200 text-green-700'}`}>{message.text}</div>
           )}
+          {expenseCount > 0 && (
+            <div className="text-xs text-slate-500 dark:text-slate-400">
+              {expenseCount} community-expense meter{expenseCount === 1 ? ' isn\'t' : 's aren\'t'} included. Only meters marked "Billed to resident" are billed.
+            </div>
+          )}
           {readings && (unread.length > 0 || noRate > 0 || noPhoto > 0) && (
             <div className="px-4 py-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-xl text-sm text-amber-800 dark:text-amber-300 space-y-1">
               {unread.length > 0 && <div className="flex gap-2"><AlertCircle size={15} className="flex-shrink-0 mt-0.5" />{unread.length} meter{unread.length === 1 ? ' has' : 's have'} no reading in this period: {unread.slice(0, 6).map(m => m.resident_name || `Unit ${m.unit}`).join(', ')}{unread.length > 6 ? '…' : ''}</div>}
@@ -202,7 +209,10 @@ export default function MeterBilling({ meters, utilityTypes, onClose }) {
           {!readings ? (
             <div className="py-16 text-center text-slate-400"><Loader2 className="animate-spin mx-auto" size={22} /></div>
           ) : lines.length === 0 ? (
-            <div className="py-16 text-center text-slate-400 text-sm">{unbilledOnly ? 'Nothing left to bill for these dates.' : 'No readings in these dates.'}</div>
+            <div className="py-16 text-center text-slate-400 text-sm">
+              {!meters.length ? 'No meters are marked "Billed to resident". Edit a meter to change its billing.'
+                : unbilledOnly ? 'Nothing left to bill for these dates.' : 'No readings in these dates.'}
+            </div>
           ) : (
             <div className="overflow-x-auto border border-slate-100 dark:border-slate-800 rounded-xl">
               <table className="w-full min-w-[760px] text-sm">
