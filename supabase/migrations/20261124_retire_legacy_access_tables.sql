@@ -177,7 +177,7 @@ alter policy profiles_select on public.profiles using (
            or has_any_department_level('supervisor'::text))));
 
 -- ── Drop the retired functions and tables ─────────────────────────────────────
-drop function public.role_template_view_only;
+drop function public.role_template_view_only(text);
 drop function public.my_access_tier_legacy(text);
 drop function public.has_department_access_legacy(text, text);
 drop function public.can_see_budget_legacy(uuid, text);
