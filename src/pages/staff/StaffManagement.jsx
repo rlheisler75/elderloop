@@ -269,9 +269,16 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
   // member's own department; Role and Departments & Access Levels — the privilege-
   // escalation surface — additionally requires org admin or an HR/Payroll manager.
   const canEditBasic = isNew || staff?.id === profile?.id || hasDepartmentAccess(staff?.department, 'supervisor') || hasAnyDepartmentLevel('manager')
-  // Real HR/Payroll Manager assignments only — hasDepartmentAccess() auto-passes for the
-  // Administrator, who manages staff access only as a Platform Admin (canManagePlatform)
-  const canEditAccess = canManagePlatform || departmentRoles.some(d => ['hr', 'payroll'].includes(d.department) && d.level === 'manager')
+  // The staff record itself (names, title, department, status incl. Terminated, notes): what the
+  // database lets you save (20261125_hr_edits_staff_records.sql) = an Org Admin, HR or Payroll at
+  // Supervisor+ for staff accounts, or the person themselves. Other managers only view it here.
+  const hrEditor = departmentRoles.some(d => ['hr', 'payroll'].includes(d.department) && ['supervisor', 'manager'].includes(d.level))
+  const canEditRecord = isNew || staff?.id === profile?.id || canManagePlatform || (hrEditor && (staff?.role || 'staff') === 'staff')
+  // Account Type and Departments & Access Levels: Org Admins only (protect_profile_privileges,
+  // staff_department_roles policies)
+  const canEditAccess = canManagePlatform
+  // Welcome / sign-in email: create-user, resend-welcome and change-user-email also allow an HR/Payroll Manager
+  const canSendWelcome = canManagePlatform || departmentRoles.some(d => ['hr', 'payroll'].includes(d.department) && d.level === 'manager')
   const [tab, setTab]     = useState('info')
   const [form, setForm]   = useState({
     first_name:               staff?.first_name               || '',
@@ -298,7 +305,7 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
   // Welcome email (password-setup link): same people change-user-email / resend-welcome
   // allow (Org Admin, HR/Payroll Manager), never yourself or an inactive account
-  const canWelcome = !isNew && canEditAccess && staff?.id !== profile?.id && staff?.is_active !== false
+  const canWelcome = !isNew && canSendWelcome && staff?.id !== profile?.id && staff?.is_active !== false
     && !['resident', 'family'].includes(staff?.role)
   const emailChanged = !isNew && form.email.trim().toLowerCase() !== (staff?.email || '').trim().toLowerCase()
   const [sendWelcome, setSendWelcome] = useState(true)
@@ -345,17 +352,21 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
       employment_end_date: form.employment_end_date || null,
       updated_at: new Date().toISOString(),
     }
-    const { error: err } = await supabase.from('profiles')
-      .update(payload).eq('id', staff.id)
+    const { data: saved, error: err } = await supabase.from('profiles')
+      .update(payload).eq('id', staff.id).select('id')
     if (err) { setError(err.message); setSaving(false); return }
+    if (!saved?.length) {
+      setError("Not saved: you don't have permission to change this person's record. HR or an Org Admin can.")
+      setSaving(false); return
+    }
 
     if (canEditAccess) {
-      await supabase.from('staff_department_roles').delete().eq('profile_id', staff.id)
-      if (deptAssignments.length > 0) {
-        await supabase.from('staff_department_roles').insert(
-          deptAssignments.map(a => ({ profile_id: staff.id, organization_id: organization.id, department: a.department, level: a.level }))
-        )
-      }
+      const { error: delErr } = await supabase.from('staff_department_roles').delete().eq('profile_id', staff.id)
+      const { error: insErr } = deptAssignments.length > 0 && !delErr
+        ? await supabase.from('staff_department_roles').insert(
+            deptAssignments.map(a => ({ profile_id: staff.id, organization_id: organization.id, department: a.department, level: a.level })))
+        : { error: null }
+      if (delErr || insErr) { setError(`Departments weren't saved: ${(delErr || insErr).message}`); setSaving(false); return }
     }
 
     setSaving(false)
@@ -423,23 +434,23 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">First Name *</label>
-                  <input value={form.first_name} onChange={e => set('first_name', e.target.value)} disabled={!canEditBasic}
+                  <input value={form.first_name} onChange={e => set('first_name', e.target.value)} disabled={!canEditRecord}
                     className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60 disabled:cursor-not-allowed" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Last Name</label>
-                  <input value={form.last_name} onChange={e => set('last_name', e.target.value)} disabled={!canEditBasic}
+                  <input value={form.last_name} onChange={e => set('last_name', e.target.value)} disabled={!canEditRecord}
                     className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60 disabled:cursor-not-allowed" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Job Title</label>
-                  <input value={form.job_title} onChange={e => set('job_title', e.target.value)} disabled={!canEditBasic}
+                  <input value={form.job_title} onChange={e => set('job_title', e.target.value)} disabled={!canEditRecord}
                     className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60 disabled:cursor-not-allowed"
                     placeholder="e.g. Charge Nurse, Head Cook" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Department</label>
-                  <select value={form.department} onChange={e => set('department', e.target.value)} disabled={!canEditBasic}
+                  <select value={form.department} onChange={e => set('department', e.target.value)} disabled={!canEditRecord}
                     className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60 disabled:cursor-not-allowed">
                     <option value="">Select department</option>
                     {departments.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
@@ -454,18 +465,18 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
                     <option value="ceo">Administrator</option>
                   </select>
                   <p className="text-xs text-slate-400 mt-1">
-                    {canEditAccess ? 'Department + level (Housekeeping Supervisor, etc.) is set below.' : 'Only Org Admin or an HR/Payroll Manager can change Account Type or Departments & Access Levels.'}
+                    {canEditAccess ? 'Department + level (Housekeeping Supervisor, etc.) is set below.' : 'Only an Org Admin can change Account Type or Departments & Access Levels.'}
                   </p>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Phone</label>
-                  <input value={form.phone} onChange={e => set('phone', e.target.value)} disabled={!canEditBasic}
+                  <input value={form.phone} onChange={e => set('phone', e.target.value)} disabled={!canEditRecord}
                     className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60 disabled:cursor-not-allowed"
                     placeholder="Mobile or work phone" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Email</label>
-                  <input type="email" value={form.email} onChange={e => set('email', e.target.value)} disabled={!canEditBasic}
+                  <input type="email" value={form.email} onChange={e => set('email', e.target.value)} disabled={!canEditRecord}
                     className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60 disabled:cursor-not-allowed"
                     placeholder="staff@email.com" />
                   {!isNew && !(emailChanged && canWelcome) && <p className="text-[11px] text-slate-400 mt-1">This is their sign-in. Changing it moves their login; the password stays the same.</p>}
@@ -484,12 +495,12 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Hire Date</label>
-                  <input type="date" value={form.hire_date} onChange={e => set('hire_date', e.target.value)} disabled={!canEditBasic}
+                  <input type="date" value={form.hire_date} onChange={e => set('hire_date', e.target.value)} disabled={!canEditRecord}
                     className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60 disabled:cursor-not-allowed" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Employment End Date</label>
-                  <input type="date" value={form.employment_end_date} onChange={e => set('employment_end_date', e.target.value)} disabled={!canEditBasic}
+                  <input type="date" value={form.employment_end_date} onChange={e => set('employment_end_date', e.target.value)} disabled={!canEditRecord}
                     title="Last day worked. Leave blank while they still work here."
                     className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60 disabled:cursor-not-allowed" />
                 </div>
@@ -499,7 +510,7 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Status</label>
                 <div className="flex gap-2 flex-wrap">
                   {STAFF_STATUSES.map(s => (
-                    <button key={s.key} onClick={() => set('status', s.key)} disabled={!canEditBasic}
+                    <button key={s.key} onClick={() => set('status', s.key)} disabled={!canEditRecord}
                       className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-all disabled:opacity-60 disabled:cursor-not-allowed ${form.status === s.key ? s.color + ' ring-2 ring-offset-1 ring-brand-400 border-transparent' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600'}`}>
                       {s.label}
                     </button>
@@ -519,17 +530,17 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
                 <div className="col-span-2 text-xs font-semibold text-red-700 dark:text-red-400 uppercase tracking-wide mb-1 flex items-center gap-1.5">
                   <Phone size={12} /> Emergency Contact
                 </div>
-                <input value={form.emergency_contact_name} onChange={e => set('emergency_contact_name', e.target.value)} disabled={!canEditBasic}
+                <input value={form.emergency_contact_name} onChange={e => set('emergency_contact_name', e.target.value)} disabled={!canEditRecord}
                   className="px-3 py-2 border border-red-200 dark:border-red-900 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-400 bg-white dark:bg-slate-800 dark:text-slate-100 disabled:opacity-60 disabled:cursor-not-allowed"
                   placeholder="Contact name" />
-                <input value={form.emergency_contact_phone} onChange={e => set('emergency_contact_phone', e.target.value)} disabled={!canEditBasic}
+                <input value={form.emergency_contact_phone} onChange={e => set('emergency_contact_phone', e.target.value)} disabled={!canEditRecord}
                   className="px-3 py-2 border border-red-200 dark:border-red-900 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-400 bg-white dark:bg-slate-800 dark:text-slate-100 disabled:opacity-60 disabled:cursor-not-allowed"
                   placeholder="Contact phone" />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Notes</label>
-                <textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows={2} disabled={!canEditBasic}
+                <textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows={2} disabled={!canEditRecord}
                   className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none disabled:opacity-60 disabled:cursor-not-allowed"
                   placeholder="Internal notes about this staff member..." />
               </div>
@@ -609,7 +620,7 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
         {tab === 'info' && (
           <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-shrink-0">
             <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 font-medium">Cancel</button>
-            <button onClick={handleSaveInfo} disabled={saving || isNew || !canEditBasic}
+            <button onClick={handleSaveInfo} disabled={saving || isNew || !canEditRecord}
               className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-medium rounded-lg transition-colors">
               {isNew ? 'Create User in Admin Panel' : saving ? 'Saving...' : 'Save Changes'}
             </button>
