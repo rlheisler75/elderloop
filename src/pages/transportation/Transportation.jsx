@@ -767,7 +767,7 @@ function TripModal({ trip, fromRequest, vehicles, residents, absences = [], defa
 
 // ── Main Transportation Page ───────────────────────────────────
 export default function Transportation() {
-  const { profile, organization, canEdit, isViewOnly } = useAuth()
+  const { profile, organization, canEdit, isViewOnly, can } = useAuth()
   // Tiered communities: everyone views trips; only people in the Transportation
   // department (any level) schedule and change them; only the Transportation
   // Manager deletes. The NHA writes only under Emergency Edit (nha_write_guard).
@@ -780,10 +780,11 @@ export default function Transportation() {
   const canManageOuts = canWrite && tierAccess.atLeast('manager')
   const [absences, setAbsences]   = useState([])
   const [showOut, setShowOut]     = useState(false)
-  // Trip requests: Nursing staff ask for a ride, Transportation schedules it
-  // (trip_can_request() / trip_can_schedule() in 20261022_trip_requests.sql)
+  // Trip requests: Nursing staff, and anyone whose job role has Transportation Create
+  // ("Request a ride", e.g. Receptionist), ask for a ride; Transportation schedules it
+  // (trip_can_request() / trip_can_schedule(), 20261022_trip_requests + 20261125_trip_request_permission)
   const nursingAccess = useTierAccess('nursing')
-  const canRequest = !canWrite && nursingAccess.member
+  const canRequest = !canWrite && (nursingAccess.member || can('transportation', 'create'))
   const [requests, setRequests]   = useState([])
   const [showRequest, setShowRequest] = useState(false)
   const [fromRequest, setFromRequest] = useState(null)
