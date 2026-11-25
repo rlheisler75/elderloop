@@ -505,6 +505,12 @@ function StaffDetail({ staff, certTypes, onClose, onSave }) {
                     </button>
                   ))}
                 </div>
+                {form.status === 'terminated' && (
+                  <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                    Terminated turns their ElderLoop account off: they're signed out and can't sign in. Their records stay here.
+                    Set them back to Active to turn it on again. If another community on ElderLoop hires them, that community can add them with the same email.
+                  </p>
+                )}
               </div>
 
               <DepartmentLevelEditor assignments={deptAssignments} onChange={setDeptAssignments} departments={departments} readOnly={!canEditAccess} />

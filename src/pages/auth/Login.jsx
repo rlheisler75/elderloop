@@ -92,9 +92,10 @@ export default function Login() {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
       await logLoginFailed(email)
-      // Inactive accounts are blocked at sign-in (20261107_inactive_blocks_sign_in.sql)
+      // Inactive and Terminated accounts are blocked at sign-in (20261107_inactive_blocks_sign_in.sql,
+      // 20261125_terminated_blocks_sign_in.sql)
       setError(/banned/i.test(error.message)
-        ? 'This account is turned off. If you still work here, ask your administrator to turn it back on.'
+        ? 'This account is turned off. If you still work here, ask your administrator to turn it back on. If you now work at another community that uses ElderLoop, ask them to add you with this email.'
         : error.message)
       setLoading(false)
     } else {

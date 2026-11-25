@@ -9,6 +9,59 @@ const corsHeaders = {
 const respond = (data: object, status = 200) =>
   new Response(JSON.stringify(data), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status })
 
+const isEmailTaken = (e: any) =>
+  e?.code === 'email_exists' || /already (been )?registered|already exists/i.test(e?.message ?? '')
+
+// The email already has a login. If it belongs to someone who left another community
+// (marked Terminated, or their account turned off), give the old login a placeholder email so
+// this community can create a fresh login with the real one. The former community keeps its
+// record and history; nothing carries over between communities (20261125_terminated_blocks_sign_in).
+async function setAsideFormerLogin(admin: any, email: string, orgId: string) {
+  const { data: rows } = await admin.from('profiles')
+    .select('id, organization_id, role, status, is_active')
+    .ilike('email', email.replace(/[\\%_]/g, '\\$&'))
+  const owners: any[] = []
+  for (const r of rows ?? []) {   // profiles keep a copy of the email; check the login itself
+    const { data } = await admin.auth.admin.getUserById(r.id)
+    if (data?.user?.email?.toLowerCase() === email) owners.push(r)
+  }
+  if (owners.length !== 1) {
+    return { error: 'This email already has an ElderLoop login. Use a different email, or contact ElderLoop support.' }
+  }
+  const p = owners[0]
+  const left = p.status === 'terminated' || p.is_active === false
+  if (p.organization_id === orgId) {
+    return { error: left
+      ? 'This person already has a staff record here that is marked Terminated or turned off. Open their record and set them back to Active instead of adding them again.'
+      : 'Someone on your staff already uses this email.' }
+  }
+  if (!p.organization_id || ['resident', 'family', 'sales_rep', 'corporate', 'super_admin'].includes(p.role)) {
+    return { error: 'This email is already used by another kind of ElderLoop login. Use a different email.' }
+  }
+  if (!left) {
+    return { error: 'This email already has an active ElderLoop login at another community. Use a different email, or that community needs to mark them Terminated first.' }
+  }
+
+  const asideEmail = `former-${p.id}@former.elderloop.xyz`
+  const { error } = await admin.auth.admin.updateUserById(p.id, { email: asideEmail, email_confirm: true })
+  if (error) return { error: `Couldn't free up this email: ${error.message}` }
+  // sync_user_email copied the placeholder onto the old profile; the former community's record keeps the real address
+  await admin.from('profiles').update({ email }).eq('id', p.id)
+  // Logged in the former community without naming the new one
+  const { error: auditErr } = await admin.from('audit_log').insert({
+    organization_id: p.organization_id, user_id: null, user_email: 'ElderLoop', user_role: 'system',
+    action: 'LOGIN_EMAIL_SET_ASIDE', table_name: 'profiles', record_id: p.id,
+    old_values: { login_email: email }, new_values: { login_email: asideEmail },
+    notes: 'This former staff member was added at another community with the same email, so their old login here got a placeholder email. Their record and history stay here.',
+  })
+  if (auditErr) console.error('create-user audit insert failed:', auditErr.message)
+  return {
+    undo: async () => {
+      await admin.auth.admin.updateUserById(p.id, { email, email_confirm: true })
+    },
+  }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -93,11 +146,24 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-      email: email.trim().toLowerCase(),
+    const cleanEmail = email.trim().toLowerCase()
+    const createLogin = () => supabaseAdmin.auth.admin.createUser({
+      email: cleanEmail,
       email_confirm: true,
       user_metadata: { first_name: first_name.trim(), last_name: (last_name || '').trim() }
     })
+    let { data: newUser, error: createError } = await createLogin()
+
+    // Someone who left another community on ElderLoop: fresh login here, same email
+    let formerLogin = false
+    let undoAside: null | (() => Promise<void>) = null
+    if (createError && isEmailTaken(createError) && !['resident', 'family'].includes(newRole)) {
+      const freed: any = await setAsideFormerLogin(supabaseAdmin, cleanEmail, organization_id)
+      if (freed.error) return respond({ success: false, error: freed.error })
+      ;({ data: newUser, error: createError } = await createLogin())
+      if (createError) await freed.undo()   // nothing left half done
+      else { formerLogin = true; undoAside = freed.undo }
+    }
 
     if (createError) {
       return respond({ success: false, error: createError.message })
@@ -119,6 +185,7 @@ Deno.serve(async (req: Request) => {
     if (profileError) {
       // Don't leave a login with no organization behind (e.g. staff limit trigger fired)
       await supabaseAdmin.auth.admin.deleteUser(newUser.user.id)
+      if (undoAside) await undoAside()   // the former login gets its email back
       return respond({ success: false, error: profileError.message })
     }
 
@@ -151,6 +218,7 @@ Deno.serve(async (req: Request) => {
           </tr></table>
           <h2 style="color:#1e3a5f;margin:0 0 12px;">Welcome, ${first_name.trim()}!</h2>
           <p style="color:#475569;font-size:15px;line-height:1.6;">You've been added as a staff member at <strong>${orgName}</strong> on ElderLoop. Click below to set your password and get started.</p>
+          ${formerLogin ? `<p style="color:#475569;font-size:15px;line-height:1.6;">If you used ElderLoop at another community before, this is a new login for ${orgName} with the same email. Set a new password with the button below.</p>` : ''}
           <div style="margin:28px 0;">
             <a href="${setupLink}" style="display:inline-block;padding:12px 28px;background:#0c90e1;color:#fff;text-decoration:none;border-radius:10px;font-weight:600;font-size:15px;">Set Up Your Password</a>
           </div>
