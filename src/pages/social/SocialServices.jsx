@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
-import { Heart, ClipboardList, AlertTriangle, Users, FileText, BarChart3, BookOpen, LogOut, Target } from 'lucide-react'
+import { Heart, ClipboardList, AlertTriangle, Users, FileText, BarChart3, BookOpen, LogOut, Target, FolderOpen } from 'lucide-react'
 import SocialProfile     from './SocialProfile'
 import MoodTracker       from './MoodTracker'
 import Grievances        from './Grievances'
@@ -10,6 +10,7 @@ import Resources         from './Resources'
 import CaseNotes         from './CaseNotes'
 import Goals             from './Goals'
 import DischargePlanning from './DischargePlanning'
+import DepartmentDocuments from '../../components/documents/DepartmentDocuments'
 import usePhiView        from '../../hooks/usePhiView'
 import PccOutboundQueue  from '../../components/pcc/PccOutboundQueue'
 import { Plug }          from 'lucide-react'
@@ -23,6 +24,7 @@ const TABS = [
   { key: 'conferences',  label: 'Care Conferences',  icon: Users,        desc: 'Scheduled conferences & meeting notes' },
   { key: 'discharge',    label: 'Discharge Planning',icon: LogOut,       desc: 'Discharge plans & post-acute coordination' },
   { key: 'resources',    label: 'Resources',         icon: BookOpen,     desc: 'Community resource directory & referrals' },
+  { key: 'documents',    label: 'Documents',         icon: FolderOpen,   desc: 'Blank forms to print as needed' },
   { key: 'dashboard',    label: 'Director Dashboard', icon: BarChart3,   desc: 'Compliance alerts and facility-wide analytics', directorOnly: true },
   { key: 'pcc',          label: 'PointClickCare',    icon: Plug,         desc: 'Notes and contacts waiting to go to PointClickCare', pccOnly: true },
 ]
@@ -32,7 +34,8 @@ export default function SocialServices() {
   const pccConnected = !!organization?.pcc_facility_id?.trim?.()
   const [tab, setTab] = useState('profiles')
   // HIPAA view log: each Social Services list a person opens (social_profiles, social_mood, ...)
-  usePhiView(`social_${tab}`)
+  // (Documents holds blank forms only, so it isn't logged.)
+  usePhiView(tab === 'documents' ? null : `social_${tab}`)
 
   const canWrite = canEdit('social_services')
   const isDirector = hasDepartmentAccess('social_services', 'employee') || hasAnyDepartmentLevel('supervisor')
@@ -79,6 +82,7 @@ export default function SocialServices() {
         {tab === 'conferences' && <CareConferences   canWrite={canWrite} />}
         {tab === 'discharge'   && <DischargePlanning canWrite={canWrite} />}
         {tab === 'resources'   && <Resources         canWrite={canWrite} />}
+        {tab === 'documents'   && <DepartmentDocuments module="social_services" departmentLabel="Social Services" />}
         {tab === 'dashboard'   && <SocialDashboard onNavigate={setTab} />}
         {tab === 'pcc' && pccConnected && <PccOutboundQueue title="Notes for PointClickCare" />}
       </div>
