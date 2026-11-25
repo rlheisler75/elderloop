@@ -6,7 +6,7 @@
 --   Manage (upload, rename, replace, remove): can(module, 'edit') or can(module, 'settings'),
 --     i.e. the department's Supervisor and Manager job roles, plus Org Admins (can() is always
 --     true for them) and ElderLoop support.
---   Files: private bucket department-documents at <organization_id>/<module>/<uuid>.<ext>,
+--   Files: private bucket department-documents at <organization_id>/<module>/<id>_<file name>.<ext>,
 --     opened with short-lived signed URLs.
 --
 -- Blank forms only: a form filled in with a resident's information belongs in that resident's

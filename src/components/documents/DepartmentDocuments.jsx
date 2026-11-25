@@ -31,8 +31,12 @@ const titleFromName = (name) => name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, '
 const extOf = (name) => (name.match(/\.([a-z0-9]{1,5})$/i)?.[1] || 'bin').toLowerCase()
 const newId = () => (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`)
 
+// Stored as <org>/<module>/<8-char id>_<original name>, so a printed or saved PDF keeps a
+// recognizable name (the browser's PDF tab shows it) while the id keeps paths unique.
+const safeName = (name) => name.replace(/\.[^.]+$/, '').replace(/[^A-Za-z0-9._-]+/g, '_').replace(/_+/g, '_').replace(/^[._]+|[._]+$/g, '').slice(0, 80) || 'document'
+
 async function uploadFile(orgId, module, file) {
-  const path = `${orgId}/${module}/${newId()}.${extOf(file.name)}`
+  const path = `${orgId}/${module}/${newId().slice(0, 8)}_${safeName(file.name)}.${extOf(file.name)}`
   const { error } = await supabase.storage.from(BUCKET).upload(path, file, { contentType: file.type || undefined, upsert: false })
   if (error) throw new Error(`${file.name}: ${error.message}`)
   return path
