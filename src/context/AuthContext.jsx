@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { PROFILE_COLS, withPrivateField } from '../lib/profilePrivate'
-import { useSessionTimeout } from '../hooks/useSessionTimeout'
+import { useSessionTimeout, checkIdleAtStartup, markActivity } from '../hooks/useSessionTimeout'
 import SessionTimeoutModal from '../components/SessionTimeoutModal'
 import { tierFor as tierForProfile, NHA_WRITABLE_MODULES, MODULE_DEPARTMENTS } from '../lib/accessTiers'
 import { BUDGET_DEPARTMENT_KEYS } from '../lib/budgets'
@@ -47,34 +47,43 @@ export function AuthProvider({ children }) {
   }, [emergencyUntil])
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      if (session?.user) checkMfaThenLoad(session.user.id)
-      else setLoading(false)
+    let subscription = null, cancelled = false
+    // A saved sign-in idle for 30+ minutes (browser closed, computer asleep) ends here,
+    // before anything loads (HIPAA auto-logoff; see useSessionTimeout).
+    checkIdleAtStartup().then(timedOut => {
+      if (cancelled) return
+      if (timedOut) navigate('/login?reason=timeout', { replace: true })
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setUser(session?.user ?? null)
+        if (session?.user) checkMfaThenLoad(session.user.id)
+        else setLoading(false)
+      })
+      subscription = supabase.auth.onAuthStateChange((event, session) => {
+        setUser(session?.user ?? null)
+        // Coming back to the tab refreshes the token (TOKEN_REFRESHED, and supabase-js also
+        // re-emits SIGNED_IN on focus). For the person already loaded, don't reload: the
+        // loading screen unmounts the page and wipes any form in progress.
+        if (session?.user && session.user.id === loadedUserRef.current
+            && ['TOKEN_REFRESHED', 'SIGNED_IN', 'USER_UPDATED', 'INITIAL_SESSION'].includes(event)) {
+          return
+        }
+        // A new sign-in (password, setup / reset link) starts the 30-minute idle clock.
+        if (session?.user && ['SIGNED_IN', 'PASSWORD_RECOVERY'].includes(event)) markActivity(true)
+        // Deferred: calling other auth methods inside this callback can deadlock supabase-js.
+        // Mark loading now, not inside the deferred call: otherwise /login sees a user with
+        // no profile yet and redirects a super admin to /app/dashboard instead of /superadmin.
+        if (session?.user) {
+          setLoading(true)
+          setTimeout(() => checkMfaThenLoad(session.user.id), 0)
+        }
+        else {
+          loadedUserRef.current = null
+          setProfile(null); setOrg(null); setOrgModules([]); setMfaStep(null); setMfaStatus(null)
+          setSuperAdmin(false); setLoading(false)
+        }
+      }).data.subscription
     })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null)
-      // Coming back to the tab refreshes the token (TOKEN_REFRESHED, and supabase-js also
-      // re-emits SIGNED_IN on focus). For the person already loaded, don't reload: the
-      // loading screen unmounts the page and wipes any form in progress.
-      if (session?.user && session.user.id === loadedUserRef.current
-          && ['TOKEN_REFRESHED', 'SIGNED_IN', 'USER_UPDATED', 'INITIAL_SESSION'].includes(event)) {
-        return
-      }
-      // Deferred: calling other auth methods inside this callback can deadlock supabase-js.
-      // Mark loading now, not inside the deferred call: otherwise /login sees a user with
-      // no profile yet and redirects a super admin to /app/dashboard instead of /superadmin.
-      if (session?.user) {
-        setLoading(true)
-        setTimeout(() => checkMfaThenLoad(session.user.id), 0)
-      }
-      else {
-        loadedUserRef.current = null
-        setProfile(null); setOrg(null); setOrgModules([]); setMfaStep(null); setMfaStatus(null)
-        setSuperAdmin(false); setLoading(false)
-      }
-    })
-    return () => subscription.unsubscribe()
+    return () => { cancelled = true; subscription?.unsubscribe() }
   }, [])
 
   // Two-factor first: until the session has passed the code step (or the person has no
@@ -193,7 +202,7 @@ export function AuthProvider({ children }) {
 
   // ── Session timeout (HIPAA auto-logoff) ───────────────────────
   const { showWarning, timeLeft, extendSession, doLogout } = useSessionTimeout({
-    enabled: !!user,
+    user,
     onTimeout: () => navigate('/login?reason=timeout'),
   })
 

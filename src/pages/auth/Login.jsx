@@ -51,8 +51,14 @@ export default function Login() {
   const [error, setError]       = useState('')
   const [isDemo, setIsDemo]     = useState(false)
 
-  // Show timeout message if redirected from session expiry
-  const timedOut = searchParams.get('reason') === 'timeout'
+  // Show timeout message after an automatic sign-out. The flag (set by endIdleSession)
+  // is what counts: the sign-in guard's own redirect to /login can land after the
+  // timeout redirect and drop ?reason=timeout.
+  const [timeoutFlag] = useState(() => {
+    try { return sessionStorage.getItem('elderloop_timed_out') === '1' } catch { return false }
+  })
+  useEffect(() => { try { sessionStorage.removeItem('elderloop_timed_out') } catch { /* blocked */ } }, [])
+  const timedOut = timeoutFlag || searchParams.get('reason') === 'timeout'
 
   useEffect(() => {
     const paramEmail = searchParams.get('email')
