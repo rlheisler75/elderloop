@@ -459,7 +459,7 @@ export default function StaffDirectory() {
                       canEdit={canEditMember(member)}
                       departments={departments}
                       onEdit={handleEdit}
-                      onViewProfile={(id) => navigate(`/app/staff-management?staffId=${id}`)}
+                      onViewProfile={(id) => navigate(`/app/staff?staffId=${id}`)}
                     />
                   ))}
                 </div>
